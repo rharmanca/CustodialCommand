@@ -8,6 +8,11 @@ This is a full-stack web application built for managing custodial services opera
 
 Preferred communication style: Simple, everyday language.
 
+**Project Maintenance Requirements:**
+- README.md, LICENSE, and .gitignore files must be maintained and updated whenever working on the project
+- Any architectural changes, new features, or significant modifications should be reflected in README.md
+- Keep documentation current with actual project state
+
 ## System Architecture
 
 ### Frontend Architecture
