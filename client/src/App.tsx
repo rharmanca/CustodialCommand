@@ -142,7 +142,7 @@ function App() {
                 onClick={() => setCurrentPage('Whole Building Inspection')}
                 className="retro-button bg-blue-700 hover:bg-blue-800 border-blue-500"
               >
-                Submit Whole Building Inspection
+                Building Inspection
               </button>
               <button 
                 onClick={() => setCurrentPage('Inspection Data')}
