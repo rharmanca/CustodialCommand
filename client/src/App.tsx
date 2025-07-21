@@ -11,7 +11,7 @@ function App() {
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Custodial', path: 'Custodial' },
+    { name: 'Home', path: 'Custodial' },
   ];
 
   const renderPageContent = () => {
