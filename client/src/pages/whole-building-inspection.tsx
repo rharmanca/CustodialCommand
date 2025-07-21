@@ -136,8 +136,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               trash: 0,
               projectCleaning: 0,
               activitySupport: 0,
-              safetyCompliance: ```
-0,
+              safetyCompliance: 0,
               equipment: 0,
               monitoring: 0,
               notes: ''
