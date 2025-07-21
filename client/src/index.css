@@ -154,7 +154,7 @@
   background-color: rgba(17, 24, 39, 0.8);
 }
 
-/* Mobile responsive image adjustments */
+/* Mobile responsive optimizations */
 @media (max-width: 640px) {
   img {
     max-width: 100% !important;
@@ -166,5 +166,54 @@
     width: 100%;
     height: auto;
     min-height: 4rem;
+  }
+  
+  /* Better touch targets for mobile */
+  button, .retro-button, .back-button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+  }
+  
+  /* Improved mobile typography */
+  h1 {
+    font-size: 2.5rem !important;
+    line-height: 1.2;
+  }
+  
+  h2 {
+    font-size: 2rem !important;
+    line-height: 1.3;
+  }
+  
+  /* Mobile-friendly form elements */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+    border-radius: 8px;
+  }
+  
+  /* Mobile spacing adjustments */
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  .mobile-margin {
+    margin: 0.5rem 0;
+  }
+  
+  /* Star rating mobile optimization */
+  .star-button {
+    font-size: 32px;
+    padding: 8px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  /* Mobile navigation improvements */
+  .retro-button {
+    width: 100%;
+    margin: 0.5rem 0;
+    text-align: center;
   }
 }
