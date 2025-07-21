@@ -358,27 +358,22 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
       // Submit room inspection
       const submissionData = {
-        inspectorName: formData.inspectorName,
-        school: formData.school,
-        date: formData.date,
-        locationCategory: selectedCategory,
-        roomNumber: formData.roomNumber,
-        locationDescription: formData.locationDescription,
-        floors: formData.floors,
-        verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces,
-        ceiling: formData.ceiling,
-        restrooms: formData.restrooms,
-        customerSatisfaction: formData.customerSatisfaction,
-        trash: formData.trash,
-        projectCleaning: formData.projectCleaning,
-        activitySupport: formData.activitySupport,
-        safetyCompliance: formData.safetyCompliance,
-        equipment: formData.equipment,
-        monitoring: formData.monitoring,
-        notes: formData.notes,
-        inspectionType: 'single_room',
         buildingInspectionId: currentBuildingId,
-        roomType: selectedCategory
+        roomType: selectedCategory,
+        roomIdentifier: formData.roomNumber,
+        floors: formData.floors === -1 ? null : formData.floors,
+        verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces === -1 ? null : formData.verticalHorizontalSurfaces,
+        ceiling: formData.ceiling === -1 ? null : formData.ceiling,
+        restrooms: formData.restrooms === -1 ? null : formData.restrooms,
+        customerSatisfaction: formData.customerSatisfaction === -1 ? null : formData.customerSatisfaction,
+        trash: formData.trash === -1 ? null : formData.trash,
+        projectCleaning: formData.projectCleaning === -1 ? null : formData.projectCleaning,
+        activitySupport: formData.activitySupport === -1 ? null : formData.activitySupport,
+        safetyCompliance: formData.safetyCompliance === -1 ? null : formData.safetyCompliance,
+        equipment: formData.equipment === -1 ? null : formData.equipment,
+        monitoring: formData.monitoring === -1 ? null : formData.monitoring,
+        notes: formData.notes || null,
+        images: []
       };
 
       const response = await fetch('/api/room-inspections', {
@@ -741,6 +736,45 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   onChange={(e) => handleInputChange('notes', e.target.value)}
                   placeholder="Enter any additional observations..."
                   rows={4}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Image Upload */}
+          {isMobile ? (
+            <MobileCard title="Upload Images">
+              <div className="space-y-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="text-base"
+                  onChange={(e) => {
+                    // Handle file upload - placeholder for now
+                    console.log('Files selected:', e.target.files);
+                  }}
+                />
+                <p className="text-sm text-gray-500">
+                  Select multiple images to document the inspection
+                </p>
+              </div>
+            </MobileCard>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Images</CardTitle>
+                <CardDescription>Add photos to document the inspection</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    // Handle file upload - placeholder for now
+                    console.log('Files selected:', e.target.files);
+                  }}
                 />
               </CardContent>
             </Card>

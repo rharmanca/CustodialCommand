@@ -86,7 +86,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.school || !formData.date) {
       alert('Please fill in school and date fields');
       return;
@@ -222,7 +222,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Rating Description */}
         {currentRating > 0 && (
           <div className="space-y-2">
@@ -292,7 +292,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </Button>
           ))}
         </div>
-        
+
         {/* Rating Description */}
         {currentRating > 0 && (
           <div className="text-center space-y-2">
@@ -368,7 +368,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label htmlFor="date">Inspection Date *</Label>
                 <Input
@@ -379,7 +379,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="locationCategory">Location Category</Label>
                 <Select value={formData.locationCategory} onValueChange={(value) => handleInputChange('locationCategory', value)}>
@@ -395,7 +395,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label htmlFor="roomNumber">Room Number</Label>
                 <Input
@@ -406,7 +406,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 />
               </div>
             </div>
-            
+
             <div>
               <Label htmlFor="locationDescription">Location Description</Label>
               <Input

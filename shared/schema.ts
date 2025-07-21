@@ -86,7 +86,20 @@ export const insertRoomInspectionSchema = createInsertSchema(roomInspections).om
   id: true,
   createdAt: true,
 }).extend({
-  images: z.array(z.string()).optional()
+  images: z.array(z.string()).optional().default([]),
+  floors: z.number().nullable().optional(),
+  verticalHorizontalSurfaces: z.number().nullable().optional(),
+  ceiling: z.number().nullable().optional(),
+  restrooms: z.number().nullable().optional(),
+  customerSatisfaction: z.number().nullable().optional(),
+  trash: z.number().nullable().optional(),
+  projectCleaning: z.number().nullable().optional(),
+  activitySupport: z.number().nullable().optional(),
+  safetyCompliance: z.number().nullable().optional(),
+  equipment: z.number().nullable().optional(),
+  monitoring: z.number().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  roomIdentifier: z.string().nullable().optional()
 });
 
 export const insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
