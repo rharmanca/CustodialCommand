@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import HomePage from './pages/home';
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
@@ -61,7 +60,7 @@ function App() {
             </div>
 
             <h2 className="text-4xl font-bold text-amber-900 mb-6 font-inter-bold">Custodial Operations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
                 className="retro-button bg-green-700 hover:bg-green-800 border-green-500"
