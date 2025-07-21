@@ -34,7 +34,7 @@ function App() {
                   {isInstallSectionOpen ? '−' : '+'}
                 </span>
               </button>
-              
+
               {isInstallSectionOpen && (
                 <div className="mt-4 p-6 bg-amber-50 border-2 border-amber-300 rounded-lg shadow-md">
                   <div className="text-amber-800 space-y-3">
@@ -62,7 +62,7 @@ function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-center mb-8">
               <img 
                 src={sharedServicesImage} 
@@ -141,7 +141,7 @@ function App() {
       {/* Header section with app title */}
       <header className="w-full max-w-4xl header-container p-6 rounded-lg shadow-xl mb-8 border-4 border-orange-400">
         <h1 className="text-6xl font-extrabold text-center uppercase retro-header tracking-widest font-inter-bold">
-          Shared Service Command
+          Custodial Command
         </h1>
       </header>
 
