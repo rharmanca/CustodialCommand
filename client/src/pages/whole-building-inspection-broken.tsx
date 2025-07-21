@@ -128,155 +128,166 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     setIsAllComplete(checkCompletion());
   }, [completed]);
 
-  // Load saved progress on component mount
+  // Check for existing incomplete building inspections on mount
   useEffect(() => {
-    const loadSavedProgress = async () => {
-      try {
-        const response = await fetch('/api/inspections?type=whole_building&incomplete=true');
-        if (response.ok) {
-          const inspections = await response.json();
-          if (inspections.length > 0) {
-            // Load the most recent incomplete building inspection
-            const buildingInspection = inspections[0];
-            setBuildingInspectionId(buildingInspection.id);
-            setFormData({
-              school: buildingInspection.school,
-              date: buildingInspection.date,
-              locationCategory: '',
-              roomNumber: '',
-              locationDescription: '',
-              floors: 0,
-              verticalHorizontalSurfaces: 0,
-              ceiling: 0,
-              restrooms: 0,
-              customerSatisfaction: 0,
-              trash: 0,
-              projectCleaning: 0,
-              activitySupport: 0,
-              safetyCompliance: 0,
-              equipment: 0,
-              monitoring: 0,
-              notes: ''
-            });
-            
-            // Load completed rooms for each category
-            const roomResponse = await fetch(`/api/inspections/${buildingInspection.id}/rooms`);
-            if (roomResponse.ok) {
-              const rooms = await roomResponse.json();
-              const completedCount: Record<string, number> = {};
-              Object.keys(requirements).forEach(key => {
-                completedCount[key] = rooms.filter((room: any) => room.roomType === key).length;
-              });
-              setCompleted(completedCount);
+    const checkForExistingInspection = async () => {
+      if (formData.school && formData.date) {
+        try {
+          // First check if there's an existing incomplete inspection
+          const inspectionsResponse = await fetch('/api/inspections');
+          if (inspectionsResponse.ok) {
+            const allInspections = await inspectionsResponse.json();
+            const existingInspection = allInspections.find((insp: any) => 
+              insp.school === formData.school && 
+              insp.date === formData.date && 
+              insp.inspectionType === 'whole_building' && 
+              !insp.isCompleted
+            );
+
+            if (existingInspection) {
+              // Resume existing inspection
+              setBuildingInspectionId(existingInspection.id);
               setIsResuming(true);
+              
+              // Load completed inspections for this building
+              const completedInspections = allInspections.filter((insp: any) => 
+                insp.buildingInspectionId === existingInspection.id
+              );
+              
+              setSavedInspections(completedInspections);
+              
+              // Update completed counts
+              const newCompleted: Record<string, number> = { ...completed };
+              completedInspections.forEach((insp: any) => {
+                if (insp.locationCategory && newCompleted[insp.locationCategory] !== undefined) {
+                  newCompleted[insp.locationCategory]++;
+                }
+              });
+              setCompleted(newCompleted);
+            } else {
+              // Create new building inspection
+              const response = await fetch('/api/inspections', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  school: formData.school,
+                  date: formData.date,
+                  inspectionType: 'whole_building',
+                  locationDescription: 'Whole Building Inspection',
+                  isCompleted: false,
+                  // Set null for fields that don't apply to building inspections
+                  floors: null,
+                  verticalHorizontalSurfaces: null,
+                  ceiling: null,
+                  restrooms: null,
+                  customerSatisfaction: null,
+                  trash: null,
+                  projectCleaning: null,
+                  activitySupport: null,
+                  safetyCompliance: null,
+                  equipment: null,
+                  monitoring: null
+                }),
+              });
+
+              if (response.ok) {
+                const inspection = await response.json();
+                setBuildingInspectionId(inspection.id);
+                setIsResuming(false);
+              }
             }
           }
+        } catch (error) {
+          console.error('Error checking/creating building inspection:', error);
         }
-      } catch (error) {
-        console.error('Error loading saved progress:', error);
       }
     };
 
-    loadSavedProgress();
-  }, []);
+    checkForExistingInspection();
+  }, [formData.school, formData.date]);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData(prev => ({
-      ...prev,
-      locationCategory: selectedCategory || '',
-      roomNumber: '',
-      locationDescription: '',
-      floors: 0,
-      verticalHorizontalSurfaces: 0,
-      ceiling: 0,
-      restrooms: 0,
-      customerSatisfaction: 0,
-      trash: 0,
-      projectCleaning: 0,
-      activitySupport: 0,
-      safetyCompliance: 0,
-      equipment: 0,
-      monitoring: 0,
-      notes: ''
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedCategory) return;
+    if (!selectedCategory) {
+      alert('Please select a category to inspect.');
+      return;
+    }
+
+    if (!formData.school || !formData.date) {
+      alert('Please select school and date first.');
+      return;
+    }
+
+    // Validate all ratings are filled
+    const ratingFields = inspectionCategories.map(cat => cat.key);
+    const hasEmptyRatings = ratingFields.some(field => formData[field as keyof typeof formData] === 0);
+    
+    if (hasEmptyRatings) {
+      alert('Please rate all categories before submitting.');
+      return;
+    }
+
+    if (!formData.roomNumber) {
+      alert('Please enter a room number.');
+      return;
+    }
 
     try {
-      // First, create or get the building inspection
-      let currentBuildingId = buildingInspectionId;
-      
-      if (!currentBuildingId) {
-        const buildingResponse = await fetch('/api/inspections', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            school: formData.school,
-            date: formData.date,
-            inspectionType: 'whole_building',
-            locationDescription: 'Whole Building Inspection',
-            isCompleted: false,
-            verifiedRooms: []
-          }),
-        });
-        
-        if (buildingResponse.ok) {
-          const building = await buildingResponse.json();
-          currentBuildingId = building.id;
-          setBuildingInspectionId(building.id);
-        } else {
-          throw new Error('Failed to create building inspection');
-        }
-      }
+      const submissionData = {
+        ...formData,
+        locationCategory: selectedCategory,
+        inspectionType: 'single_room',
+        buildingInspectionId: buildingInspectionId,
+        images: []  // Ensure images is an empty array
+      };
 
-      // Submit the room inspection
-      const roomResponse = await fetch('/api/room-inspections', {
+      const response = await fetch('/api/inspections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          buildingInspectionId: currentBuildingId,
-          roomType: selectedCategory,
-          roomIdentifier: formData.roomNumber,
-          floors: formData.floors,
-          verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces,
-          ceiling: formData.ceiling,
-          restrooms: formData.restrooms,
-          customerSatisfaction: formData.customerSatisfaction,
-          trash: formData.trash,
-          projectCleaning: formData.projectCleaning,
-          activitySupport: formData.activitySupport,
-          safetyCompliance: formData.safetyCompliance,
-          equipment: formData.equipment,
-          monitoring: formData.monitoring,
-          notes: formData.notes
-        }),
+        body: JSON.stringify(submissionData),
       });
 
-      if (roomResponse.ok) {
+      if (response.ok) {
+        const savedInspection = await response.json();
+        
         // Update completed count
         setCompleted(prev => ({
           ...prev,
           [selectedCategory]: prev[selectedCategory] + 1
         }));
-        
-        // Reset form and deselect category
-        resetForm();
-        setSelectedCategory(null);
-        
-        alert('Room inspection submitted successfully!');
+
+        // Add to saved inspections
+        setSavedInspections(prev => [...prev, savedInspection]);
+
+        // Reset form but keep school and date
+        setFormData(prev => ({
+          ...prev,
+          roomNumber: '',
+          locationDescription: '',
+          floors: 0,
+          verticalHorizontalSurfaces: 0,
+          ceiling: 0,
+          restrooms: 0,
+          customerSatisfaction: 0,
+          trash: 0,
+          projectCleaning: 0,
+          activitySupport: 0,
+          safetyCompliance: 0,
+          equipment: 0,
+          monitoring: 0,
+          notes: ''
+        }));
+
+        alert(`${categoryLabels[selectedCategory]} inspection submitted and saved!`);
       } else {
-        throw new Error('Failed to submit room inspection');
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error('Failed to submit inspection');
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
@@ -442,6 +453,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       {/* Dynamic Checklist */}
       {isMobile ? (
         <MobileCard title="Inspection Progress">
+          <p className="text-sm text-gray-600 mb-4">
+            Complete the required number of inspections for each category
+            {formData.school && formData.date && (
+              <span className="block text-xs text-gray-500 mt-1">
+                (Progress is automatically saved)
+              </span>
+            )}
+          </p>
           <div className="space-y-3">
             {Object.entries(requirements).map(([category, required]) => {
               const completedCount = completed[category];
@@ -609,42 +628,49 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
           {/* Rating Categories */}
           {isMobile ? (
-            <div className="space-y-4">
-              {inspectionCategories.map((category, index) => (
-                <MobileCard key={category.key} title={category.label}>
-                  <div className="space-y-3">
-                    {renderStarRating(category.key, formData[category.key as keyof typeof formData] as number)}
+            <MobileCard title="Inspection Categories">
+              <p className="text-sm text-gray-600 mb-4">Rate each category (1-5 stars)</p>
+              <div className="space-y-6">
+                {inspectionCategories.map((category, index) => (
+                  <div key={category.key}>
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium block">{category.label}</Label>
+                      {renderStarRating(category.key, formData[category.key as keyof typeof formData] as number)}
+                    </div>
+                    {index < inspectionCategories.length - 1 && <Separator className="mt-4" />}
                   </div>
-                </MobileCard>
-              ))}
-            </div>
+                ))}
+              </div>
+            </MobileCard>
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Rate Each Category</CardTitle>
-                <CardDescription>Provide ratings for each inspection criterion</CardDescription>
+                <CardTitle>Inspection Categories</CardTitle>
+                <CardDescription>Rate each category (1-5 stars)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {inspectionCategories.map((category, index) => (
-                  <div key={category.key} className="space-y-3">
-                    <Label className="text-base font-medium">{category.label}</Label>
-                    {renderStarRating(category.key, formData[category.key as keyof typeof formData] as number)}
-                    {index < inspectionCategories.length - 1 && <Separator />}
+                  <div key={category.key}>
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium">{category.label}</Label>
+                      {renderStarRating(category.key, formData[category.key as keyof typeof formData] as number)}
+                    </div>
+                    {index < inspectionCategories.length - 1 && <Separator className="mt-4" />}
                   </div>
                 ))}
               </CardContent>
             </Card>
           )}
 
-          {/* Notes Section */}
+          {/* Notes */}
           {isMobile ? (
             <MobileCard title="Additional Notes">
               <Textarea
-                className="min-h-24 text-base"
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Enter any additional observations..."
                 rows={4}
+                className="text-base min-h-[120px]"
               />
             </MobileCard>
           ) : (
