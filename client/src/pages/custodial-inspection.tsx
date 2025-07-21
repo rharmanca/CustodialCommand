@@ -171,11 +171,19 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       <div className="space-y-4">
         <div className="space-y-2">
           <Label className="text-base font-medium">Rating</Label>
-          <Select value={currentRating > 0 ? currentRating.toString() : ""} onValueChange={(value) => handleInputChange(categoryObj.key, parseInt(value))}>
+          <Select value={currentRating > 0 ? currentRating.toString() : currentRating === 0 ? "0" : ""} onValueChange={(value) => handleInputChange(categoryObj.key, parseInt(value))}>
             <SelectTrigger className="h-12 text-base">
               <SelectValue placeholder="Select a rating..." />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="0">
+                <div className="flex items-center gap-3 py-1">
+                  <div className="text-left">
+                    <div className="font-medium">Not Rated</div>
+                    <div className="text-sm text-gray-600">No rating selected</div>
+                  </div>
+                </div>
+              </SelectItem>
               {ratingDescriptions.map((rating, index) => (
                 <SelectItem key={index + 1} value={(index + 1).toString()}>
                   <div className="flex items-center gap-3 py-1">
@@ -213,6 +221,16 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </div>
           </div>
         )}
+        {currentRating === 0 && (
+          <div className="space-y-2">
+            <Badge variant="outline" className="text-base px-4 py-2 w-full justify-center">
+              Not Rated
+            </Badge>
+            <div className="text-center text-sm text-gray-600">
+              No rating selected
+            </div>
+          </div>
+        )}
 
         {/* Detailed Criteria */}
         {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
@@ -233,6 +251,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     return (
       <div className="space-y-4">
         <div className="flex justify-center gap-2">
+          <Button
+            type="button"
+            variant={currentRating === 0 ? "default" : "outline"}
+            size="sm"
+            className="px-3 py-2 h-auto text-sm"
+            onClick={() => handleInputChange(categoryObj.key, 0)}
+          >
+            Not Rated
+          </Button>
           {[1, 2, 3, 4, 5].map((star) => (
             <Button
               key={star}
@@ -244,7 +271,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             >
               <Star
                 className={`w-8 h-8 ${
-                  star <= currentRating
+                  star <= currentRating && currentRating > 0
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-gray-300'
                 }`}
@@ -261,6 +288,16 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </Badge>
             <div className="text-sm text-gray-600">
               {ratingDescriptions[currentRating - 1]?.description}
+            </div>
+          </div>
+        )}
+        {currentRating === 0 && (
+          <div className="text-center space-y-2">
+            <Badge variant="outline" className="text-lg px-4 py-2">
+              Not Rated
+            </Badge>
+            <div className="text-sm text-gray-600">
+              No rating selected
             </div>
           </div>
         )}

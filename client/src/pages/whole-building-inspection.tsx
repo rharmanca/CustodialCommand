@@ -188,7 +188,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <SelectValue placeholder="Select a rating..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="-1">N/A</SelectItem>
+            <SelectItem value="-1">Not Rated</SelectItem>
             {ratingDescriptions.map((rating, index) => (
               <SelectItem key={index + 1} value={(index + 1).toString()}>
                 <div className="flex items-center gap-3 py-1">
@@ -226,10 +226,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         {currentRating === -1 && (
           <div className="text-center space-y-1">
             <div className="text-base font-semibold text-gray-600">
-              N/A
+              Not Rated
             </div>
             <div className="text-sm text-gray-600">
-              Not Applicable
+              No rating selected
             </div>
           </div>
         )}
@@ -245,10 +245,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             type="button"
             variant="ghost"
             size="sm"
-            className="p-2 h-auto"
+            className="px-3 py-2 h-auto text-sm"
             onClick={() => onRatingChange(-1)}
           >
-            N/A
+            Not Rated
           </Button>
           {[1, 2, 3, 4, 5].map((star) => (
             <Button
@@ -282,10 +282,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         {currentRating === -1 && (
           <div className="text-center">
             <div className="text-lg font-semibold text-gray-600">
-              N/A
+              Not Rated
             </div>
             <div className="text-sm text-gray-600">
-              Not Applicable
+              No rating selected
             </div>
           </div>
         )}
