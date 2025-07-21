@@ -18,7 +18,7 @@ interface WholeBuildingInspectionPageProps {
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
-  
+
   // Define requirements for each category
   const requirements = {
     exterior: 2,
@@ -136,12 +136,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               trash: 0,
               projectCleaning: 0,
               activitySupport: 0,
-              safetyCompliance: 0,
+              safetyCompliance: ```
+0,
               equipment: 0,
               monitoring: 0,
               notes: ''
             });
-            
+
             // Load completed rooms for each category
             const roomResponse = await fetch(`/api/inspections/${buildingInspection.id}/rooms`);
             if (roomResponse.ok) {
@@ -188,6 +189,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <SelectValue placeholder="Select a rating..." />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="-1">N/A</SelectItem>
             {ratingDescriptions.map((rating, index) => (
               <SelectItem key={index + 1} value={(index + 1).toString()}>
                 <div className="flex items-center gap-3 py-1">
@@ -212,13 +214,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             ))}
           </SelectContent>
         </Select>
-        {currentRating > 0 && (
+        {currentRating > 0 && currentRating !== -1 && (
           <div className="text-center space-y-1">
             <div className="text-base font-semibold text-yellow-600">
               {ratingDescriptions[currentRating - 1]?.label}
             </div>
             <div className="text-sm text-gray-600">
               {ratingDescriptions[currentRating - 1]?.description}
+            </div>
+          </div>
+        )}
+        {currentRating === -1 && (
+          <div className="text-center space-y-1">
+            <div className="text-base font-semibold text-gray-600">
+              N/A
+            </div>
+            <div className="text-sm text-gray-600">
+              Not Applicable
             </div>
           </div>
         )}
@@ -230,6 +242,15 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     return (
       <div className="space-y-3">
         <div className="flex justify-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="p-2 h-auto"
+            onClick={() => onRatingChange(-1)}
+          >
+            N/A
+          </Button>
           {[1, 2, 3, 4, 5].map((star) => (
             <Button
               key={star}
@@ -249,13 +270,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Button>
           ))}
         </div>
-        {currentRating > 0 && (
+        {currentRating > 0 && currentRating !== -1 && (
           <div className="text-center">
             <div className="text-lg font-semibold text-yellow-600">
               {ratingDescriptions[currentRating - 1]?.label}
             </div>
             <div className="text-sm text-gray-600">
               {ratingDescriptions[currentRating - 1]?.description}
+            </div>
+          </div>
+        )}
+        {currentRating === -1 && (
+          <div className="text-center">
+            <div className="text-lg font-semibold text-gray-600">
+              N/A
+            </div>
+            <div className="text-sm text-gray-600">
+              Not Applicable
             </div>
           </div>
         )}
@@ -286,13 +317,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedCategory) return;
 
     try {
       // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
-      
+
       if (!currentBuildingId) {
         const buildingResponse = await fetch('/api/inspections', {
           method: 'POST',
@@ -307,11 +338,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             isComplete: false
           })
         });
-        
+
         if (!buildingResponse.ok) {
           throw new Error('Failed to create building inspection');
         }
-        
+
         const buildingData = await buildingResponse.json();
         currentBuildingId = buildingData.id;
         setBuildingInspectionId(currentBuildingId);
@@ -328,17 +359,17 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           roomType: selectedCategory,
           roomNumber: formData.roomNumber,
           locationDescription: formData.locationDescription,
-          floors: formData.floors,
-          verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces,
-          ceiling: formData.ceiling,
-          restrooms: formData.restrooms,
-          customerSatisfaction: formData.customerSatisfaction,
-          trash: formData.trash,
-          projectCleaning: formData.projectCleaning,
-          activitySupport: formData.activitySupport,
-          safetyCompliance: formData.safetyCompliance,
-          equipment: formData.equipment,
-          monitoring: formData.monitoring,
+          floors: formData.floors === -1 ? null : formData.floors,
+          verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces === -1 ? null : formData.verticalHorizontalSurfaces,
+          ceiling: formData.ceiling === -1 ? null : formData.ceiling,
+          restrooms: formData.restrooms === -1 ? null : formData.restrooms,
+          customerSatisfaction: formData.customerSatisfaction === -1 ? null : formData.customerSatisfaction,
+          trash: formData.trash === -1 ? null : formData.trash,
+          projectCleaning: formData.projectCleaning === -1 ? null : formData.projectCleaning,
+          activitySupport: formData.activitySupport === -1 ? null : formData.activitySupport,
+          safetyCompliance: formData.safetyCompliance === -1 ? null : formData.safetyCompliance,
+          equipment: formData.equipment === -1 ? null : formData.equipment,
+          monitoring: formData.monitoring === -1 ? null : formData.monitoring,
           notes: formData.notes
         })
       });
@@ -385,7 +416,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       }
 
       alert('Whole building inspection completed successfully!');
-      
+
       // Reset everything
       setCompleted(() => {
         const initial: Record<string, number> = {};
@@ -394,7 +425,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         });
         return initial;
       });
-      
+
       setFormData({
         inspectorName: '',
         school: '',
@@ -415,7 +446,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         monitoring: 0,
         notes: ''
       });
-      
+
       setSelectedCategory(null);
       setBuildingInspectionId(null);
       setIsResuming(false);
@@ -521,7 +552,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 {Object.entries(requirements).map(([category, required]) => {
                   const completedCount = completed[category];
                   const isComplete = completedCount >= required;
-                  
+
                   return (
                     <div key={category} className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -578,7 +609,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 {Object.entries(requirements).map(([category, required]) => {
                   const completedCount = completed[category];
                   const isComplete = completedCount >= required;
-                  
+
                   return (
                     <div
                       key={category}
