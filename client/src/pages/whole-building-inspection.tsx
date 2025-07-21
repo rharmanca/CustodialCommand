@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { MobileCard } from "@/components/ui/mobile-card";
 import { Star, Check, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface WholeBuildingInspectionPageProps {
   onBack?: () => void;
@@ -94,29 +95,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const [isAllComplete, setIsAllComplete] = useState(false);
   const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
 
-  // Rating descriptions
-  const ratingDescriptions = [
-    { stars: 1, label: "Poor", description: "Significant improvements needed" },
-    { stars: 2, label: "Below Average", description: "Several issues to address" },
-    { stars: 3, label: "Average", description: "Meets basic standards" },
-    { stars: 4, label: "Good", description: "Above standard with minor issues" },
-    { stars: 5, label: "Excellent", description: "Exceptional condition" }
-  ];
 
-  // Inspection categories with criteria
-  const inspectionCategories = [
-    { key: 'floors', label: '1. Floors', criteria: {} },
-    { key: 'verticalHorizontalSurfaces', label: '2. Vertical and Horizontal Surfaces', criteria: {} },
-    { key: 'ceiling', label: '3. Ceiling', criteria: {} },
-    { key: 'restrooms', label: '4. Restrooms', criteria: {} },
-    { key: 'customerSatisfaction', label: '5. Customer Satisfaction', criteria: {} },
-    { key: 'trash', label: '6. Trash', criteria: {} },
-    { key: 'projectCleaning', label: '7. Project Cleaning', criteria: {} },
-    { key: 'activitySupport', label: '8. Activity Support', criteria: {} },
-    { key: 'safetyCompliance', label: '9. Safety Compliance', criteria: {} },
-    { key: 'equipment', label: '10. Equipment', criteria: {} },
-    { key: 'monitoring', label: '11. Monitoring', criteria: {} }
-  ];
+
+
 
   // Check if all categories are complete
   useEffect(() => {
