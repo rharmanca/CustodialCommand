@@ -12,15 +12,14 @@ function App() {
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Home', path: 'Home' },
     { name: 'Custodial', path: 'Custodial' },
   ];
 
   const renderPageContent = () => {
     switch (currentPage) {
-      case 'Home':
+      case 'Custodial':
         return (
-          <div className="text-center p-8">
+          <div className="p-8 text-center">
             {/* Collapsible Mobile Installation Instructions */}
             <div className="mb-8 max-w-2xl mx-auto">
               <button
@@ -61,20 +60,8 @@ function App() {
               )}
             </div>
 
-            <div className="flex justify-center mb-8">
-              <img 
-                src={sharedServicesImage} 
-                alt="Shared Services Graphic" 
-                className="rounded-lg shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg h-auto" 
-              />
-            </div>
-          </div>
-        );
-      case 'Custodial':
-        return (
-          <div className="p-8 text-center">
             <h2 className="text-4xl font-bold text-amber-900 mb-6 font-inter-bold">Custodial Operations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"></div>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
                 className="retro-button bg-green-700 hover:bg-green-800 border-green-500"
