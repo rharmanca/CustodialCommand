@@ -180,14 +180,58 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     loadSavedProgress();
   }, []);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const resetForm = () => {
+  const handleDateChange = (date: string) => {
+    setFormData(prev => ({
+      ...prev,
+      date
+    }));
+  };
+
+  const renderStarRating = (currentRating: number, onRatingChange: (rating: number) => void) => {
+    return (
+      <div className="space-y-3">
+        <div className="flex justify-center gap-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Button
+              key={star}
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="p-2 h-auto"
+              onClick={() => onRatingChange(star)}
+            >
+              <Star
+                className={`w-8 h-8 ${
+                  star <= currentRating
+                    ? 'fill-yellow-400 text-yellow-400'
+                    : 'text-gray-300'
+                }`}
+              />
+            </Button>
+          ))}
+        </div>
+        {currentRating > 0 && (
+          <div className="text-center">
+            <div className="text-lg font-semibold text-yellow-600">
+              {ratingDescriptions[currentRating - 1]?.label}
+            </div>
+            <div className="text-sm text-gray-600">
+              {ratingDescriptions[currentRating - 1]?.description}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const resetCurrentForm = () => {
     setFormData(prev => ({
       ...prev,
       locationCategory: selectedCategory || '',
@@ -214,40 +258,43 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     if (!selectedCategory) return;
 
     try {
-      // First, create or get the building inspection
+      // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
       
       if (!currentBuildingId) {
         const buildingResponse = await fetch('/api/inspections', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             school: formData.school,
             date: formData.date,
             inspectionType: 'whole_building',
-            locationDescription: 'Whole Building Inspection',
-            isCompleted: false,
-            verifiedRooms: []
-          }),
+            isComplete: false
+          })
         });
         
-        if (buildingResponse.ok) {
-          const building = await buildingResponse.json();
-          currentBuildingId = building.id;
-          setBuildingInspectionId(building.id);
-        } else {
+        if (!buildingResponse.ok) {
           throw new Error('Failed to create building inspection');
         }
+        
+        const buildingData = await buildingResponse.json();
+        currentBuildingId = buildingData.id;
+        setBuildingInspectionId(currentBuildingId);
       }
 
-      // Submit the room inspection
+      // Create room inspection
       const roomResponse = await fetch('/api/room-inspections', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          buildingInspectionId: currentBuildingId,
+          inspectionId: currentBuildingId,
           roomType: selectedCategory,
-          roomIdentifier: formData.roomNumber,
+          roomNumber: formData.roomNumber,
+          locationDescription: formData.locationDescription,
           floors: formData.floors,
           verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces,
           ceiling: formData.ceiling,
@@ -260,215 +307,198 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           equipment: formData.equipment,
           monitoring: formData.monitoring,
           notes: formData.notes
-        }),
+        })
       });
 
-      if (roomResponse.ok) {
-        // Update completed count
-        setCompleted(prev => ({
-          ...prev,
-          [selectedCategory]: prev[selectedCategory] + 1
-        }));
-        
-        // Reset form and deselect category
-        resetForm();
-        setSelectedCategory(null);
-        
-        alert('Room inspection submitted successfully!');
-      } else {
-        throw new Error('Failed to submit room inspection');
+      if (!roomResponse.ok) {
+        throw new Error('Failed to save room inspection');
       }
+
+      // Update completed count
+      setCompleted(prev => ({
+        ...prev,
+        [selectedCategory]: prev[selectedCategory] + 1
+      }));
+
+      // Reset form and clear selection
+      resetCurrentForm();
+      setSelectedCategory(null);
+
+      // Show success message
+      alert('Room inspection saved successfully!');
+
     } catch (error) {
-      console.error('Error submitting inspection:', error);
-      alert('Failed to submit inspection. Please try again.');
+      console.error('Error saving inspection:', error);
+      alert('Failed to save inspection. Please try again.');
     }
   };
 
   const handleFinalSubmit = async () => {
-    if (!isAllComplete) {
-      alert('Please complete all required inspections before finalizing.');
-      return;
-    }
+    if (!buildingInspectionId) return;
 
     try {
-      // Update the building inspection as completed
       const response = await fetch(`/api/inspections/${buildingInspectionId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isCompleted: true }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          isComplete: true
+        })
       });
 
-      if (response.ok) {
-        alert('Whole building inspection completed successfully!');
-        if (onBack) onBack();
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to finalize inspection');
       }
+
+      alert('Whole building inspection completed successfully!');
+      
+      // Reset everything
+      setCompleted(() => {
+        const initial: Record<string, number> = {};
+        Object.keys(requirements).forEach(key => {
+          initial[key] = 0;
+        });
+        return initial;
+      });
+      
+      setFormData({
+        school: '',
+        date: '',
+        locationCategory: '',
+        roomNumber: '',
+        locationDescription: '',
+        floors: 0,
+        verticalHorizontalSurfaces: 0,
+        ceiling: 0,
+        restrooms: 0,
+        customerSatisfaction: 0,
+        trash: 0,
+        projectCleaning: 0,
+        activitySupport: 0,
+        safetyCompliance: 0,
+        equipment: 0,
+        monitoring: 0,
+        notes: ''
+      });
+      
+      setSelectedCategory(null);
+      setBuildingInspectionId(null);
+      setIsResuming(false);
+
     } catch (error) {
       console.error('Error finalizing inspection:', error);
       alert('Failed to finalize inspection. Please try again.');
     }
   };
 
-  const renderStarRating = (category: string, currentRating: number) => {
-    return (
-      <div className={`flex items-center gap-2 ${isMobile ? 'flex-col items-start' : ''}`}>
-        <div className={`flex gap-1 ${isMobile ? 'justify-center w-full py-2' : ''}`}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`cursor-pointer transition-colors ${
-                isMobile ? 'w-10 h-10' : 'w-6 h-6'
-              } ${
-                star <= currentRating
-                  ? 'fill-yellow-400 text-yellow-400'
-                  : 'text-gray-300 hover:text-yellow-200'
-              }`}
-              onClick={() => handleInputChange(category, star)}
-            />
-          ))}
-        </div>
-        {currentRating > 0 && (
-          <span className={`font-medium text-gray-700 ${isMobile ? 'text-base text-center w-full' : 'text-sm'}`}>
-            {ratingDescriptions[currentRating - 1]?.label}
-          </span>
-        )}
-      </div>
-    );
-  };
-
   return (
-    <div className={`w-full mx-auto space-y-4 ${isMobile ? 'p-3' : 'max-w-4xl p-6 space-y-6'}`}>
-      {onBack && (
-        <Button 
-          onClick={onBack} 
-          variant="outline" 
-          className={`${isMobile ? 'w-full mb-3 text-lg py-3' : 'mb-4'}`}
-        >
-          ← Back to Custodial
-        </Button>
-      )}
-
-      <div className={`${isMobile ? 'text-left' : 'text-center'}`}>
-        <h1 className={`font-bold text-blue-800 mb-2 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
-          Ready to Inspect the Whole Building?
-        </h1>
-        <p className={`text-gray-600 ${isMobile ? 'text-sm leading-relaxed' : ''}`}>
-          This form is for your comprehensive building inspection. Simply go through the list below and submit the required number of inspections for each category. The inspection criteria are the same ones you're already familiar with from standard inspections.
-        </p>
-        {isResuming && (
-          <div className={`bg-blue-50 border border-blue-200 rounded-lg ${isMobile ? 'mt-3 p-3' : 'mt-4 p-4'}`}>
-            <p className={`text-blue-800 font-medium ${isMobile ? 'text-sm' : ''}`}>
-              ✓ Resuming your previous inspection session. Your progress has been saved!
-            </p>
-          </div>
+    <div className="container mx-auto p-4 max-w-4xl space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        {onBack && (
+          <Button variant="outline" onClick={onBack} className="flex-shrink-0">
+            ← Back
+          </Button>
         )}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Whole Building Inspection</h1>
+          <p className="text-gray-600 mt-2">Complete inspections across all required categories</p>
+        </div>
       </div>
 
-      {/* School and Date Selection */}
-      {isMobile ? (
-        <MobileCard title="Building Information">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="school" className="text-base font-medium">School</Label>
-              <Select
-                value={formData.school}
-                onValueChange={(value) => handleInputChange('school', value)}
-              >
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="Select school" />
-                </SelectTrigger>
-                <SelectContent>
-                  {schoolOptions.map((school) => (
-                    <SelectItem key={school.value} value={school.value} className="text-base py-3">
-                      {school.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-base font-medium">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                className="h-12 text-base"
-                value={formData.date}
-                onChange={(e) => handleInputChange('date', e.target.value)}
-                required
-              />
-            </div>
-          </div>
-        </MobileCard>
-      ) : (
+      {/* Initial Setup */}
+      {!formData.school || !formData.date ? (
         <Card>
           <CardHeader>
-            <CardTitle>Building Information</CardTitle>
-            <CardDescription>Select the school and date for this whole building inspection</CardDescription>
+            <CardTitle>Setup Inspection</CardTitle>
+            <CardDescription>Choose school and date to begin the whole building inspection</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <CardContent className="space-y-4">
+            <div>
               <Label htmlFor="school">School</Label>
-              <Select
-                value={formData.school}
-                onValueChange={(value) => handleInputChange('school', value)}
-              >
+              <Select value={formData.school} onValueChange={(value) => handleInputChange('school', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select school" />
                 </SelectTrigger>
                 <SelectContent>
-                  {schoolOptions.map((school) => (
-                    <SelectItem key={school.value} value={school.value}>
-                      {school.label}
+                  {schoolOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+            <div>
+              <Label htmlFor="date">Inspection Date</Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => handleInputChange('date', e.target.value)}
-                required
+                onChange={(e) => handleDateChange(e.target.value)}
               />
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Dynamic Checklist */}
-      {isMobile ? (
-        <MobileCard title="Inspection Progress">
-          <div className="space-y-3">
-            {Object.entries(requirements).map(([category, required]) => {
-              const completedCount = completed[category];
-              const isComplete = completedCount >= required;
-              
-              return (
-                <div
-                  key={category}
-                  className={`p-3 rounded-lg border ${
-                    isComplete ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-                  }`}
+      ) : (
+        <>
+          {/* Current Inspection Info */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-lg font-semibold">{formData.school}</div>
+                  <div className="text-gray-600">{new Date(formData.date).toLocaleDateString()}</div>
+                  {isResuming && (
+                    <Badge variant="outline" className="mt-2">
+                      Resuming Previous Inspection
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, school: '', date: '' }));
+                    setSelectedCategory(null);
+                  }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
-                      }`}>
-                        {isComplete && <Check className="w-4 h-4 text-white" />}
+                  Change Details
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Progress Overview */}
+          {isMobile ? (
+            <MobileCard title="Inspection Progress">
+              <div className="space-y-3">
+                {Object.entries(requirements).map(([category, required]) => {
+                  const completedCount = completed[category];
+                  const isComplete = completedCount >= required;
+                  
+                  return (
+                    <div key={category} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                            isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
+                          }`}>
+                            {isComplete && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className={`text-sm font-medium ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
+                            {categoryLabels[category]}
+                          </span>
+                        </div>
+                        <Badge variant={isComplete ? 'default' : 'secondary'} className="text-xs">
+                          {completedCount}/{required}
+                        </Badge>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className={`font-medium text-sm block leading-tight ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
-                          {categoryLabels[category]}
-                        </span>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge variant={isComplete ? 'default' : 'secondary'} className="text-xs">
-                            {completedCount}/{required} Done
-                          </Badge>
+                      <div className="flex items-center justify-between pl-7">
+                        <div className="text-xs text-gray-500">
+                          {isComplete ? 'Complete' : `${required - completedCount} remaining`}
+                        </div>
+                        <div className="flex gap-2">
                           {!isComplete && formData.school && formData.date && (
                             <Button
                               size="sm"
@@ -482,213 +512,204 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </MobileCard>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Inspection Progress</CardTitle>
-            <CardDescription>
-              Complete the required number of inspections for each category
-              {formData.school && formData.date && (
-                <span className="text-sm text-gray-500 ml-2">
-                  (Progress is automatically saved)
-                </span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {Object.entries(requirements).map(([category, required]) => {
-              const completedCount = completed[category];
-              const isComplete = completedCount >= required;
-              
-              return (
-                <div
-                  key={category}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    isComplete ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center ${
-                      isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
-                    }`}>
-                      {isComplete && <Check className="w-4 h-4 text-white" />}
-                    </div>
-                    <span className={`font-medium ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
-                      {categoryLabels[category]}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={isComplete ? 'default' : 'secondary'}>
-                      {completedCount}/{required} Completed
-                    </Badge>
-                    {!isComplete && formData.school && formData.date && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedCategory(category)}
-                        className={selectedCategory === category ? 'border-blue-500' : ''}
-                      >
-                        Select
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-        </Card>
-      )}
-
-      {/* Inspection Form */}
-      {selectedCategory && formData.school && formData.date && (
-        <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
-          {isMobile ? (
-            <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="roomNumber" className="text-base font-medium">Room Number</Label>
-                  <Input
-                    id="roomNumber"
-                    className="h-12 text-base"
-                    value={formData.roomNumber}
-                    onChange={(e) => handleInputChange('roomNumber', e.target.value)}
-                    placeholder="Enter room number"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="locationDescription" className="text-base font-medium">Location Description</Label>
-                  <Input
-                    id="locationDescription"
-                    className="h-12 text-base"
-                    value={formData.locationDescription}
-                    onChange={(e) => handleInputChange('locationDescription', e.target.value)}
-                    placeholder="e.g., Main Building, Second Floor"
-                  />
-                </div>
+                  );
+                })}
               </div>
             </MobileCard>
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Inspecting: {categoryLabels[selectedCategory]}</CardTitle>
-                <CardDescription>Complete the inspection for this category</CardDescription>
+                <CardTitle>Inspection Progress</CardTitle>
+                <CardDescription>
+                  Complete the required number of inspections for each category
+                  {formData.school && formData.date && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      (Progress is automatically saved)
+                    </span>
+                  )}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="roomNumber">Room Number</Label>
-                    <Input
-                      id="roomNumber"
-                      value={formData.roomNumber}
-                      onChange={(e) => handleInputChange('roomNumber', e.target.value)}
-                      placeholder="Enter room number"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="locationDescription">Location Description</Label>
-                    <Input
-                      id="locationDescription"
-                      value={formData.locationDescription}
-                      onChange={(e) => handleInputChange('locationDescription', e.target.value)}
-                      placeholder="e.g., Main Building, Second Floor"
-                    />
-                  </div>
-                </div>
+              <CardContent className="space-y-3">
+                {Object.entries(requirements).map(([category, required]) => {
+                  const completedCount = completed[category];
+                  const isComplete = completedCount >= required;
+                  
+                  return (
+                    <div
+                      key={category}
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        isComplete ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center ${
+                          isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
+                        }`}>
+                          {isComplete && <Check className="w-4 h-4 text-white" />}
+                        </div>
+                        <span className={`font-medium ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
+                          {categoryLabels[category]}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge variant={isComplete ? 'default' : 'secondary'}>
+                          {completedCount}/{required} Completed
+                        </Badge>
+                        {!isComplete && formData.school && formData.date && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedCategory(category)}
+                            className={selectedCategory === category ? 'border-blue-500' : ''}
+                          >
+                            Select
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           )}
 
-          {/* Rating Categories */}
-          {isMobile ? (
-            <div className="space-y-4">
-              {inspectionCategories.map((category, index) => (
-                <MobileCard key={category.key} title={category.label}>
-                  <div className="space-y-3">
-                    {renderStarRating(category.key, formData[category.key as keyof typeof formData] as number)}
+          {/* Inspection Form */}
+          {selectedCategory && formData.school && formData.date && (
+            <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
+              {isMobile ? (
+                <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="roomNumber" className="text-base font-medium">Room Number</Label>
+                      <Input
+                        id="roomNumber"
+                        className="h-12 text-base"
+                        value={formData.roomNumber}
+                        onChange={(e) => handleInputChange('roomNumber', e.target.value)}
+                        placeholder="Enter room number"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="locationDescription" className="text-base font-medium">Location Description</Label>
+                      <Input
+                        id="locationDescription"
+                        className="h-12 text-base"
+                        value={formData.locationDescription}
+                        onChange={(e) => handleInputChange('locationDescription', e.target.value)}
+                        placeholder="e.g., Main Building, Second Floor"
+                      />
+                    </div>
                   </div>
                 </MobileCard>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Rate Each Category</CardTitle>
-                <CardDescription>Provide ratings for each inspection criterion</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {inspectionCategories.map((category, index) => (
-                  <div key={category.key} className="space-y-3">
-                    <Label className="text-base font-medium">{category.label}</Label>
-                    {renderStarRating(category.key, formData[category.key as keyof typeof formData] as number)}
-                    {index < inspectionCategories.length - 1 && <Separator />}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Inspecting: {categoryLabels[selectedCategory]}</CardTitle>
+                    <CardDescription>Complete the inspection for this category</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="roomNumber">Room Number</Label>
+                        <Input
+                          id="roomNumber"
+                          value={formData.roomNumber}
+                          onChange={(e) => handleInputChange('roomNumber', e.target.value)}
+                          placeholder="Enter room number"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="locationDescription">Location Description</Label>
+                        <Input
+                          id="locationDescription"
+                          value={formData.locationDescription}
+                          onChange={(e) => handleInputChange('locationDescription', e.target.value)}
+                          placeholder="e.g., Main Building, Second Floor"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Rating Categories */}
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
+                {inspectionCategories.map((category, index) => {
+                  const key = category.key as keyof typeof formData;
+                  return (
+                    <Card key={category.key} className="overflow-hidden">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-lg">{category.label}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {renderStarRating(
+                          formData[key] as number,
+                          (rating) => handleInputChange(key, rating)
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Notes Section */}
+              {isMobile ? (
+                <MobileCard title="Additional Notes">
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    placeholder="Enter any additional observations..."
+                    rows={4}
+                    className="text-base"
+                  />
+                </MobileCard>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Additional Notes</CardTitle>
+                    <CardDescription>Record any additional observations or concerns</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      value={formData.notes}
+                      onChange={(e) => handleInputChange('notes', e.target.value)}
+                      placeholder="Enter any additional observations..."
+                      rows={4}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              <Button 
+                type="submit" 
+                size="lg" 
+                className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+              >
+                Submit {categoryLabels[selectedCategory]} Inspection
+              </Button>
+            </form>
           )}
 
-          {/* Notes Section */}
-          {isMobile ? (
-            <MobileCard title="Additional Notes">
-              <Textarea
-                className="min-h-24 text-base"
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Enter any additional observations..."
-                rows={4}
-              />
-            </MobileCard>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
-                  placeholder="Enter any additional observations..."
-                  rows={4}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          <Button 
-            type="submit" 
-            size="lg" 
-            className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
-          >
-            Submit {categoryLabels[selectedCategory]} Inspection
-          </Button>
-        </form>
+          {/* Final Submit Button */}
+          <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
+            <Button
+              onClick={handleFinalSubmit}
+              size="lg"
+              className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+              disabled={!isAllComplete}
+            >
+              Finalize Whole Building Inspection
+            </Button>
+            {!isAllComplete && (
+              <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-sm' : 'text-sm'}`}>
+                Complete all required inspections to enable this button
+              </p>
+            )}
+          </div>
+        </>
       )}
-
-      {/* Final Submit Button */}
-      <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
-        <Button
-          onClick={handleFinalSubmit}
-          size="lg"
-          className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
-          disabled={!isAllComplete}
-        >
-          Finalize Whole Building Inspection
-        </Button>
-        {!isAllComplete && (
-          <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-sm' : 'text-sm'}`}>
-            Complete all required inspections to enable this button
-          </p>
-        )}
-      </div>
     </div>
   );
 }
