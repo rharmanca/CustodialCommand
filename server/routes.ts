@@ -32,10 +32,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { type, incomplete } = req.query;
       let inspections;
       
+      inspections = await storage.getInspections();
+      
       if (type === 'whole_building' && incomplete === 'true') {
-        inspections = await storage.getIncompleteWholeBuildingInspections();
-      } else {
-        inspections = await storage.getInspections();
+        inspections = inspections.filter(inspection => 
+          inspection.inspectionType === 'whole_building' && !inspection.isCompleted
+        );
       }
       
       res.json(inspections);
