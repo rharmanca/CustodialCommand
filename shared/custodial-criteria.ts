@@ -132,3 +132,149 @@ export const inspectionCategories = [
     }
   }
 ];
+export const ratingDescriptions = [
+  {
+    label: "Poor",
+    description: "Unacceptable condition requiring immediate attention"
+  },
+  {
+    label: "Below Average", 
+    description: "Noticeable issues that need improvement"
+  },
+  {
+    label: "Average",
+    description: "Acceptable condition meeting basic standards"
+  },
+  {
+    label: "Good",
+    description: "Well-maintained condition exceeding standards"
+  },
+  {
+    label: "Excellent",
+    description: "Outstanding condition, exemplary maintenance"
+  }
+];
+
+export const inspectionCategories = [
+  {
+    key: "floors",
+    label: "Floors",
+    criteria: {
+      1: "Floors are heavily soiled, stained, or damaged with visible debris",
+      2: "Floors show moderate soiling or minor staining with some debris",
+      3: "Floors are generally clean with minimal visible soiling",
+      4: "Floors are clean and well-maintained with no visible issues", 
+      5: "Floors are spotless and in excellent condition"
+    }
+  },
+  {
+    key: "verticalHorizontalSurfaces",
+    label: "Vertical/Horizontal Surfaces",
+    criteria: {
+      1: "Surfaces are dusty, dirty, or damaged with visible buildup",
+      2: "Surfaces show moderate dust or dirt accumulation",
+      3: "Surfaces are generally clean with minimal dust",
+      4: "Surfaces are clean and well-maintained",
+      5: "Surfaces are spotless and in pristine condition"
+    }
+  },
+  {
+    key: "ceiling",
+    label: "Ceiling",
+    criteria: {
+      1: "Ceiling shows significant staining, damage, or debris",
+      2: "Ceiling has moderate staining or minor issues",
+      3: "Ceiling is generally clean with minimal issues",
+      4: "Ceiling is clean and well-maintained",
+      5: "Ceiling is in excellent condition"
+    }
+  },
+  {
+    key: "restrooms",
+    label: "Restrooms",
+    criteria: {
+      1: "Restrooms are unsanitary with significant cleanliness issues",
+      2: "Restrooms show moderate cleanliness issues",
+      3: "Restrooms meet basic sanitation standards",
+      4: "Restrooms are clean and well-maintained",
+      5: "Restrooms are spotless and excellently maintained"
+    }
+  },
+  {
+    key: "customerSatisfaction",
+    label: "Customer Satisfaction",
+    criteria: {
+      1: "Multiple complaints or dissatisfaction noted",
+      2: "Some complaints or concerns raised",
+      3: "General satisfaction with minimal feedback",
+      4: "Good feedback and satisfaction",
+      5: "Excellent feedback and high satisfaction"
+    }
+  },
+  {
+    key: "trash",
+    label: "Trash Management",
+    criteria: {
+      1: "Overflowing bins, scattered litter, poor waste management",
+      2: "Some overflow or litter issues",
+      3: "Adequate trash management with minor issues",
+      4: "Good waste management practices",
+      5: "Excellent waste management, all areas clean"
+    }
+  },
+  {
+    key: "projectCleaning",
+    label: "Project Cleaning",
+    criteria: {
+      1: "Special cleaning projects incomplete or poorly executed",
+      2: "Projects partially complete with some issues",
+      3: "Projects adequately completed",
+      4: "Projects well-executed and complete",
+      5: "Projects excellently executed, exceeding expectations"
+    }
+  },
+  {
+    key: "activitySupport",
+    label: "Activity Support",
+    criteria: {
+      1: "Poor support for activities, facilities not ready",
+      2: "Limited support with some preparation issues",
+      3: "Adequate support for scheduled activities",
+      4: "Good activity support, facilities well-prepared",
+      5: "Excellent activity support, facilities perfectly prepared"
+    }
+  },
+  {
+    key: "safetyCompliance",
+    label: "Safety Compliance",
+    criteria: {
+      1: "Multiple safety violations or hazards present",
+      2: "Some safety concerns noted",
+      3: "Basic safety standards met",
+      4: "Good safety compliance practices",
+      5: "Excellent safety standards, all protocols followed"
+    }
+  },
+  {
+    key: "equipment",
+    label: "Equipment",
+    criteria: {
+      1: "Equipment missing, damaged, or non-functional",
+      2: "Some equipment issues or maintenance needed",
+      3: "Equipment functional but may need minor attention",
+      4: "Equipment in good working condition",
+      5: "All equipment in excellent condition and well-maintained"
+    }
+  },
+  {
+    key: "monitoring",
+    label: "Monitoring",
+    criteria: {
+      1: "No monitoring or documentation of cleaning activities",
+      2: "Limited monitoring with incomplete documentation",
+      3: "Basic monitoring and documentation in place",
+      4: "Good monitoring practices and thorough documentation",
+      5: "Excellent monitoring system with comprehensive documentation"
+    }
+  }
+];

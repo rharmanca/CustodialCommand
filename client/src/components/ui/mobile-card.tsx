@@ -1,23 +1,31 @@
 
-import React from 'react';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-interface MobileCardProps {
-  children: React.ReactNode;
-  className?: string;
-  title?: string;
+interface MobileCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  title?: string
+  children: React.ReactNode
 }
 
-export function MobileCard({ children, className = '', title }: MobileCardProps) {
+export function MobileCard({ title, children, className, ...props }: MobileCardProps) {
   return (
-    <div className={`w-full max-w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden ${className}`}>
+    <div 
+      className={cn(
+        "rounded-lg border bg-card text-card-foreground shadow-sm",
+        className
+      )} 
+      {...props}
+    >
       {title && (
-        <div className="px-4 py-3 bg-gradient-to-r from-amber-100 to-orange-100 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-amber-900">{title}</h3>
+        <div className="p-6 pb-4">
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">
+            {title}
+          </h3>
         </div>
       )}
-      <div className="p-4">
+      <div className={cn("p-6", title && "pt-0")}>
         {children}
       </div>
     </div>
-  );
+  )
 }
