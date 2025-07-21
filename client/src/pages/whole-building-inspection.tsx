@@ -396,6 +396,35 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }
   };
 
+  const handleSaveProgress = async () => {
+    if (!buildingInspectionId) {
+      alert('No inspection to save. Please start an inspection first.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/inspections/${buildingInspectionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inspectorName: formData.inspectorName,
+          notes: formData.notes
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save progress');
+      }
+
+      alert('Progress saved successfully!');
+    } catch (error) {
+      console.error('Error saving progress:', error);
+      alert('Failed to save progress. Please try again.');
+    }
+  };
+
   const handleFinalSubmit = async () => {
     if (!buildingInspectionId) return;
 
@@ -531,15 +560,26 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     </Badge>
                   )}
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, inspectorName: '', school: '', date: '' }));
-                    setSelectedCategory(null);
-                  }}
-                >
-                  Change Details
-                </Button>
+                <div className="flex gap-2">
+                  {buildingInspectionId && (
+                    <Button
+                      variant="outline"
+                      onClick={handleSaveProgress}
+                      className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                    >
+                      Save Progress
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, inspectorName: '', school: '', date: '' }));
+                      setSelectedCategory(null);
+                    }}
+                  >
+                    Change Details
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -752,7 +792,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   <Textarea
                     value={formData.notes}
                     onChange={(e) => handleInputChange('notes', e.target.value)}
-                    placeholder="Enter any additional observations..."
+                    placeholder="Enter any additional observations for this room..."
                     rows={4}
                     className="text-base"
                   />
@@ -761,39 +801,96 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Card>
                   <CardHeader>
                     <CardTitle>Additional Notes</CardTitle>
-                    <CardDescription>Record any additional observations or concerns</CardDescription>
+                    <CardDescription>Record any additional observations or concerns for this room</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Textarea
                       value={formData.notes}
                       onChange={(e) => handleInputChange('notes', e.target.value)}
-                      placeholder="Enter any additional observations..."
+                      placeholder="Enter any additional observations for this room..."
                       rows={4}
                     />
                   </CardContent>
                 </Card>
               )}
 
-              <Button 
-                type="submit" 
-                size="lg" 
-                className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
-              >
-                Submit {categoryLabels[selectedCategory]} Inspection
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+                >
+                  Submit {categoryLabels[selectedCategory]} Inspection
+                </Button>
+                {buildingInspectionId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={handleSaveProgress}
+                    className={`w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 ${isMobile ? 'h-12 text-base' : ''}`}
+                  >
+                    Save Current Progress
+                  </Button>
+                )}
+              </div>
             </form>
+          )}
+
+          {/* Global Building Notes */}
+          {buildingInspectionId && (
+            <>
+              {isMobile ? (
+                <MobileCard title="Building-Wide Notes">
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    placeholder="Enter any general observations about the entire building..."
+                    rows={4}
+                    className="text-base"
+                  />
+                </MobileCard>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Building-Wide Notes</CardTitle>
+                    <CardDescription>Record any general observations or concerns about the entire building</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      value={formData.notes}
+                      onChange={(e) => handleInputChange('notes', e.target.value)}
+                      placeholder="Enter any general observations about the entire building..."
+                      rows={4}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
 
           {/* Final Submit Button */}
           <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
-            <Button
-              onClick={handleFinalSubmit}
-              size="lg"
-              className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
-              disabled={!isAllComplete}
-            >
-              Finalize Whole Building Inspection
-            </Button>
+            <div className="space-y-3">
+              {buildingInspectionId && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleSaveProgress}
+                  className={`w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 ${isMobile ? 'h-12 text-base' : ''}`}
+                >
+                  Save Progress & Notes
+                </Button>
+              )}
+              <Button
+                onClick={handleFinalSubmit}
+                size="lg"
+                className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+                disabled={!isAllComplete}
+              >
+                Finalize Whole Building Inspection
+              </Button>
+            </div>
             {!isAllComplete && (
               <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-sm' : 'text-sm'}`}>
                 Complete all required inspections to enable this button
