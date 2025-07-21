@@ -104,6 +104,18 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }
 
     try {
+      // Convert images to base64 strings
+      const imagePromises = selectedImages.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const imageData = await Promise.all(imagePromises);
+
       const response = await fetch('/api/inspections', {
         method: 'POST',
         headers: {
@@ -127,7 +139,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           safetyCompliance: formData.safetyCompliance || null,
           equipment: formData.equipment || null,
           monitoring: formData.monitoring || null,
-          notes: formData.notes
+          notes: formData.notes,
+          images: imageData
         })
       });
 
@@ -448,6 +461,58 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               className="min-h-[200px]"
             />
             </CardContent>
+        </Card>
+
+        {/* Image Upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Photo Documentation</CardTitle>
+            <CardDescription>Add photos to document inspection findings (up to 5 images)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="images">Upload Images</Label>
+              <Input
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="cursor-pointer"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Select up to 5 images (JPG, PNG, GIF supported)
+              </p>
+            </div>
+
+            {/* Image Previews */}
+            {selectedImages.length > 0 && (
+              <div className="space-y-2">
+                <Label>Selected Images ({selectedImages.length}/5)</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {selectedImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                        {image.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Submit Button */}

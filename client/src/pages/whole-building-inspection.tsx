@@ -95,6 +95,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAllComplete, setIsAllComplete] = useState(false);
   const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
 
 
@@ -175,6 +176,18 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       ...prev,
       date
     }));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newImages = Array.from(files);
+      setSelectedImages(prev => [...prev, ...newImages].slice(0, 5)); // Limit to 5 images
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const renderMobileDropdownRating = (currentRating: number, onRatingChange: (rating: number) => void) => {
@@ -312,6 +325,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       monitoring: 0,
       notes: ''
     }));
+    setSelectedImages([]);
   };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
@@ -347,6 +361,18 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         setBuildingInspectionId(currentBuildingId);
       }
 
+      // Convert images to base64 strings
+      const imagePromises = selectedImages.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const imageData = await Promise.all(imagePromises);
+
       // Create room inspection
       const roomResponse = await fetch('/api/room-inspections', {
         method: 'POST',
@@ -354,7 +380,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inspectionId: currentBuildingId,
+          buildingInspectionId: currentBuildingId,
           roomType: selectedCategory,
           roomNumber: formData.roomNumber,
           locationDescription: formData.locationDescription,
@@ -369,7 +395,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           safetyCompliance: formData.safetyCompliance === -1 ? null : formData.safetyCompliance,
           equipment: formData.equipment === -1 ? null : formData.equipment,
           monitoring: formData.monitoring === -1 ? null : formData.monitoring,
-          notes: formData.notes
+          notes: formData.notes,
+          images: imageData
         })
       });
 
@@ -478,6 +505,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       setSelectedCategory(null);
       setBuildingInspectionId(null);
       setIsResuming(false);
+      setSelectedImages([]);
 
     } catch (error) {
       console.error('Error finalizing inspection:', error);
@@ -810,6 +838,104 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       placeholder="Enter any additional observations for this room..."
                       rows={4}
                     />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Image Upload Section */}
+              {isMobile ? (
+                <MobileCard title="Photo Documentation">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="room-images">Upload Images</Label>
+                      <Input
+                        id="room-images"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        className="cursor-pointer text-base h-12"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Select up to 5 images (JPG, PNG, GIF supported)
+                      </p>
+                    </div>
+
+                    {/* Image Previews */}
+                    {selectedImages.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Selected Images ({selectedImages.length}/5)</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {selectedImages.map((image, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </MobileCard>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Photo Documentation</CardTitle>
+                    <CardDescription>Add photos to document inspection findings (up to 5 images)</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="room-images">Upload Images</Label>
+                      <Input
+                        id="room-images"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Select up to 5 images (JPG, PNG, GIF supported)
+                      </p>
+                    </div>
+
+                    {/* Image Previews */}
+                    {selectedImages.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Selected Images ({selectedImages.length}/5)</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {selectedImages.map((image, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-lg border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                {image.name}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
