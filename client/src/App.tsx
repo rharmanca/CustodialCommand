@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
@@ -10,7 +10,45 @@ import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1
 function App() {
   const [currentPage, setCurrentPage] = useState('Custodial');
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
+  const [isPWAInstalled, setIsPWAInstalled] = useState(false);
+  const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const { isMobile, isTouch, orientation } = useIsMobile();
+
+  // Detect PWA installation status
+  useEffect(() => {
+    const checkPWAStatus = () => {
+      // Check if app is running in standalone mode (installed PWA)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          (window.navigator as any).standalone ||
+                          document.referrer.includes('android-app://');
+      
+      setIsPWAInstalled(isStandalone);
+      
+      // Show success message if just installed
+      if (isStandalone && !localStorage.getItem('pwa-install-shown')) {
+        setShowInstallSuccess(true);
+        localStorage.setItem('pwa-install-shown', 'true');
+        setTimeout(() => setShowInstallSuccess(false), 5000);
+      }
+    };
+
+    checkPWAStatus();
+    
+    // Listen for app install events
+    window.addEventListener('appinstalled', () => {
+      setIsPWAInstalled(true);
+      setShowInstallSuccess(true);
+      localStorage.setItem('pwa-install-shown', 'true');
+      setTimeout(() => setShowInstallSuccess(false), 5000);
+    });
+    
+    // Listen for display mode changes
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', checkPWAStatus);
+    
+    return () => {
+      window.matchMedia('(display-mode: standalone)').removeEventListener('change', checkPWAStatus);
+    };
+  }, []);
 
   const navLinks = [
     { name: 'Home', path: 'Custodial' },
@@ -21,19 +59,50 @@ function App() {
       case 'Custodial':
         return (
           <div className="p-8 text-center">
-            {/* Collapsible Mobile Installation Instructions */}
+            {/* PWA Installation Status */}
             <div className="mb-8 max-w-2xl mx-auto">
-              <button
-                onClick={() => setIsInstallSectionOpen(!isInstallSectionOpen)}
-                className="w-full p-4 bg-amber-100 border-2 border-amber-300 rounded-lg shadow-md hover:bg-amber-150 transition-colors flex items-center justify-between"
-              >
-                <span className="text-lg font-bold text-amber-900">📱 Install on Your Mobile Device</span>
-                <span className="text-amber-900 text-xl">
-                  {isInstallSectionOpen ? '−' : '+'}
-                </span>
-              </button>
+              {/* Success notification */}
+              {showInstallSuccess && (
+                <div className="mb-4 p-4 bg-green-100 border-2 border-green-300 rounded-lg shadow-md">
+                  <div className="flex items-center justify-center space-x-2">
+                    <span className="text-2xl">✅</span>
+                    <span className="text-lg font-bold text-green-900">
+                      App Successfully Installed!
+                    </span>
+                  </div>
+                  <p className="text-center text-green-800 mt-2">
+                    You can now access Custodial Command directly from your home screen.
+                  </p>
+                </div>
+              )}
 
-              {isInstallSectionOpen && (
+              {/* Current status display */}
+              {isPWAInstalled ? (
+                <div className="mb-4 p-4 bg-green-100 border-2 border-green-300 rounded-lg shadow-md">
+                  <div className="flex items-center justify-center space-x-2">
+                    <span className="text-xl">📱</span>
+                    <span className="text-lg font-bold text-green-900">
+                      Running as Installed App
+                    </span>
+                    <span className="text-xl">✅</span>
+                  </div>
+                  <p className="text-center text-green-800 mt-1 text-sm">
+                    App is installed and working offline-ready
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsInstallSectionOpen(!isInstallSectionOpen)}
+                  className="w-full p-4 bg-amber-100 border-2 border-amber-300 rounded-lg shadow-md hover:bg-amber-150 transition-colors flex items-center justify-between"
+                >
+                  <span className="text-lg font-bold text-amber-900">📱 Install on Your Mobile Device</span>
+                  <span className="text-amber-900 text-xl">
+                    {isInstallSectionOpen ? '−' : '+'}
+                  </span>
+                </button>
+              )}
+
+              {!isPWAInstalled && isInstallSectionOpen && (
                 <div className="mt-4 p-6 bg-amber-50 border-2 border-amber-300 rounded-lg shadow-md">
                   <div className="text-amber-800 space-y-3">
                     <div className="bg-white p-3 rounded border border-amber-200">
