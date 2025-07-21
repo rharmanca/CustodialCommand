@@ -29,7 +29,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/inspections", async (req, res) => {
     try {
-      const inspections = await storage.getInspections();
+      const { type, incomplete } = req.query;
+      let inspections;
+      
+      if (type === 'whole_building' && incomplete === 'true') {
+        inspections = await storage.getIncompleteWholeBuildingInspections();
+      } else {
+        inspections = await storage.getInspections();
+      }
+      
       res.json(inspections);
     } catch (error) {
       console.error("Error fetching inspections:", error);
@@ -100,6 +108,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating inspection:", error);
       res.status(500).json({ error: "Failed to update inspection" });
+    }
+  });
+
+  // Get rooms for a specific building inspection
+  app.get("/api/inspections/:id/rooms", async (req, res) => {
+    try {
+      const buildingInspectionId = parseInt(req.params.id);
+      const rooms = await storage.getRoomInspectionsByBuildingId(buildingInspectionId);
+      res.json(rooms);
+    } catch (error) {
+      console.error("Error fetching rooms for building inspection:", error);
+      res.status(500).json({ error: "Failed to fetch rooms" });
     }
   });
 
