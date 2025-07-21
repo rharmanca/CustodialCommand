@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Star, Upload, Camera, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface CustodialInspectionPageProps {
@@ -15,6 +16,7 @@ interface CustodialInspectionPageProps {
 }
 
 export default function CustodialInspectionPage({ onBack }: CustodialInspectionPageProps) {
+  const { isMobile } = useIsMobile();
   const [formData, setFormData] = useState({
     school: '',
     date: '',
@@ -164,6 +166,69 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }
   };
 
+  const renderMobileDropdownRating = (categoryObj: any, currentRating: number) => {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label className="text-base font-medium">Rating</Label>
+          <Select value={currentRating > 0 ? currentRating.toString() : ""} onValueChange={(value) => handleInputChange(categoryObj.key, parseInt(value))}>
+            <SelectTrigger className="h-12 text-base">
+              <SelectValue placeholder="Select a rating..." />
+            </SelectTrigger>
+            <SelectContent>
+              {ratingDescriptions.map((rating, index) => (
+                <SelectItem key={index + 1} value={(index + 1).toString()}>
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= (index + 1)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">{rating.label}</div>
+                      <div className="text-sm text-gray-600">{rating.description}</div>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Rating Description */}
+        {currentRating > 0 && (
+          <div className="space-y-2">
+            <Badge variant="secondary" className="text-base px-4 py-2 w-full justify-center">
+              {ratingDescriptions[currentRating - 1]?.label}
+            </Badge>
+            <div className="text-center text-sm text-gray-600">
+              {ratingDescriptions[currentRating - 1]?.description}
+            </div>
+          </div>
+        )}
+
+        {/* Detailed Criteria */}
+        {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="pt-4">
+              <div className="text-sm text-blue-800">
+                <strong>Rating {currentRating} Criteria:</strong>
+                <p className="mt-2">{categoryObj.criteria[currentRating]}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
   const renderStarRating = (categoryObj: any, currentRating: number) => {
     return (
       <div className="space-y-4">
@@ -308,14 +373,22 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         <Card>
             <CardHeader>
               <CardTitle>Inspection Categories</CardTitle>
-              <CardDescription>Rate each category based on the criteria (1-5 stars). Detailed criteria will appear when you select a rating.</CardDescription>
+              <CardDescription>
+                {isMobile 
+                  ? "Rate each category using the dropdown menus. Detailed criteria will appear when you select a rating."
+                  : "Rate each category based on the criteria (1-5 stars). Detailed criteria will appear when you select a rating."
+                }
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
             {inspectionCategories.map((category, index) => (
               <div key={category.key}>
                 <div className="space-y-4">
-                  <Label className="text-base font-medium">{category.label}</Label>
-                  {renderStarRating(category, formData[category.key as keyof typeof formData] as number)}
+                  <Label className={`font-medium ${isMobile ? 'text-lg' : 'text-base'}`}>{category.label}</Label>
+                  {isMobile 
+                    ? renderMobileDropdownRating(category, formData[category.key as keyof typeof formData] as number)
+                    : renderStarRating(category, formData[category.key as keyof typeof formData] as number)
+                  }
                 </div>
                 {index < inspectionCategories.length - 1 && <Separator className="mt-6" />}
               </div>
@@ -342,7 +415,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
-          <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            type="submit" 
+            size="lg" 
+            className={`bg-blue-600 hover:bg-blue-700 ${isMobile ? 'w-full h-14 text-lg' : ''}`}
+          >
             Submit Inspection
           </Button>
         </div>

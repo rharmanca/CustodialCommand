@@ -177,6 +177,55 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
+  const renderMobileDropdownRating = (currentRating: number, onRatingChange: (rating: number) => void) => {
+    return (
+      <div className="space-y-3">
+        <Select 
+          value={currentRating > 0 ? currentRating.toString() : ""} 
+          onValueChange={(value) => onRatingChange(parseInt(value))}
+        >
+          <SelectTrigger className="h-12 text-base">
+            <SelectValue placeholder="Select a rating..." />
+          </SelectTrigger>
+          <SelectContent>
+            {ratingDescriptions.map((rating, index) => (
+              <SelectItem key={index + 1} value={(index + 1).toString()}>
+                <div className="flex items-center gap-3 py-1">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${
+                          star <= (index + 1)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">{rating.label}</div>
+                    <div className="text-sm text-gray-600">{rating.description}</div>
+                  </div>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {currentRating > 0 && (
+          <div className="text-center space-y-1">
+            <div className="text-base font-semibold text-yellow-600">
+              {ratingDescriptions[currentRating - 1]?.label}
+            </div>
+            <div className="text-sm text-gray-600">
+              {ratingDescriptions[currentRating - 1]?.description}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderStarRating = (currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
       <div className="space-y-3">
@@ -631,24 +680,41 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               )}
 
               {/* Rating Categories */}
-              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
-                {inspectionCategories.map((category, index) => {
-                  const key = category.key as keyof typeof formData;
-                  return (
-                    <Card key={category.key} className="overflow-hidden">
-                      <CardHeader className="pb-4">
-                        <CardTitle className="text-lg">{category.label}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {renderStarRating(
-                          formData[key] as number,
-                          (rating) => handleInputChange(key, rating)
+              {isMobile ? (
+                <MobileCard title="Rate Each Category">
+                  <div className="space-y-6">
+                    {inspectionCategories.map((category, index) => (
+                      <div key={category.key} className="space-y-3">
+                        <Label className="text-base font-medium">{category.label}</Label>
+                        {renderMobileDropdownRating(
+                          formData[category.key as keyof typeof formData] as number,
+                          (rating) => handleInputChange(category.key as keyof typeof formData, rating)
                         )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                        {index < inspectionCategories.length - 1 && <div className="border-t pt-4" />}
+                      </div>
+                    ))}
+                  </div>
+                </MobileCard>
+              ) : (
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                  {inspectionCategories.map((category, index) => {
+                    const key = category.key as keyof typeof formData;
+                    return (
+                      <Card key={category.key} className="overflow-hidden">
+                        <CardHeader className="pb-4">
+                          <CardTitle className="text-lg">{category.label}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {renderStarRating(
+                            formData[key] as number,
+                            (rating) => handleInputChange(key, rating)
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Notes Section */}
               {isMobile ? (

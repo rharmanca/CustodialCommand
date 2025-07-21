@@ -169,3 +169,7 @@ Preferred communication style: Simple, everyday language.
 - Fixed TypeScript errors by implementing missing functions and proper state management
 - Corrected MobileCard component prop usage by removing unsupported description prop
 - Application now successfully starts and runs without syntax errors
+- Improved mobile experience by implementing dropdown-based rating system for Firefox Android compatibility
+- Added mobile-friendly dropdown rating selectors that replace star buttons on mobile devices
+- Enhanced mobile touch targets with larger button sizes and better spacing
+- Updated both single room and whole building inspection forms for better mobile usability
