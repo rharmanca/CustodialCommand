@@ -72,6 +72,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   // Form data for current inspection
   const [formData, setFormData] = useState({
+    inspectorName: '',
     school: '',
     date: '',
     locationCategory: '',
@@ -121,6 +122,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             const buildingInspection = inspections[0];
             setBuildingInspectionId(buildingInspection.id);
             setFormData({
+              inspectorName: buildingInspection.inspectorName || '',
               school: buildingInspection.school,
               date: buildingInspection.date,
               locationCategory: '',
@@ -252,6 +254,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             school: formData.school,
             date: formData.date,
             inspectionType: 'whole_building',
+            inspectorName: formData.inspectorName,
             isComplete: false
           })
         });
@@ -344,6 +347,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       });
       
       setFormData({
+        inspectorName: '',
         school: '',
         date: '',
         locationCategory: '',
@@ -389,13 +393,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       </div>
 
       {/* Initial Setup */}
-      {!formData.school || !formData.date ? (
+      {!formData.inspectorName || !formData.school || !formData.date ? (
         <Card>
           <CardHeader>
             <CardTitle>Setup Inspection</CardTitle>
             <CardDescription>Choose school and date to begin the whole building inspection</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="inspectorName">Inspector Name *</Label>
+              <Input
+                id="inspectorName"
+                value={formData.inspectorName}
+                onChange={(e) => handleInputChange('inspectorName', e.target.value)}
+                placeholder="Enter your name"
+                required
+              />
+            </div>
             <div>
               <Label htmlFor="school">School</Label>
               <Select value={formData.school} onValueChange={(value) => handleInputChange('school', value)}>
@@ -431,6 +445,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <div>
                   <div className="text-lg font-semibold">{formData.school}</div>
                   <div className="text-gray-600">{new Date(formData.date).toLocaleDateString()}</div>
+                  <div className="text-sm text-gray-500">Inspector: {formData.inspectorName}</div>
                   {isResuming && (
                     <Badge variant="outline" className="mt-2">
                       Resuming Previous Inspection
@@ -440,7 +455,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setFormData(prev => ({ ...prev, school: '', date: '' }));
+                    setFormData(prev => ({ ...prev, inspectorName: '', school: '', date: '' }));
                     setSelectedCategory(null);
                   }}
                 >

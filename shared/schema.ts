@@ -10,6 +10,7 @@ export const users = pgTable("users", {
 
 export const inspections = pgTable("inspections", {
   id: serial("id").primaryKey(),
+  inspectorName: text("inspector_name"),
   school: text("school").notNull(),
   date: text("date").notNull(),
   inspectionType: text("inspection_type").notNull(), // 'single_room' or 'whole_building'
