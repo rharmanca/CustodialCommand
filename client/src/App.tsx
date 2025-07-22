@@ -134,6 +134,12 @@ function App() {
             <h2 className="text-4xl font-bold text-amber-900 mb-6 font-inter-bold">Custodial Operations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <button 
+                onClick={() => setCurrentPage('Custodial Notes')}
+                className="retro-button bg-orange-700 hover:bg-orange-800 border-orange-500"
+              >
+                Submit Notes & Issues
+              </button>
+              <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
                 className="retro-button bg-green-700 hover:bg-green-800 border-green-500"
               >
@@ -150,12 +156,6 @@ function App() {
                 className="retro-button bg-purple-700 hover:bg-purple-800 border-purple-500"
               >
                 View Data & Reports
-              </button>
-              <button 
-                onClick={() => setCurrentPage('Custodial Notes')}
-                className="retro-button bg-orange-700 hover:bg-orange-800 border-orange-500"
-              >
-                Submit Notes & Issues
               </button>
             </div>
             <div className="flex justify-center mb-8">
