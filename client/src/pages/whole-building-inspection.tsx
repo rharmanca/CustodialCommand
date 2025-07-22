@@ -494,10 +494,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
             Building Inspection
           </h1>
-          <div className="mt-3">
-            <Collapsible>
+          <div className="mt-3 flex justify-center">
+            <Collapsible className="w-full max-w-md">
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="p-0 h-auto font-normal text-left text-blue-600 hover:text-blue-800">
+                <Button 
+                  variant="ghost" 
+                  className="w-full p-3 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base"
+                >
                   📋 How to conduct a whole building inspection ↓
                 </Button>
               </CollapsibleTrigger>
