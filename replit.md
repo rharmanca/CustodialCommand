@@ -113,6 +113,14 @@ Preferred communication style: Simple, everyday language.
 - **Dialect**: PostgreSQL with Neon serverless compatibility
 - **Session Store**: PostgreSQL-backed session storage for production
 
+### Cloud Run Deployment Ready
+- **Port Configuration**: Server listens on `0.0.0.0:5000` for Cloud Run compatibility
+- **Build Command**: `npm run build` - Builds both frontend and backend
+- **Start Command**: `npm start` - Runs `NODE_ENV=production node dist/index.js`
+- **Environment Variables**: DATABASE_URL, PORT (defaults to 5000)
+- **Health Check**: Server responds with "serving on port {PORT}" log message
+- **Static Assets**: Built frontend served from `/dist/public` directory
+
 ### Key Architectural Decisions
 
 1. **Monorepo Structure**: Single repository with client, server, and shared directories for code organization
