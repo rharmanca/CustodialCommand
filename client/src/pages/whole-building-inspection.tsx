@@ -491,9 +491,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </Button>
         )}
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-            Building Inspection
-          </h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Inspect an entire building.</h1>
           <div className="mt-3 flex justify-center">
             <Collapsible className="w-full max-w-md">
               <CollapsibleTrigger asChild>
@@ -532,7 +530,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </div>
         </div>
       </div>
-
       {/* Inspection Selector */}
       {showInspectionSelector && (
         <Card>
@@ -585,7 +582,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       )}
-
       {/* School and Date Selection */}
       {!isResuming && !showInspectionSelector && (
         <Card>
@@ -637,7 +633,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       )}
-
       {/* Current Inspection Info (when resuming) */}
       {isResuming && (
         <Card>
@@ -676,7 +671,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       )}
-
       {/* Dynamic Checklist */}
       {!showInspectionSelector && (isMobile ? (
         <MobileCard title="Inspection Progress">
@@ -790,7 +784,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       ))}
-
       {/* Inspection Form */}
       {!showInspectionSelector && selectedCategory && formData.school && formData.date && (
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
@@ -964,7 +957,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </Button>
         </form>
       )}
-
       {/* Final Submit Button */}
       {!showInspectionSelector && (
         <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
