@@ -491,7 +491,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         )}
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-            {isMobile ? 'Building' : 'Building Inspection'}
+            {isMobile ? 'Inspect' : 'Building Inspection'}
           </h1>
           <p className="text-gray-600 mt-2">Complete inspections for all required areas in the building</p>
         </div>
