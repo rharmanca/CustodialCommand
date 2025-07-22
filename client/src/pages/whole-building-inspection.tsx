@@ -933,14 +933,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <Button
             onClick={handleFinalSubmit}
             size="lg"
-            className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+            className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-base' : ''}`}
             disabled={!isAllComplete}
           >
-            Finalize Whole Building Inspection
+            {isMobile ? 'Finalize Building Inspection' : 'Finalize Whole Building Inspection'}
           </Button>
           {!isAllComplete && (
-            <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-sm' : 'text-sm'}`}>
-              Complete all required inspections to enable this button
+            <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-xs px-2' : 'text-sm'}`}>
+              {isMobile ? 'Complete all required inspections first' : 'Complete all required inspections to enable this button'}
             </p>
           )}
         </div>
