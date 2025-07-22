@@ -515,7 +515,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       <div className="font-medium">{inspection.school}</div>
                       <div className="text-sm text-gray-600">
                         {new Date(inspection.date).toLocaleDateString()}
-                        {inspection.inspectorName && ` • ${inspection.inspectorName}`}
+                        {inspection.inspectorName && (
+                          <span className="block text-sm text-gray-700 font-medium">
+                            Inspector: {inspection.inspectorName}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <Button
