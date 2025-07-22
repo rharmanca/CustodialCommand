@@ -113,14 +113,6 @@ Preferred communication style: Simple, everyday language.
 - **Dialect**: PostgreSQL with Neon serverless compatibility
 - **Session Store**: PostgreSQL-backed session storage for production
 
-### Cloud Run Deployment Ready
-- **Port Configuration**: Server listens on `0.0.0.0:5000` for Cloud Run compatibility
-- **Build Command**: `npm run build` - Builds both frontend and backend
-- **Start Command**: `npm start` - Runs `NODE_ENV=production node dist/index.js`
-- **Environment Variables**: DATABASE_URL, PORT (defaults to 5000)
-- **Health Check**: Server responds with "serving on port {PORT}" log message
-- **Static Assets**: Built frontend served from `/dist/public` directory
-
 ### Key Architectural Decisions
 
 1. **Monorepo Structure**: Single repository with client, server, and shared directories for code organization
@@ -181,15 +173,3 @@ Preferred communication style: Simple, everyday language.
 - Added mobile-friendly dropdown rating selectors that replace star buttons on mobile devices
 - Enhanced mobile touch targets with larger button sizes and better spacing
 - Updated both single room and whole building inspection forms for better mobile usability
-- Added comprehensive selection interface for resuming incomplete building inspections
-- Users can now choose from multiple unfinished inspections with clear inspector identification
-- Enhanced inspection selection display with prominent inspector names for easy identification
-- Added "Start New Building Inspection" option alongside resume functionality
-
-**July 22, 2025**
-- Fixed deployment issues preventing successful Replit deployment
-- Removed invalid @radix-ui/react-textarea package that was causing npm registry errors
-- Verified proper build and start commands are working correctly
-- Confirmed application successfully builds with `npm run build` and starts with `npm start`
-- Tested application serves on port 5000 with proper static file serving and API endpoints
-- Application is now deployment-ready with resolved package conflicts

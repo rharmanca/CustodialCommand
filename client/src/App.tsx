@@ -4,8 +4,8 @@ import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
 import WholeBuildingInspectionPage from './pages/whole-building-inspection';
 import { useIsMobile } from './hooks/use-mobile';
-import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
-import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
+import sharedServicesImage from '../attached_assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
+import custodialDutyImage from '../attached_assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('Custodial');

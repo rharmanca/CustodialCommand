@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#8B4513" rx="64"/>
+  
+  <!-- Inner border -->
+  <rect x="32" y="32" width="448" height="448" fill="#D2691E" rx="52"/>
+  
+  <!-- Main content area -->
+  <rect x="64" y="64" width="384" height="384" fill="#F5DEB3" rx="40"/>
+  
+  <!-- Cleaning tool icon -->
+  <rect x="244" y="160" width="12" height="160" fill="#8B4513"/>
+  <rect x="256" y="160" width="64" height="24" fill="#CD853F" rx="12"/>
+  <rect x="264" y="184" width="48" height="12" fill="#A0522D"/>
+  
+  <!-- Mop strings -->
+  <rect x="256" y="320" width="6" height="60" fill="#DEB887"/>
+  <rect x="264" y="315" width="6" height="65" fill="#DEB887"/>
+  <rect x="272" y="320" width="6" height="60" fill="#DEB887"/>
+  <rect x="280" y="318" width="6" height="62" fill="#DEB887"/>
+  <rect x="288" y="320" width="6" height="60" fill="#DEB887"/>
+  <rect x="296" y="316" width="6" height="64" fill="#DEB887"/>
+  <rect x="304" y="320" width="6" height="60" fill="#DEB887"/>
+  <rect x="312" y="318" width="6" height="62" fill="#DEB887"/>
+  
+  <!-- Title -->
+  <text x="256" y="420" text-anchor="middle" font-size="36" font-weight="bold" fill="#8B4513" font-family="Arial, sans-serif">CUSTODIAL</text>
+</svg>
