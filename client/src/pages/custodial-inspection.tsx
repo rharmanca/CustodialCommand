@@ -340,7 +340,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         )}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Submit Inspection</h1>
-          <p className="text-gray-600 mt-2">Complete a detailed custodial inspection report</p>
+          <p className="text-gray-600 mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
         </div>
       </div>
 
