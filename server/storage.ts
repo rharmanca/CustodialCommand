@@ -117,6 +117,14 @@ export class DatabaseStorage implements IStorage {
   async getRoomInspectionsByBuildingId(buildingInspectionId: number): Promise<RoomInspection[]> {
     return await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
   }
+
+  async deleteInspection(id: number): Promise<boolean> {
+    const result = await db
+      .delete(inspections)
+      .where(eq(inspections.id, id))
+      .returning();
+    return result.length > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();

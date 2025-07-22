@@ -113,6 +113,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete inspection
+  app.delete("/api/inspections/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteInspection(id);
+      if (!success) {
+        return res.status(404).json({ error: "Inspection not found" });
+      }
+      res.json({ message: "Inspection deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting inspection:", error);
+      res.status(500).json({ error: "Failed to delete inspection" });
+    }
+  });
+
+  // Update inspection (full update)
+  app.put("/api/inspections/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertInspectionSchema.parse(req.body);
+      const inspection = await storage.updateInspection(id, validatedData);
+      if (!inspection) {
+        return res.status(404).json({ error: "Inspection not found" });
+      }
+      res.json(inspection);
+    } catch (error) {
+      console.error("Error updating inspection:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid inspection data", details: error.errors });
+      } else {
+        res.status(500).json({ error: "Failed to update inspection" });
+      }
+    }
+  });
+
   // Get rooms for a specific building inspection
   app.get("/api/inspections/:id/rooms", async (req, res) => {
     try {

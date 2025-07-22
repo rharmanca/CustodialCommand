@@ -6,9 +6,10 @@ import WholeBuildingInspectionPage from './pages/whole-building-inspection';
 import { useIsMobile } from './hooks/use-mobile';
 import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
 import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
+import AdminInspectionsPage from "./pages/admin-inspections";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('Custodial');
+  const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'admin-inspections'>('Custodial');
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
@@ -21,9 +22,9 @@ function App() {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                           (window.navigator as any).standalone ||
                           document.referrer.includes('android-app://');
-      
+
       setIsPWAInstalled(isStandalone);
-      
+
       // Show success message if just installed
       if (isStandalone && !localStorage.getItem('pwa-install-shown')) {
         setShowInstallSuccess(true);
@@ -33,7 +34,7 @@ function App() {
     };
 
     checkPWAStatus();
-    
+
     // Listen for app install events
     window.addEventListener('appinstalled', () => {
       setIsPWAInstalled(true);
@@ -41,10 +42,10 @@ function App() {
       localStorage.setItem('pwa-install-shown', 'true');
       setTimeout(() => setShowInstallSuccess(false), 5000);
     });
-    
+
     // Listen for display mode changes
     window.matchMedia('(display-mode: standalone)').addEventListener('change', checkPWAStatus);
-    
+
     return () => {
       window.matchMedia('(display-mode: standalone)').removeEventListener('change', checkPWAStatus);
     };
@@ -177,6 +178,8 @@ function App() {
         return <CustodialNotesPage onBack={() => setCurrentPage('Custodial')} />;
       case 'Whole Building Inspection':
         return <WholeBuildingInspectionPage onBack={() => setCurrentPage('Custodial')} />;
+      case 'admin-inspections':
+        return <AdminInspectionsPage onBack={() => setCurrentPage('Custodial')} />;
 
       default:
         return null;
@@ -203,6 +206,12 @@ function App() {
             {link.name}
           </button>
         ))}
+              <button 
+                onClick={() => setCurrentPage('admin-inspections')}
+                className="retro-button bg-red-700 hover:bg-red-800 border-red-500"
+              >
+                Admin
+              </button>
       </nav>
 
       {/* Main content area */}
