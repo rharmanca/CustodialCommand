@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AdminInspectionsPageProps {
@@ -22,6 +22,9 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   const [loading, setLoading] = useState(true);
   const [editingInspection, setEditingInspection] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
 
   // School options
   const schoolOptions = [
@@ -57,8 +60,34 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   });
 
   useEffect(() => {
-    loadInspections();
+    // Check if already authenticated
+    const authStatus = localStorage.getItem('admin-authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+      loadInspections();
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    
+    if (loginForm.username === 'Admin' && loginForm.password === 'cacustodial') {
+      setIsAuthenticated(true);
+      localStorage.setItem('admin-authenticated', 'true');
+      loadInspections();
+    } else {
+      setLoginError('Invalid username or password');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('admin-authenticated');
+    setLoginForm({ username: '', password: '' });
+  };
 
   const loadInspections = async () => {
     try {
@@ -164,6 +193,62 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
     return 'bg-green-100 text-green-800';
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto p-6 max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Admin Login</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to access the admin panel
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={loginForm.username}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              {loginError && (
+                <div className="text-red-600 text-sm text-center">
+                  {loginError}
+                </div>
+              )}
+              <div className="flex gap-2">
+                {onBack && (
+                  <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+                    Back
+                  </Button>
+                )}
+                <Button type="submit" className="flex-1">
+                  Login
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto p-6 max-w-6xl">
@@ -180,10 +265,18 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
             ← Back
           </Button>
         )}
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Admin - Manage Inspections</h1>
           <p className="text-gray-600 mt-2">View, edit, and delete inspections</p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleLogout}
+          className="flex items-center gap-2 flex-shrink-0"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
       </div>
 
       <div className="grid gap-4">
