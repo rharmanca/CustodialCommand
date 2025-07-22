@@ -66,7 +66,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     return initial;
   });
 
-  // Track if we're resuming a previous inspection
+  // Track available inspections and selection state
+  const [availableInspections, setAvailableInspections] = useState<any[]>([]);
+  const [showInspectionSelector, setShowInspectionSelector] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const [savedInspections, setSavedInspections] = useState<any[]>([]);
 
@@ -106,58 +108,101 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     setIsAllComplete(checkCompletion());
   }, [completed]);
 
-  // Load saved progress on mount
+  // Load available inspections on mount
   useEffect(() => {
-    const loadSavedProgress = async () => {
+    const loadAvailableInspections = async () => {
       try {
         const response = await fetch('/api/inspections?type=whole_building&incomplete=true');
         if (response.ok) {
           const inspections = await response.json();
+          setAvailableInspections(inspections);
           if (inspections.length > 0) {
-            // Load the most recent incomplete building inspection
-            const buildingInspection = inspections[0];
-            setBuildingInspectionId(buildingInspection.id);
-            setFormData({
-              inspectorName: buildingInspection.inspectorName || '',
-              school: buildingInspection.school,
-              date: buildingInspection.date,
-              locationCategory: '',
-              roomNumber: '',
-              locationDescription: '',
-              floors: -1,
-              verticalHorizontalSurfaces: -1,
-              ceiling: -1,
-              restrooms: -1,
-              customerSatisfaction: -1,
-              trash: -1,
-              projectCleaning: -1,
-              activitySupport: -1,
-              safetyCompliance: -1,
-              equipment: -1,
-              monitoring: -1,
-              notes: ''
-            });
-
-            // Load completed rooms for each category
-            const roomResponse = await fetch(`/api/inspections/${buildingInspection.id}/rooms`);
-            if (roomResponse.ok) {
-              const rooms = await roomResponse.json();
-              const completedCount: Record<string, number> = {};
-              Object.keys(requirements).forEach(key => {
-                completedCount[key] = rooms.filter((room: any) => room.roomType === key).length;
-              });
-              setCompleted(completedCount);
-              setIsResuming(true);
-            }
+            setShowInspectionSelector(true);
           }
         }
       } catch (error) {
-        console.error('Error loading saved progress:', error);
+        console.error('Error loading available inspections:', error);
       }
     };
 
-    loadSavedProgress();
+    loadAvailableInspections();
   }, []);
+
+  // Function to select an existing inspection
+  const selectInspection = async (inspection: any) => {
+    try {
+      setBuildingInspectionId(inspection.id);
+      setFormData({
+        inspectorName: inspection.inspectorName || '',
+        school: inspection.school,
+        date: inspection.date,
+        locationCategory: '',
+        roomNumber: '',
+        locationDescription: '',
+        floors: -1,
+        verticalHorizontalSurfaces: -1,
+        ceiling: -1,
+        restrooms: -1,
+        customerSatisfaction: -1,
+        trash: -1,
+        projectCleaning: -1,
+        activitySupport: -1,
+        safetyCompliance: -1,
+        equipment: -1,
+        monitoring: -1,
+        notes: ''
+      });
+
+      // Load completed rooms for each category
+      const roomResponse = await fetch(`/api/inspections/${inspection.id}/rooms`);
+      if (roomResponse.ok) {
+        const rooms = await roomResponse.json();
+        const completedCount: Record<string, number> = {};
+        Object.keys(requirements).forEach(key => {
+          completedCount[key] = rooms.filter((room: any) => room.roomType === key).length;
+        });
+        setCompleted(completedCount);
+        setIsResuming(true);
+        setShowInspectionSelector(false);
+      }
+    } catch (error) {
+      console.error('Error loading inspection:', error);
+    }
+  };
+
+  // Function to start a new inspection
+  const startNewInspection = () => {
+    setShowInspectionSelector(false);
+    setIsResuming(false);
+    setBuildingInspectionId(null);
+    setCompleted(() => {
+      const initial: Record<string, number> = {};
+      Object.keys(requirements).forEach(key => {
+        initial[key] = 0;
+      });
+      return initial;
+    });
+    setFormData({
+      inspectorName: '',
+      school: '',
+      date: '',
+      locationCategory: '',
+      roomNumber: '',
+      locationDescription: '',
+      floors: -1,
+      verticalHorizontalSurfaces: -1,
+      ceiling: -1,
+      restrooms: -1,
+      customerSatisfaction: -1,
+      trash: -1,
+      projectCleaning: -1,
+      activitySupport: -1,
+      safetyCompliance: -1,
+      equipment: -1,
+      monitoring: -1,
+      notes: ''
+    });
+  };
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
@@ -450,8 +495,57 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         </div>
       </div>
 
+      {/* Inspection Selector */}
+      {showInspectionSelector && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Choose Inspection</CardTitle>
+            <CardDescription>Select an existing inspection to continue or start a new one</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {availableInspections.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Continue Previous Inspection:</h4>
+                {availableInspections.map((inspection) => (
+                  <div
+                    key={inspection.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div>
+                      <div className="font-medium">{inspection.school}</div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(inspection.date).toLocaleDateString()}
+                        {inspection.inspectorName && ` • ${inspection.inspectorName}`}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => selectInspection(inspection)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                ))}
+                <Separator />
+              </div>
+            )}
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900">Or Start New Inspection:</h4>
+              <Button
+                onClick={startNewInspection}
+                className="w-full"
+                variant="default"
+              >
+                Start New Building Inspection
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* School and Date Selection */}
-      {!isResuming && (
+      {!isResuming && !showInspectionSelector && (
         <Card>
           <CardHeader>
             <CardTitle>Building Information</CardTitle>
@@ -502,8 +596,47 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         </Card>
       )}
 
+      {/* Current Inspection Info (when resuming) */}
+      {isResuming && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Inspection</CardTitle>
+            <CardDescription>Continuing inspection progress</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Inspector:</span>
+                <span>{formData.inspectorName || 'Not specified'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">School:</span>
+                <span>{formData.school}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Date:</span>
+                <span>{new Date(formData.date).toLocaleDateString()}</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <Button
+                onClick={() => {
+                  setShowInspectionSelector(true);
+                  setIsResuming(false);
+                  setBuildingInspectionId(null);
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Switch to Different Inspection
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Dynamic Checklist */}
-      {isMobile ? (
+      {!showInspectionSelector && (isMobile ? (
         <MobileCard title="Inspection Progress">
           <p className="text-sm text-gray-600 mb-4">
             Complete the required number of inspections for each category
@@ -614,10 +747,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             })}
           </CardContent>
         </Card>
-      )}
+      ))}
 
       {/* Inspection Form */}
-      {selectedCategory && formData.school && formData.date && (
+      {!showInspectionSelector && selectedCategory && formData.school && formData.date && (
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
           {isMobile ? (
             <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
@@ -791,21 +924,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       )}
 
       {/* Final Submit Button */}
-      <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
-        <Button
-          onClick={handleFinalSubmit}
-          size="lg"
-          className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
-          disabled={!isAllComplete}
-        >
-          Finalize Whole Building Inspection
-        </Button>
-        {!isAllComplete && (
-          <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-sm' : 'text-sm'}`}>
-            Complete all required inspections to enable this button
-          </p>
-        )}
-      </div>
+      {!showInspectionSelector && (
+        <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
+          <Button
+            onClick={handleFinalSubmit}
+            size="lg"
+            className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+            disabled={!isAllComplete}
+          >
+            Finalize Whole Building Inspection
+          </Button>
+          {!isAllComplete && (
+            <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-sm' : 'text-sm'}`}>
+              Complete all required inspections to enable this button
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
