@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Plus, LogOut } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Edit, Trash2, Plus, LogOut, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { inspectionCategories } from '@shared/custodial-criteria';
 
 interface AdminInspectionsPageProps {
   onBack?: () => void;
@@ -25,6 +27,10 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
+  const [activeTab, setActiveTab] = useState('inspections');
+  const [editingCriteria, setEditingCriteria] = useState<any>(null);
+  const [criteriaForm, setCriteriaForm] = useState({});
+  const [isCriteriaDialogOpen, setIsCriteriaDialogOpen] = useState(false);
 
   // School options
   const schoolOptions = [
@@ -87,6 +93,23 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
     setIsAuthenticated(false);
     localStorage.removeItem('admin-authenticated');
     setLoginForm({ username: '', password: '' });
+  };
+
+  const handleEditCriteria = (category: any) => {
+    setEditingCriteria(category);
+    setCriteriaForm({
+      label: category.label,
+      criteria: { ...category.criteria }
+    });
+    setIsCriteriaDialogOpen(true);
+  };
+
+  const handleSaveCriteria = () => {
+    // In a real implementation, this would save to a database or file
+    // For now, we'll just show a success message
+    alert('Criteria updated successfully! (Note: This is a demo - changes are not persisted)');
+    setIsCriteriaDialogOpen(false);
+    setEditingCriteria(null);
   };
 
   const loadInspections = async () => {
@@ -266,8 +289,8 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
           </Button>
         )}
         <div className="flex-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Admin - Manage Inspections</h1>
-          <p className="text-gray-600 mt-2">View, edit, and delete inspections</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Admin Panel</h1>
+          <p className="text-gray-600 mt-2">Manage inspections and criteria</p>
         </div>
         <Button
           variant="outline"
@@ -279,15 +302,23 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
         </Button>
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="inspections">Manage Inspections</TabsTrigger>
+          <TabsTrigger value="criteria">Edit Criteria</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="inspections" className="space-y-4 mt-6">
+
       <div className="grid gap-4">
-        {inspections.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center text-gray-500">No inspections found</div>
-            </CardContent>
-          </Card>
-        ) : (
-          inspections.map((inspection) => (
+          {inspections.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center text-gray-500">No inspections found</div>
+              </CardContent>
+            </Card>
+          ) : (
+            inspections.map((inspection) => (
             <Card key={inspection.id} className="overflow-hidden">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
@@ -526,10 +557,134 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                   </div>
                 )}
               </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+              </Card>
+            ))
+          )}
+        </div>
+        </TabsContent>
+
+        <TabsContent value="criteria" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Inspection Criteria Management
+              </CardTitle>
+              <CardDescription>
+                View and edit the criteria used for rating inspections. Each category has specific criteria for ratings 1-5.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {inspectionCategories.map((category) => (
+                <Card key={category.key} className="border-l-4 border-l-blue-500">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{category.label}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {Object.keys(category.criteria).length} rating levels defined
+                        </CardDescription>
+                      </div>
+                      <Dialog open={isCriteriaDialogOpen && editingCriteria?.key === category.key} onOpenChange={setIsCriteriaDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditCriteria(category)}
+                          >
+                            <Edit className="w-4 h-4" />
+                            Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Edit Criteria: {category.label}</DialogTitle>
+                            <DialogDescription>
+                              Modify the criteria descriptions for each rating level (1-5 stars)
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-6">
+                            <div>
+                              <Label htmlFor="criteria-label">Category Label</Label>
+                              <Input
+                                id="criteria-label"
+                                value={(criteriaForm as any).label || ''}
+                                onChange={(e) => setCriteriaForm(prev => ({ ...prev, label: e.target.value }))}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div className="space-y-4">
+                              <h4 className="font-medium">Rating Criteria</h4>
+                              {[5, 4, 3, 2, 1].map((rating) => (
+                                <div key={rating} className="space-y-2">
+                                  <Label className="flex items-center gap-2">
+                                    <span className="font-medium">Rating {rating}:</span>
+                                    <div className="flex">
+                                      {Array.from({ length: rating }, (_, i) => (
+                                        <span key={i} className="text-yellow-400">★</span>
+                                      ))}
+                                      {Array.from({ length: 5 - rating }, (_, i) => (
+                                        <span key={i} className="text-gray-300">★</span>
+                                      ))}
+                                    </div>
+                                  </Label>
+                                  <Textarea
+                                    value={((criteriaForm as any).criteria?.[rating]) || ''}
+                                    onChange={(e) => setCriteriaForm(prev => ({
+                                      ...prev,
+                                      criteria: {
+                                        ...(prev as any).criteria,
+                                        [rating]: e.target.value
+                                      }
+                                    }))}
+                                    rows={3}
+                                    className="text-sm"
+                                    placeholder={`Enter criteria description for ${rating} star rating...`}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex justify-end gap-2 pt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsCriteriaDialogOpen(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button onClick={handleSaveCriteria}>
+                              Save Changes
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {Object.entries(category.criteria).map(([rating, description]) => (
+                        <div key={rating} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: parseInt(rating) }, (_, i) => (
+                              <span key={i} className="text-yellow-400 text-sm">★</span>
+                            ))}
+                            {Array.from({ length: 5 - parseInt(rating) }, (_, i) => (
+                              <span key={i} className="text-gray-300 text-sm">★</span>
+                            ))}
+                          </div>
+                          <div className="flex-1 text-sm text-gray-700">
+                            {description as string}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
