@@ -488,20 +488,20 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
+                    <div className="mb-2">
+                      <h3 className="font-semibold text-gray-900 text-base">
+                        {inspection.inspectorName || 'Unknown Inspector'}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-3 mb-1">
                       <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                         {inspection.school}
                       </Badge>
                       <span className="text-sm text-gray-600">
-                        {inspection.date}
+                        {new Date(inspection.date).toLocaleDateString()}
                       </span>
-                      {inspection.inspectorName && (
-                        <span className="text-sm text-gray-500">
-                          by {inspection.inspectorName}
-                        </span>
-                      )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs text-gray-500">
                       Started {new Date(inspection.createdAt || inspection.date).toLocaleDateString()}
                     </p>
                   </div>

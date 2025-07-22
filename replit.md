@@ -173,3 +173,7 @@ Preferred communication style: Simple, everyday language.
 - Added mobile-friendly dropdown rating selectors that replace star buttons on mobile devices
 - Enhanced mobile touch targets with larger button sizes and better spacing
 - Updated both single room and whole building inspection forms for better mobile usability
+- Added comprehensive selection interface for resuming incomplete building inspections
+- Users can now choose from multiple unfinished inspections with clear inspector identification
+- Enhanced inspection selection display with prominent inspector names for easy identification
+- Added "Start New Building Inspection" option alongside resume functionality
