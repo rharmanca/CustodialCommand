@@ -11,6 +11,7 @@ interface CustodialNotesPageProps {
 
 export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) {
   const [formData, setFormData] = useState({
+    inspectorName: '',
     school: '',
     date: '',
     location: '',
@@ -18,31 +19,100 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     notes: ''
   });
 
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newImages = [...images, ...files];
+    setImages(newImages);
+
+    // Create preview URLs
+    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+    setImagePreviewUrls(prev => [...prev, ...newPreviewUrls]);
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviewUrls = imagePreviewUrls.filter((_, i) => i !== index);
+    
+    // Revoke the URL to free memory
+    URL.revokeObjectURL(imagePreviewUrls[index]);
+    
+    setImages(newImages);
+    setImagePreviewUrls(newPreviewUrls);
+  };
+
+  const capturePhoto = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+
+      // Create a canvas to capture the frame
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      video.addEventListener('loadedmetadata', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context?.drawImage(video, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            setImages(prev => [...prev, file]);
+            setImagePreviewUrls(prev => [...prev, URL.createObjectURL(file)]);
+          }
+          stream.getTracks().forEach(track => track.stop());
+        }, 'image/jpeg', 0.8);
+      });
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Could not access camera. Please use file upload instead.');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const formDataToSend = new FormData();
+      
+      // Add text fields
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value);
+      });
+      
+      // Add images
+      images.forEach((image, index) => {
+        formDataToSend.append(`image_${index}`, image);
+      });
+
       const response = await fetch('/api/custodial-notes', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       if (response.ok) {
         alert('Custodial note submitted successfully!');
         // Reset form
         setFormData({
+          inspectorName: '',
           school: '',
           date: '',
           location: '',
           locationDescription: '',
           notes: ''
         });
+        setImages([]);
+        // Clean up preview URLs
+        imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
+        setImagePreviewUrls([]);
       } else {
         throw new Error('Failed to submit custodial note');
       }
@@ -72,6 +142,16 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
             <CardDescription>Enter the basic details for this custodial note</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="inspectorName">Inspector Name</Label>
+              <Input
+                id="inspectorName"
+                value={formData.inspectorName}
+                onChange={(e) => handleInputChange('inspectorName', e.target.value)}
+                placeholder="Enter your name"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="school">School</Label>
               <Input
@@ -130,6 +210,61 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
               className="min-h-[250px]"
               required
             />
+          </CardContent>
+        </Card>
+
+        {/* Image Upload Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Photos & Documentation</CardTitle>
+            <CardDescription>Upload images or capture photos to document the issue</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Label htmlFor="imageUpload" className="block mb-2">Upload Images</Label>
+                <Input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="cursor-pointer"
+                />
+              </div>
+              <div className="flex items-end">
+                <Button type="button" onClick={capturePhoto} variant="outline" className="w-full sm:w-auto">
+                  📷 Capture Photo
+                </Button>
+              </div>
+            </div>
+
+            {/* Image Previews */}
+            {imagePreviewUrls.length > 0 && (
+              <div className="mt-4">
+                <Label className="block mb-2">Uploaded Images ({images.length})</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {imagePreviewUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
