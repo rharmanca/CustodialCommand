@@ -169,6 +169,10 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           images: []
         });
         setSelectedImages([]);
+        // Navigate back to home page
+        if (onBack) {
+          onBack();
+        }
       } else {
         const errorData = await response.json();
         alert(`Error submitting inspection: ${errorData.message || 'Unknown error'}`);
