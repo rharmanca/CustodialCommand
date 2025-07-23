@@ -56,7 +56,7 @@ export const roomInspections = pgTable("room_inspections", {
   equipment: integer("equipment"),
   monitoring: integer("monitoring"),
   notes: text("notes"),
-  images: text("images").array(),
+  images: text("images").array().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
