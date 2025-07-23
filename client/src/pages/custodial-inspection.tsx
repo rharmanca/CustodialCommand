@@ -467,23 +467,43 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         <Card>
           <CardHeader>
             <CardTitle>Photo Documentation</CardTitle>
-            <CardDescription>Add photos to document inspection findings (up to 5 images)</CardDescription>
+            <CardDescription>Upload images or take photos to document inspection findings (up to 5 images)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="images">Upload Images</Label>
-              <Input
-                id="images"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="cursor-pointer"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Select up to 5 images (JPG, PNG, GIF supported)
-              </p>
+            <div className="flex gap-2">
+              <Label htmlFor="image-upload" className="cursor-pointer">
+                <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Images</span>
+                </div>
+                <Input
+                  id="image-upload"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </Label>
+              
+              <Label htmlFor="camera-capture" className="cursor-pointer">
+                <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                  <Camera className="w-4 h-4" />
+                  <span>Take Photo</span>
+                </div>
+                <Input
+                  id="camera-capture"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </Label>
             </div>
+            <p className="text-sm text-gray-500">
+              Select multiple images from your device or take new photos with your camera (up to 5 images - JPG, PNG, GIF supported)
+            </p>
 
             {/* Image Previews */}
             {selectedImages.length > 0 && (
