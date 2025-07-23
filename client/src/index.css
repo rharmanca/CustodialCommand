@@ -155,7 +155,17 @@
 }
 
 /* Mobile responsive optimizations */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  /* Base mobile styles */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
   img {
     max-width: 100% !important;
     height: auto !important;
@@ -166,54 +176,127 @@
     width: 100%;
     height: auto;
     min-height: 4rem;
+    object-fit: cover;
   }
   
-  /* Better touch targets for mobile */
-  button, .retro-button, .back-button {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 12px 20px;
+  /* Better touch targets for mobile - Apple HIG recommends 44px minimum */
+  button, .retro-button, .back-button, 
+  [role="button"], .star-button,
+  select, input[type="submit"] {
+    min-height: 48px !important;
+    min-width: 48px !important;
+    padding: 14px 20px !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    touch-action: manipulation;
   }
   
-  /* Improved mobile typography */
+  /* Enhanced mobile typography */
   h1 {
-    font-size: 2.5rem !important;
-    line-height: 1.2;
+    font-size: 2.25rem !important;
+    line-height: 1.1 !important;
+    margin-bottom: 1rem !important;
   }
   
   h2 {
-    font-size: 2rem !important;
-    line-height: 1.3;
+    font-size: 1.875rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  h3 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  p, div, span {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
   }
   
   /* Mobile-friendly form elements */
   input, textarea, select {
-    font-size: 16px; /* Prevents zoom on iOS */
-    padding: 12px;
-    border-radius: 8px;
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 16px 12px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    min-height: 48px !important;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  /* Enhanced select dropdowns for mobile */
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px !important;
   }
   
   /* Mobile spacing adjustments */
   .mobile-padding {
-    padding: 1rem;
+    padding: 1.5rem 1rem !important;
   }
   
   .mobile-margin {
-    margin: 0.5rem 0;
+    margin: 1rem 0 !important;
+  }
+  
+  /* Container and layout improvements */
+  .container, .max-w-6xl, .max-w-4xl {
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
   
   /* Star rating mobile optimization */
   .star-button {
-    font-size: 32px;
-    padding: 8px;
-    min-width: 48px;
-    min-height: 48px;
+    font-size: 36px !important;
+    padding: 12px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    margin: 4px !important;
+    border-radius: 50% !important;
   }
   
   /* Mobile navigation improvements */
   .retro-button {
-    width: 100%;
-    margin: 0.5rem 0;
-    text-align: center;
+    width: 100% !important;
+    margin: 0.75rem 0 !important;
+    text-align: center !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Card and content improvements */
+  .bg-white, [class*="bg-"] {
+    margin: 0.5rem 0 !important;
+    border-radius: 12px !important;
+  }
+  
+  /* Improved scroll behavior */
+  .overflow-x-auto {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Modal and dialog improvements */
+  [role="dialog"], .modal {
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    margin: 5vh auto !important;
+  }
+  
+  /* Table responsiveness */
+  table {
+    font-size: 14px !important;
+  }
+  
+  td, th {
+    padding: 8px 4px !important;
+    white-space: nowrap;
   }
 }
