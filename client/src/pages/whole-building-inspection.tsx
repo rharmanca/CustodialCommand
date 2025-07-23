@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Star, Check, X } from 'lucide-react';
+import { Star, Check, X, Upload, Camera } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
@@ -936,39 +936,93 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
           {/* Image Upload */}
           {isMobile ? (
-            <MobileCard title="Upload Images">
-              <div className="space-y-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="text-base"
-                  onChange={(e) => {
-                    // Handle file upload - placeholder for now
-                    console.log('Files selected:', e.target.files);
-                  }}
-                />
+            <MobileCard title="Photo Documentation">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-3">
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                      <Upload className="w-5 h-5" />
+                      <span className="text-base">Upload Images</span>
+                    </div>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => {
+                        console.log('Files selected:', e.target.files);
+                      }}
+                      className="hidden"
+                    />
+                  </Label>
+                  
+                  <Label htmlFor="camera-capture" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                      <Camera className="w-5 h-5" />
+                      <span className="text-base">Take Photo</span>
+                    </div>
+                    <Input
+                      id="camera-capture"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        console.log('Camera photo taken:', e.target.files);
+                      }}
+                      className="hidden"
+                    />
+                  </Label>
+                </div>
                 <p className="text-sm text-gray-500">
-                  Select multiple images to document the inspection
+                  Upload existing images or take new photos to document the inspection
                 </p>
               </div>
             </MobileCard>
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Upload Images</CardTitle>
-                <CardDescription>Add photos to document the inspection</CardDescription>
+                <CardTitle>Photo Documentation</CardTitle>
+                <CardDescription>Upload images or take photos to document the inspection</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => {
-                    // Handle file upload - placeholder for now
-                    console.log('Files selected:', e.target.files);
-                  }}
-                />
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Images</span>
+                    </div>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => {
+                        console.log('Files selected:', e.target.files);
+                      }}
+                      className="hidden"
+                    />
+                  </Label>
+                  
+                  <Label htmlFor="camera-capture" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                      <Camera className="w-4 h-4" />
+                      <span>Take Photo</span>
+                    </div>
+                    <Input
+                      id="camera-capture"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        console.log('Camera photo taken:', e.target.files);
+                      }}
+                      className="hidden"
+                    />
+                  </Label>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Select multiple images from your device or take new photos with your camera
+                </p>
               </CardContent>
             </Card>
           )}
