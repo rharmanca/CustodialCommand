@@ -877,8 +877,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   <div key={category.key} className="space-y-3">
                     <Label className="text-base font-medium">{category.label}</Label>
                     {renderMobileDropdownRating(
+                      category,
                       formData[category.key as keyof typeof formData] as number,
-                      (rating) => handleInputChange(category.key as keyof typeof formData, rating)
+                      (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
                     )}
                     {index < inspectionCategories.length - 1 && <div className="border-t pt-4" />}
                   </div>

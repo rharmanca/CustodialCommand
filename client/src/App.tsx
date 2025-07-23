@@ -52,7 +52,7 @@ function App() {
   }, []);
 
   const navLinks = [
-    { name: 'Home', path: 'Custodial' },
+    { name: 'Home', path: 'Custodial' as const },
   ];
 
   const renderPageContent = () => {
