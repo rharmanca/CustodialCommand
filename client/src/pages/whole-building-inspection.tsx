@@ -509,18 +509,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          {onBack && (
+        {onBack && (
+          <div className="flex justify-start mb-4">
             <Button variant="outline" onClick={onBack} className="flex-shrink-0">
               ← Back
             </Button>
-          )}
-          <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center sm:text-left">
-              Inspect an entire building.
-            </h1>
           </div>
-        </div>
+        )}
         
         <div className="flex justify-center px-4">
           <Collapsible className="w-full max-w-lg">
