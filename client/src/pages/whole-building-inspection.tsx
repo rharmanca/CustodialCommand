@@ -508,50 +508,55 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        {onBack && (
-          <Button variant="outline" onClick={onBack} className="flex-shrink-0">
-            ← Back
-          </Button>
-        )}
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Inspect an entire building.</h1>
-          <div className="mt-3 flex justify-center">
-            <Collapsible className="w-full max-w-md">
-              <CollapsibleTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="w-full p-3 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base"
-                >
-                  📋 How to conduct a whole building inspection ↓
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="space-y-3 text-sm text-gray-700">
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Step 1: Getting Started</h4>
-                    <p>Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Step 2: Complete Required Inspections</h4>
-                    <p>Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Step 3: Rate Each Area</h4>
-                    <p>For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Step 4: Track Progress</h4>
-                    <p>Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">Step 5: Finalize</h4>
-                    <p>Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+      <div className="mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          {onBack && (
+            <Button variant="outline" onClick={onBack} className="flex-shrink-0">
+              ← Back
+            </Button>
+          )}
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center sm:text-left">
+              Inspect an entire building.
+            </h1>
           </div>
+        </div>
+        
+        <div className="flex justify-center px-4">
+          <Collapsible className="w-full max-w-lg">
+            <CollapsibleTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="w-full p-3 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base leading-relaxed"
+              >
+                📋 How to conduct a whole building inspection ↓
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="space-y-3 text-sm text-gray-700">
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 1: Getting Started</h4>
+                  <p>Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 2: Complete Required Inspections</h4>
+                  <p>Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 3: Rate Each Area</h4>
+                  <p>For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 4: Track Progress</h4>
+                  <p>Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 5: Finalize</h4>
+                  <p>Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
       {/* Inspection Selector */}
