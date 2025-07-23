@@ -219,7 +219,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
-  const renderMobileDropdownRating = (currentRating: number, onRatingChange: (rating: number) => void) => {
+  const renderMobileDropdownRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
       <div className="space-y-3">
         <Select 
@@ -256,13 +256,25 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </SelectContent>
         </Select>
         {currentRating > 0 && currentRating !== -1 && (
-          <div className="text-center space-y-1">
-            <div className="text-base font-semibold text-yellow-600">
-              {ratingDescriptions[currentRating - 1]?.label}
+          <div className="space-y-3">
+            <div className="text-center space-y-1">
+              <div className="text-base font-semibold text-yellow-600">
+                {ratingDescriptions[currentRating - 1]?.label}
+              </div>
+              <div className="text-sm text-gray-600">
+                {ratingDescriptions[currentRating - 1]?.description}
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              {ratingDescriptions[currentRating - 1]?.description}
-            </div>
+            {category?.criteria && category.criteria[currentRating] && (
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="text-sm font-medium text-blue-900 mb-1">
+                  Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
+                </div>
+                <div className="text-sm text-blue-800">
+                  {category.criteria[currentRating]}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {currentRating === -1 && (
@@ -279,7 +291,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     );
   };
 
-  const renderStarRating = (currentRating: number, onRatingChange: (rating: number) => void) => {
+  const renderStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
       <div className="space-y-3">
         <div className="flex justify-center gap-2">
@@ -312,13 +324,25 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           ))}
         </div>
         {currentRating > 0 && currentRating !== -1 && (
-          <div className="text-center">
-            <div className="text-lg font-semibold text-yellow-600">
-              {ratingDescriptions[currentRating - 1]?.label}
+          <div className="space-y-3">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-yellow-600">
+                {ratingDescriptions[currentRating - 1]?.label}
+              </div>
+              <div className="text-sm text-gray-600">
+                {ratingDescriptions[currentRating - 1]?.description}
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              {ratingDescriptions[currentRating - 1]?.description}
-            </div>
+            {category?.criteria && category.criteria[currentRating] && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="text-sm font-medium text-blue-900 mb-2">
+                  Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
+                </div>
+                <div className="text-sm text-blue-800">
+                  {category.criteria[currentRating]}
+                </div>
+              </div>
+            )}
           </div>
         )}
         {currentRating === -1 && (
@@ -872,6 +896,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     </CardHeader>
                     <CardContent>
                       {renderStarRating(
+                        category,
                         formData[key] as number,
                         (rating) => handleInputChange(key, rating)
                       )}
