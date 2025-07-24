@@ -131,8 +131,8 @@ function App() {
               )}
             </div>
 
-            <h2 className="text-4xl font-bold text-amber-900 mb-6 font-inter-bold">Custodial Operations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-900 mb-4 sm:mb-6 font-inter-bold">Custodial Operations</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
                 className="retro-button bg-orange-700 hover:bg-orange-800 border-orange-500"
@@ -158,14 +158,14 @@ function App() {
                 View Data & Reports
               </button>
             </div>
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6 sm:mb-8">
               <img 
                 src={custodialDutyImage} 
                 alt="Custodial Duty" 
-                className="rounded-lg shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md h-auto" 
+                className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto" 
               />
             </div>
-            <p className="text-xl text-amber-800 font-inter-regular">
+            <p className="text-lg sm:text-xl text-amber-800 font-inter-regular text-center px-2">
               Cleanliness is a duty for all.
             </p>
           </div>
@@ -187,40 +187,42 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 text-gray-900 font-inter-regular p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 text-gray-900 font-inter-regular px-2 sm:px-4 py-2 sm:py-4 flex flex-col items-center">
       {/* Header section with app title */}
-      <header className="w-full max-w-4xl header-container p-6 rounded-lg shadow-xl mb-8 border-4 border-orange-400">
-        <h1 className="text-6xl font-extrabold text-center uppercase retro-header tracking-widest font-inter-bold">
+      <header className="w-full max-w-4xl header-container p-3 sm:p-4 md:p-6 rounded-lg shadow-xl mb-4 sm:mb-6 md:mb-8 border-2 sm:border-3 md:border-4 border-orange-400">
+        <h1 className="font-extrabold text-center uppercase retro-header tracking-wide sm:tracking-wider md:tracking-widest font-inter-bold">
           Custodial Command
         </h1>
       </header>
 
       {/* Navigation section */}
-      <nav className="w-full max-w-4xl nav-container p-4 rounded-lg shadow-lg mb-8 border-2 border-orange-300 flex flex-wrap justify-center gap-4">
-        {navLinks.map((link) => (
-          <button
-            key={link.name}
-            onClick={() => setCurrentPage(link.path)}
-            className={`retro-button ${currentPage === link.path ? 'active' : ''}`}
+      <nav className="w-full max-w-4xl nav-container p-3 sm:p-4 rounded-lg shadow-lg mb-4 sm:mb-6 md:mb-8 border-2 border-orange-300">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
+          {navLinks.map((link) => (
+            <button
+              key={link.name}
+              onClick={() => setCurrentPage(link.path)}
+              className={`retro-button ${currentPage === link.path ? 'active' : ''}`}
+            >
+              {link.name}
+            </button>
+          ))}
+          <button 
+            onClick={() => setCurrentPage('admin-inspections')}
+            className="retro-button bg-red-700 hover:bg-red-800 border-red-500"
           >
-            {link.name}
+            Admin
           </button>
-        ))}
-              <button 
-                onClick={() => setCurrentPage('admin-inspections')}
-                className="retro-button bg-red-700 hover:bg-red-800 border-red-500"
-              >
-                Admin
-              </button>
+        </div>
       </nav>
 
       {/* Main content area */}
-      <main className="w-full max-w-4xl content-area p-8 rounded-lg shadow-xl border-4 border-blue-800">
+      <main className="w-full max-w-4xl content-area p-3 sm:p-6 md:p-8 rounded-lg shadow-xl border-2 sm:border-3 md:border-4 border-blue-800">
         {renderPageContent()}
       </main>
 
       {/* Footer section */}
-      <footer className="w-full max-w-4xl mt-8 text-center text-gray-300 text-sm font-inter-regular">
+      <footer className="w-full max-w-4xl mt-4 sm:mt-6 md:mt-8 text-center text-gray-300 text-xs sm:text-sm font-inter-regular px-2">
         <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
       </footer>
     </div>
