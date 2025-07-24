@@ -137,7 +137,7 @@ function App() {
                 onClick={() => setCurrentPage('Custodial Notes')}
                 className="retro-button bg-orange-700 hover:bg-orange-800 border-orange-500"
               >
-                Submit Notes or Complaints
+                Report A Problem
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
