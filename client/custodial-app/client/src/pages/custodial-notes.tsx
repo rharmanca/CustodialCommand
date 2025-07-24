@@ -136,7 +136,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         {/* Submit Button */}
         <div className="flex justify-center">
           <Button type="submit" size="lg" className="w-full md:w-auto">
-            Submit Custodial Note
+            Report a Problem
           </Button>
         </div>
       </form>
