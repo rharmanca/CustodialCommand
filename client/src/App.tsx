@@ -151,12 +151,17 @@ function App() {
               >
                 Building Inspection
               </button>
-              <button 
-                onClick={() => setCurrentPage('Inspection Data')}
-                className="retro-button bg-purple-700 hover:bg-purple-800 border-purple-500"
-              >
-                View Data & Reports
-              </button>
+              <div className="space-y-2">
+                <p className="text-sm text-amber-700 font-medium text-center px-2">
+                  Warning: The Below May Not Be Mobile Friendly
+                </p>
+                <button 
+                  onClick={() => setCurrentPage('Inspection Data')}
+                  className="retro-button bg-purple-700 hover:bg-purple-800 border-purple-500 w-full"
+                >
+                  View Data & Reports
+                </button>
+              </div>
             </div>
             <div className="flex justify-center mb-6 sm:mb-8">
               <img 
