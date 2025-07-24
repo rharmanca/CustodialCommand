@@ -131,7 +131,7 @@ function App() {
               )}
             </div>
 
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-900 mb-4 sm:mb-6 font-inter-bold">Custodial Operations</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-900 mb-4 sm:mb-6 font-inter-bold">Take Command</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
