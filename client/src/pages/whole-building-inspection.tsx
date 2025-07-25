@@ -385,6 +385,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
     if (!selectedCategory) return;
 
+    // Validate inspector name is provided
+    if (!formData.inspectorName.trim()) {
+      alert('Inspector name is required. Please enter the inspector name.');
+      return;
+    }
+
     try {
       // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
@@ -616,7 +622,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="inspectorName">Inspector Name</Label>
+                <Label htmlFor="inspectorName">Inspector Name *</Label>
                 <Input
                   id="inspectorName"
                   value={formData.inspectorName}
@@ -733,7 +739,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                           <Badge variant={isComplete ? 'default' : 'secondary'} className="text-xs">
                             {completedCount}/{required} Done
                           </Badge>
-                          {!isComplete && formData.school && formData.date && (
+                          {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -791,7 +797,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     <Badge variant={isComplete ? 'default' : 'secondary'}>
                       {completedCount}/{required} Completed
                     </Badge>
-                    {!isComplete && formData.school && formData.date && (
+                    {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -809,7 +815,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         </Card>
       ))}
       {/* Inspection Form */}
-      {!showInspectionSelector && selectedCategory && formData.school && formData.date && (
+      {!showInspectionSelector && selectedCategory && formData.school && formData.date && formData.inspectorName.trim() && (
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
           {isMobile ? (
             <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
