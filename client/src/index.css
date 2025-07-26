@@ -2,6 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Legacy browser polyfills and vendor prefixes */
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* Optimize for older mobile browsers */
+body {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Better touch targets for mobile */
+button, input, select, textarea, a {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+  min-height: 44px; /* iOS/Android recommended touch target size */
+  min-width: 44px;
+}
+
+/* Legacy flexbox with vendor prefixes */
+.legacy-flex {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.legacy-flex-column {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -moz-box-orient: vertical;
+  -moz-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.legacy-flex-center {
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -moz-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -moz-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+/* Float-based layout for very old browsers */
+.legacy-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  overflow: hidden; /* Clearfix */
+}
+
+.legacy-container:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.legacy-col-half {
+  float: left;
+  width: 48%;
+  margin-right: 4%;
+}
+
+.legacy-col-half:last-child {
+  margin-right: 0;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -30,11 +116,11 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Safe area insets for mobile devices */
-    --safe-area-inset-top: env(safe-area-inset-top, 0px);
-    --safe-area-inset-right: env(safe-area-inset-right, 0px);
-    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    /* Safe area insets with fallbacks for older browsers */
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-right: 0px;
+    --safe-area-inset-bottom: 0px;
+    --safe-area-inset-left: 0px;
   }
 
   .dark {
@@ -65,6 +151,79 @@
   }
 }
 
+/* Firefox mobile and legacy browser optimizations */
+input, select, textarea, button {
+  /* Prevent zoom on focus in mobile browsers */
+  font-size: 16px !important;
+  
+  /* Firefox mobile specific optimizations */
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  
+  /* Better touch targets */
+  min-height: 44px;
+  padding: 12px 16px;
+  
+  /* Disable text selection on form controls */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Enable text selection for input fields */
+input[type="text"], input[type="email"], input[type="password"], 
+input[type="number"], input[type="tel"], textarea {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Performance optimizations for older devices */
+* {
+  /* Hardware acceleration for animations */
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  
+  /* Reduce layout thrashing */
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Legacy flexbox support */
+.flex-legacy {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -moz-box !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+}
+
+.flex-column-legacy {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -moz-box-orient: vertical;
+  -moz-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+/* Scrollable areas optimization */
+.scrollable-legacy {
+  -webkit-overflow-scrolling: touch;
+  -moz-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+  overflow-y: auto;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -72,9 +231,19 @@
   }
 
   html {
-    /* Prevent zoom on iOS when focusing inputs */
+    /* Legacy browser and Firefox mobile optimizations */
+    -moz-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    
+    /* Prevent zoom on mobile when focusing inputs */
+    font-size: 16px; /* Base font size to prevent zoom */
+    
+    /* Improve scroll performance */
+    -webkit-overflow-scrolling: touch;
+    -moz-overflow-scrolling: touch;
+    overflow-scrolling: touch;
   }
 
   body {
@@ -86,11 +255,23 @@
     padding-bottom: var(--safe-area-inset-bottom);
     padding-left: var(--safe-area-inset-left);
     padding-right: var(--safe-area-inset-right);
+    
+    /* Firefox mobile optimizations */
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    
+    /* Touch optimizations */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+    
+    /* Memory optimization for low-end devices */
+    will-change: auto;
   }
 }
 
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+/* Optimized font loading for mobile performance */
 
 /* Font classes */
 .font-inter-thin { font-family: 'Inter', sans-serif; font-weight: 100; }
