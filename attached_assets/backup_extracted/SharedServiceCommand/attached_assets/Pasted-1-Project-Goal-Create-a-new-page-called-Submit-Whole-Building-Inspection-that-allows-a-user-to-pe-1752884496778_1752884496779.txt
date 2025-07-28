@@ -1,0 +1,45 @@
+1. Project Goal
+Create a new page called "Submit Whole Building Inspection" that allows a user to perform a comprehensive custodial inspection. The page must guide the user to complete a pre-determined number of inspections for specific categories. The user's progress should be tracked in real-time with a dynamic checklist.
+
+2. User-Facing Prompt & Instructions
+Use the following text as the headline and primary instructions for the page. It's direct, friendly, and sets the right expectations.
+
+Page Headline:
+Ready to Inspect the Whole Building?
+
+Instructions:
+This form is for your comprehensive building inspection. Simply go through the list below and submit the required number of inspections for each category. The inspection criteria are the same ones you're already familiar with from standard inspections.
+
+3. Core UI Components
+Design the page to include these essential elements:
+
+Dynamic Checklist: A list of categories with a status indicator for each. This list should update in real-time as the user completes inspections.
+
+Incomplete Item: [ ] Category Name: 0/X Completed (where X is the required number).
+
+Complete Item: [✓] Category Name: X/X Completed (with bold text or a different color to stand out).
+
+Per-Category Forms: For each category in the checklist, provide a clear section with a form to submit a single inspection. This form should contain all the standard inspection criteria.
+
+Final Submit Button: A single button at the bottom of the page, labeled something like "Finalize Whole Building Inspection." This button must remain disabled until all items in the dynamic checklist are marked as complete.
+
+4. Logic & Functionality
+To make the page work, you'll need to build the following logic into your code:
+
+Get Requirements: First, your app needs to retrieve the required number of inspections for each category. This data should be loaded from your admin panel settings. You can store it in a data structure like a dictionary or object (e.g., requirements = { 'hallways': 3, 'restrooms': 2, ... }).
+
+Track Progress: The page needs a way to count how many inspections have been submitted for each category during the current session. A temporary object or state variable (e.g., completed = { 'hallways': 0, 'restrooms': 0, ... }) should be used to store these counts.
+
+Handle Submissions: When a user submits a single inspection form for a category (e.g., "Hallways"), the app must do the following:
+
+Save the inspection data to your database.
+
+Increment the counter for that specific category in your completed tracker (e.g., completed['hallways']++).
+
+Trigger an update to the dynamic checklist UI.
+
+Check for Completion: The app must continuously check if all categories are complete. You can create a function that iterates through the requirements and completed data to see if the completed count for every category meets or exceeds its required count.
+
+Enable the Final Submit Button: The "Finalize" button's disabled state should be tied to the result of the completion check. Only when every single category is marked as complete should the button become enabled.
+
+Final Submission: When the final button is clicked, your app should process the completed whole building inspection and save the final report.
