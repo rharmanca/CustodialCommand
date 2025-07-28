@@ -19,7 +19,7 @@ interface WholeBuildingInspectionPageProps {
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
-  
+
   // Define requirements for each category
   const requirements = {
     exterior: 2,
@@ -380,6 +380,17 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
+  const handleCategorySelect = (category: string) => {
+    const currentScrollY = window.scrollY;
+    setSelectedCategory(category);
+    setShowInspectionSelector(false);
+
+    // Prevent automatic scroll to top
+    setTimeout(() => {
+      window.scrollTo(0, currentScrollY);
+    }, 0);
+  };
+
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -394,7 +405,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     try {
       // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
-      
+
       if (!currentBuildingId) {
         const buildingResponse = await fetch('/api/inspections', {
           method: 'POST',
@@ -460,7 +471,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
       if (response.ok) {
         const savedInspection = await response.json();
-        
+
         // Update completed count
         setCompleted(prev => ({
           ...prev,
@@ -522,7 +533,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Button>
           </div>
         )}
-        
+
         <div className="flex justify-center px-4">
           <Collapsible className="w-full max-w-lg">
             <CollapsibleTrigger asChild>
@@ -717,7 +728,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             {Object.entries(requirements).map(([category, required]) => {
               const completedCount = completed[category];
               const isComplete = completedCount >= required;
-              
+
               return (
                 <div
                   key={category}
@@ -744,7 +755,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => setSelectedCategory(category)}
+                              onClick={() => handleCategorySelect(category)}
                               className={`text-xs px-3 py-1 h-7 ${selectedCategory === category ? 'border-blue-500 bg-blue-50' : ''}`}
                             >
                               Select
@@ -776,7 +787,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             {Object.entries(requirements).map(([category, required]) => {
               const completedCount = completed[category];
               const isComplete = completedCount >= required;
-              
+
               return (
                 <div
                   key={category}
@@ -802,7 +813,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedCategory(category)}
+                        onClick={() => handleCategorySelect(category)}
                         className={selectedCategory === category ? 'border-blue-500' : ''}
                       >
                         Select
@@ -872,7 +883,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     />
                   </div>
                 </div>
-              </CardContent>
+              </              </CardContent>
             </Card>
           )}
 
@@ -963,7 +974,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       className="hidden"
                     />
                   </Label>
-                  
+
                   <Label htmlFor="camera-capture" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                       <Camera className="w-5 h-5" />
@@ -990,7 +1001,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <Card>
               <CardHeader>
                 <CardTitle>Photo Documentation</CardTitle>
-                <CardDescription>Upload images or take photos to document the inspection</CardDescription>
+                <CardDescription>Upload images or take photos to document the inspection</CardHeader>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
@@ -1010,7 +1021,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       className="hidden"
                     />
                   </Label>
-                  
+
                   <Label htmlFor="camera-capture" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                       <Camera className="w-4 h-4" />
