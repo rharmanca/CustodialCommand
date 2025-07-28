@@ -1,0 +1,272 @@
+To create this "Shared Service Command" app in Replit, you'll typically set up a React project. Here's a comprehensive prompt you can use:
+
+Prompt for Replit: Shared Service Command React App
+
+To set up this application in Replit, follow these steps:
+
+Create a New Replit:
+
+Go to Replit.com and log in.
+
+Click the "+ Create Repl" button.
+
+Select the "React.js" template.
+
+Give your Repl a name (e.g., "SharedServiceCommand").
+
+Click "Create Repl."
+
+Update Files: Replit will pre-populate some files. You'll need to modify or create the following:
+
+public/index.html (or index.html if public folder doesn't exist):
+Replace the entire content of this file with the following:
+
+HTML
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shared Service Command</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Inter (Regular and Bold) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.js"></script>
+  </body>
+</html>
+src/index.js:
+Replace the entire content of this file with the following:
+
+JavaScript
+
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App'; // Import your main App component
+
+const container = document.getElementById('root');
+const root = createRoot(container); // Create a root.
+root.render(<App />); // Render the App component
+src/App.js:
+Replace the entire content of this file with the React code provided in our previous conversation (the content of the shared-service-command-app immersive).
+
+Code snippet
+
+import React, { useState } from 'react';
+
+// Main App component
+function App() {
+  const [currentPage, setCurrentPage] = useState('Home'); // State to manage current page
+
+  // Array of navigation links
+  const navLinks = [
+    { name: 'Home', path: 'Home' },
+    { name: 'Custodial', path: 'Custodial' },
+    { name: 'Food Service', path: 'Food Service' },
+    { name: 'Transportation', path: 'Transportation' },
+    { name: 'Clinics', path: 'Clinics' },
+    { name: 'Invoices', path: 'Invoices' },
+    { name: 'Kitchen Equipment', path: 'Kitchen Equipment' },
+  ];
+
+  // Function to render the content of the current page
+  const renderPageContent = () => {
+    switch (currentPage) {
+      case 'Home':
+        return (
+          <div className="text-center p-8">
+            <div className="mt-8 flex justify-center">
+              {/* Updated image source to a publicly accessible placeholder */}
+              <img src="https://placehold.co/600x800/2C3E50/E0E0E0?text=SHARED+SERVICES+GRAPHIC" alt="Shared Services Graphic" className="rounded-lg shadow-lg max-w-full h-auto" />
+            </div>
+          </div>
+        );
+      case 'Custodial':
+        return (
+          <div className="p-8 text-center">
+            <h2 className="text-4xl font-bold text-blue-800 mb-6 font-inter-bold">Custodial Operations</h2>
+            <div className="flex justify-center mb-8">
+              {/* Updated image source to a publicly accessible placeholder */}
+              <img src="https://placehold.co/400x300/2C3E50/E0E0E0?text=CUSTODIAL+DUTY" alt="Custodial Duty" className="rounded-lg shadow-lg max-w-md h-auto" />
+            </div>
+            <p className="text-xl text-gray-800 font-inter-regular mb-8">
+              Cleanliness is a duty for all.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <button className="retro-button bg-green-700 hover:bg-green-800 border-green-500">
+                Submit New Inspection
+              </button>
+              <button className="retro-button bg-purple-700 hover:bg-purple-800 border-purple-500">
+                View Inspection Data
+              </button>
+              <button className="retro-button bg-yellow-700 hover:bg-yellow-800 border-yellow-500 text-gray-900">
+                Safety and Procedures
+              </button>
+            </div>
+          </div>
+        );
+      case 'Food Service':
+        return (
+          <div className="p-8">
+            <h2 className="text-4xl font-bold text-blue-800 mb-4 font-inter-bold">Food Service Division</h2>
+            <p className="text-xl text-gray-800 font-inter-regular">
+              Nourishing our community is vital.
+            </p>
+            <div className="mt-8 flex justify-center">
+              {/* Image for Food Service page */}
+              <img src="https://placehold.co/400x300/2C3E50/E0E0E0?text=FOOD+SERVICE+COMMUNITY" alt="Food Service" className="rounded-lg shadow-lg max-w-md h-auto" />
+            </div>
+          </div>
+        );
+      case 'Transportation':
+        return (
+          <div className="p-8">
+            <h2 className="text-4xl font-bold text-blue-800 mb-4 font-inter-bold">Transportation Logistics</h2>
+            <p className="text-xl text-gray-800 font-inter-regular">
+              Movement of goods and personnel is meticulously managed. Our transportation network is the lifeblood of our operations.
+            </p>
+          </div>
+        );
+      case 'Clinics':
+        return (
+          <div className="p-8">
+            <h2 className="text-4xl font-bold text-blue-800 mb-4 font-inter-bold">Medical Clinics</h2>
+            <p className="text-xl text-gray-800 font-inter-regular">
+              The health of our comrades is our priority. Clinics provide essential care to keep our forces strong and resilient.
+            </p>
+          </div>
+        );
+      case 'Invoices':
+        return (
+          <div className="p-8">
+            <h2 className="text-4xl font-bold text-blue-800 mb-4 font-inter-bold">Invoice Management</h2>
+            <p className="text-xl text-gray-800 font-inter-regular">
+              Precise accounting ensures the efficient allocation of resources. All invoices are processed with diligence.
+            </p>
+          </div>
+        );
+      case 'Kitchen Equipment':
+        return (
+          <div className="p-8">
+            <h2 className="text-4xl font-bold text-blue-800 mb-4 font-inter-bold">Kitchen Equipment Inventory</h2>
+            <p className="text-xl text-gray-800 font-inter-regular">
+              Maintaining our culinary tools is paramount. A well-equipped kitchen ensures our comrades are well-fed.
+            </p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    // Main container with retro-inspired background and font
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-700 text-white font-inter-regular p-4 flex flex-col items-center">
+      {/* Tailwind CSS CDN */}
+      <script src="https://cdn.tailwindcss.com"></script>
+      {/* Google Fonts for Inter (Regular and Bold) */}
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+
+      {/* Custom styles for retro look */}
+      <style>
+        {`
+        .font-inter-regular {
+          font-family: 'Inter', sans-serif;
+          font-weight: 400;
+        }
+        .font-inter-bold {
+          font-family: 'Inter', sans-serif;
+          font-weight: 700;
+        }
+        .retro-button {
+          @apply bg-blue-700 hover:bg-blue-800 text-white font-inter-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105 border-2 border-orange-300;
+        }
+        .retro-header {
+          text-shadow: 4px 4px 0px rgba(0,0,0,0.7);
+        }
+        `}
+      </style>
+
+      {/* Header section with app title */}
+      <header className="w-full max-w-4xl bg-gray-900 bg-opacity-80 p-6 rounded-lg shadow-xl mb-8 border-4 border-orange-400">
+        <h1 className="text-6xl font-extrabold text-center text-orange-300 uppercase retro-header tracking-widest">
+          Shared Service Command
+        </h1>
+      </header>
+
+      {/* Navigation section */}
+      <nav className="w-full max-w-4xl bg-gray-800 bg-opacity-70 p-4 rounded-lg shadow-lg mb-8 border-2 border-orange-300 flex flex-wrap justify-center gap-4">
+        {navLinks.map((link) => (
+          <button
+            key={link.name}
+            onClick={() => setCurrentPage(link.path)}
+            className={`retro-button ${currentPage === link.path ? 'bg-red-700 border-red-500' : ''}`}
+          >
+            {link.name}
+          </button>
+        ))}
+      </nav>
+
+      {/* Main content area */}
+      <main className="w-full max-w-4xl bg-white bg-opacity-95 text-gray-900 p-8 rounded-lg shadow-xl border-4 border-blue-800">
+        {renderPageContent()}
+      </main>
+
+      {/* Footer section */}
+      <footer className="w-full max-w-4xl mt-8 text-center text-gray-300 text-sm font-inter-regular">
+        <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
+package.json:
+Ensure your dependencies section includes at least react and react-dom. Replit's React template usually sets this up correctly, but double-check. It should look something like this (versions might vary):
+
+JSON
+
+{
+  "name": "shared-service-command",
+  "version": "1.0.0",
+  "description": "A retro-themed React app for Shared Service Command.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+Run the Application:
+
+Once you've updated all the files, click the "Run" button at the top of the Replit interface.
+
+Replit will automatically install the necessary dependencies and start the development server.
+
+You should see your "Shared Service Command" app appear in the preview pane.
+
