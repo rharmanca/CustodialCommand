@@ -678,52 +678,65 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       {showInspectionSelector && (
         <Card>
           <CardHeader>
-            <CardTitle>Choose Inspection</CardTitle>
-            <CardDescription>Select an existing inspection to continue or start a new one</CardDescription>
+            <CardTitle>Building Inspection Options</CardTitle>
+            <CardDescription>You can continue a previous inspection or start a new one</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {availableInspections.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Continue Previous Inspection:</h4>
-                {availableInspections.map((inspection) => (
-                  <div
-                    key={inspection.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div>
-                      <div className="font-medium">{inspection.school}</div>
-                      <div className="text-sm text-gray-600">
-                        {new Date(inspection.date).toLocaleDateString()}
-                        {inspection.inspectorName && (
-                          <span className="block text-sm text-gray-700 font-medium">
-                            Inspector: {inspection.inspectorName}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => selectInspection(inspection)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                ))}
-                <Separator />
-              </div>
-            )}
+          <CardContent className="space-y-6">
+            {/* Start New Inspection - More Prominent */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Or Start New Inspection:</h4>
+              <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 border-2 border-blue-600 hover:border-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
                 variant="default"
                 size="lg"
               >
                 🏢 Start New Building Inspection
               </Button>
+              <p className="text-sm text-gray-600 text-center">
+                Begin a fresh comprehensive building inspection
+              </p>
             </div>
+            
+            {availableInspections.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {availableInspections.map((inspection) => (
+                      <div
+                        key={inspection.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 bg-amber-50 border-amber-200"
+                      >
+                        <div>
+                          <div className="font-medium text-amber-900">{inspection.school}</div>
+                          <div className="text-sm text-amber-700">
+                            {new Date(inspection.date).toLocaleDateString()}
+                            {inspection.inspectorName && (
+                              <span className="block text-sm text-amber-800 font-medium">
+                                Inspector: {inspection.inspectorName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => selectInspection(inspection)}
+                          variant="outline"
+                          size="sm"
+                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                        >
+                          Continue
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    These inspections were started but not completed
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
