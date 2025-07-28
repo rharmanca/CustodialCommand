@@ -3,7 +3,8 @@ import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
 import WholeBuildingInspectionPage from './pages/whole-building-inspection';
-import { useIsMobile } from './hooks/use-mobile';
+// import { useIsMobile } from './hooks/use-mobile';
+import custodialDutyImage from '@assets/image_1753285771182.png';
 
 import AdminInspectionsPage from "./pages/admin-inspections";
 
@@ -12,7 +13,7 @@ function App() {
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
-  const { isMobile } = useIsMobile();
+  // const { isMobile } = useIsMobile();
 
   // Detect PWA installation status
   useEffect(() => {
