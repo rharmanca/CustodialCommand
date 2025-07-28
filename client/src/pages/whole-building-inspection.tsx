@@ -571,37 +571,39 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </div>
         )}
 
-        <div className="flex justify-center px-4">
-          <Collapsible className="w-full max-w-lg">
+        <div className="flex justify-center px-2 sm:px-4">
+          <Collapsible className="w-full max-w-2xl">
             <CollapsibleTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full p-3 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base leading-relaxed"
+                className="w-full p-3 sm:p-4 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base leading-relaxed min-h-[56px] sm:min-h-[60px]"
               >
-                📋 How to conduct a whole building inspection ↓
+                <span className="flex items-center justify-center gap-2">
+                  📋 <span className="text-center leading-tight">How to conduct a whole building inspection</span> ↓
+                </span>
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="space-y-3 text-sm text-gray-700">
+            <CollapsibleContent className="mt-3 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="space-y-3 text-xs sm:text-sm text-gray-700">
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">Step 1: Getting Started</h4>
-                  <p>Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 1: Getting Started</h4>
+                  <p className="leading-relaxed">Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">Step 2: Complete Required Inspections</h4>
-                  <p>Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 2: Complete Required Inspections</h4>
+                  <p className="leading-relaxed">Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">Step 3: Rate Each Area</h4>
-                  <p>For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 3: Rate Each Area</h4>
+                  <p className="leading-relaxed">For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">Step 4: Track Progress</h4>
-                  <p>Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 4: Track Progress</h4>
+                  <p className="leading-relaxed">Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">Step 5: Finalize</h4>
-                  <p>Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 5: Finalize</h4>
+                  <p className="leading-relaxed">Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
                 </div>
               </div>
             </CollapsibleContent>
