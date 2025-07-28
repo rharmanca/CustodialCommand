@@ -603,10 +603,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <h4 className="font-medium text-gray-900">Or Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 border-2 border-blue-600 hover:border-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                 variant="default"
+                size="lg"
               >
-                Start New Building Inspection
+                🏢 Start New Building Inspection
               </Button>
             </div>
           </CardContent>
