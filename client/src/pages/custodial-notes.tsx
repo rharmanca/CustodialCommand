@@ -125,7 +125,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       {onBack && (
-        <Button onClick={onBack} variant="outline" className="mb-4 modern-button btn-slate">
+        <Button onClick={onBack} variant="outline" className="mb-4">
           ← Back to Custodial
         </Button>
       )}
@@ -233,7 +233,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 />
               </div>
               <div className="flex items-end">
-                <Button type="button" onClick={capturePhoto} variant="outline" className="w-full sm:w-auto modern-button btn-teal">
+                <Button type="button" onClick={capturePhoto} variant="outline" className="w-full sm:w-auto">
                   📷 Capture Photo
                 </Button>
               </div>
@@ -270,7 +270,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
         {/* Submit Button */}
         <div className="flex justify-center">
-          <Button type="submit" size="lg" className="w-full md:w-auto modern-button btn-orange">
+          <Button type="submit" size="lg" className="w-full md:w-auto">
             Report a Problem
           </Button>
         </div>

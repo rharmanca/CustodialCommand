@@ -287,7 +287,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <div className="text-base font-semibold text-yellow-600">
                 {ratingDescriptions[currentRating - 1]?.label}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-600">
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
@@ -305,10 +305,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         )}
         {currentRating === -1 && (
           <div className="text-center space-y-1">
-            <div className="text-base font-semibold text-muted-foreground">
+            <div className="text-base font-semibold text-gray-600">
               Not Rated
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-600">
               No rating selected
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 className={`w-8 h-8 ${
                   star <= currentRating && currentRating > 0
                     ? 'fill-yellow-400 text-yellow-400'
-                    : 'text-muted-foreground'
+                    : 'text-gray-300'
                 }`}
               />
             </Button>
@@ -355,7 +355,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <div className="text-lg font-semibold text-yellow-600">
                 {ratingDescriptions[currentRating - 1]?.label}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-600">
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
@@ -373,10 +373,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         )}
         {currentRating === -1 && (
           <div className="text-center">
-            <div className="text-lg font-semibold text-muted-foreground">
+            <div className="text-lg font-semibold text-gray-600">
               Not Rated
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-600">
               No rating selected
             </div>
           </div>
@@ -561,49 +561,47 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-4xl space-y-4 sm:space-y-6">
+    <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <div className="mb-6">
         {onBack && (
           <div className="flex justify-start mb-4">
-            <Button variant="outline" onClick={onBack} className="flex-shrink-0 modern-button btn-indigo">
+            <Button variant="outline" onClick={onBack} className="flex-shrink-0">
               ← Back
             </Button>
           </div>
         )}
 
-        <div className="flex justify-center px-2 sm:px-4">
-          <Collapsible className="w-full max-w-2xl">
+        <div className="flex justify-center px-4">
+          <Collapsible className="w-full max-w-lg">
             <CollapsibleTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full p-3 sm:p-4 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base leading-relaxed min-h-[56px] sm:min-h-[60px]"
+                className="w-full p-3 h-auto font-normal text-center text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 rounded-lg text-sm sm:text-base leading-relaxed"
               >
-                <span className="flex items-center justify-center gap-2">
-                  📋 <span className="text-center leading-tight">How to conduct a whole building inspection</span> ↓
-                </span>
+                📋 How to conduct a whole building inspection ↓
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="space-y-3 text-xs sm:text-sm text-gray-700">
+            <CollapsibleContent className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="space-y-3 text-sm text-gray-700">
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 1: Getting Started</h4>
-                  <p className="leading-relaxed">Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 1: Getting Started</h4>
+                  <p>Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 2: Complete Required Inspections</h4>
-                  <p className="leading-relaxed">Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 2: Complete Required Inspections</h4>
+                  <p>Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 3: Rate Each Area</h4>
-                  <p className="leading-relaxed">For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 3: Rate Each Area</h4>
+                  <p>For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 4: Track Progress</h4>
-                  <p className="leading-relaxed">Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 4: Track Progress</h4>
+                  <p>Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1 text-sm sm:text-base">Step 5: Finalize</h4>
-                  <p className="leading-relaxed">Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
+                  <h4 className="font-semibold text-blue-900 mb-1">Step 5: Finalize</h4>
+                  <p>Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
                 </div>
               </div>
             </CollapsibleContent>
@@ -613,25 +611,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       {/* Inspection Selector */}
       {showInspectionSelector && (
         <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg sm:text-xl text-center sm:text-left">Building Inspection Options</CardTitle>
-            <CardDescription className="text-sm sm:text-base text-center sm:text-left">You can continue a previous inspection or start a new one</CardDescription>
+          <CardHeader>
+            <CardTitle>Building Inspection Options</CardTitle>
+            <CardDescription>You can continue a previous inspection or start a new one</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
+          <CardContent className="space-y-6">
             {/* Start New Inspection - More Prominent */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900 text-base sm:text-lg text-center sm:text-left">Start New Inspection:</h4>
+              <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-base sm:text-lg min-h-[60px] sm:min-h-[64px]"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
                 variant="default"
                 size="lg"
               >
-                <span className="flex items-center justify-center gap-2 leading-tight">
-                  🏢 <span className="text-center">Start New Building Inspection</span>
-                </span>
+                🏢 Start New Building Inspection
               </Button>
-              <p className="text-xs sm:text-sm text-gray-600 text-center px-2">
+              <p className="text-sm text-gray-600 text-center">
                 Begin a fresh comprehensive building inspection
               </p>
             </div>
@@ -640,8 +636,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900 text-base sm:text-lg text-center sm:text-left">Or Continue Previous Inspection:</h4>
-                  <div className="space-y-2 max-h-48 sm:max-h-60 overflow-y-auto">
+                  <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
                     {availableInspections.map((inspection) => (
                       <div
                         key={inspection.id}
@@ -662,7 +658,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                           onClick={() => selectInspection(inspection)}
                           variant="outline"
                           size="sm"
-                          className="modern-button btn-orange border-amber-400 text-amber-700 hover:bg-amber-100"
+                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
                         >
                           Continue
                         </Button>

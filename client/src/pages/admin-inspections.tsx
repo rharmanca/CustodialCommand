@@ -257,11 +257,11 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
               )}
               <div className="flex gap-2">
                 {onBack && (
-                  <Button type="button" variant="outline" onClick={onBack} className="flex-1 modern-button btn-slate">
+                  <Button type="button" variant="outline" onClick={onBack} className="flex-1">
                     Back
                   </Button>
                 )}
-                <Button type="submit" className="flex-1 modern-button btn-fuchsia">
+                <Button type="submit" className="flex-1">
                   Login
                 </Button>
               </div>
@@ -284,7 +284,7 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
     <div className="container mx-auto p-6 max-w-6xl space-y-6">
       <div className="flex items-center gap-4 mb-6">
         {onBack && (
-          <Button variant="outline" onClick={onBack} className="flex-shrink-0 modern-button btn-pink">
+          <Button variant="outline" onClick={onBack} className="flex-shrink-0">
             ← Back
           </Button>
         )}
@@ -295,7 +295,7 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
         <Button
           variant="outline"
           onClick={handleLogout}
-          className="flex items-center gap-2 flex-shrink-0 modern-button btn-rose"
+          className="flex items-center gap-2 flex-shrink-0"
         >
           <LogOut className="w-4 h-4" />
           Logout

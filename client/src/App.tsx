@@ -135,19 +135,19 @@ function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
-                className="modern-button bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white w-full"
+                className="modern-button bg-orange-600 hover:bg-orange-700 border-orange-600 text-white w-full"
               >
                 Report A Problem
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
-                className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white w-full"
+                className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white w-full"
               >
                 Single Area Inspection
               </button>
               <button 
                 onClick={() => setCurrentPage('Whole Building Inspection')}
-                className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white w-full"
+                className="modern-button w-full"
               >
                 Building Inspection
               </button>
@@ -157,7 +157,7 @@ function App() {
                 </p>
                 <button 
                   onClick={() => setCurrentPage('Inspection Data')}
-                  className="modern-button bg-amber-600 hover:bg-amber-700 border-amber-600 text-white w-full"
+                  className="modern-button bg-violet-600 hover:bg-violet-700 border-violet-600 text-white w-full"
                 >
                   View Data & Reports
                 </button>
@@ -214,7 +214,7 @@ function App() {
           ))}
           <button 
             onClick={() => setCurrentPage('admin-inspections')}
-            className="modern-button bg-rose-600 hover:bg-rose-700 border-rose-600 text-white"
+            className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
           >
             Admin
           </button>

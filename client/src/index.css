@@ -251,9 +251,6 @@ input[type="number"], input[type="tel"], textarea {
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 400;
-    line-height: 1.5;
     /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
     /* Add safe area padding for devices with notches */
@@ -367,18 +364,6 @@ input[type="number"], input[type="tel"], textarea {
   transform: translateY(0.5px);
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
-
-/* Color variants for better differentiation */
-.btn-teal { @apply bg-teal-600 hover:bg-teal-700 border-teal-600 text-white; }
-.btn-cyan { @apply bg-cyan-600 hover:bg-cyan-700 border-cyan-600 text-white; }
-.btn-sky { @apply bg-sky-600 hover:bg-sky-700 border-sky-600 text-white; }
-.btn-indigo { @apply bg-indigo-600 hover:bg-indigo-700 border-indigo-600 text-white; }
-.btn-violet { @apply bg-violet-600 hover:bg-violet-700 border-violet-600 text-white; }
-.btn-fuchsia { @apply bg-fuchsia-600 hover:bg-fuchsia-700 border-fuchsia-600 text-white; }
-.btn-pink { @apply bg-pink-600 hover:bg-pink-700 border-pink-600 text-white; }
-.btn-rose { @apply bg-rose-600 hover:bg-rose-700 border-rose-600 text-white; }
-.btn-orange { @apply bg-orange-600 hover:bg-orange-700 border-orange-600 text-white; }
-.btn-slate { @apply bg-slate-600 hover:bg-slate-700 border-slate-600 text-white; }
 
 .retro-button::before {
   content: '';
@@ -506,34 +491,47 @@ input[type="number"], input[type="tel"], textarea {
   color: hsl(var(--muted-foreground));
 }
 
-/* Modern form elements styling */
+/* Mobile-First Form elements styling */
 input, textarea, select {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  padding: 0.75rem;
-  transition: all 0.15s ease;
+  font-family: 'Inter', sans-serif;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1rem 0.75rem;
+  transition: border-color 0.2s ease;
   font-size: 16px; /* Prevents zoom on iOS */
-  min-height: 44px;
+  min-height: 48px;
   width: 100%;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+}
+
+@media (min-width: 640px) {
+  input, textarea, select {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: hsl(var(--ring));
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
-/* Modern cards */
+/* Cards */
 .card {
-  background: hsl(var(--card));
-  border-radius: var(--radius);
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid hsl(var(--border));
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
   margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+  }
 }
 
 /* Mobile Grid Improvements */

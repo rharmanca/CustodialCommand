@@ -203,7 +203,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Button onClick={() => setSelectedInspection(null)} variant="outline" className="modern-button btn-cyan">
+          <Button onClick={() => setSelectedInspection(null)} variant="outline">
             ← Back to Inspections
           </Button>
         </div>
@@ -333,7 +333,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   return (
     <div className="container mx-auto px-4 py-8">
       {onBack && (
-        <Button onClick={onBack} variant="outline" className="mb-6 modern-button btn-slate">
+        <Button onClick={onBack} variant="outline" className="mb-6">
           ← Back to Custodial
         </Button>
       )}
