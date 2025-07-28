@@ -881,9 +881,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                       placeholder="e.g., Main Building, Second Floor"
                     />
-                  </div>
+                                    </div>
                 </div>
-              </              </CardContent>
+              </CardContent>
             </Card>
           )}
 
