@@ -381,14 +381,25 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   };
 
   const handleCategorySelect = (category: string) => {
+    // Store current scroll position
     const currentScrollY = window.scrollY;
+    
     setSelectedCategory(category);
     setShowInspectionSelector(false);
 
-    // Prevent automatic scroll to top
+    // Prevent automatic scroll to top with multiple methods
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    });
+    
+    // Also set a timeout as backup
     setTimeout(() => {
-      window.scrollTo(0, currentScrollY);
-    }, 0);
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    }, 10);
+    
+    setTimeout(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    }, 50);
   };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
@@ -733,7 +744,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <div
                   key={category}
                   className={`p-3 rounded-lg border ${
-                    isComplete ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                    isComplete 
+                      ? 'bg-green-50 border-green-200' 
+                      : selectedCategory === category 
+                        ? 'bg-blue-50 border-blue-300 border-2' 
+                        : 'bg-gray-50 border-gray-200'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -791,8 +806,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               return (
                 <div
                   key={category}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    isComplete ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                    isComplete 
+                      ? 'bg-green-50 border-green-200' 
+                      : selectedCategory === category 
+                        ? 'bg-blue-50 border-blue-300 border-2' 
+                        : 'bg-gray-50 border-gray-200'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -826,6 +845,30 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       ))}
+      {/* Help message when form is not showing */}
+      {!showInspectionSelector && selectedCategory && !(formData.school && formData.date && formData.inspectorName.trim()) && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-white text-sm font-bold">!</span>
+              </div>
+              <div>
+                <h4 className="font-medium text-amber-800 mb-1">Complete Required Information</h4>
+                <p className="text-sm text-amber-700">
+                  Please fill in all required fields above before you can start rating this category:
+                </p>
+                <ul className="text-sm text-amber-700 mt-2 space-y-1">
+                  {!formData.inspectorName.trim() && <li>• Inspector Name is required</li>}
+                  {!formData.school && <li>• School selection is required</li>}
+                  {!formData.date && <li>• Inspection date is required</li>}
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Inspection Form */}
       {!showInspectionSelector && selectedCategory && formData.school && formData.date && formData.inspectorName.trim() && (
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
