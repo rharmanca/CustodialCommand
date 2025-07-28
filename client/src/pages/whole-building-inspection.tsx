@@ -150,7 +150,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   // Function to select an existing inspection
   const selectInspection = async (inspection: any) => {
     try {
-      console.log('Selecting inspection:', inspection);
       setBuildingInspectionId(inspection.id);
       const newFormData = {
         inspectorName: inspection.inspectorName || '',
@@ -172,19 +171,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         monitoring: -1,
         notes: ''
       };
-      console.log('Setting form data:', newFormData);
       setFormData(newFormData);
 
       // Load completed rooms for each category
       const roomResponse = await fetch(`/api/inspections/${inspection.id}/rooms`);
       if (roomResponse.ok) {
         const rooms = await roomResponse.json();
-        console.log('Loaded rooms:', rooms);
         const completedCount: Record<string, number> = {};
         Object.keys(requirements).forEach(key => {
           completedCount[key] = rooms.filter((room: any) => room.roomType === key).length;
         });
-        console.log('Completed count:', completedCount);
         setCompleted(completedCount);
         setIsResuming(true);
         setShowInspectionSelector(false);
@@ -242,29 +238,40 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
-  const renderMobileDropdownRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
-    const [isOpen, setIsOpen] = useState(false);
-    
-    // Close dropdown when clicking outside
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as HTMLElement;
-        if (!target.closest('.custom-dropdown')) {
-          setIsOpen(false);
-        }
-      };
+  // State for mobile dropdown rating
+  const [dropdownOpenStates, setDropdownOpenStates] = useState<Record<string, boolean>>({});
 
-      if (isOpen) {
-        document.addEventListener('mousedown', handleClickOutside);
-        // Prevent body from scrolling when dropdown is open
-        document.body.style.overflow = 'hidden';
+  // Handle outside clicks for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.custom-dropdown')) {
+        setDropdownOpenStates(prev => {
+          const newStates = { ...prev };
+          Object.keys(newStates).forEach(key => {
+            newStates[key] = false;
+          });
+          return newStates;
+        });
       }
+    };
 
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.body.style.overflow = 'unset';
-      };
-    }, [isOpen]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const renderMobileDropdownRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
+    const categoryKey = category.key;
+    const isOpen = dropdownOpenStates[categoryKey] || false;
+    
+    const setIsOpen = (open: boolean) => {
+      setDropdownOpenStates(prev => ({
+        ...prev,
+        [categoryKey]: open
+      }));
+    };
     
     return (
       <div className="space-y-3">
@@ -276,13 +283,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              // Store scroll position before opening
-              const scrollY = window.scrollY;
               setIsOpen(!isOpen);
-              // Maintain scroll position
-              setTimeout(() => {
-                window.scrollTo({ top: scrollY, behavior: 'instant' });
-              }, 0);
             }}
           >
             <span>
@@ -302,12 +303,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  const scrollY = window.scrollY;
                   onRatingChange(-1);
                   setIsOpen(false);
-                  setTimeout(() => {
-                    window.scrollTo({ top: scrollY, behavior: 'instant' });
-                  }, 0);
                 }}
               >
                 Not Rated
@@ -321,12 +318,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const scrollY = window.scrollY;
                     onRatingChange(index + 1);
                     setIsOpen(false);
-                    setTimeout(() => {
-                      window.scrollTo({ top: scrollY, behavior: 'instant' });
-                    }, 0);
                   }}
                 >
                   <div className="flex items-center gap-3 py-1 w-full">
@@ -478,16 +471,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   };
 
   const handleCategorySelect = (category: string) => {
-    console.log('Category selected:', category);
-    console.log('Current form data:', formData);
-    console.log('Conditions check:', {
-      showInspectionSelector,
-      selectedCategory: category,
-      hasSchool: !!formData.school,
-      hasDate: !!formData.date,
-      hasInspectorName: !!formData.inspectorName.trim()
-    });
-    
     // Store current scroll position
     const currentScrollY = window.scrollY;
     
