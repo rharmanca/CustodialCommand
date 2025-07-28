@@ -244,7 +244,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     return (
       <div className="space-y-4">
         <div className="text-center">
-          <div className="text-base font-medium text-gray-700 mb-3">
+          <div className="text-base font-medium text-foreground mb-3">
             Rate this category:
           </div>
           
@@ -261,7 +261,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   className={`w-8 h-8 ${
                     star <= currentRating && currentRating > 0
                       ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-gray-300 hover:text-yellow-300'
+                      : 'text-muted-foreground hover:text-yellow-300'
                   }`}
                 />
               </button>
@@ -273,8 +273,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             type="button"
             className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
               currentRating === -1
-                ? 'bg-gray-100 border-gray-300 text-gray-700'
-                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-muted border-border text-foreground'
+                : 'bg-card border-border text-muted-foreground hover:bg-muted'
             }`}
             onClick={() => onRatingChange(-1)}
           >

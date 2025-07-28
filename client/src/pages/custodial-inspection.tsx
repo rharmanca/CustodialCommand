@@ -187,7 +187,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     return (
       <div className="space-y-4">
         <div className="text-center">
-          <div className="text-base font-medium text-gray-700 mb-3">
+          <div className="text-base font-medium text-foreground mb-3">
             Rate this category:
           </div>
           
@@ -231,7 +231,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <Badge variant="secondary" className="text-base px-4 py-2 w-full justify-center">
               {ratingDescriptions[currentRating - 1]?.label}
             </Badge>
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               {ratingDescriptions[currentRating - 1]?.description}
             </div>
           </div>
@@ -241,7 +241,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <Badge variant="outline" className="text-base px-4 py-2 w-full justify-center">
               Not Rated
             </Badge>
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               No rating selected
             </div>
           </div>
@@ -341,8 +341,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </Button>
         )}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Submit Inspection</h1>
-          <p className="text-gray-600 mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
+          <h1 className="text-3xl font-bold text-foreground">Submit Inspection</h1>
+          <p className="text-muted-foreground mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
         </div>
       </div>
 
