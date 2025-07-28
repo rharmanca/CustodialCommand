@@ -1001,7 +1001,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <Card>
               <CardHeader>
                 <CardTitle>Photo Documentation</CardTitle>
-                <CardDescription>Upload images or take photos to document the inspection</CardDescription>
+                <CardDescription>Upload images or take photos to document the inspection</CardHeader>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
