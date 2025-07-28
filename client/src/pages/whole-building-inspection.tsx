@@ -275,71 +275,80 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     
     return (
       <div className="space-y-3">
-        <div className="relative custom-dropdown">
+        <div className="relative">
           <Button
             type="button"
             variant="outline"
-            className="w-full h-12 text-base justify-between"
+            className="w-full h-12 text-base justify-between bg-white"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
           >
-            <span>
+            <span className="truncate pr-2">
               {currentRating === -1 ? 'Not Rated' : 
                currentRating > 0 ? `${currentRating} Star${currentRating > 1 ? 's' : ''} - ${ratingDescriptions[currentRating - 1]?.label}` : 
                'Select a rating...'}
             </span>
-            <span>{isOpen ? '▲' : '▼'}</span>
+            <span className="ml-2">{isOpen ? '▲' : '▼'}</span>
           </Button>
           
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
-              <div
-                className="w-full px-3 py-3 text-base font-normal hover:bg-gray-100 cursor-pointer border-b border-gray-100"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onRatingChange(-1);
-                  setIsOpen(false);
-                }}
-              >
-                <div className="text-gray-700">Not Rated</div>
-                <div className="text-sm text-gray-500">No rating selected</div>
-              </div>
-              {ratingDescriptions.map((rating, index) => (
-                <div
-                  key={index + 1}
-                  className="w-full px-3 py-3 text-base font-normal hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onRatingChange(index + 1);
-                    setIsOpen(false);
-                  }}
-                >
-                  <div className="flex items-start gap-3 w-full">
-                    <div className="flex pt-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= (index + 1)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium text-gray-900">{rating.label}</div>
-                      <div className="text-sm text-gray-600 mt-1">{rating.description}</div>
-                    </div>
-                  </div>
+            <>
+              <div 
+                className="fixed inset-0 z-40 bg-black bg-opacity-25"
+                onClick={() => setIsOpen(false)}
+              />
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl z-50 max-h-96 overflow-hidden">
+                <div className="max-h-96 overflow-y-auto">
+                  <button
+                    type="button"
+                    className="w-full px-4 py-4 text-left hover:bg-gray-50 border-b border-gray-100 focus:outline-none focus:bg-gray-50"
+                    onClick={() => {
+                      onRatingChange(-1);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <div className="font-medium text-gray-800">Not Rated</div>
+                    <div className="text-sm text-gray-500 mt-1">No rating selected</div>
+                  </button>
+                  {ratingDescriptions.map((rating, index) => {
+                    const starCount = index + 1;
+                    return (
+                      <button
+                        key={starCount}
+                        type="button"
+                        className="w-full px-4 py-4 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-gray-50"
+                        onClick={() => {
+                          onRatingChange(starCount);
+                          setIsOpen(false);
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex mt-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 ${
+                                  star <= starCount
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-800">{rating.label}</div>
+                            <div className="text-sm text-gray-600 mt-1 leading-relaxed">{rating.description}</div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
         {currentRating > 0 && currentRating !== -1 && (
