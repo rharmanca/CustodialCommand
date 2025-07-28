@@ -23,7 +23,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   // Prevent unwanted scrolling during interactions
   useEffect(() => {
     const preventScroll = (e: Event) => {
-      if ((e.target as HTMLElement)?.closest('[data-radix-select-content]')) {
+      const target = e.target as HTMLElement;
+      if (target && typeof target.closest === 'function' && target.closest('[data-radix-select-content]')) {
         e.preventDefault();
         e.stopPropagation();
       }
