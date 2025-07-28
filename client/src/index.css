@@ -368,6 +368,18 @@ input[type="number"], input[type="tel"], textarea {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
+/* Color variants for better differentiation */
+.btn-teal { @apply bg-teal-600 hover:bg-teal-700 border-teal-600 text-white; }
+.btn-cyan { @apply bg-cyan-600 hover:bg-cyan-700 border-cyan-600 text-white; }
+.btn-sky { @apply bg-sky-600 hover:bg-sky-700 border-sky-600 text-white; }
+.btn-indigo { @apply bg-indigo-600 hover:bg-indigo-700 border-indigo-600 text-white; }
+.btn-violet { @apply bg-violet-600 hover:bg-violet-700 border-violet-600 text-white; }
+.btn-fuchsia { @apply bg-fuchsia-600 hover:bg-fuchsia-700 border-fuchsia-600 text-white; }
+.btn-pink { @apply bg-pink-600 hover:bg-pink-700 border-pink-600 text-white; }
+.btn-rose { @apply bg-rose-600 hover:bg-rose-700 border-rose-600 text-white; }
+.btn-orange { @apply bg-orange-600 hover:bg-orange-700 border-orange-600 text-white; }
+.btn-slate { @apply bg-slate-600 hover:bg-slate-700 border-slate-600 text-white; }
+
 .retro-button::before {
   content: '';
   position: absolute;

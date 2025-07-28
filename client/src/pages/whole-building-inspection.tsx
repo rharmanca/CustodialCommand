@@ -565,7 +565,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       <div className="mb-6">
         {onBack && (
           <div className="flex justify-start mb-4">
-            <Button variant="outline" onClick={onBack} className="flex-shrink-0">
+            <Button variant="outline" onClick={onBack} className="flex-shrink-0 modern-button btn-indigo">
               ← Back
             </Button>
           </div>

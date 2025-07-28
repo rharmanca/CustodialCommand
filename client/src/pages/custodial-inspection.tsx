@@ -336,7 +336,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="flex items-center gap-4 mb-6">
         {onBack && (
-          <Button variant="outline" onClick={onBack} className="flex-shrink-0">
+          <Button variant="outline" onClick={onBack} className="flex-shrink-0 modern-button btn-violet">
             ← Back
           </Button>
         )}
@@ -542,7 +542,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <Button 
             type="submit" 
             size="lg" 
-            className={`bg-blue-600 hover:bg-blue-700 ${isMobile ? 'w-full h-14 text-lg' : ''}`}
+            className={`modern-button btn-sky ${isMobile ? 'w-full h-14 text-lg' : ''}`}
           >
             Submit Inspection
           </Button>
