@@ -84,7 +84,7 @@ var roomInspections = pgTable("room_inspections", {
   equipment: integer("equipment"),
   monitoring: integer("monitoring"),
   notes: text("notes"),
-  images: text("images").array().default([]),
+  images: text("images").array(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 var custodialNotes = pgTable("custodial_notes", {
@@ -134,23 +134,13 @@ var insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
-if (typeof WebSocket === "undefined") {
-  neonConfig.webSocketConstructor = ws;
-}
+neonConfig.webSocketConstructor = ws;
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?"
   );
 }
-var pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 1,
-  // Reduce pool size for serverless
-  idleTimeoutMillis: 3e4,
-  // Close idle connections faster
-  connectionTimeoutMillis: 1e4
-  // Shorter connection timeout
-});
+var pool = new Pool({ connectionString: process.env.DATABASE_URL });
 var db = drizzle({ client: pool, schema: schema_exports });
 
 // server/storage.ts
@@ -207,10 +197,6 @@ var DatabaseStorage = class {
   }
   async getRoomInspectionsByBuildingId(buildingInspectionId) {
     return await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
-  }
-  async deleteInspection(id) {
-    const result = await db.delete(inspections).where(eq(inspections.id, id)).returning();
-    return result.length > 0;
   }
 };
 var storage = new DatabaseStorage();
@@ -305,37 +291,6 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error updating inspection:", error);
       res.status(500).json({ error: "Failed to update inspection" });
-    }
-  });
-  app2.delete("/api/inspections/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteInspection(id);
-      if (!success) {
-        return res.status(404).json({ error: "Inspection not found" });
-      }
-      res.json({ message: "Inspection deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting inspection:", error);
-      res.status(500).json({ error: "Failed to delete inspection" });
-    }
-  });
-  app2.put("/api/inspections/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertInspectionSchema.parse(req.body);
-      const inspection = await storage.updateInspection(id, validatedData);
-      if (!inspection) {
-        return res.status(404).json({ error: "Inspection not found" });
-      }
-      res.json(inspection);
-    } catch (error) {
-      console.error("Error updating inspection:", error);
-      if (error instanceof z2.ZodError) {
-        res.status(400).json({ error: "Invalid inspection data", details: error.errors });
-      } else {
-        res.status(500).json({ error: "Failed to update inspection" });
-      }
     }
   });
   app2.get("/api/inspections/:id/rooms", async (req, res) => {
