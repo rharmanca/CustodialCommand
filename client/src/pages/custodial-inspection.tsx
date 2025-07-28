@@ -183,48 +183,46 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }
   };
 
-  const renderMobileDropdownRating = (categoryObj: any, currentRating: number) => {
+  const renderMobileStarRating = (categoryObj: any, currentRating: number) => {
     return (
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label className="text-base font-medium">Rating</Label>
-          <Select value={currentRating > 0 ? currentRating.toString() : currentRating === 0 ? "0" : ""} onValueChange={(value) => handleInputChange(categoryObj.key, parseInt(value))}>
-            <SelectTrigger className="h-12 text-base">
-              <SelectValue placeholder="Select a rating..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">
-                <div className="flex items-center gap-3 py-1">
-                  <div className="text-left">
-                    <div className="font-medium">Not Rated</div>
-                    <div className="text-sm text-gray-600">No rating selected</div>
-                  </div>
-                </div>
-              </SelectItem>
-              {ratingDescriptions.map((rating, index) => (
-                <SelectItem key={index + 1} value={(index + 1).toString()}>
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= (index + 1)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium">{rating.label}</div>
-                      <div className="text-sm text-gray-600">{rating.description}</div>
-                    </div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="text-center">
+          <div className="text-base font-medium text-gray-700 mb-3">
+            Rate this category:
+          </div>
+          
+          {/* Star Rating Buttons */}
+          <div className="flex justify-center gap-2 mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                className="p-2 rounded-lg hover:bg-yellow-50 transition-colors"
+                onClick={() => handleInputChange(categoryObj.key, star)}
+              >
+                <Star
+                  className={`w-8 h-8 ${
+                    star <= currentRating && currentRating > 0
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-gray-300 hover:text-yellow-300'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+          
+          {/* Not Rated Button */}
+          <button
+            type="button"
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              currentRating === 0
+                ? 'bg-gray-100 border-gray-300 text-gray-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+            onClick={() => handleInputChange(categoryObj.key, 0)}
+          >
+            Not Rated
+          </button>
         </div>
 
         {/* Rating Description */}
@@ -440,7 +438,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 <div className="space-y-4">
                   <Label className={`font-medium ${isMobile ? 'text-lg' : 'text-base'}`}>{category.label}</Label>
                   {isMobile 
-                    ? renderMobileDropdownRating(category, formData[category.key as keyof typeof formData] as number)
+                    ? renderMobileStarRating(category, formData[category.key as keyof typeof formData] as number)
                     : renderStarRating(category, formData[category.key as keyof typeof formData] as number)
                   }
                 </div>
