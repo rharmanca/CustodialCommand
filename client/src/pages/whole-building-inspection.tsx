@@ -296,10 +296,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           
           {isOpen && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 text-base font-normal hover:bg-gray-100"
+              <div
+                className="w-full px-3 py-3 text-base font-normal hover:bg-gray-100 cursor-pointer border-b border-gray-100"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -307,14 +305,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   setIsOpen(false);
                 }}
               >
-                Not Rated
-              </Button>
+                <div className="text-gray-700">Not Rated</div>
+                <div className="text-sm text-gray-500">No rating selected</div>
+              </div>
               {ratingDescriptions.map((rating, index) => (
-                <Button
+                <div
                   key={index + 1}
-                  type="button"
-                  variant="ghost"
-                  className="w-full justify-start px-3 py-3 text-base font-normal hover:bg-gray-100 border-0"
+                  className="w-full px-3 py-3 text-base font-normal hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -322,8 +319,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     setIsOpen(false);
                   }}
                 >
-                  <div className="flex items-center gap-3 py-1 w-full">
-                    <div className="flex">
+                  <div className="flex items-start gap-3 w-full">
+                    <div className="flex pt-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
@@ -335,12 +332,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                         />
                       ))}
                     </div>
-                    <div className="text-left">
-                      <div className="font-medium">{rating.label}</div>
-                      <div className="text-sm text-gray-600">{rating.description}</div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-gray-900">{rating.label}</div>
+                      <div className="text-sm text-gray-600 mt-1">{rating.description}</div>
                     </div>
                   </div>
-                </Button>
+                </div>
               ))}
             </div>
           )}
