@@ -1,12 +1,12 @@
 import { db } from "./db";
-import { inspections, custodialNotes, roomInspections } from "@shared/schema";
+import { inspections, custodialNotes, roomInspections } from "../shared/schema";
 import { eq } from "drizzle-orm";
-import type { InsertInspection, InsertCustodialNote, InsertRoomInspection } from "@shared/schema";
+import type { InsertInspection, InsertCustodialNote, InsertRoomInspection } from "../shared/schema";
 
 export class DatabaseStorage {
   // Inspection methods
   async createInspection(data: InsertInspection) {
-    const [inspection] = await db.insert(inspections).values(data).returning();
+    const [inspection] = await db.insert(inspections).values([data]).returning();
     return inspection;
   }
 
@@ -21,7 +21,7 @@ export class DatabaseStorage {
 
   async updateInspection(id: number, data: Partial<InsertInspection>) {
     const [inspection] = await db.update(inspections)
-      .set(data)
+      .set(data as any)
       .where(eq(inspections.id, id))
       .returning();
     return inspection;
@@ -29,7 +29,7 @@ export class DatabaseStorage {
 
   async deleteInspection(id: number) {
     const result = await db.delete(inspections).where(eq(inspections.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Custodial Note methods
