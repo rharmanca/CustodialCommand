@@ -20,6 +20,23 @@ interface WholeBuildingInspectionPageProps {
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
 
+  // Prevent unwanted scrolling during interactions
+  useEffect(() => {
+    const preventScroll = (e: Event) => {
+      if ((e.target as HTMLElement)?.closest('[data-radix-select-content]')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    // Add scroll prevention for select dropdowns
+    document.addEventListener('scroll', preventScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener('scroll', preventScroll);
+    };
+  }, []);
+
   // Define requirements for each category
   const requirements = {
     exterior: 2,
@@ -220,41 +237,115 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   };
 
   const renderMobileDropdownRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    // Close dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.custom-dropdown')) {
+          setIsOpen(false);
+        }
+      };
+
+      if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+        // Prevent body from scrolling when dropdown is open
+        document.body.style.overflow = 'hidden';
+      }
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.body.style.overflow = 'unset';
+      };
+    }, [isOpen]);
+    
     return (
       <div className="space-y-3">
-        <Select 
-          value={currentRating > 0 ? currentRating.toString() : currentRating === -1 ? "-1" : ""} 
-          onValueChange={(value) => onRatingChange(parseInt(value))}
-        >
-          <SelectTrigger className="h-12 text-base">
-            <SelectValue placeholder="Select a rating..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="-1">Not Rated</SelectItem>
-            {ratingDescriptions.map((rating, index) => (
-              <SelectItem key={index + 1} value={(index + 1).toString()}>
-                <div className="flex items-center gap-3 py-1">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-4 h-4 ${
-                          star <= (index + 1)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
+        <div className="relative custom-dropdown">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-12 text-base justify-between"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Store scroll position before opening
+              const scrollY = window.scrollY;
+              setIsOpen(!isOpen);
+              // Maintain scroll position
+              setTimeout(() => {
+                window.scrollTo({ top: scrollY, behavior: 'instant' });
+              }, 0);
+            }}
+          >
+            <span>
+              {currentRating === -1 ? 'Not Rated' : 
+               currentRating > 0 ? `${currentRating} Star${currentRating > 1 ? 's' : ''} - ${ratingDescriptions[currentRating - 1]?.label}` : 
+               'Select a rating...'}
+            </span>
+            <span>{isOpen ? '▲' : '▼'}</span>
+          </Button>
+          
+          {isOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full justify-start px-3 py-2 text-base font-normal hover:bg-gray-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const scrollY = window.scrollY;
+                  onRatingChange(-1);
+                  setIsOpen(false);
+                  setTimeout(() => {
+                    window.scrollTo({ top: scrollY, behavior: 'instant' });
+                  }, 0);
+                }}
+              >
+                Not Rated
+              </Button>
+              {ratingDescriptions.map((rating, index) => (
+                <Button
+                  key={index + 1}
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-start px-3 py-3 text-base font-normal hover:bg-gray-100 border-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const scrollY = window.scrollY;
+                    onRatingChange(index + 1);
+                    setIsOpen(false);
+                    setTimeout(() => {
+                      window.scrollTo({ top: scrollY, behavior: 'instant' });
+                    }, 0);
+                  }}
+                >
+                  <div className="flex items-center gap-3 py-1 w-full">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${
+                            star <= (index + 1)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">{rating.label}</div>
+                      <div className="text-sm text-gray-600">{rating.description}</div>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <div className="font-medium">{rating.label}</div>
-                    <div className="text-sm text-gray-600">{rating.description}</div>
-                  </div>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
         {currentRating > 0 && currentRating !== -1 && (
           <div className="space-y-3">
             <div className="text-center space-y-1">
