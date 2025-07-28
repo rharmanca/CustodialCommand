@@ -238,118 +238,48 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
-  // State for mobile dropdown rating
-  const [dropdownOpenStates, setDropdownOpenStates] = useState<Record<string, boolean>>({});
 
-  // Handle outside clicks for dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.custom-dropdown')) {
-        setDropdownOpenStates(prev => {
-          const newStates = { ...prev };
-          Object.keys(newStates).forEach(key => {
-            newStates[key] = false;
-          });
-          return newStates;
-        });
-      }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const renderMobileDropdownRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
-    const categoryKey = category.key;
-    const isOpen = dropdownOpenStates[categoryKey] || false;
-    
-    const setIsOpen = (open: boolean) => {
-      setDropdownOpenStates(prev => ({
-        ...prev,
-        [categoryKey]: open
-      }));
-    };
-    
+  const renderMobileStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
-      <div className="space-y-3">
-        <div className="relative">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-12 text-base justify-between bg-white"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsOpen(!isOpen);
-            }}
-          >
-            <span className="truncate pr-2">
-              {currentRating === -1 ? 'Not Rated' : 
-               currentRating > 0 ? `${currentRating} Star${currentRating > 1 ? 's' : ''} - ${ratingDescriptions[currentRating - 1]?.label}` : 
-               'Select a rating...'}
-            </span>
-            <span className="ml-2">{isOpen ? '▲' : '▼'}</span>
-          </Button>
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-base font-medium text-gray-700 mb-3">
+            Rate this category:
+          </div>
           
-          {isOpen && (
-            <>
-              <div 
-                className="fixed inset-0 z-40 bg-black bg-opacity-25"
-                onClick={() => setIsOpen(false)}
-              />
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-xl z-50 max-h-96 overflow-hidden">
-                <div className="max-h-96 overflow-y-auto">
-                  <button
-                    type="button"
-                    className="w-full px-4 py-4 text-left hover:bg-gray-50 border-b border-gray-100 focus:outline-none focus:bg-gray-50"
-                    onClick={() => {
-                      onRatingChange(-1);
-                      setIsOpen(false);
-                    }}
-                  >
-                    <div className="font-medium text-gray-800">Not Rated</div>
-                    <div className="text-sm text-gray-500 mt-1">No rating selected</div>
-                  </button>
-                  {ratingDescriptions.map((rating, index) => {
-                    const starCount = index + 1;
-                    return (
-                      <button
-                        key={starCount}
-                        type="button"
-                        className="w-full px-4 py-4 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-gray-50"
-                        onClick={() => {
-                          onRatingChange(starCount);
-                          setIsOpen(false);
-                        }}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex mt-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-4 h-4 ${
-                                  star <= starCount
-                                    ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-800">{rating.label}</div>
-                            <div className="text-sm text-gray-600 mt-1 leading-relaxed">{rating.description}</div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
+          {/* Star Rating Buttons */}
+          <div className="flex justify-center gap-2 mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                className="p-2 rounded-lg hover:bg-yellow-50 transition-colors"
+                onClick={() => onRatingChange(star)}
+              >
+                <Star
+                  className={`w-8 h-8 ${
+                    star <= currentRating && currentRating > 0
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-gray-300 hover:text-yellow-300'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+          
+          {/* Not Rated Button */}
+          <button
+            type="button"
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              currentRating === -1
+                ? 'bg-gray-100 border-gray-300 text-gray-700'
+                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+            onClick={() => onRatingChange(-1)}
+          >
+            Not Rated
+          </button>
         </div>
         {currentRating > 0 && currentRating !== -1 && (
           <div className="space-y-3">
@@ -1046,7 +976,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 {inspectionCategories.map((category, index) => (
                   <div key={category.key} className="space-y-3">
                     <Label className="text-base font-medium">{category.label}</Label>
-                    {renderMobileDropdownRating(
+                    {renderMobileStarRating(
                       category,
                       formData[category.key as keyof typeof formData] as number,
                       (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
