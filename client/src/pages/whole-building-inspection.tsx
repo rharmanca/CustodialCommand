@@ -150,8 +150,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   // Function to select an existing inspection
   const selectInspection = async (inspection: any) => {
     try {
+      console.log('Selecting inspection:', inspection);
       setBuildingInspectionId(inspection.id);
-      setFormData({
+      const newFormData = {
         inspectorName: inspection.inspectorName || '',
         school: inspection.school,
         date: inspection.date,
@@ -170,16 +171,20 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         equipment: -1,
         monitoring: -1,
         notes: ''
-      });
+      };
+      console.log('Setting form data:', newFormData);
+      setFormData(newFormData);
 
       // Load completed rooms for each category
       const roomResponse = await fetch(`/api/inspections/${inspection.id}/rooms`);
       if (roomResponse.ok) {
         const rooms = await roomResponse.json();
+        console.log('Loaded rooms:', rooms);
         const completedCount: Record<string, number> = {};
         Object.keys(requirements).forEach(key => {
           completedCount[key] = rooms.filter((room: any) => room.roomType === key).length;
         });
+        console.log('Completed count:', completedCount);
         setCompleted(completedCount);
         setIsResuming(true);
         setShowInspectionSelector(false);
@@ -473,6 +478,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   };
 
   const handleCategorySelect = (category: string) => {
+    console.log('Category selected:', category);
+    console.log('Current form data:', formData);
+    console.log('Conditions check:', {
+      showInspectionSelector,
+      selectedCategory: category,
+      hasSchool: !!formData.school,
+      hasDate: !!formData.date,
+      hasInspectorName: !!formData.inspectorName.trim()
+    });
+    
     // Store current scroll position
     const currentScrollY = window.scrollY;
     
