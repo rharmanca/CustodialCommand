@@ -623,7 +623,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <h4 className="font-medium text-gray-900 text-base sm:text-lg text-center sm:text-left">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-base sm:text-lg min-h-[60px] sm:min-h-[64px]"
+                className="w-full modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white font-bold py-3 sm:py-4 px-4 sm:px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-base sm:text-lg min-h-[60px] sm:min-h-[64px]"
                 variant="default"
                 size="lg"
               >
@@ -662,7 +662,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                           onClick={() => selectInspection(inspection)}
                           variant="outline"
                           size="sm"
-                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                          className="modern-button btn-orange border-amber-400 text-amber-700 hover:bg-amber-100"
                         >
                           Continue
                         </Button>
