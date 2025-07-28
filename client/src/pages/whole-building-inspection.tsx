@@ -561,7 +561,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 max-w-4xl space-y-4 sm:space-y-6">
       <div className="mb-6">
         {onBack && (
           <div className="flex justify-start mb-4">
@@ -611,23 +611,25 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       {/* Inspection Selector */}
       {showInspectionSelector && (
         <Card>
-          <CardHeader>
-            <CardTitle>Building Inspection Options</CardTitle>
-            <CardDescription>You can continue a previous inspection or start a new one</CardDescription>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl text-center sm:text-left">Building Inspection Options</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-center sm:text-left">You can continue a previous inspection or start a new one</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
             {/* Start New Inspection - More Prominent */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
+              <h4 className="font-medium text-gray-900 text-base sm:text-lg text-center sm:text-left">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-base sm:text-lg min-h-[60px] sm:min-h-[64px]"
                 variant="default"
                 size="lg"
               >
-                🏢 Start New Building Inspection
+                <span className="flex items-center justify-center gap-2 leading-tight">
+                  🏢 <span className="text-center">Start New Building Inspection</span>
+                </span>
               </Button>
-              <p className="text-sm text-gray-600 text-center">
+              <p className="text-xs sm:text-sm text-gray-600 text-center px-2">
                 Begin a fresh comprehensive building inspection
               </p>
             </div>
@@ -636,8 +638,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                  <h4 className="font-medium text-gray-900 text-base sm:text-lg text-center sm:text-left">Or Continue Previous Inspection:</h4>
+                  <div className="space-y-2 max-h-48 sm:max-h-60 overflow-y-auto">
                     {availableInspections.map((inspection) => (
                       <div
                         key={inspection.id}
