@@ -251,6 +251,9 @@ input[type="number"], input[type="tel"], textarea {
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
     /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
     /* Add safe area padding for devices with notches */
@@ -491,47 +494,34 @@ input[type="number"], input[type="tel"], textarea {
   color: hsl(var(--muted-foreground));
 }
 
-/* Mobile-First Form elements styling */
+/* Modern form elements styling */
 input, textarea, select {
-  font-family: 'Inter', sans-serif;
-  border: 2px solid #d1d5db;
-  border-radius: 8px;
-  padding: 1rem 0.75rem;
-  transition: border-color 0.2s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  transition: all 0.15s ease;
   font-size: 16px; /* Prevents zoom on iOS */
-  min-height: 48px;
+  min-height: 44px;
   width: 100%;
-}
-
-@media (min-width: 640px) {
-  input, textarea, select {
-    padding: 0.75rem;
-    font-size: 1rem;
-  }
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
 }
 
-/* Cards */
+/* Modern cards */
 .card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--border));
   overflow: hidden;
   margin-bottom: 1rem;
-}
-
-@media (min-width: 640px) {
-  .card {
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 2px solid #e5e7eb;
-  }
 }
 
 /* Mobile Grid Improvements */

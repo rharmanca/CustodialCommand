@@ -287,7 +287,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <div className="text-base font-semibold text-yellow-600">
                 {ratingDescriptions[currentRating - 1]?.label}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
@@ -305,10 +305,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         )}
         {currentRating === -1 && (
           <div className="text-center space-y-1">
-            <div className="text-base font-semibold text-gray-600">
+            <div className="text-base font-semibold text-muted-foreground">
               Not Rated
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               No rating selected
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 className={`w-8 h-8 ${
                   star <= currentRating && currentRating > 0
                     ? 'fill-yellow-400 text-yellow-400'
-                    : 'text-gray-300'
+                    : 'text-muted-foreground'
                 }`}
               />
             </Button>
@@ -355,7 +355,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <div className="text-lg font-semibold text-yellow-600">
                 {ratingDescriptions[currentRating - 1]?.label}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
@@ -373,10 +373,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         )}
         {currentRating === -1 && (
           <div className="text-center">
-            <div className="text-lg font-semibold text-gray-600">
+            <div className="text-lg font-semibold text-muted-foreground">
               Not Rated
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               No rating selected
             </div>
           </div>
