@@ -63,15 +63,16 @@ app.use((req, res, next) => {
     // It is the only port that is not firewalled.
     const port = parseInt(process.env.PORT || '5000', 10);
     
-    server.listen(port, () => {
+    server.listen(port, '0.0.0.0', () => {
       log(`serving on port ${port}`);
-      console.log(`Server successfully bound to port ${port}`);
+      console.log(`✅ Server successfully started on port ${port}`);
     });
     
     server.on('error', (err: any) => {
-      console.error('Server error:', err);
+      console.error('❌ Server error:', err);
       if (err.code === 'EADDRINUSE') {
         console.error(`Port ${port} is already in use`);
+        process.exit(1);
       }
     });
   } catch (error) {
