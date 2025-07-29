@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Star, Check, X, Upload, Camera } from 'lucide-react';
+import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
@@ -116,6 +116,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAllComplete, setIsAllComplete] = useState(false);
   const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
+  
+  // Auto-save state
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [currentFormDraftId, setCurrentFormDraftId] = useState<string | null>(null);
 
   // Check if all categories are complete
   useEffect(() => {
@@ -145,7 +150,93 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     };
 
     loadAvailableInspections();
+    loadFormDraft();
   }, []);
+
+  // Auto-save current form state
+  useEffect(() => {
+    if (buildingInspectionId && selectedCategory && (formData.inspectorName || formData.school || formData.date)) {
+      const timeoutId = setTimeout(() => {
+        saveFormDraft();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, selectedCategory, buildingInspectionId]);
+
+  const generateFormDraftId = () => {
+    return `building_form_${buildingInspectionId}_${selectedCategory}_${Date.now()}`;
+  };
+
+  const saveFormDraft = async () => {
+    if (!buildingInspectionId || !selectedCategory) return;
+
+    setIsAutoSaving(true);
+    try {
+      const draftId = currentFormDraftId || generateFormDraftId();
+      if (!currentFormDraftId) {
+        setCurrentFormDraftId(draftId);
+      }
+
+      const draftData = {
+        id: draftId,
+        buildingInspectionId,
+        selectedCategory,
+        formData: { ...formData },
+        lastModified: new Date().toISOString(),
+        title: `${formData.school} - Building - ${categoryLabels[selectedCategory] || selectedCategory}`
+      };
+
+      // Save to localStorage
+      const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
+      const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
+      
+      if (draftIndex >= 0) {
+        existingDrafts[draftIndex] = draftData;
+      } else {
+        existingDrafts.push(draftData);
+      }
+
+      localStorage.setItem('building_form_drafts', JSON.stringify(existingDrafts));
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Error saving form draft:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  };
+
+  const loadFormDraft = () => {
+    try {
+      const savedDrafts = localStorage.getItem('building_form_drafts');
+      if (savedDrafts) {
+        const drafts = JSON.parse(savedDrafts);
+        // Clean up old drafts (older than 7 days)
+        const validDrafts = drafts.filter((draft: any) => {
+          const draftDate = new Date(draft.lastModified);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return draftDate > weekAgo;
+        });
+
+        if (validDrafts.length !== drafts.length) {
+          localStorage.setItem('building_form_drafts', JSON.stringify(validDrafts));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading form drafts:', error);
+    }
+  };
+
+  const clearCurrentFormDraft = () => {
+    if (currentFormDraftId) {
+      const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
+      const updatedDrafts = existingDrafts.filter((d: any) => d.id !== currentFormDraftId);
+      localStorage.setItem('building_form_drafts', JSON.stringify(updatedDrafts));
+      setCurrentFormDraftId(null);
+      setLastSaved(null);
+    }
+  };
 
   // Function to select an existing inspection
   const selectInspection = async (inspection: any) => {
@@ -404,6 +495,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       monitoring: -1,
       notes: ''
     }));
+    
+    // Clear form draft state
+    setCurrentFormDraftId(null);
+    setLastSaved(null);
   };
 
   const handleCategorySelect = (category: string) => {
@@ -518,7 +613,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         // Add to saved inspections
         setSavedInspections(prev => [...prev, savedInspection]);
 
-        // Reset current form
+        // Clear current form draft and reset form
+        clearCurrentFormDraft();
         resetCurrentForm();
 
         alert(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
@@ -913,6 +1009,18 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
           {isMobile ? (
             <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
+              {lastSaved && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Auto-saved at {lastSaved.toLocaleTimeString()}</span>
+                </div>
+              )}
+              {isAutoSaving && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-blue-600">
+                  <Save className="w-4 h-4 animate-pulse" />
+                  <span>Saving...</span>
+                </div>
+              )}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="roomNumber" className="text-base font-medium">Room Number</Label>
@@ -941,7 +1049,21 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <Card>
               <CardHeader>
                 <CardTitle>Inspecting: {categoryLabels[selectedCategory]}</CardTitle>
-                <CardDescription>Complete the inspection for this category</CardDescription>
+                <CardDescription>
+                  Complete the inspection for this category
+                  {lastSaved && (
+                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>Auto-saved at {lastSaved.toLocaleTimeString()}</span>
+                    </div>
+                  )}
+                  {isAutoSaving && (
+                    <div className="flex items-center gap-2 mt-2 text-sm text-blue-600">
+                      <Save className="w-4 h-4 animate-pulse" />
+                      <span>Saving...</span>
+                    </div>
+                  )}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
