@@ -163,10 +163,21 @@ export function legacyLazyLoadImage(img: HTMLImageElement, src: string) {
   var isIntersecting = false;
   
   function checkVisibility() {
-    var rect = img.getBoundingClientRect();
-    var viewportHeight = legacyGetViewportSize().height;
-    
-    isIntersecting = rect.top < viewportHeight + 200 && rect.bottom > -200;
+    try {
+      var rect = img.getBoundingClientRect();
+      var viewportSize = legacyGetViewportSize();
+      var viewportHeight = viewportSize ? viewportSize.height : 568;
+      
+      // Ensure rect exists and has required properties
+      if (rect && typeof rect.top === 'number' && typeof rect.bottom === 'number') {
+        isIntersecting = rect.top < viewportHeight + 200 && rect.bottom > -200;
+      } else {
+        isIntersecting = true; // Fallback to visible if we can't determine
+      }
+    } catch (error) {
+      console.warn('Error checking image visibility, defaulting to visible:', error);
+      isIntersecting = true;
+    }
     
     if (isIntersecting && !img.src) {
       img.src = src;
