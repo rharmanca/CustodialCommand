@@ -137,7 +137,7 @@ function App() {
                 onClick={() => setCurrentPage('Custodial Notes')}
                 className="modern-button bg-accent hover:bg-accent/90 border-accent text-accent-foreground w-full"
               >
-                Report A Problem
+                Report A Custodial Concern
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
