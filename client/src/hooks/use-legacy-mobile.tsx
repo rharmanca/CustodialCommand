@@ -16,65 +16,26 @@ export function useLegacyMobile() {
 
   useEffect(function() {
     function detectCapabilities() {
-      var userAgent = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
-      
-      // Safe viewport dimension detection with comprehensive fallbacks
-      var viewportWidth = 320; // Default fallback
-      var viewportHeight = 568; // Default fallback
-      
-      try {
-        if (typeof window !== 'undefined') {
-          if (window.innerWidth && typeof window.innerWidth === 'number') {
-            viewportWidth = window.innerWidth;
-          } else if (document && document.documentElement && document.documentElement.clientWidth) {
-            viewportWidth = document.documentElement.clientWidth;
-          }
-          
-          if (window.innerHeight && typeof window.innerHeight === 'number') {
-            viewportHeight = window.innerHeight;
-          } else if (document && document.documentElement && document.documentElement.clientHeight) {
-            viewportHeight = document.documentElement.clientHeight;
-          }
-        }
-      } catch (error) {
-        console.warn('Error detecting viewport dimensions, using fallbacks:', error);
-      }
+      var userAgent = navigator.userAgent || '';
+      var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 320;
+      var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 568;
       
       var isMobile = viewportWidth <= 768 || 
                      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
       
-      var isTouch = false;
-      try {
-        if (typeof window !== 'undefined') {
-          isTouch = 'ontouchstart' in window;
-        }
-        if (typeof navigator !== 'undefined') {
-          if (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) {
-            isTouch = true;
-          }
-          if ((navigator as any).msMaxTouchPoints && (navigator as any).msMaxTouchPoints > 0) {
-            isTouch = true;
-          }
-        }
-      } catch (error) {
-        console.warn('Error detecting touch capabilities, using fallback:', error);
-      }
+      var isTouch = 'ontouchstart' in window || 
+                    navigator.maxTouchPoints > 0 || 
+                    (navigator as any).msMaxTouchPoints > 0;
       
       var isFirefox = userAgent.toLowerCase().indexOf('firefox') > -1;
       
-      // Simple low-end device detection with safe property access
+      // Simple low-end device detection based on memory and CPU cores
       var isLowEndDevice = false;
-      try {
-        if (typeof navigator !== 'undefined') {
-          if ((navigator as any).deviceMemory && typeof (navigator as any).deviceMemory === 'number' && (navigator as any).deviceMemory <= 2) {
-            isLowEndDevice = true;
-          }
-          if ((navigator as any).hardwareConcurrency && typeof (navigator as any).hardwareConcurrency === 'number' && (navigator as any).hardwareConcurrency <= 2) {
-            isLowEndDevice = true;
-          }
-        }
-      } catch (error) {
-        console.warn('Error detecting device capabilities, using fallback:', error);
+      if ((navigator as any).deviceMemory && (navigator as any).deviceMemory <= 2) {
+        isLowEndDevice = true;
+      }
+      if ((navigator as any).hardwareConcurrency && (navigator as any).hardwareConcurrency <= 2) {
+        isLowEndDevice = true;
       }
       
       setState({
@@ -97,26 +58,13 @@ export function useLegacyMobile() {
       resizeTimer = setTimeout(detectCapabilities, 250);
     }
     
-    // Safe event listener attachment with error handling
-    try {
-      if (typeof window !== 'undefined') {
-        window.addEventListener('resize', handleResize);
-        window.addEventListener('orientationchange', handleResize);
-      }
-    } catch (error) {
-      console.warn('Error attaching event listeners:', error);
-    }
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
     
     return function() {
-      try {
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('resize', handleResize);
-          window.removeEventListener('orientationchange', handleResize);
-        }
-        clearTimeout(resizeTimer);
-      } catch (error) {
-        console.warn('Error removing event listeners:', error);
-      }
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      clearTimeout(resizeTimer);
     };
   }, []);
 

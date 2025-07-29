@@ -3,58 +3,17 @@ import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
 import WholeBuildingInspectionPage from './pages/whole-building-inspection';
-// import { useIsMobile } from './hooks/use-mobile';
-// Temporarily comment out image import to resolve undefined error
-// import custodialDutyImage from '@assets/image_1753285771182.png';
-
+import { useIsMobile } from './hooks/use-mobile';
+import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
+import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 import AdminInspectionsPage from "./pages/admin-inspections";
 
-// Error boundary component to catch undefined property errors
-function ErrorBoundary({ children }: { children: React.ReactNode }) {
-  const [hasError, setHasError] = useState(false);
-  
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      if (event.error && event.error.message && event.error.message.includes('dimensions')) {
-        console.error('Caught dimensions error:', event.error);
-        setHasError(true);
-        event.preventDefault();
-      }
-    };
-    
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
-  }, []);
-  
-  if (hasError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center p-8">
-        <div className="bg-white rounded-lg p-6 shadow-xl max-w-md text-center">
-          <h2 className="text-xl font-bold text-red-700 mb-4">Recovering from Error</h2>
-          <p className="text-gray-700 mb-4">The application encountered an error but is now stable.</p>
-          <button 
-            onClick={() => {
-              setHasError(false);
-              window.location.reload();
-            }}
-            className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-bold"
-          >
-            Reload Application
-          </button>
-        </div>
-      </div>
-    );
-  }
-  
-  return <>{children}</>;
-}
-
-function AppContent() {
+function App() {
   const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'admin-inspections'>('Custodial');
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
-  // const { isMobile } = useIsMobile();
+  const { isMobile, isTouch, orientation } = useIsMobile();
 
   // Detect PWA installation status
   useEffect(() => {
@@ -172,45 +131,46 @@ function AppContent() {
               )}
             </div>
 
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-amber-900 mb-4 sm:mb-6 font-inter-bold">Take Command</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+            <h2 className="text-3xl font-semibold text-foreground mb-8">Take Command</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
-                className="retro-button bg-orange-700 hover:bg-orange-800 border-orange-500"
+                className="modern-button bg-orange-600 hover:bg-orange-700 border-orange-600 text-white w-full"
               >
                 Report A Problem
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
-                className="retro-button bg-green-700 hover:bg-green-800 border-green-500"
+                className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white w-full"
               >
                 Single Area Inspection
               </button>
               <button 
                 onClick={() => setCurrentPage('Whole Building Inspection')}
-                className="retro-button bg-blue-700 hover:bg-blue-800 border-blue-500"
+                className="modern-button w-full"
               >
                 Building Inspection
               </button>
-              <div className="space-y-2">
-                <p className="text-sm text-amber-700 font-medium text-center px-2">
-                  Warning: The Below May Not Be Mobile Friendly
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground font-medium text-center">
+                  Note: Best viewed on desktop
                 </p>
                 <button 
                   onClick={() => setCurrentPage('Inspection Data')}
-                  className="retro-button bg-purple-700 hover:bg-purple-800 border-purple-500 w-full"
+                  className="modern-button bg-violet-600 hover:bg-violet-700 border-violet-600 text-white w-full"
                 >
                   View Data & Reports
                 </button>
               </div>
             </div>
             <div className="flex justify-center mb-6 sm:mb-8">
-              {/* Temporarily display a placeholder div instead of image to resolve undefined error */}
-              <div className="bg-amber-200 border-2 border-amber-400 rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-40 sm:h-48 md:h-56 flex items-center justify-center">
-                <p className="text-amber-800 font-bold text-center px-4">🧹 Custodial Duty Image</p>
-              </div>
+              <img 
+                src={custodialDutyImage} 
+                alt="Custodial Duty" 
+                className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto" 
+              />
             </div>
-            <p className="text-lg sm:text-xl text-amber-800 font-inter-regular text-center px-2">
+            <p className="text-lg text-muted-foreground text-center">
               Cleanliness is a duty for all.
             </p>
           </div>
@@ -232,29 +192,29 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 text-gray-900 font-inter-regular px-2 sm:px-4 py-2 sm:py-4 flex flex-col items-center">
+    <div className="min-h-screen bg-background text-foreground px-4 py-6 flex flex-col items-center">
       {/* Header section with app title */}
-      <header className="w-full max-w-4xl header-container p-3 sm:p-4 md:p-6 rounded-lg shadow-xl mb-4 sm:mb-6 md:mb-8 border-2 sm:border-3 md:border-4 border-orange-400">
-        <h1 className="font-extrabold text-center uppercase retro-header tracking-wide sm:tracking-wider md:tracking-widest font-inter-bold">
+      <header className="w-full max-w-4xl header-container p-6 rounded-xl shadow-sm mb-8">
+        <h1 className="font-bold text-center modern-header tracking-tight">
           Custodial Command
         </h1>
       </header>
 
       {/* Navigation section */}
-      <nav className="w-full max-w-4xl nav-container p-3 sm:p-4 rounded-lg shadow-lg mb-4 sm:mb-6 md:mb-8 border-2 border-orange-300">
+      <nav className="w-full max-w-4xl nav-container p-4 rounded-xl shadow-sm mb-8">
         <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
           {navLinks.map((link) => (
             <button
               key={link.name}
               onClick={() => setCurrentPage(link.path)}
-              className={`retro-button ${currentPage === link.path ? 'active' : ''}`}
+              className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
             >
               {link.name}
             </button>
           ))}
           <button 
             onClick={() => setCurrentPage('admin-inspections')}
-            className="retro-button bg-red-700 hover:bg-red-800 border-red-500"
+            className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
           >
             Admin
           </button>
@@ -262,23 +222,15 @@ function AppContent() {
       </nav>
 
       {/* Main content area */}
-      <main className="w-full max-w-4xl content-area p-3 sm:p-6 md:p-8 rounded-lg shadow-xl border-2 sm:border-3 md:border-4 border-blue-800">
+      <main className="w-full max-w-4xl content-area p-6 rounded-xl shadow-sm">
         {renderPageContent()}
       </main>
 
       {/* Footer section */}
-      <footer className="w-full max-w-4xl mt-4 sm:mt-6 md:mt-8 text-center text-gray-300 text-xs sm:text-sm font-inter-regular px-2">
+      <footer className="w-full max-w-4xl mt-8 text-center text-muted-foreground text-sm px-2">
         <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
       </footer>
     </div>
-  );
-}
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <AppContent />
-    </ErrorBoundary>
   );
 }
 

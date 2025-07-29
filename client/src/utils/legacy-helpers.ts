@@ -111,33 +111,26 @@ export function legacyRemoveEventListener(
   }
 }
 
-// Get viewport dimensions with fallbacks and error protection
+// Get viewport dimensions with fallbacks
 export function legacyGetViewportSize() {
-  var width = 320; // Default fallback mobile width
-  var height = 568; // Default fallback mobile height
+  var width, height;
   
-  try {
-    if (typeof window !== 'undefined' && window.innerWidth !== null && typeof window.innerWidth === 'number') {
-      width = window.innerWidth;
-      height = window.innerHeight || height;
-    } else if (typeof document !== 'undefined' && document.documentElement && 
-               document.documentElement.clientWidth !== null && typeof document.documentElement.clientWidth === 'number') {
-      width = document.documentElement.clientWidth;
-      height = document.documentElement.clientHeight || height;
-    } else if (typeof document !== 'undefined' && document.body && 
-               document.body.clientWidth !== null && typeof document.body.clientWidth === 'number') {
-      width = document.body.clientWidth;
-      height = document.body.clientHeight || height;
-    }
-  } catch (error) {
-    console.warn('Error getting viewport dimensions, using fallbacks:', error);
+  if (typeof window !== 'undefined' && typeof window.innerWidth !== 'undefined') {
+    width = window.innerWidth;
+    height = window.innerHeight;
+  } else if (typeof document !== 'undefined' && document.documentElement && 
+             typeof document.documentElement.clientWidth !== 'undefined') {
+    width = document.documentElement.clientWidth;
+    height = document.documentElement.clientHeight;
+  } else if (typeof document !== 'undefined' && document.body) {
+    width = document.body.clientWidth;
+    height = document.body.clientHeight;
+  } else {
+    width = 320; // Fallback mobile width
+    height = 568; // Fallback mobile height
   }
   
-  // Ensure we always return valid dimensions object
-  return { 
-    width: width || 320, 
-    height: height || 568 
-  };
+  return { width: width, height: height };
 }
 
 // Touch detection with fallbacks
@@ -163,21 +156,10 @@ export function legacyLazyLoadImage(img: HTMLImageElement, src: string) {
   var isIntersecting = false;
   
   function checkVisibility() {
-    try {
-      var rect = img.getBoundingClientRect();
-      var viewportSize = legacyGetViewportSize();
-      var viewportHeight = viewportSize ? viewportSize.height : 568;
-      
-      // Ensure rect exists and has required properties
-      if (rect && typeof rect.top === 'number' && typeof rect.bottom === 'number') {
-        isIntersecting = rect.top < viewportHeight + 200 && rect.bottom > -200;
-      } else {
-        isIntersecting = true; // Fallback to visible if we can't determine
-      }
-    } catch (error) {
-      console.warn('Error checking image visibility, defaulting to visible:', error);
-      isIntersecting = true;
-    }
+    var rect = img.getBoundingClientRect();
+    var viewportHeight = legacyGetViewportSize().height;
+    
+    isIntersecting = rect.top < viewportHeight + 200 && rect.bottom > -200;
     
     if (isIntersecting && !img.src) {
       img.src = src;

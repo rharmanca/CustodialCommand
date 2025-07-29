@@ -1,71 +1,129 @@
+import {
+  users,
+  inspections,
+  custodialNotes,
+  roomInspections,
+  type User,
+  type InsertUser,
+  type Inspection,
+  type InsertInspection,
+  type CustodialNote,
+  type InsertCustodialNote,
+  type RoomInspection,
+  type InsertRoomInspection,
+} from "@shared/schema";
 import { db } from "./db";
-import { inspections, custodialNotes, roomInspections } from "../shared/schema";
 import { eq } from "drizzle-orm";
-import type { InsertInspection, InsertCustodialNote, InsertRoomInspection } from "../shared/schema";
 
-export class DatabaseStorage {
-  // Inspection methods
-  async createInspection(data: InsertInspection) {
-    const [inspection] = await db.insert(inspections).values([data]).returning();
-    return inspection;
+// modify the interface with any CRUD methods
+// you might need
+
+export interface IStorage {
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  createInspection(inspection: InsertInspection): Promise<Inspection>;
+  getInspections(): Promise<Inspection[]>;
+  getInspection(id: number): Promise<Inspection | undefined>;
+  updateInspection(id: number, updates: Partial<Inspection>): Promise<Inspection | undefined>;
+  createCustodialNote(custodialNote: InsertCustodialNote): Promise<CustodialNote>;
+  getCustodialNotes(): Promise<CustodialNote[]>;
+  getCustodialNote(id: number): Promise<CustodialNote | undefined>;
+  createRoomInspection(roomInspection: InsertRoomInspection): Promise<RoomInspection>;
+  getRoomInspections(): Promise<RoomInspection[]>;
+  getRoomInspection(id: number): Promise<RoomInspection | undefined>;
+  getRoomInspectionsByBuildingId(buildingInspectionId: number): Promise<RoomInspection[]>;
+}
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
-  async getInspections() {
-    return await db.select().from(inspections).orderBy(inspections.createdAt);
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
-  async getInspection(id: number) {
-    const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
-    return inspection;
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
   }
 
-  async updateInspection(id: number, data: Partial<InsertInspection>) {
-    const [inspection] = await db.update(inspections)
-      .set(data as any)
-      .where(eq(inspections.id, id))
+  async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
+    const [inspection] = await db
+      .insert(inspections)
+      .values(insertInspection)
       .returning();
     return inspection;
   }
 
-  async deleteInspection(id: number) {
-    const result = await db.delete(inspections).where(eq(inspections.id, id));
-    return (result.rowCount ?? 0) > 0;
+  async getInspections(): Promise<Inspection[]> {
+    return await db.select().from(inspections);
   }
 
-  // Custodial Note methods
-  async createCustodialNote(data: InsertCustodialNote) {
-    const [note] = await db.insert(custodialNotes).values(data).returning();
-    return note;
+  async getInspection(id: number): Promise<Inspection | undefined> {
+    const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
+    return inspection || undefined;
   }
 
-  async getCustodialNotes() {
-    return await db.select().from(custodialNotes).orderBy(custodialNotes.createdAt);
+  async createCustodialNote(insertCustodialNote: InsertCustodialNote): Promise<CustodialNote> {
+    const [custodialNote] = await db
+      .insert(custodialNotes)
+      .values(insertCustodialNote)
+      .returning();
+    return custodialNote;
   }
 
-  async getCustodialNote(id: number) {
-    const [note] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
-    return note;
+  async getCustodialNotes(): Promise<CustodialNote[]> {
+    return await db.select().from(custodialNotes);
   }
 
-  // Room Inspection methods
-  async createRoomInspection(data: InsertRoomInspection) {
-    const [roomInspection] = await db.insert(roomInspections).values(data).returning();
+  async getCustodialNote(id: number): Promise<CustodialNote | undefined> {
+    const [custodialNote] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
+    return custodialNote || undefined;
+  }
+
+  async updateInspection(id: number, updates: Partial<Inspection>): Promise<Inspection | undefined> {
+    const [inspection] = await db
+      .update(inspections)
+      .set(updates)
+      .where(eq(inspections.id, id))
+      .returning();
+    return inspection || undefined;
+  }
+
+  async createRoomInspection(insertRoomInspection: InsertRoomInspection): Promise<RoomInspection> {
+    const [roomInspection] = await db
+      .insert(roomInspections)
+      .values(insertRoomInspection)
+      .returning();
     return roomInspection;
   }
 
-  async getRoomInspections() {
-    return await db.select().from(roomInspections).orderBy(roomInspections.createdAt);
+  async getRoomInspections(): Promise<RoomInspection[]> {
+    return await db.select().from(roomInspections);
   }
 
-  async getRoomInspection(id: number) {
+  async getRoomInspection(id: number): Promise<RoomInspection | undefined> {
     const [roomInspection] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
-    return roomInspection;
+    return roomInspection || undefined;
   }
 
-  async getRoomInspectionsByBuildingId(buildingInspectionId: number) {
-    return await db.select().from(roomInspections)
-      .where(eq(roomInspections.buildingInspectionId, buildingInspectionId))
-      .orderBy(roomInspections.createdAt);
+  async getRoomInspectionsByBuildingId(buildingInspectionId: number): Promise<RoomInspection[]> {
+    return await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+  }
+
+  async deleteInspection(id: number): Promise<boolean> {
+    const result = await db
+      .delete(inspections)
+      .where(eq(inspections.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 

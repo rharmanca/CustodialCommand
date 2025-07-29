@@ -19,7 +19,25 @@ interface WholeBuildingInspectionPageProps {
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
-  
+
+  // Prevent unwanted scrolling during interactions
+  useEffect(() => {
+    const preventScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target && typeof target.closest === 'function' && target.closest('[data-radix-select-content]')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    // Add scroll prevention for select dropdowns
+    document.addEventListener('scroll', preventScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener('scroll', preventScroll);
+    };
+  }, []);
+
   // Define requirements for each category
   const requirements = {
     exterior: 2,
@@ -133,7 +151,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const selectInspection = async (inspection: any) => {
     try {
       setBuildingInspectionId(inspection.id);
-      setFormData({
+      const newFormData = {
         inspectorName: inspection.inspectorName || '',
         school: inspection.school,
         date: inspection.date,
@@ -152,7 +170,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         equipment: -1,
         monitoring: -1,
         notes: ''
-      });
+      };
+      setFormData(newFormData);
 
       // Load completed rooms for each category
       const roomResponse = await fetch(`/api/inspections/${inspection.id}/rooms`);
@@ -219,42 +238,49 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
-  const renderMobileDropdownRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
+
+
+  const renderMobileStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
-      <div className="space-y-3">
-        <Select 
-          value={currentRating > 0 ? currentRating.toString() : currentRating === -1 ? "-1" : ""} 
-          onValueChange={(value) => onRatingChange(parseInt(value))}
-        >
-          <SelectTrigger className="h-12 text-base">
-            <SelectValue placeholder="Select a rating..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="-1">Not Rated</SelectItem>
-            {ratingDescriptions.map((rating, index) => (
-              <SelectItem key={index + 1} value={(index + 1).toString()}>
-                <div className="flex items-center gap-3 py-1">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-4 h-4 ${
-                          star <= (index + 1)
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="text-left">
-                    <div className="font-medium">{rating.label}</div>
-                    <div className="text-sm text-gray-600">{rating.description}</div>
-                  </div>
-                </div>
-              </SelectItem>
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-base font-medium text-foreground mb-3">
+            Rate this category:
+          </div>
+          
+          {/* Star Rating Buttons */}
+          <div className="flex justify-center gap-2 mb-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                className="p-2 rounded-lg hover:bg-yellow-50 transition-colors"
+                onClick={() => onRatingChange(star)}
+              >
+                <Star
+                  className={`w-8 h-8 ${
+                    star <= currentRating && currentRating > 0
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-muted-foreground hover:text-yellow-300'
+                  }`}
+                />
+              </button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+          
+          {/* Not Rated Button */}
+          <button
+            type="button"
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              currentRating === -1
+                ? 'bg-muted border-border text-foreground'
+                : 'bg-card border-border text-muted-foreground hover:bg-muted'
+            }`}
+            onClick={() => onRatingChange(-1)}
+          >
+            Not Rated
+          </button>
+        </div>
         {currentRating > 0 && currentRating !== -1 && (
           <div className="space-y-3">
             <div className="text-center space-y-1">
@@ -380,6 +406,28 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }));
   };
 
+  const handleCategorySelect = (category: string) => {
+    // Store current scroll position
+    const currentScrollY = window.scrollY;
+    
+    setSelectedCategory(category);
+    setShowInspectionSelector(false);
+
+    // Prevent automatic scroll to top with multiple methods
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    });
+    
+    // Also set a timeout as backup
+    setTimeout(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    }, 10);
+    
+    setTimeout(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    }, 50);
+  };
+
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -394,7 +442,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     try {
       // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
-      
+
       if (!currentBuildingId) {
         const buildingResponse = await fetch('/api/inspections', {
           method: 'POST',
@@ -460,7 +508,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
       if (response.ok) {
         const savedInspection = await response.json();
-        
+
         // Update completed count
         setCompleted(prev => ({
           ...prev,
@@ -522,7 +570,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Button>
           </div>
         )}
-        
+
         <div className="flex justify-center px-4">
           <Collapsible className="w-full max-w-lg">
             <CollapsibleTrigger asChild>
@@ -564,52 +612,65 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       {showInspectionSelector && (
         <Card>
           <CardHeader>
-            <CardTitle>Choose Inspection</CardTitle>
-            <CardDescription>Select an existing inspection to continue or start a new one</CardDescription>
+            <CardTitle>Building Inspection Options</CardTitle>
+            <CardDescription>You can continue a previous inspection or start a new one</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {availableInspections.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Continue Previous Inspection:</h4>
-                {availableInspections.map((inspection) => (
-                  <div
-                    key={inspection.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div>
-                      <div className="font-medium">{inspection.school}</div>
-                      <div className="text-sm text-gray-600">
-                        {new Date(inspection.date).toLocaleDateString()}
-                        {inspection.inspectorName && (
-                          <span className="block text-sm text-gray-700 font-medium">
-                            Inspector: {inspection.inspectorName}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => selectInspection(inspection)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                ))}
-                <Separator />
-              </div>
-            )}
+          <CardContent className="space-y-6">
+            {/* Start New Inspection - More Prominent */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Or Start New Inspection:</h4>
+              <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 border-2 border-blue-600 hover:border-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
                 variant="default"
                 size="lg"
               >
                 🏢 Start New Building Inspection
               </Button>
+              <p className="text-sm text-gray-600 text-center">
+                Begin a fresh comprehensive building inspection
+              </p>
             </div>
+            
+            {availableInspections.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {availableInspections.map((inspection) => (
+                      <div
+                        key={inspection.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 bg-amber-50 border-amber-200"
+                      >
+                        <div>
+                          <div className="font-medium text-amber-900">{inspection.school}</div>
+                          <div className="text-sm text-amber-700">
+                            {new Date(inspection.date).toLocaleDateString()}
+                            {inspection.inspectorName && (
+                              <span className="block text-sm text-amber-800 font-medium">
+                                Inspector: {inspection.inspectorName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => selectInspection(inspection)}
+                          variant="outline"
+                          size="sm"
+                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                        >
+                          Continue
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    These inspections were started but not completed
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
@@ -717,12 +778,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             {Object.entries(requirements).map(([category, required]) => {
               const completedCount = completed[category];
               const isComplete = completedCount >= required;
-              
+
               return (
                 <div
                   key={category}
                   className={`p-3 rounded-lg border ${
-                    isComplete ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                    isComplete 
+                      ? 'bg-green-50 border-green-200' 
+                      : selectedCategory === category 
+                        ? 'bg-blue-50 border-blue-300 border-2' 
+                        : 'bg-gray-50 border-gray-200'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -744,7 +809,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => setSelectedCategory(category)}
+                              onClick={() => handleCategorySelect(category)}
                               className={`text-xs px-3 py-1 h-7 ${selectedCategory === category ? 'border-blue-500 bg-blue-50' : ''}`}
                             >
                               Select
@@ -776,12 +841,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             {Object.entries(requirements).map(([category, required]) => {
               const completedCount = completed[category];
               const isComplete = completedCount >= required;
-              
+
               return (
                 <div
                   key={category}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    isComplete ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                    isComplete 
+                      ? 'bg-green-50 border-green-200' 
+                      : selectedCategory === category 
+                        ? 'bg-blue-50 border-blue-300 border-2' 
+                        : 'bg-gray-50 border-gray-200'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -802,7 +871,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedCategory(category)}
+                        onClick={() => handleCategorySelect(category)}
                         className={selectedCategory === category ? 'border-blue-500' : ''}
                       >
                         Select
@@ -815,6 +884,30 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       ))}
+      {/* Help message when form is not showing */}
+      {!showInspectionSelector && selectedCategory && !(formData.school && formData.date && formData.inspectorName.trim()) && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-white text-sm font-bold">!</span>
+              </div>
+              <div>
+                <h4 className="font-medium text-amber-800 mb-1">Complete Required Information</h4>
+                <p className="text-sm text-amber-700">
+                  Please fill in all required fields above before you can start rating this category:
+                </p>
+                <ul className="text-sm text-amber-700 mt-2 space-y-1">
+                  {!formData.inspectorName.trim() && <li>• Inspector Name is required</li>}
+                  {!formData.school && <li>• School selection is required</li>}
+                  {!formData.date && <li>• Inspection date is required</li>}
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Inspection Form */}
       {!showInspectionSelector && selectedCategory && formData.school && formData.date && formData.inspectorName.trim() && (
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
@@ -870,7 +963,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                       placeholder="e.g., Main Building, Second Floor"
                     />
-                  </div>
+                                    </div>
                 </div>
               </CardContent>
             </Card>
@@ -883,7 +976,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 {inspectionCategories.map((category, index) => (
                   <div key={category.key} className="space-y-3">
                     <Label className="text-base font-medium">{category.label}</Label>
-                    {renderMobileDropdownRating(
+                    {renderMobileStarRating(
                       category,
                       formData[category.key as keyof typeof formData] as number,
                       (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
@@ -963,7 +1056,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       className="hidden"
                     />
                   </Label>
-                  
+
                   <Label htmlFor="camera-capture" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                       <Camera className="w-5 h-5" />
@@ -1010,7 +1103,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       className="hidden"
                     />
                   </Label>
-                  
+
                   <Label htmlFor="camera-capture" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                       <Camera className="w-4 h-4" />

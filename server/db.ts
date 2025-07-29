@@ -1,7 +1,7 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
-import * as schema from "../shared/schema";
+import * as schema from "@shared/schema";
 
 // Configure WebSocket for serverless environment
 if (typeof WebSocket === 'undefined') {
@@ -23,4 +23,4 @@ const pool = new Pool({
 });
 
 export { pool };
-export const db = drizzle(pool, { schema });
+export const db = drizzle({ client: pool, schema });
