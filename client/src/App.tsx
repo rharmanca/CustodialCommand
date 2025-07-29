@@ -4,11 +4,52 @@ import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
 import WholeBuildingInspectionPage from './pages/whole-building-inspection';
 // import { useIsMobile } from './hooks/use-mobile';
-import custodialDutyImage from '@assets/image_1753285771182.png';
+// Temporarily comment out image import to resolve undefined error
+// import custodialDutyImage from '@assets/image_1753285771182.png';
 
 import AdminInspectionsPage from "./pages/admin-inspections";
 
-function App() {
+// Error boundary component to catch undefined property errors
+function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  const [hasError, setHasError] = useState(false);
+  
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      if (event.error && event.error.message && event.error.message.includes('dimensions')) {
+        console.error('Caught dimensions error:', event.error);
+        setHasError(true);
+        event.preventDefault();
+      }
+    };
+    
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+  
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center p-8">
+        <div className="bg-white rounded-lg p-6 shadow-xl max-w-md text-center">
+          <h2 className="text-xl font-bold text-red-700 mb-4">Recovering from Error</h2>
+          <p className="text-gray-700 mb-4">The application encountered an error but is now stable.</p>
+          <button 
+            onClick={() => {
+              setHasError(false);
+              window.location.reload();
+            }}
+            className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-bold"
+          >
+            Reload Application
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  return <>{children}</>;
+}
+
+function AppContent() {
   const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'admin-inspections'>('Custodial');
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
@@ -164,11 +205,10 @@ function App() {
               </div>
             </div>
             <div className="flex justify-center mb-6 sm:mb-8">
-              <img 
-                src={custodialDutyImage} 
-                alt="Custodial Duty" 
-                className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto" 
-              />
+              {/* Temporarily display a placeholder div instead of image to resolve undefined error */}
+              <div className="bg-amber-200 border-2 border-amber-400 rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-40 sm:h-48 md:h-56 flex items-center justify-center">
+                <p className="text-amber-800 font-bold text-center px-4">🧹 Custodial Duty Image</p>
+              </div>
             </div>
             <p className="text-lg sm:text-xl text-amber-800 font-inter-regular text-center px-2">
               Cleanliness is a duty for all.
@@ -231,6 +271,14 @@ function App() {
         <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 }
 
