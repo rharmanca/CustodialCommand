@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Star, Upload, Camera, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
@@ -39,6 +40,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     images: [] as string[]
   });
 
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+  const [draftInspections, setDraftInspections] = useState<any[]>([]);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+
   // School options
   const schoolOptions = [
     { value: 'ASA', label: 'ASA' },
@@ -64,6 +71,165 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   ];
 
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+
+  // Load existing drafts on component mount
+  useEffect(() => {
+    loadDraftInspections();
+  }, []);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (currentDraftId) {
+      const timeoutId = setTimeout(() => {
+        saveDraft();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, selectedImages, currentDraftId]);
+
+  const loadDraftInspections = () => {
+    try {
+      const savedDrafts = localStorage.getItem('custodial_inspection_drafts');
+      if (savedDrafts) {
+        const drafts = JSON.parse(savedDrafts);
+        const validDrafts = drafts.filter((draft: any) => {
+          // Filter out old drafts (older than 7 days)
+          const draftDate = new Date(draft.lastModified);
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return draftDate > weekAgo;
+        });
+
+        if (validDrafts.length > 0) {
+          setDraftInspections(validDrafts);
+          setShowResumeDialog(true);
+        }
+
+        // Clean up old drafts
+        if (validDrafts.length !== drafts.length) {
+          localStorage.setItem('custodial_inspection_drafts', JSON.stringify(validDrafts));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading draft inspections:', error);
+    }
+  };
+
+  const generateDraftId = () => {
+    return `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const saveDraft = async () => {
+    if (!formData.school || !formData.date) {
+      return; // Don't save empty drafts
+    }
+
+    setIsAutoSaving(true);
+    try {
+      const draftId = currentDraftId || generateDraftId();
+      if (!currentDraftId) {
+        setCurrentDraftId(draftId);
+      }
+
+      // Convert images to base64 for storage
+      const imagePromises = selectedImages.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const imageData = await Promise.all(imagePromises);
+
+      const draftData = {
+        id: draftId,
+        ...formData,
+        selectedImages: imageData,
+        lastModified: new Date().toISOString(),
+        title: `${formData.school} - ${formData.roomNumber || 'Room'} - ${formData.locationCategory || 'Inspection'}`
+      };
+
+      // Get existing drafts
+      const existingDrafts = JSON.parse(localStorage.getItem('custodial_inspection_drafts') || '[]');
+      
+      // Update or add current draft
+      const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
+      if (draftIndex >= 0) {
+        existingDrafts[draftIndex] = draftData;
+      } else {
+        existingDrafts.push(draftData);
+      }
+
+      localStorage.setItem('custodial_inspection_drafts', JSON.stringify(existingDrafts));
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  };
+
+  const loadDraft = (draft: any) => {
+    setFormData({
+      school: draft.school || '',
+      date: draft.date || '',
+      inspectionType: draft.inspectionType || 'single_room',
+      locationDescription: draft.locationDescription || '',
+      roomNumber: draft.roomNumber || '',
+      locationCategory: draft.locationCategory || '',
+      floors: draft.floors || 0,
+      verticalHorizontalSurfaces: draft.verticalHorizontalSurfaces || 0,
+      ceiling: draft.ceiling || 0,
+      restrooms: draft.restrooms || 0,
+      customerSatisfaction: draft.customerSatisfaction || 0,
+      trash: draft.trash || 0,
+      projectCleaning: draft.projectCleaning || 0,
+      activitySupport: draft.activitySupport || 0,
+      safetyCompliance: draft.safetyCompliance || 0,
+      equipment: draft.equipment || 0,
+      monitoring: draft.monitoring || 0,
+      notes: draft.notes || '',
+      images: []
+    });
+
+    // Load images from base64
+    if (draft.selectedImages && draft.selectedImages.length > 0) {
+      const imageFiles = draft.selectedImages.map((base64: string, index: number) => {
+        const byteCharacters = atob(base64.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new File([byteArray], `image_${index}.jpg`, { type: 'image/jpeg' });
+      });
+      setSelectedImages(imageFiles);
+    }
+
+    setCurrentDraftId(draft.id);
+    setShowResumeDialog(false);
+  };
+
+  const deleteDraft = (draftId: string) => {
+    const existingDrafts = JSON.parse(localStorage.getItem('custodial_inspection_drafts') || '[]');
+    const updatedDrafts = existingDrafts.filter((d: any) => d.id !== draftId);
+    localStorage.setItem('custodial_inspection_drafts', JSON.stringify(updatedDrafts));
+    setDraftInspections(updatedDrafts);
+    
+    if (currentDraftId === draftId) {
+      setCurrentDraftId(null);
+      setLastSaved(null);
+    }
+  };
+
+  const startNewInspection = () => {
+    setShowResumeDialog(false);
+    setCurrentDraftId(null);
+    setLastSaved(null);
+  };
 
   const handleInputChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({
@@ -146,6 +312,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
       if (response.ok) {
         alert('Inspection submitted successfully!');
+        
+        // Clean up draft after successful submission
+        if (currentDraftId) {
+          deleteDraft(currentDraftId);
+        }
+        
         // Reset form
         setFormData({
           school: '',
@@ -169,6 +341,9 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           images: []
         });
         setSelectedImages([]);
+        setCurrentDraftId(null);
+        setLastSaved(null);
+        
         // Navigate back to home page
         if (onBack) {
           onBack();
@@ -333,17 +508,99 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <>
+      {/* Resume Draft Dialog */}
+      <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Resume Previous Inspection?</DialogTitle>
+            <DialogDescription>
+              You have unfinished inspection drafts. Would you like to continue one of them or start a new inspection?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {draftInspections.map((draft) => (
+              <Card key={draft.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-medium">{draft.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Last modified: {new Date(draft.lastModified).toLocaleString()}
+                    </p>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      School: {draft.school} • Date: {draft.date}
+                      {draft.roomNumber && ` • Room: ${draft.roomNumber}`}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      onClick={() => loadDraft(draft)}
+                    >
+                      Resume
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => deleteDraft(draft.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            <div className="flex justify-center space-x-4 pt-4">
+              <Button onClick={startNewInspection} variant="outline">
+                Start New Inspection
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <div className="container mx-auto p-6 max-w-4xl">
       <div className="flex items-center gap-4 mb-6">
         {onBack && (
           <Button variant="outline" onClick={onBack} className="flex-shrink-0">
             ← Back
           </Button>
         )}
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">Submit Inspection</h1>
           <p className="text-muted-foreground mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
+          
+          {/* Save Status Indicator */}
+          {(lastSaved || isAutoSaving) && (
+            <div className="mt-2 flex items-center space-x-2 text-sm text-muted-foreground">
+              {isAutoSaving ? (
+                <>
+                  <Save className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : lastSaved ? (
+                <>
+                  <Clock className="w-4 h-4" />
+                  <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+                </>
+              ) : null}
+            </div>
+          )}
         </div>
+        
+        {/* Manual Save Button */}
+        {currentDraftId && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={saveDraft}
+            disabled={isAutoSaving}
+            className="flex-shrink-0"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Draft
+          </Button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -549,5 +806,6 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         </div>
       </form>
     </div>
+    </>
   );
 }
