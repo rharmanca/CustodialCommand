@@ -64,14 +64,14 @@ function App() {
             <div className="mb-8 max-w-2xl mx-auto">
               {/* Success notification */}
               {showInstallSuccess && (
-                <div className="mb-4 p-4 bg-green-100 border-2 border-green-300 rounded-lg shadow-md">
+                <div className="mb-4 p-4 bg-accent/20 border-2 border-accent/50 rounded-lg shadow-md">
                   <div className="flex items-center justify-center space-x-2">
                     <span className="text-2xl">✅</span>
-                    <span className="text-lg font-bold text-green-900">
+                    <span className="text-lg font-bold text-accent-foreground">
                       App Successfully Installed!
                     </span>
                   </div>
-                  <p className="text-center text-green-800 mt-2">
+                  <p className="text-center text-accent-foreground mt-2">
                     You can now access Custodial Command directly from your home screen.
                   </p>
                 </div>
@@ -79,15 +79,15 @@ function App() {
 
               {/* Current status display */}
               {isPWAInstalled ? (
-                <div className="mb-4 p-4 bg-green-100 border-2 border-green-300 rounded-lg shadow-md">
+                <div className="mb-4 p-4 bg-accent/20 border-2 border-accent/50 rounded-lg shadow-md">
                   <div className="flex items-center justify-center space-x-2">
                     <span className="text-xl">📱</span>
-                    <span className="text-lg font-bold text-green-900">
+                    <span className="text-lg font-bold text-accent-foreground">
                       Running as Installed App
                     </span>
                     <span className="text-xl">✅</span>
                   </div>
-                  <p className="text-center text-green-800 mt-1 text-sm">
+                  <p className="text-center text-accent-foreground mt-1 text-sm">
                     App is installed and working offline-ready
                   </p>
                 </div>
@@ -121,8 +121,8 @@ function App() {
                     <p className="text-center text-sm font-medium text-amber-700 mt-3">
                       Once installed, access the app directly from your home screen like any other app!
                     </p>
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-                      <p className="text-center text-sm font-medium text-green-700">
+                    <div className="mt-4 p-3 bg-accent/10 border border-accent/30 rounded">
+                      <p className="text-center text-sm font-medium text-accent-foreground">
                         ✓ Works offline after installation - previously viewed pages remain accessible
                       </p>
                     </div>
@@ -135,19 +135,19 @@ function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
-                className="modern-button bg-orange-600 hover:bg-orange-700 border-orange-600 text-white w-full"
+                className="modern-button bg-accent hover:bg-accent/90 border-accent text-accent-foreground w-full"
               >
                 Report A Problem
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
-                className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white w-full"
+                className="modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground w-full"
               >
                 Single Area Inspection
               </button>
               <button 
                 onClick={() => setCurrentPage('Whole Building Inspection')}
-                className="modern-button w-full"
+                className="modern-button bg-secondary hover:bg-secondary/90 border-secondary text-secondary-foreground w-full"
               >
                 Building Inspection
               </button>
@@ -157,7 +157,7 @@ function App() {
                 </p>
                 <button 
                   onClick={() => setCurrentPage('Inspection Data')}
-                  className="modern-button bg-violet-600 hover:bg-violet-700 border-violet-600 text-white w-full"
+                  className="modern-button bg-muted hover:bg-muted/90 border-muted text-muted-foreground w-full"
                 >
                   View Data & Reports
                 </button>

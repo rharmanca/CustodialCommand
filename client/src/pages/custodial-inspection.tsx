@@ -494,9 +494,9 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
         {/* Detailed Criteria */}
         {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
-          <Card className="mt-4 bg-blue-50 border-blue-200">
+          <Card className="mt-4 bg-accent/10 border-accent/30">
             <CardContent className="pt-4">
-              <div className="text-sm text-blue-800">
+              <div className="text-sm text-accent-foreground">
                 <strong>Rating {currentRating} Criteria:</strong>
                 <p className="mt-2">{categoryObj.criteria[currentRating]}</p>
               </div>

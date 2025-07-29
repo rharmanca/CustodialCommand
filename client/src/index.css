@@ -92,31 +92,31 @@ button, input, select, textarea, a {
 
 @layer base {
   :root {
-    /* Modern neutral color palette */
-    --background: 0 0% 98%;
-    --foreground: 240 10% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
-    --primary: 240 100% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 10% 25%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 5% 55%;
-    --accent: 240 5% 94%;
-    --accent-foreground: 240 10% 15%;
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 90%;
-    --input: 240 5% 90%;
-    --ring: 240 100% 65%;
-    --chart-1: 240 100% 65%;
-    --chart-2: 200 100% 70%;
-    --chart-3: 160 100% 65%;
-    --chart-4: 120 100% 65%;
-    --chart-5: 80 100% 65%;
+    /* Retro propaganda poster color palette - matching your image */
+    --background: 46 45% 88%;        /* Cream/beige background like the poster */
+    --foreground: 14 15% 25%;        /* Dark charcoal for text */
+    --card: 46 45% 92%;             /* Slightly lighter cream for cards */
+    --card-foreground: 14 15% 25%;   /* Dark charcoal for card text */
+    --popover: 46 45% 92%;          /* Light cream for popovers */
+    --popover-foreground: 14 15% 25%; /* Dark charcoal for popover text */
+    --primary: 8 76% 45%;           /* Bold red from the poster */
+    --primary-foreground: 46 45% 88%; /* Cream text on red backgrounds */
+    --secondary: 14 15% 35%;        /* Dark gray/charcoal like the robot */
+    --secondary-foreground: 46 45% 88%; /* Cream text on dark backgrounds */
+    --muted: 46 25% 80%;            /* Muted cream for subtle elements */
+    --muted-foreground: 14 15% 45%; /* Medium gray for muted text */
+    --accent: 8 65% 55%;            /* Lighter red for accents */
+    --accent-foreground: 46 45% 88%; /* Cream text on accent backgrounds */
+    --destructive: 8 85% 50%;       /* Bright red for destructive actions */
+    --destructive-foreground: 46 45% 88%; /* Cream text on destructive backgrounds */
+    --border: 46 25% 75%;           /* Subtle cream border */
+    --input: 46 35% 85%;            /* Light cream for inputs */
+    --ring: 8 76% 45%;              /* Red focus ring */
+    --chart-1: 8 76% 45%;           /* Red for charts */
+    --chart-2: 14 15% 35%;          /* Charcoal for charts */
+    --chart-3: 46 45% 65%;          /* Medium cream for charts */
+    --chart-4: 8 55% 60%;           /* Light red for charts */
+    --chart-5: 14 10% 55%;          /* Medium gray for charts */
     --radius: 0.75rem;
 
     /* Safe area insets with fallbacks for older browsers */
@@ -127,30 +127,31 @@ button, input, select, textarea, a {
   }
 
   .dark {
-    --background: 240 10% 8%;
-    --foreground: 0 0% 95%;
-    --card: 240 10% 10%;
-    --card-foreground: 0 0% 95%;
-    --popover: 240 10% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 240 100% 70%;
-    --primary-foreground: 240 10% 8%;
-    --secondary: 240 10% 15%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 10% 15%;
-    --accent-foreground: 0 0% 95%;
-    --destructive: 0 75% 65%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
-    --ring: 240 100% 70%;
-    --chart-1: 240 100% 70%;
-    --chart-2: 200 100% 75%;
-    --chart-3: 160 100% 70%;
-    --chart-4: 120 100% 70%;
-    --chart-5: 80 100% 70%;
+    /* Dark retro theme - inverted poster colors */
+    --background: 14 15% 12%;           /* Very dark charcoal background */
+    --foreground: 46 35% 85%;           /* Light cream text */
+    --card: 14 15% 18%;                 /* Dark charcoal cards */
+    --card-foreground: 46 35% 85%;      /* Light cream card text */
+    --popover: 14 15% 18%;              /* Dark charcoal popovers */
+    --popover-foreground: 46 35% 85%;   /* Light cream popover text */
+    --primary: 8 85% 55%;               /* Bright red primary */
+    --primary-foreground: 14 15% 12%;   /* Dark text on red */
+    --secondary: 46 25% 65%;            /* Medium cream secondary */
+    --secondary-foreground: 14 15% 12%; /* Dark text on cream */
+    --muted: 14 10% 25%;                /* Dark muted elements */
+    --muted-foreground: 46 20% 65%;     /* Light cream muted text */
+    --accent: 8 75% 60%;                /* Red accent */
+    --accent-foreground: 14 15% 12%;    /* Dark text on accent */
+    --destructive: 8 90% 60%;           /* Bright red destructive */
+    --destructive-foreground: 46 35% 85%; /* Light cream on destructive */
+    --border: 14 10% 30%;               /* Dark border */
+    --input: 14 10% 22%;                /* Dark input background */
+    --ring: 8 85% 55%;                  /* Red focus ring */
+    --chart-1: 8 85% 55%;               /* Red for charts */
+    --chart-2: 46 35% 75%;              /* Light cream for charts */
+    --chart-3: 14 15% 45%;              /* Medium gray for charts */
+    --chart-4: 8 65% 65%;               /* Light red for charts */
+    --chart-5: 46 20% 55%;              /* Medium cream for charts */
   }
 }
 
