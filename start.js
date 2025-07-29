@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Import and register API routes
-import { registerRoutes } from './server/routes.js';
+import { registerRoutes } from './dist/server/routes.js';
 
 async function startServer() {
   try {

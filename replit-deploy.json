@@ -1,8 +1,5 @@
 {
-  "run": ["npm", "start"],
-  "build": ["npm", "run", "build"],
-  "install": ["npm", "install"],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "run": "npm start",
+  "build": "npm run build",
+  "installCommand": "npm install"
 }
