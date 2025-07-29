@@ -1,17 +1,23 @@
-modules = ["postgresql-16", "python-3.11", "nodejs-20"]
+[deployment]
+run = ["npm", "start"]
+build = ["npm", "install", "&&", "npm", "run", "build"]
+deploymentTarget = "cloudrun"
+
+[nix]
+channel = "stable-22_11"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
-[nix]
-channel = "stable-25_05"
+[env]
+NODE_ENV = "production"
 
 [workflows]
-runButton = "Development"
+runButton = "Development Server"
 
 [[workflows.workflow]]
-name = "Development"
+name = "Development Server"
 author = 44956573
 mode = "sequential"
 
