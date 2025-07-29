@@ -1,5 +1,5 @@
 {
-  "run": "npm start",
-  "build": "npm run build",
+  "run": "node production-start.js",
+  "build": "node build-deploy.js",
   "installCommand": "npm install"
 }
