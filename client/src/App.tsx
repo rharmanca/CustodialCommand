@@ -132,7 +132,7 @@ function App() {
               )}
             </div>
 
-            <h2 className="text-3xl font-semibold text-foreground mb-8">Take Command</h2>
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
