@@ -3,13 +3,14 @@ import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
 import WholeBuildingInspectionPage from './pages/whole-building-inspection';
+import RatingCriteriaPage from './pages/rating-criteria';
 import { useIsMobile } from './hooks/use-mobile';
 import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
 import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 import AdminInspectionsPage from "./pages/admin-inspections";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'admin-inspections'>('Custodial');
+  const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'Rating Criteria' | 'admin-inspections'>('Custodial');
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
@@ -151,6 +152,12 @@ function App() {
               >
                 Building Inspection
               </button>
+              <button 
+                onClick={() => setCurrentPage('Rating Criteria')}
+                className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white w-full"
+              >
+                Rating Criteria Guide
+              </button>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground font-medium text-center">
                   Note: Best viewed on desktop
@@ -183,6 +190,8 @@ function App() {
         return <CustodialNotesPage onBack={() => setCurrentPage('Custodial')} />;
       case 'Whole Building Inspection':
         return <WholeBuildingInspectionPage onBack={() => setCurrentPage('Custodial')} />;
+      case 'Rating Criteria':
+        return <RatingCriteriaPage onBack={() => setCurrentPage('Custodial')} />;
       case 'admin-inspections':
         return <AdminInspectionsPage onBack={() => setCurrentPage('Custodial')} />;
 
