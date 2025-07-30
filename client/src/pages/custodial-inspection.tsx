@@ -607,14 +607,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
+        {/* Basic Information - Organized in columns */}
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
             <CardDescription>Enter the basic details for this inspection</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="school">School *</Label>
                 <Select value={formData.school} onValueChange={(value) => handleInputChange('school', value)}>
@@ -681,7 +681,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </CardContent>
         </Card>
 
-        {/* Inspection Categories */}
+        {/* Inspection Categories - Organized in columns */}
         <Card>
             <CardHeader>
               <CardTitle>Inspection Categories</CardTitle>
@@ -692,110 +692,123 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-8">
-            {inspectionCategories.map((category, index) => (
-              <div key={category.key}>
-                <div className="space-y-4">
-                  <Label className={`font-medium ${isMobile ? 'text-lg' : 'text-base'}`}>{category.label}</Label>
-                  {isMobile 
-                    ? renderMobileStarRating(category, formData[category.key as keyof typeof formData] as number)
-                    : renderStarRating(category, formData[category.key as keyof typeof formData] as number)
-                  }
+            <CardContent className="space-y-6">
+            {isMobile ? (
+              // Mobile: Keep single column for better readability
+              inspectionCategories.map((category, index) => (
+                <div key={category.key}>
+                  <div className="space-y-3">
+                    <Label className="font-medium text-lg">{category.label}</Label>
+                    {renderMobileStarRating(category, formData[category.key as keyof typeof formData] as number)}
+                  </div>
+                  {index < inspectionCategories.length - 1 && <Separator className="mt-4" />}
                 </div>
-                {index < inspectionCategories.length - 1 && <Separator className="mt-6" />}
-              </div>
-            ))}
-            </CardContent>
-        </Card>
-
-        {/* Additional Notes */}
-        <Card>
-            <CardHeader>
-              <CardTitle>Additional Notes & Observations</CardTitle>
-              <CardDescription>Detailed observations, specific issues, recommendations, or additional context</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Enter detailed notes about this inspection...&#10;&#10;Examples:&#10;• Specific areas that need attention&#10;• Safety concerns observed&#10;• Maintenance recommendations&#10;• Follow-up actions required&#10;• Staff performance observations&#10;• Equipment issues noted"
-              rows={8}
-              className="min-h-[200px]"
-            />
-            </CardContent>
-        </Card>
-
-        {/* Image Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Photo Documentation</CardTitle>
-            <CardDescription>Upload images or take photos to document inspection findings (up to 5 images)</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Label htmlFor="image-upload" className="cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                  <Upload className="w-4 h-4" />
-                  <span>Upload Images</span>
-                </div>
-                <Input
-                  id="image-upload"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </Label>
-              
-              <Label htmlFor="camera-capture" className="cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <span>Take Photo</span>
-                </div>
-                <Input
-                  id="camera-capture"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </Label>
-            </div>
-            <p className="text-sm text-gray-500">
-              Select multiple images from your device or take new photos with your camera (up to 5 images - JPG, PNG, GIF supported)
-            </p>
-
-            {/* Image Previews */}
-            {selectedImages.length > 0 && (
-              <div className="space-y-2">
-                <Label>Selected Images ({selectedImages.length}/5)</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {selectedImages.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={URL.createObjectURL(image)}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                        {image.name}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              ))
+            ) : (
+              // Desktop: Use two-column layout
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {inspectionCategories.map((category, index) => (
+                  <div key={category.key} className="space-y-4 p-4 border rounded-lg bg-gray-50/50">
+                    <Label className="font-medium text-base text-primary">{category.label}</Label>
+                    {renderStarRating(category, formData[category.key as keyof typeof formData] as number)}
+                  </div>
+                ))}
               </div>
             )}
-          </CardContent>
+            </CardContent>
         </Card>
+
+        {/* Additional Notes and Photo Documentation - Side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Additional Notes */}
+          <Card>
+              <CardHeader>
+                <CardTitle>Additional Notes & Observations</CardTitle>
+                <CardDescription>Detailed observations, specific issues, recommendations, or additional context</CardDescription>
+              </CardHeader>
+              <CardContent>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Enter detailed notes about this inspection...&#10;&#10;Examples:&#10;• Specific areas that need attention&#10;• Safety concerns observed&#10;• Maintenance recommendations&#10;• Follow-up actions required&#10;• Staff performance observations&#10;• Equipment issues noted"
+                rows={8}
+                className="min-h-[200px]"
+              />
+              </CardContent>
+          </Card>
+
+          {/* Image Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Photo Documentation</CardTitle>
+              <CardDescription>Upload images or take photos to document inspection findings (up to 5 images)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Label htmlFor="image-upload" className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                    <Upload className="w-4 h-4" />
+                    <span>Upload Images</span>
+                  </div>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </Label>
+                
+                <Label htmlFor="camera-capture" className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                    <Camera className="w-4 h-4" />
+                    <span>Take Photo</span>
+                  </div>
+                  <Input
+                    id="camera-capture"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </Label>
+              </div>
+              <p className="text-sm text-gray-500">
+                Select multiple images from your device or take new photos with your camera (up to 5 images - JPG, PNG, GIF supported)
+              </p>
+
+              {/* Image Previews */}
+              {selectedImages.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Selected Images ({selectedImages.length}/5)</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedImages.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(image)}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                          {image.name.length > 12 ? image.name.substring(0, 12) + '...' : image.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
