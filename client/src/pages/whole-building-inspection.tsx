@@ -1173,7 +1173,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       multiple
                       accept="image/*"
                       onChange={(e) => {
-                        console.log('Files selected:', e.target.files);
+                        if (e.target.files && e.target.files.length > 0) {
+                          console.log('Files selected:', e.target.files.length, 'files');
+                          // TODO: Implement image upload functionality
+                          alert(`${e.target.files.length} image(s) selected. Image upload functionality will be implemented soon.`);
+                        }
                       }}
                       className="hidden"
                     />
@@ -1190,7 +1194,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       accept="image/*"
                       capture="environment"
                       onChange={(e) => {
-                        console.log('Camera photo taken:', e.target.files);
+                        if (e.target.files && e.target.files.length > 0) {
+                          console.log('Camera photo taken:', e.target.files[0].name);
+                          // TODO: Implement camera capture functionality
+                          alert('Photo captured successfully. Image upload functionality will be implemented soon.');
+                        }
                       }}
                       className="hidden"
                     />
@@ -1220,7 +1228,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       multiple
                       accept="image/*"
                       onChange={(e) => {
-                        console.log('Files selected:', e.target.files);
+                        if (e.target.files && e.target.files.length > 0) {
+                          console.log('Files selected:', e.target.files.length, 'files');
+                          // TODO: Implement image upload functionality
+                          alert(`${e.target.files.length} image(s) selected. Image upload functionality will be implemented soon.`);
+                        }
                       }}
                       className="hidden"
                     />
@@ -1237,7 +1249,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       accept="image/*"
                       capture="environment"
                       onChange={(e) => {
-                        console.log('Camera photo taken:', e.target.files);
+                        if (e.target.files && e.target.files.length > 0) {
+                          console.log('Camera photo taken:', e.target.files[0].name);
+                          // TODO: Implement camera capture functionality
+                          alert('Photo captured successfully. Image upload functionality will be implemented soon.');
+                        }
                       }}
                       className="hidden"
                     />
