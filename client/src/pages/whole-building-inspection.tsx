@@ -620,6 +620,17 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         resetCurrentForm();
 
         alert(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
+
+        // Scroll to the inspection progress section after confirmation is dismissed
+        setTimeout(() => {
+          const progressSection = document.querySelector('[data-inspection-progress]');
+          if (progressSection) {
+            progressSection.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start' 
+            });
+          }
+        }, 100);
       } else {
         const errorData = await response.json();
         console.error('Error response:', errorData);
@@ -863,7 +874,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       )}
       {/* Dynamic Checklist */}
       {!showInspectionSelector && (isMobile ? (
-        <MobileCard title="Inspection Progress">
+        <MobileCard title="Inspection Progress" data-inspection-progress>
           <p className="text-sm text-gray-600 mb-4">
             Complete the required number of inspections for each category
             {formData.school && formData.date && (
@@ -923,7 +934,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </div>
         </MobileCard>
       ) : (
-        <Card>
+        <Card data-inspection-progress>
           <CardHeader>
             <CardTitle>Inspection Progress</CardTitle>
             <CardDescription>
