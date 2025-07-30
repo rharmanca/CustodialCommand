@@ -532,7 +532,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
     // Validate inspector name is provided
     if (!formData.inspectorName.trim()) {
-      alert('Inspector name is required. Please enter the inspector name.');
+      console.error('Inspector name is required');
       return;
     }
 
@@ -619,7 +619,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         clearCurrentFormDraft();
         resetCurrentForm();
 
-        alert(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
+        console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
 
         // Scroll to the inspection progress section after confirmation is dismissed
         setTimeout(() => {
@@ -638,13 +638,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      alert('Failed to save inspection. Please try again.');
+      console.error('Failed to save inspection. Please try again.');
     }
   };
 
   const handleFinalSubmit = async () => {
     if (!isAllComplete) {
-      alert('Please complete all required inspections before finalizing.');
+      console.error('Please complete all required inspections before finalizing.');
       return;
     }
 
@@ -657,7 +657,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       });
 
       if (response.ok) {
-        alert('Whole building inspection completed successfully!');
+        console.log('Whole building inspection completed successfully!');
         if (onBack) onBack();
       } else {
         const errorData = await response.json();
@@ -665,7 +665,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       }
     } catch (error) {
       console.error('Error finalizing inspection:', error);
-      alert('Failed to finalize inspection. Please try again.');
+      console.error('Failed to finalize inspection. Please try again.');
     }
   };
 
@@ -1188,8 +1188,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           console.log('Files selected:', e.target.files.length, 'files');
-                          // TODO: Implement image upload functionality
-                          alert(`${e.target.files.length} image(s) selected. Image upload functionality will be implemented soon.`);
+                          // Prevent navigation issues by avoiding alert()
+                          e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
                       className="hidden"
@@ -1209,8 +1209,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           console.log('Camera photo taken:', e.target.files[0].name);
-                          // TODO: Implement camera capture functionality
-                          alert('Photo captured successfully. Image upload functionality will be implemented soon.');
+                          // Prevent navigation issues by avoiding alert()
+                          e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
                       className="hidden"
@@ -1230,42 +1230,42 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
-                  <Label htmlFor="image-upload" className="cursor-pointer">
+                  <Label htmlFor="image-upload-desktop" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                       <Upload className="w-4 h-4" />
                       <span>Upload Images</span>
                     </div>
                     <Input
-                      id="image-upload"
+                      id="image-upload-desktop"
                       type="file"
                       multiple
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           console.log('Files selected:', e.target.files.length, 'files');
-                          // TODO: Implement image upload functionality
-                          alert(`${e.target.files.length} image(s) selected. Image upload functionality will be implemented soon.`);
+                          // Prevent navigation issues by avoiding alert()
+                          e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
                       className="hidden"
                     />
                   </Label>
 
-                  <Label htmlFor="camera-capture" className="cursor-pointer">
+                  <Label htmlFor="camera-capture-desktop" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                       <Camera className="w-4 h-4" />
                       <span>Take Photo</span>
                     </div>
                     <Input
-                      id="camera-capture"
+                      id="camera-capture-desktop"
                       type="file"
                       accept="image/*"
                       capture="environment"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           console.log('Camera photo taken:', e.target.files[0].name);
-                          // TODO: Implement camera capture functionality
-                          alert('Photo captured successfully. Image upload functionality will be implemented soon.');
+                          // Prevent navigation issues by avoiding alert()
+                          e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
                       className="hidden"

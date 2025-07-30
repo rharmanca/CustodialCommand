@@ -255,7 +255,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     e.preventDefault();
 
     if (!formData.school || !formData.date) {
-      alert('Please fill in school and date fields');
+      console.error('Please fill in school and date fields');
       return;
     }
 
@@ -266,7 +266,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     });
 
     if (!hasRating) {
-      alert('Please provide at least one rating for the inspection categories');
+      console.error('Please provide at least one rating for the inspection categories');
       return;
     }
 
@@ -312,7 +312,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       });
 
       if (response.ok) {
-        alert('Inspection submitted successfully!');
+        console.log('Inspection submitted successfully!');
         
         // Clean up draft after successful submission
         if (currentDraftId) {
@@ -351,11 +351,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         }
       } else {
         const errorData = await response.json();
-        alert(`Error submitting inspection: ${errorData.message || 'Unknown error'}`);
+        console.error(`Error submitting inspection: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      alert('Error submitting inspection. Please try again.');
+      console.error('Error submitting inspection. Please try again.');
     }
   };
 

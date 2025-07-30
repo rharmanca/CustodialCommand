@@ -33,7 +33,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       const maxSize = 5 * 1024 * 1024; // 5MB in bytes
       const validFiles = Array.from(files).filter(file => {
         if (file.size > maxSize) {
-          alert(`File "${file.name}" is too large. Maximum size is 5MB per file.`);
+          console.error(`File "${file.name}" is too large. Maximum size is 5MB per file.`);
           return false;
         }
         return true;
@@ -46,7 +46,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         const filesToAdd = validFiles.slice(0, availableSlots);
 
         if (filesToAdd.length < validFiles.length) {
-          alert(`Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`);
+          console.warn(`Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`);
         }
 
         setImages(prev => [...prev, ...filesToAdd]);
@@ -65,7 +65,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
   const capturePhoto = () => {
     if (images.length >= 5) {
-      alert('Maximum of 5 images allowed. Please remove some images first.');
+      console.error('Maximum of 5 images allowed. Please remove some images first.');
       return;
     }
 
@@ -73,7 +73,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment';
-    input.onchange = handleImageUpload;
+    input.onchange = (e) => handleImageUpload(e as any);
     input.click();
   };
 
@@ -109,7 +109,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       });
 
       if (response.ok) {
-        alert('Custodial note submitted successfully!');
+        console.log('Custodial note submitted successfully!');
         // Reset form
         setFormData({
           inspectorName: '',
@@ -128,7 +128,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       }
     } catch (error) {
       console.error('Error submitting custodial note:', error);
-      alert('Failed to submit custodial note. Please try again.');
+      console.error('Failed to submit custodial note. Please try again.');
     }
   };
 
