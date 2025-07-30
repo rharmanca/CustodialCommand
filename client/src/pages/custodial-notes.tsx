@@ -26,68 +26,78 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const newImages = [...images, ...files];
-    setImages(newImages);
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      // Check file size limit (5MB per file)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      const validFiles = Array.from(files).filter(file => {
+        if (file.size > maxSize) {
+          alert(`File "${file.name}" is too large. Maximum size is 5MB per file.`);
+          return false;
+        }
+        return true;
+      });
 
-    // Create preview URLs
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-    setImagePreviewUrls(prev => [...prev, ...newPreviewUrls]);
+      if (validFiles.length > 0) {
+        // Limit total images to 5
+        const currentCount = images.length;
+        const availableSlots = 5 - currentCount;
+        const filesToAdd = validFiles.slice(0, availableSlots);
+
+        if (filesToAdd.length < validFiles.length) {
+          alert(`Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`);
+        }
+
+        setImages(prev => [...prev, ...filesToAdd]);
+
+        // Create preview URLs
+        const urls = filesToAdd.map(file => URL.createObjectURL(file));
+        setImagePreviewUrls(prev => [...prev, ...urls]);
+
+        console.log(`Successfully added ${filesToAdd.length} image(s)`);
+      }
+    }
+
+    // Reset input value to allow same file to be selected again
+    event.target.value = '';
+  };
+
+  const capturePhoto = () => {
+    if (images.length >= 5) {
+      alert('Maximum of 5 images allowed. Please remove some images first.');
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = handleImageUpload;
+    input.click();
   };
 
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     const newPreviewUrls = imagePreviewUrls.filter((_, i) => i !== index);
-    
+
     // Revoke the URL to free memory
     URL.revokeObjectURL(imagePreviewUrls[index]);
-    
+
     setImages(newImages);
     setImagePreviewUrls(newPreviewUrls);
-  };
-
-  const capturePhoto = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.play();
-
-      // Create a canvas to capture the frame
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-
-      video.addEventListener('loadedmetadata', () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context?.drawImage(video, 0, 0);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            setImages(prev => [...prev, file]);
-            setImagePreviewUrls(prev => [...prev, URL.createObjectURL(file)]);
-          }
-          stream.getTracks().forEach(track => track.stop());
-        }, 'image/jpeg', 0.8);
-      });
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      alert('Could not access camera. Please use file upload instead.');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const formDataToSend = new FormData();
-      
+
       // Add text fields
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSend.append(key, value);
       });
-      
+
       // Add images
       images.forEach((image, index) => {
         formDataToSend.append(`image_${index}`, image);
