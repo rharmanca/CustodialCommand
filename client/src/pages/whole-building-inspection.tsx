@@ -333,23 +333,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const renderMobileStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
-      <div className="space-y-4">
-        <div className="text-center">
-          <div className="text-base font-medium text-foreground mb-3">
+      <div className="space-y-3">
+        <div className="bg-gray-50 rounded-lg p-3 border">
+          <div className="text-sm font-medium text-gray-700 mb-2 text-center">
             Rate this category:
           </div>
           
-          {/* Star Rating Buttons */}
-          <div className="flex justify-center gap-2 mb-4">
+          {/* Compact Star Rating Buttons */}
+          <div className="flex justify-center gap-1 mb-3">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
-                className="p-2 rounded-lg hover:bg-yellow-50 transition-colors"
+                className="p-1.5 rounded-md hover:bg-yellow-50 transition-colors touch-manipulation"
                 onClick={() => onRatingChange(star)}
               >
                 <Star
-                  className={`w-8 h-8 ${
+                  className={`w-6 h-6 ${
                     star <= currentRating && currentRating > 0
                       ? 'fill-yellow-400 text-yellow-400'
                       : 'text-muted-foreground hover:text-yellow-300'
@@ -359,18 +359,20 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             ))}
           </div>
           
-          {/* Not Rated Button */}
-          <button
-            type="button"
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-              currentRating === -1
-                ? 'bg-muted border-border text-foreground'
-                : 'bg-card border-border text-muted-foreground hover:bg-muted'
-            }`}
-            onClick={() => onRatingChange(-1)}
-          >
-            Not Rated
-          </button>
+          {/* Compact Not Rated Button */}
+          <div className="flex justify-center">
+            <button
+              type="button"
+              className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors touch-manipulation ${
+                currentRating === -1
+                  ? 'bg-muted border-border text-foreground'
+                  : 'bg-card border-border text-muted-foreground hover:bg-muted'
+              }`}
+              onClick={() => onRatingChange(-1)}
+            >
+              Not Rated
+            </button>
+          </div>
         </div>
         {currentRating > 0 && currentRating !== -1 && (
           <div className="space-y-3">
@@ -411,12 +413,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const renderStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
       <div className="space-y-3">
-        <div className="flex justify-center gap-2">
+        <div className="flex justify-center gap-1">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="px-3 py-2 h-auto text-sm"
+            className="px-2 py-1 h-auto text-xs"
             onClick={() => onRatingChange(-1)}
           >
             Not Rated
@@ -427,11 +429,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               type="button"
               variant="ghost"
               size="sm"
-              className="p-2 h-auto"
+              className="p-1 h-auto"
               onClick={() => onRatingChange(star)}
             >
               <Star
-                className={`w-8 h-8 ${
+                className={`w-6 h-6 ${
                   star <= currentRating && currentRating > 0
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-gray-300'
