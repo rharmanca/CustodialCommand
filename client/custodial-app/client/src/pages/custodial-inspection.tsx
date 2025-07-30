@@ -171,10 +171,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setSelectedImages(prev => [...prev, ...files]);
-  };
+  
 
   const removeImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
@@ -197,7 +194,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     try {
       // Convert images to base64
       const imageData = await convertImagesToBase64(selectedImages);
-      
+
       const submissionData = {
         ...formData,
         images: imageData
@@ -246,7 +243,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const renderStarRating = (categoryObj: any, currentRating: number) => {
     const { key: category, criteria } = categoryObj;
-    
+
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -269,7 +266,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </span>
           )}
         </div>
-        
+
         {currentRating > 0 && criteria && criteria[currentRating] && (
           <div className="mt-3 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
             <h4 className="font-semibold text-blue-800 mb-2">
@@ -391,11 +388,17 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={handleImageUpload}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        console.log('Files selected:', e.target.files.length, 'files');
+                        const files = Array.from(e.target.files);
+                        setSelectedImages(prev => [...prev, ...files]);
+                      }
+                    }}
                     className="hidden"
                   />
                 </Label>
-                
+
                 <Label htmlFor="camera-capture" className="cursor-pointer">
                   <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                     <Camera className="w-4 h-4" />
@@ -406,7 +409,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     type="file"
                     accept="image/*"
                     capture="environment"
-                    onChange={handleImageUpload}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        console.log('Camera photo taken:', e.target.files[0].name);
+                        const files = Array.from(e.target.files);
+                        setSelectedImages(prev => [...prev, ...files]);
+                      }
+                    }}
                     className="hidden"
                   />
                 </Label>

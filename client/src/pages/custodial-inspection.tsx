@@ -243,6 +243,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     if (files && files.length > 0) {
       const newImages = Array.from(files);
       setSelectedImages(prev => [...prev, ...newImages].slice(0, 5)); // Limit to 5 images
+      console.log('Files selected:', newImages.length, 'files');
     }
   };
 
