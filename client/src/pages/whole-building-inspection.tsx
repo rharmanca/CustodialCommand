@@ -11,6 +11,7 @@ import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface WholeBuildingInspectionPageProps {
@@ -19,6 +20,7 @@ interface WholeBuildingInspectionPageProps {
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
 
   // Prevent unwanted scrolling during interactions
   useEffect(() => {
@@ -619,6 +621,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         clearCurrentFormDraft();
         resetCurrentForm();
 
+        // Show success toast notification
+        toast({
+          title: "Inspection Submitted",
+          description: `${categoryLabels[selectedCategory]} inspection has been saved successfully!`,
+          duration: 3000,
+        });
+
         console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
 
         // Scroll to the inspection progress section after confirmation is dismissed
@@ -638,7 +647,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      console.error('Failed to save inspection. Please try again.');
+      
+      // Show error toast notification
+      toast({
+        title: "Submission Failed",
+        description: "Failed to save inspection. Please check your connection and try again.",
+        variant: "destructive",
+        duration: 4000,
+      });
     }
   };
 
@@ -657,15 +673,33 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       });
 
       if (response.ok) {
+        // Show success toast notification
+        toast({
+          title: "Building Inspection Complete!",
+          description: "Your whole building inspection has been finalized and saved successfully.",
+          duration: 4000,
+        });
+
         console.log('Whole building inspection completed successfully!');
-        if (onBack) onBack();
+        
+        // Delay navigation slightly to let user see the success message
+        setTimeout(() => {
+          if (onBack) onBack();
+        }, 1000);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to finalize inspection');
       }
     } catch (error) {
       console.error('Error finalizing inspection:', error);
-      console.error('Failed to finalize inspection. Please try again.');
+      
+      // Show error toast notification
+      toast({
+        title: "Finalization Failed",
+        description: "Failed to finalize building inspection. Please try again.",
+        variant: "destructive",
+        duration: 4000,
+      });
     }
   };
 
