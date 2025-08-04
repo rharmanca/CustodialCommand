@@ -138,19 +138,19 @@ function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
-                className="modern-button bg-accent hover:bg-accent/90 border-accent text-accent-foreground w-full"
+                className="modern-button bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white w-full"
               >
                 Report A Custodial Concern
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
-                className="modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground w-full"
+                className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white w-full"
               >
                 Inspect Using Criteria
               </button>
               <button 
                 onClick={() => setCurrentPage('Whole Building Inspection')}
-                className="modern-button bg-secondary hover:bg-secondary/90 border-secondary text-secondary-foreground w-full"
+                className="modern-button bg-orange-600 hover:bg-orange-700 border-orange-600 text-white w-full"
               >
                 Building Inspection
               </button>
