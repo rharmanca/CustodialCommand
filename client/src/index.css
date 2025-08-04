@@ -332,10 +332,7 @@ input[type="number"], input[type="tel"], textarea {
   font-size: 0.875rem;
   padding: 0.75rem 1.5rem;
   letter-spacing: 0.01em;
-  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   transition: all 0.15s ease;
   text-decoration: none;
@@ -349,6 +346,13 @@ input[type="number"], input[type="tel"], textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Default styling for modern-button when no specific background is applied */
+.modern-button:not([class*="bg-"]) {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
 @media (min-width: 640px) {
   .modern-button {
     font-size: 0.9rem;
@@ -356,7 +360,8 @@ input[type="number"], input[type="tel"], textarea {
   }
 }
 
-.modern-button:hover {
+/* Default hover for modern-button when no specific background is applied */
+.modern-button:not([class*="bg-"]):hover {
   background: hsl(var(--primary) / 0.9);
   box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
 }
