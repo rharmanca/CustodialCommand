@@ -815,7 +815,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <Button 
             type="submit" 
             size="lg" 
-            className={`bg-blue-600 hover:bg-blue-700 ${isMobile ? 'w-full h-14 text-lg' : ''}`}
+            className={`bg-red-600 hover:bg-red-700 border-red-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'w-full h-14 text-lg' : ''}`}
           >
             Submit Inspection
           </Button>

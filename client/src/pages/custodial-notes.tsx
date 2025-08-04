@@ -280,7 +280,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
         {/* Submit Button */}
         <div className="flex justify-center">
-          <Button type="submit" size="lg" className="w-full md:w-auto">
+          <Button type="submit" size="lg" className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 border-amber-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-200">
             Report a Problem
           </Button>
         </div>

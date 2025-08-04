@@ -764,7 +764,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 border-2 border-amber-600 hover:border-amber-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
                 variant="default"
                 size="lg"
               >
@@ -801,7 +801,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                           onClick={() => selectInspection(inspection)}
                           variant="outline"
                           size="sm"
-                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                          className="border-red-400 text-red-700 hover:bg-red-100 shadow-sm hover:shadow-md transition-all duration-200"
                         >
                           Continue
                         </Button>
@@ -1316,7 +1316,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <Button 
             type="submit" 
             size="lg" 
-            className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+            className={`w-full bg-red-600 hover:bg-red-700 border-red-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'h-14 text-lg' : ''}`}
           >
             Submit {categoryLabels[selectedCategory]} Inspection
           </Button>
@@ -1328,7 +1328,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <Button
             onClick={handleFinalSubmit}
             size="lg"
-            className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-base' : ''}`}
+            className={`w-full bg-amber-700 hover:bg-amber-800 border-amber-700 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'h-14 text-base' : ''}`}
             disabled={!isAllComplete}
           >
             {isMobile ? 'Finalize Building Inspection' : 'Finalize Whole Building Inspection'}

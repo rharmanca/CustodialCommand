@@ -138,25 +138,25 @@ function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <button 
                 onClick={() => setCurrentPage('Custodial Notes')}
-                className="modern-button bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white w-full"
+                className="modern-button bg-red-700 hover:bg-red-800 border-red-700 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Report A Custodial Concern
               </button>
               <button 
                 onClick={() => setCurrentPage('Custodial Inspection')}
-                className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white w-full"
+                className="modern-button bg-amber-700 hover:bg-amber-800 border-amber-700 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Inspect Using Criteria
               </button>
               <button 
                 onClick={() => setCurrentPage('Whole Building Inspection')}
-                className="modern-button bg-orange-600 hover:bg-orange-700 border-orange-600 text-white w-full"
+                className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Building Inspection
               </button>
               <button 
                 onClick={() => setCurrentPage('Rating Criteria')}
-                className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white w-full"
+                className="modern-button bg-amber-600 hover:bg-amber-700 border-amber-600 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Rating Criteria Guide
               </button>
@@ -166,7 +166,7 @@ function App() {
                 </p>
                 <button 
                   onClick={() => setCurrentPage('Inspection Data')}
-                  className="modern-button bg-muted hover:bg-muted/90 border-muted text-muted-foreground w-full"
+                  className="modern-button bg-red-500 hover:bg-red-600 border-red-500 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
                 >
                   View Data & Reports
                 </button>
@@ -225,7 +225,7 @@ function App() {
           ))}
           <button 
             onClick={() => setCurrentPage('admin-inspections')}
-            className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
+            className="modern-button bg-amber-800 hover:bg-amber-900 border-amber-800 text-white shadow-lg hover:shadow-xl transform transition-all duration-200"
           >
             Admin
           </button>
