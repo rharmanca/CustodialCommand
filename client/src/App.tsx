@@ -146,7 +146,7 @@ function App() {
                 onClick={() => setCurrentPage('Custodial Inspection')}
                 className="modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground w-full"
               >
-                Single Area Inspection
+                Inspect Using Criteria
               </button>
               <button 
                 onClick={() => setCurrentPage('Whole Building Inspection')}
