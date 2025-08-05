@@ -11,6 +11,18 @@ Preferred communication style: Simple, everyday language.
 - Any architectural changes, new features, or significant modifications should be reflected in README.md
 - Keep documentation current with actual project state
 
+## Recent Changes
+**Date: August 05, 2025**
+- Fixed critical storage interface bug: Added missing deleteInspection method
+- Enhanced input validation: Added NaN checks for all integer parsing in API routes
+- Improved error handling: Replaced console.error with user-friendly alert messages
+- Added try-catch blocks around FileReader operations for image uploads
+- Implemented localStorage quota management with automatic cleanup of old drafts
+- Enhanced service worker with better error handling for cache operations
+- Added foreign key constraint between roomInspections and inspections tables
+- Fixed image array validation in Zod schemas
+- Improved user feedback for all form submissions and API errors
+
 ## System Architecture
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript

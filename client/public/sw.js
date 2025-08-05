@@ -55,6 +55,9 @@ self.addEventListener('fetch', event => {
         caches.open(CACHE_NAME)
           .then(cache => {
             cache.put(event.request, responseToCache);
+          })
+          .catch(cacheError => {
+            console.warn('Failed to cache response:', cacheError);
           });
 
         return response;
@@ -78,6 +81,13 @@ self.addEventListener('fetch', event => {
               headers: new Headers({
                 'Content-Type': 'text/plain'
               })
+            });
+          })
+          .catch(cacheError => {
+            console.error('Cache match failed:', cacheError);
+            return new Response('Service Worker Error', {
+              status: 500,
+              statusText: 'Internal Server Error'
             });
           });
       })

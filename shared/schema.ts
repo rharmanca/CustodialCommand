@@ -41,7 +41,7 @@ export const inspections = pgTable("inspections", {
 // New table for individual room inspections within a building inspection
 export const roomInspections = pgTable("room_inspections", {
   id: serial("id").primaryKey(),
-  buildingInspectionId: integer("building_inspection_id").notNull(),
+  buildingInspectionId: integer("building_inspection_id").notNull().references(() => inspections.id, { onDelete: 'cascade' }),
   roomType: text("room_type").notNull(),
   roomIdentifier: text("room_identifier"), // Specific room number or identifier
   floors: integer("floors"),
@@ -80,6 +80,7 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   createdAt: true,
 }).extend({
   buildingInspectionId: z.number().optional(),
+  images: z.array(z.string()).optional().default([]),
 });
 
 export const insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({

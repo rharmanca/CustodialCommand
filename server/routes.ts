@@ -50,6 +50,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       const inspection = await storage.getInspection(id);
       if (!inspection) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -86,6 +89,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/custodial-notes/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid custodial note ID" });
+      }
       const custodialNote = await storage.getCustodialNote(id);
       if (!custodialNote) {
         return res.status(404).json({ error: "Custodial note not found" });
@@ -101,6 +107,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       const updates = req.body;
       const inspection = await storage.updateInspection(id, updates);
       if (!inspection) {
@@ -117,6 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       const success = await storage.deleteInspection(id);
       if (!success) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -132,6 +144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       const validatedData = insertInspectionSchema.parse(req.body);
       const inspection = await storage.updateInspection(id, validatedData);
       if (!inspection) {
@@ -152,6 +167,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/inspections/:id/rooms", async (req, res) => {
     try {
       const buildingInspectionId = parseInt(req.params.id);
+      if (isNaN(buildingInspectionId)) {
+        return res.status(400).json({ error: "Invalid building inspection ID" });
+      }
       const rooms = await storage.getRoomInspectionsByBuildingId(buildingInspectionId);
       res.json(rooms);
     } catch (error) {
@@ -195,6 +213,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/room-inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid room inspection ID" });
+      }
       const roomInspection = await storage.getRoomInspection(id);
       if (!roomInspection) {
         return res.status(404).json({ error: "Room inspection not found" });

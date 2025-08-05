@@ -539,7 +539,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
 
     // Validate inspector name is provided
     if (!formData.inspectorName.trim()) {
-      console.error('Inspector name is required');
+      alert('Inspector name is required');
       return;
     }
 
@@ -667,7 +667,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
 
   const handleFinalSubmit = async () => {
     if (!isAllComplete) {
-      console.error('Please complete all required inspections before finalizing.');
+      alert('Please complete all required inspections before finalizing.');
       return;
     }
 

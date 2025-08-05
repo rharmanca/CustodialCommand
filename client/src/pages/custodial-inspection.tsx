@@ -135,10 +135,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       // Convert images to base64 for storage
       const imagePromises = selectedImages.map(file => {
         return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
+          try {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+          } catch (error) {
+            reject(error);
+          }
         });
       });
 
@@ -163,8 +167,17 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         existingDrafts.push(draftData);
       }
 
-      localStorage.setItem('custodial_inspection_drafts', JSON.stringify(existingDrafts));
-      setLastSaved(new Date());
+      // Check localStorage quota before saving
+      try {
+        localStorage.setItem('custodial_inspection_drafts', JSON.stringify(existingDrafts));
+        setLastSaved(new Date());
+      } catch (quotaError) {
+        console.error('LocalStorage quota exceeded, cleaning old drafts:', quotaError);
+        // Try to clean up and save again
+        const recentDrafts = existingDrafts.slice(-3); // Keep only 3 most recent
+        localStorage.setItem('custodial_inspection_drafts', JSON.stringify(recentDrafts));
+        setLastSaved(new Date());
+      }
     } catch (error) {
       console.error('Error saving draft:', error);
     } finally {
@@ -255,7 +268,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     e.preventDefault();
 
     if (!formData.school || !formData.date) {
-      console.error('Please fill in school and date fields');
+      alert('Please fill in school and date fields');
       return;
     }
 
@@ -266,7 +279,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     });
 
     if (!hasRating) {
-      console.error('Please provide at least one rating for the inspection categories');
+      alert('Please provide at least one rating for the inspection categories');
       return;
     }
 
@@ -274,10 +287,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       // Convert images to base64 strings
       const imagePromises = selectedImages.map(file => {
         return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
+          try {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+          } catch (error) {
+            reject(error);
+          }
         });
       });
 
@@ -312,7 +329,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       });
 
       if (response.ok) {
-        console.log('Inspection submitted successfully!');
+        alert('Inspection submitted successfully!');
         
         // Clean up draft after successful submission
         if (currentDraftId) {
@@ -351,11 +368,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         }
       } else {
         const errorData = await response.json();
-        console.error(`Error submitting inspection: ${errorData.message || 'Unknown error'}`);
+        alert(`Error submitting inspection: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      console.error('Error submitting inspection. Please try again.');
+      alert('Error submitting inspection. Please try again.');
     }
   };
 

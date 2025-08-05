@@ -109,7 +109,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       });
 
       if (response.ok) {
-        console.log('Custodial note submitted successfully!');
+        alert('Custodial note submitted successfully!');
         // Reset form
         setFormData({
           inspectorName: '',
@@ -124,11 +124,12 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
       } else {
-        throw new Error('Failed to submit custodial note');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit custodial note');
       }
     } catch (error) {
       console.error('Error submitting custodial note:', error);
-      console.error('Failed to submit custodial note. Please try again.');
+      alert('Failed to submit custodial note. Please try again.');
     }
   };
 
