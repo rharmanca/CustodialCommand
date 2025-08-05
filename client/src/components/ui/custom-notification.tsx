@@ -42,16 +42,17 @@ export function CustomNotification({ id, title, description, type, duration = 50
   return (
     <div
       className={`
-        fixed right-4 top-4 z-[9999999] max-w-sm w-full
-        transform transition-all duration-300 ease-in-out
-        ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
+        fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999999] max-w-sm w-full mx-4
+        transition-all duration-300 ease-in-out
+        ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         ${typeStyles[type]}
-        border-2 rounded-lg shadow-lg p-4 mb-2
+        border-2 rounded-lg shadow-xl p-6 mb-2
       `}
       style={{ 
         position: 'fixed',
-        top: '16px',
-        right: '16px',
+        top: '50%',
+        left: '50%',
+        transform: `translate(-50%, -50%) ${isVisible ? 'scale(1)' : 'scale(0.95)'}`,
         zIndex: 9999999
       }}
     >
@@ -96,21 +97,27 @@ interface NotificationContainerProps {
 export function NotificationContainer({ notifications, onRemove }: NotificationContainerProps) {
   return (
     <div 
-      className="fixed right-4 top-4 z-[9999999] space-y-2"
+      className="fixed inset-0 z-[9999999] pointer-events-none flex items-center justify-center"
       style={{ 
         position: 'fixed',
-        top: '16px',
-        right: '16px',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         zIndex: 9999999,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
       {notifications.map((notification, index) => (
         <div 
           key={notification.id} 
+          className="absolute"
           style={{ 
-            marginTop: `${index * 80}px`,
-            pointerEvents: 'auto'
+            pointerEvents: 'auto',
+            zIndex: 9999999 + index
           }}
         >
           <CustomNotification
