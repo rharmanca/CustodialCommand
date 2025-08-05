@@ -632,7 +632,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
           showSuccess(
             "Inspection Submitted Successfully!",
             `${categoryLabels[selectedCategory]} inspection has been saved. Progress updated automatically.`,
-            4000
+            8000
           );
         } else {
           alert(`${categoryLabels[selectedCategory]} inspection submitted successfully! Progress updated automatically.`);
@@ -663,7 +663,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         showError(
           "Submission Failed",
           "Failed to save inspection. Please check your connection and try again.",
-          5000
+          10000
         );
       } else {
         alert("Failed to save inspection. Please check your connection and try again.");
@@ -694,7 +694,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
           showInfo(
             "Building Inspection Complete!",
             "Your whole building inspection has been finalized and saved successfully. All data has been recorded.",
-            5000
+            10000
           );
         } else {
           alert("Building Inspection Complete! Your whole building inspection has been finalized and saved successfully.");
@@ -718,7 +718,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         showError(
           "Finalization Failed",
           "Failed to finalize building inspection. Please try again.",
-          4000
+          8000
         );
       } else {
         alert("Failed to finalize building inspection. Please try again.");
