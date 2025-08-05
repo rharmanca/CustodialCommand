@@ -123,6 +123,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [currentFormDraftId, setCurrentFormDraftId] = useState<string | null>(null);
+  
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
 
   // Check if all categories are complete
   useEffect(() => {
@@ -538,6 +542,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       return;
     }
 
+    setIsSubmitting(true);
     try {
       // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
@@ -621,11 +626,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         clearCurrentFormDraft();
         resetCurrentForm();
 
-        // Show success toast notification
+        // Show enhanced success toast notification
         toast({
-          title: "Inspection Submitted",
-          description: `${categoryLabels[selectedCategory]} inspection has been saved successfully!`,
-          duration: 3000,
+          title: "✅ Inspection Submitted Successfully!",
+          description: `${categoryLabels[selectedCategory]} inspection has been saved. Progress updated automatically.`,
+          duration: 4000,
+          className: "bg-green-50 border-green-200 text-green-800"
         });
 
         console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
@@ -648,13 +654,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     } catch (error) {
       console.error('Error submitting inspection:', error);
       
-      // Show error toast notification
+      // Show enhanced error toast notification
       toast({
-        title: "Submission Failed",
+        title: "❌ Submission Failed",
         description: "Failed to save inspection. Please check your connection and try again.",
         variant: "destructive",
-        duration: 4000,
+        duration: 5000,
+        className: "bg-red-50 border-red-200 text-red-800"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -664,6 +673,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       return;
     }
 
+    setIsFinalizing(true);
     try {
       // Update the building inspection as completed
       const response = await fetch(`/api/inspections/${buildingInspectionId}`, {
@@ -673,11 +683,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       });
 
       if (response.ok) {
-        // Show success toast notification
+        // Show enhanced final success toast notification
         toast({
-          title: "Building Inspection Complete!",
-          description: "Your whole building inspection has been finalized and saved successfully.",
-          duration: 4000,
+          title: "🎉 Building Inspection Complete!",
+          description: "Your whole building inspection has been finalized and saved successfully. All data has been recorded.",
+          duration: 5000,
+          className: "bg-blue-50 border-blue-200 text-blue-800"
         });
 
         console.log('Whole building inspection completed successfully!');
@@ -700,6 +711,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         variant: "destructive",
         duration: 4000,
       });
+    } finally {
+      setIsFinalizing(false);
     }
   };
 
@@ -1316,9 +1329,17 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <Button 
             type="submit" 
             size="lg" 
-            className={`w-full bg-red-600 hover:bg-red-700 border-red-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'h-14 text-lg' : ''}`}
+            disabled={isSubmitting}
+            className={`w-full bg-red-600 hover:bg-red-700 border-red-600 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'h-14 text-lg' : ''} ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            Submit {categoryLabels[selectedCategory]} Inspection
+            {isSubmitting ? (
+              <>
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              `Submit ${categoryLabels[selectedCategory]} Inspection`
+            )}
           </Button>
         </form>
       )}
@@ -1328,10 +1349,17 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <Button
             onClick={handleFinalSubmit}
             size="lg"
-            className={`w-full bg-amber-700 hover:bg-amber-800 border-amber-700 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'h-14 text-base' : ''}`}
-            disabled={!isAllComplete}
+            className={`w-full bg-amber-700 hover:bg-amber-800 border-amber-700 text-white shadow-lg hover:shadow-xl transform transition-all duration-200 ${isMobile ? 'h-14 text-base' : ''} ${isFinalizing ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={!isAllComplete || isFinalizing}
           >
-            {isMobile ? 'Finalize Building Inspection' : 'Finalize Whole Building Inspection'}
+            {isFinalizing ? (
+              <>
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                Finalizing...
+              </>
+            ) : (
+              isMobile ? 'Finalize Building Inspection' : 'Finalize Whole Building Inspection'
+            )}
           </Button>
           {!isAllComplete && (
             <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-xs px-2' : 'text-sm'}`}>
