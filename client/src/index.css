@@ -282,6 +282,48 @@ input[type="number"], input[type="tel"], textarea {
 .font-inter-semibold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 600; }
 .font-inter-bold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 700; }
 
+/* Toast Notification Enhancements */
+[data-radix-toast-viewport] {
+  position: fixed !important;
+  top: 1rem !important;
+  right: 1rem !important;
+  z-index: 9999 !important;
+  max-width: 400px !important;
+}
+
+/* Enhanced toast styling for better visibility */
+[data-radix-toast-viewport] [data-radix-toast] {
+  background: white !important;
+  border: 2px solid #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.5rem !important;
+  padding: 1rem !important;
+  margin-bottom: 0.5rem !important;
+  min-height: 60px !important;
+  font-weight: 500 !important;
+}
+
+/* Success toast styling */
+[data-radix-toast-viewport] [data-radix-toast].bg-green-50 {
+  background-color: #f0fdf4 !important;
+  border-color: #22c55e !important;
+  color: #166534 !important;
+}
+
+/* Error toast styling */
+[data-radix-toast-viewport] [data-radix-toast].bg-red-50 {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  color: #991b1b !important;
+}
+
+/* Info/completion toast styling */
+[data-radix-toast-viewport] [data-radix-toast].bg-blue-50 {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1e40af !important;
+}
+
 /* Modern Clean Design */
 
 /* Header container */
