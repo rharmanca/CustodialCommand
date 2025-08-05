@@ -4,19 +4,45 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Critical Toast Fix - Load First */
+/* Critical Toast Fix - Complete Override */
 [data-radix-toast-viewport] {
   position: fixed !important;
   top: 20px !important;
   right: 20px !important;
   bottom: auto !important;
   left: auto !important;
-  z-index: 99999 !important;
+  z-index: 999999 !important;
   max-width: 400px !important;
   width: auto !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-end !important;
+  pointer-events: none !important;
+}
+
+/* Make individual toasts clickable */
+[data-radix-toast-viewport] > * {
+  pointer-events: auto !important;
+}
+
+/* Force override all Tailwind classes */
+[data-radix-toast-viewport].fixed {
+  top: 20px !important;
+  bottom: auto !important;
+}
+
+[data-radix-toast-viewport].top-0 {
+  top: 20px !important;
+}
+
+/* Override responsive breakpoints */
+@media (min-width: 640px) {
+  [data-radix-toast-viewport] {
+    top: 20px !important;
+    right: 20px !important;
+    bottom: auto !important;
+    left: auto !important;
+  }
 }
 
 /* Legacy browser polyfills and vendor prefixes */

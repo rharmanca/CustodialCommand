@@ -18,6 +18,45 @@ function App() {
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const { isMobile, isTouch, orientation } = useIsMobile();
 
+  // Force toast positioning with inline styles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'toast-positioning-override';
+    style.textContent = `
+      [data-radix-toast-viewport] {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        bottom: auto !important;
+        left: auto !important;
+        z-index: 9999999 !important;
+        max-width: 400px !important;
+        width: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        transform: none !important;
+      }
+      
+      [data-radix-toast-viewport] > * {
+        margin-bottom: 8px !important;
+        background: white !important;
+        border: 2px solid #22c55e !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+      }
+    `;
+    
+    document.head.appendChild(style);
+    
+    return () => {
+      const existingStyle = document.getElementById('toast-positioning-override');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
+
   // Detect PWA installation status
   useEffect(() => {
     const checkPWAStatus = () => {
