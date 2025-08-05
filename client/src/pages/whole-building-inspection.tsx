@@ -11,7 +11,7 @@ import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useToast } from '@/hooks/use-toast';
+import { useCustomNotifications } from '@/hooks/use-custom-notifications';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface WholeBuildingInspectionPageProps {
@@ -20,7 +20,7 @@ interface WholeBuildingInspectionPageProps {
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
-  const { toast } = useToast();
+  const { showSuccess, showError, showInfo } = useCustomNotifications();
 
   // Prevent unwanted scrolling during interactions
   useEffect(() => {
@@ -626,13 +626,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         clearCurrentFormDraft();
         resetCurrentForm();
 
-        // Show enhanced success toast notification
-        toast({
-          title: "✅ Inspection Submitted Successfully!",
-          description: `${categoryLabels[selectedCategory]} inspection has been saved. Progress updated automatically.`,
-          duration: 4000,
-          className: "bg-green-50 border-green-200 text-green-800"
-        });
+        // Show enhanced success notification
+        showSuccess(
+          "Inspection Submitted Successfully!",
+          `${categoryLabels[selectedCategory]} inspection has been saved. Progress updated automatically.`,
+          4000
+        );
 
         console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
 
@@ -654,14 +653,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     } catch (error) {
       console.error('Error submitting inspection:', error);
       
-      // Show enhanced error toast notification
-      toast({
-        title: "❌ Submission Failed",
-        description: "Failed to save inspection. Please check your connection and try again.",
-        variant: "destructive",
-        duration: 5000,
-        className: "bg-red-50 border-red-200 text-red-800"
-      });
+      // Show enhanced error notification
+      showError(
+        "Submission Failed",
+        "Failed to save inspection. Please check your connection and try again.",
+        5000
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -683,13 +680,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       });
 
       if (response.ok) {
-        // Show enhanced final success toast notification
-        toast({
-          title: "🎉 Building Inspection Complete!",
-          description: "Your whole building inspection has been finalized and saved successfully. All data has been recorded.",
-          duration: 5000,
-          className: "bg-blue-50 border-blue-200 text-blue-800"
-        });
+        // Show enhanced final success notification
+        showInfo(
+          "Building Inspection Complete!",
+          "Your whole building inspection has been finalized and saved successfully. All data has been recorded.",
+          5000
+        );
 
         console.log('Whole building inspection completed successfully!');
         
@@ -704,13 +700,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     } catch (error) {
       console.error('Error finalizing inspection:', error);
       
-      // Show error toast notification
-      toast({
-        title: "Finalization Failed",
-        description: "Failed to finalize building inspection. Please try again.",
-        variant: "destructive",
-        duration: 4000,
-      });
+      // Show error notification
+      showError(
+        "Finalization Failed",
+        "Failed to finalize building inspection. Please try again.",
+        4000
+      );
     } finally {
       setIsFinalizing(false);
     }

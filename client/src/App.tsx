@@ -8,8 +8,8 @@ import { useIsMobile } from './hooks/use-mobile';
 import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
 import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 import AdminInspectionsPage from "./pages/admin-inspections";
-import { useToast } from '@/hooks/use-toast';
-import { Toaster } from "@/components/ui/toaster";
+import { useCustomNotifications } from '@/hooks/use-custom-notifications';
+import { NotificationContainer } from "@/components/ui/custom-notification";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'Rating Criteria' | 'admin-inspections'>('Custodial');
@@ -17,6 +17,7 @@ function App() {
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const { isMobile, isTouch, orientation } = useIsMobile();
+  const { notifications, removeNotification } = useCustomNotifications();
 
   // Force toast positioning with inline styles
   useEffect(() => {
@@ -280,7 +281,7 @@ function App() {
       <footer className="w-full max-w-4xl mt-8 text-center text-muted-foreground text-sm px-2">
         <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
       </footer>
-      <Toaster />
+      <NotificationContainer notifications={notifications} onRemove={removeNotification} />
     </div>
   );
 }
