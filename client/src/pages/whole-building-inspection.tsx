@@ -11,16 +11,17 @@ import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useCustomNotifications } from '@/hooks/use-custom-notifications';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface WholeBuildingInspectionPageProps {
   onBack?: () => void;
+  showSuccess: (title: string, description?: string, duration?: number) => string;
+  showError: (title: string, description?: string, duration?: number) => string;
+  showInfo: (title: string, description?: string, duration?: number) => string;
 }
 
-export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
+export default function WholeBuildingInspectionPage({ onBack, showSuccess, showError, showInfo }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
-  const { showSuccess, showError, showInfo } = useCustomNotifications();
 
   // Prevent unwanted scrolling during interactions
   useEffect(() => {

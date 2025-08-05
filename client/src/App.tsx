@@ -17,7 +17,7 @@ function App() {
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const { isMobile, isTouch, orientation } = useIsMobile();
-  const { notifications, removeNotification } = useCustomNotifications();
+  const { notifications, removeNotification, showSuccess, showError, showInfo } = useCustomNotifications();
 
   // Force toast positioning with inline styles
   useEffect(() => {
@@ -231,7 +231,7 @@ function App() {
       case 'Custodial Notes':
         return <CustodialNotesPage onBack={() => setCurrentPage('Custodial')} />;
       case 'Whole Building Inspection':
-        return <WholeBuildingInspectionPage onBack={() => setCurrentPage('Custodial')} />;
+        return <WholeBuildingInspectionPage onBack={() => setCurrentPage('Custodial')} showSuccess={showSuccess} showError={showError} showInfo={showInfo} />;
       case 'Rating Criteria':
         return <RatingCriteriaPage onBack={() => setCurrentPage('Custodial')} />;
       case 'admin-inspections':
