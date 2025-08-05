@@ -38,7 +38,7 @@ function App() {
         align-items: flex-end !important;
         transform: none !important;
       }
-      
+
       [data-radix-toast-viewport] > * {
         margin-bottom: 8px !important;
         background: white !important;
@@ -47,9 +47,9 @@ function App() {
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
       }
     `;
-    
+
     document.head.appendChild(style);
-    
+
     return () => {
       const existingStyle = document.getElementById('toast-positioning-override');
       if (existingStyle) {

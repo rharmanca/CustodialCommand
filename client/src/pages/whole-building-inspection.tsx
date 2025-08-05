@@ -628,11 +628,15 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         resetCurrentForm();
 
         // Show enhanced success notification
-        showSuccess(
-          "Inspection Submitted Successfully!",
-          `${categoryLabels[selectedCategory]} inspection has been saved. Progress updated automatically.`,
-          4000
-        );
+        if (showSuccess) {
+          showSuccess(
+            "Inspection Submitted Successfully!",
+            `${categoryLabels[selectedCategory]} inspection has been saved. Progress updated automatically.`,
+            4000
+          );
+        } else {
+          alert(`${categoryLabels[selectedCategory]} inspection submitted successfully! Progress updated automatically.`);
+        }
 
         console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
 
@@ -655,11 +659,15 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
       console.error('Error submitting inspection:', error);
       
       // Show enhanced error notification
-      showError(
-        "Submission Failed",
-        "Failed to save inspection. Please check your connection and try again.",
-        5000
-      );
+      if (showError) {
+        showError(
+          "Submission Failed",
+          "Failed to save inspection. Please check your connection and try again.",
+          5000
+        );
+      } else {
+        alert("Failed to save inspection. Please check your connection and try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -682,11 +690,15 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
 
       if (response.ok) {
         // Show enhanced final success notification
-        showInfo(
-          "Building Inspection Complete!",
-          "Your whole building inspection has been finalized and saved successfully. All data has been recorded.",
-          5000
-        );
+        if (showInfo) {
+          showInfo(
+            "Building Inspection Complete!",
+            "Your whole building inspection has been finalized and saved successfully. All data has been recorded.",
+            5000
+          );
+        } else {
+          alert("Building Inspection Complete! Your whole building inspection has been finalized and saved successfully.");
+        }
 
         console.log('Whole building inspection completed successfully!');
         
@@ -702,11 +714,15 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
       console.error('Error finalizing inspection:', error);
       
       // Show error notification
-      showError(
-        "Finalization Failed",
-        "Failed to finalize building inspection. Please try again.",
-        4000
-      );
+      if (showError) {
+        showError(
+          "Finalization Failed",
+          "Failed to finalize building inspection. Please try again.",
+          4000
+        );
+      } else {
+        alert("Failed to finalize building inspection. Please try again.");
+      }
     } finally {
       setIsFinalizing(false);
     }
