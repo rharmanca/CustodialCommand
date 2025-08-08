@@ -810,10 +810,10 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-6">
-      <div className="mb-6">
+    <div className="container mx-auto p-4 sm:p-6 max-w-4xl space-y-8">
+      <div className="mb-8">
         {onBack && (
-          <div className="flex justify-start mb-4">
+          <div className="flex justify-start mb-6">
             <Button variant="outline" onClick={onBack} className="flex-shrink-0">
               ← Back
             </Button>
@@ -821,16 +821,16 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         )}
 
         <div className="flex justify-center px-4">
-          <Collapsible className="w-full max-w-lg">
+          <Collapsible className="w-full max-w-2xl">
             <CollapsibleTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="w-full p-3 h-auto font-normal text-center text-primary hover:text-primary/80 hover:bg-accent/10 border border-accent/30 rounded-lg text-sm sm:text-base leading-relaxed"
+                className="w-full p-4 h-auto font-normal text-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 rounded-lg text-sm sm:text-base leading-relaxed"
               >
                 📋 How to conduct a whole building inspection ↓
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 p-4 bg-accent/10 rounded-lg border border-accent/30">
+            <CollapsibleContent className="mt-4 p-6 bg-slate-50 rounded-lg border border-slate-200">
               <div className="space-y-3 text-sm text-muted-foreground">
                 <div>
                   <h4 className="font-semibold text-primary mb-1">Step 1: Getting Started</h4>
@@ -859,45 +859,46 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
       </div>
       {/* Inspection Selector */}
       {showInspectionSelector && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Building Inspection Options</CardTitle>
-            <CardDescription>You can continue a previous inspection or start a new one</CardDescription>
+        <Card className="mx-2 sm:mx-0">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-xl sm:text-2xl">Building Inspection Options</CardTitle>
+            <CardDescription className="text-base">You can continue a previous inspection or start a new one</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 px-4 sm:px-6">
             {/* Start New Inspection - More Prominent */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
+            <div className="space-y-4">
+              <h4 className="font-semibold text-slate-900 text-lg sm:text-xl">Start New Inspection:</h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 border-2 border-amber-600 hover:border-amber-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-base sm:text-lg min-h-[60px] flex items-center justify-center gap-3"
                 variant="default"
                 size="lg"
               >
-                🏢 Start New Building Inspection
+                <span className="text-xl">🏢</span>
+                <span>Start New Building Inspection</span>
               </Button>
-              <p className="text-sm text-gray-600 text-center">
+              <p className="text-sm text-slate-600 text-center px-2">
                 Begin a fresh comprehensive building inspection
               </p>
             </div>
             
             {availableInspections.length > 0 && (
               <>
-                <Separator />
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                <Separator className="my-6" />
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-slate-900 text-lg sm:text-xl">Or Continue Previous Inspection:</h4>
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
                     {availableInspections.map((inspection) => (
                       <div
                         key={inspection.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 bg-amber-50 border-amber-200"
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 bg-orange-50 border-orange-200 gap-4"
                       >
-                        <div>
-                          <div className="font-medium text-amber-900">{inspection.school}</div>
-                          <div className="text-sm text-amber-700">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-orange-900 truncate">{inspection.school}</div>
+                          <div className="text-sm text-orange-700 mt-1">
                             {new Date(inspection.date).toLocaleDateString()}
                             {inspection.inspectorName && (
-                              <span className="block text-sm text-amber-800 font-medium">
+                              <span className="block text-sm text-orange-800 font-medium mt-1 truncate">
                                 Inspector: {inspection.inspectorName}
                               </span>
                             )}
@@ -907,14 +908,14 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
                           onClick={() => selectInspection(inspection)}
                           variant="outline"
                           size="sm"
-                          className="border-red-400 text-red-700 hover:bg-red-100 shadow-sm hover:shadow-md transition-all duration-200"
+                          className="border-orange-400 text-orange-700 hover:bg-orange-100 shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0 px-4 py-2"
                         >
                           Continue
                         </Button>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 text-center">
+                  <p className="text-sm text-slate-500 text-center px-2">
                     These inspections were started but not completed
                   </p>
                 </div>
