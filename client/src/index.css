@@ -133,32 +133,32 @@ button, input, select, textarea, a {
 
 @layer base {
   :root {
-    /* Retro propaganda poster color palette - matching your image */
-    --background: 46 45% 88%;        /* Cream/beige background like the poster */
-    --foreground: 14 15% 25%;        /* Dark charcoal for text */
-    --card: 46 45% 92%;             /* Slightly lighter cream for cards */
-    --card-foreground: 14 15% 25%;   /* Dark charcoal for card text */
-    --popover: 46 45% 92%;          /* Light cream for popovers */
-    --popover-foreground: 14 15% 25%; /* Dark charcoal for popover text */
-    --primary: 8 76% 45%;           /* Bold red from the poster */
-    --primary-foreground: 46 45% 88%; /* Cream text on red backgrounds */
-    --secondary: 14 15% 35%;        /* Dark gray/charcoal like the robot */
-    --secondary-foreground: 46 45% 88%; /* Cream text on dark backgrounds */
-    --muted: 46 25% 80%;            /* Muted cream for subtle elements */
-    --muted-foreground: 14 15% 45%; /* Medium gray for muted text */
-    --accent: 8 65% 55%;            /* Lighter red for accents */
-    --accent-foreground: 46 45% 88%; /* Cream text on accent backgrounds */
-    --destructive: 8 85% 50%;       /* Bright red for destructive actions */
-    --destructive-foreground: 46 45% 88%; /* Cream text on destructive backgrounds */
-    --border: 46 25% 75%;           /* Subtle cream border */
-    --input: 46 35% 85%;            /* Light cream for inputs */
-    --ring: 8 76% 45%;              /* Red focus ring */
-    --chart-1: 8 76% 45%;           /* Red for charts */
-    --chart-2: 14 15% 35%;          /* Charcoal for charts */
-    --chart-3: 46 45% 65%;          /* Medium cream for charts */
-    --chart-4: 8 55% 60%;           /* Light red for charts */
-    --chart-5: 14 10% 55%;          /* Medium gray for charts */
-    --radius: 0.75rem;
+    /* Modern minimalist color palette */
+    --background: 0 0% 100%;            /* Pure white background */
+    --foreground: 240 10% 3.9%;        /* Near-black text */
+    --card: 0 0% 100%;                  /* White cards */
+    --card-foreground: 240 10% 3.9%;   /* Near-black card text */
+    --popover: 0 0% 100%;               /* White popovers */
+    --popover-foreground: 240 10% 3.9%; /* Near-black popover text */
+    --primary: 221.2 83.2% 53.3%;      /* Modern blue primary */
+    --primary-foreground: 210 40% 98%; /* Light text on primary */
+    --secondary: 210 40% 96%;           /* Very light gray secondary */
+    --secondary-foreground: 222.2 84% 4.9%; /* Dark text on secondary */
+    --muted: 210 40% 96%;               /* Light gray muted elements */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray muted text */
+    --accent: 210 40% 96%;              /* Light accent */
+    --accent-foreground: 222.2 84% 4.9%; /* Dark text on accent */
+    --destructive: 0 84.2% 60.2%;       /* Modern red destructive */
+    --destructive-foreground: 210 40% 98%; /* Light text on destructive */
+    --border: 214.3 31.8% 91.4%;       /* Subtle light gray border */
+    --input: 214.3 31.8% 91.4%;        /* Light gray input background */
+    --ring: 221.2 83.2% 53.3%;         /* Blue focus ring */
+    --chart-1: 221.2 83.2% 53.3%;      /* Blue for charts */
+    --chart-2: 212 95% 68%;             /* Light blue for charts */
+    --chart-3: 216 92% 79%;             /* Lighter blue for charts */
+    --chart-4: 210 98% 78%;             /* Very light blue for charts */
+    --chart-5: 204 100% 86%;            /* Pale blue for charts */
+    --radius: 0.375rem;                 /* Smaller, more modern border radius */
 
     /* Safe area insets with fallbacks for older browsers */
     --safe-area-inset-top: 0px;
@@ -168,31 +168,31 @@ button, input, select, textarea, a {
   }
 
   .dark {
-    /* Dark retro theme - inverted poster colors */
-    --background: 14 15% 12%;           /* Very dark charcoal background */
-    --foreground: 46 35% 85%;           /* Light cream text */
-    --card: 14 15% 18%;                 /* Dark charcoal cards */
-    --card-foreground: 46 35% 85%;      /* Light cream card text */
-    --popover: 14 15% 18%;              /* Dark charcoal popovers */
-    --popover-foreground: 46 35% 85%;   /* Light cream popover text */
-    --primary: 8 85% 55%;               /* Bright red primary */
-    --primary-foreground: 14 15% 12%;   /* Dark text on red */
-    --secondary: 46 25% 65%;            /* Medium cream secondary */
-    --secondary-foreground: 14 15% 12%; /* Dark text on cream */
-    --muted: 14 10% 25%;                /* Dark muted elements */
-    --muted-foreground: 46 20% 65%;     /* Light cream muted text */
-    --accent: 8 75% 60%;                /* Red accent */
-    --accent-foreground: 14 15% 12%;    /* Dark text on accent */
-    --destructive: 8 90% 60%;           /* Bright red destructive */
-    --destructive-foreground: 46 35% 85%; /* Light cream on destructive */
-    --border: 14 10% 30%;               /* Dark border */
-    --input: 14 10% 22%;                /* Dark input background */
-    --ring: 8 85% 55%;                  /* Red focus ring */
-    --chart-1: 8 85% 55%;               /* Red for charts */
-    --chart-2: 46 35% 75%;              /* Light cream for charts */
-    --chart-3: 14 15% 45%;              /* Medium gray for charts */
-    --chart-4: 8 65% 65%;               /* Light red for charts */
-    --chart-5: 46 20% 55%;              /* Medium cream for charts */
+    /* Modern dark theme */
+    --background: 222.2 84% 4.9%;       /* Very dark blue-gray background */
+    --foreground: 210 40% 98%;          /* Near-white text */
+    --card: 222.2 84% 4.9%;             /* Dark cards */
+    --card-foreground: 210 40% 98%;     /* Light card text */
+    --popover: 222.2 84% 4.9%;          /* Dark popovers */
+    --popover-foreground: 210 40% 98%;  /* Light popover text */
+    --primary: 217.2 91.2% 59.8%;       /* Bright blue primary */
+    --primary-foreground: 222.2 84% 4.9%; /* Dark text on primary */
+    --secondary: 217.2 32.6% 17.5%;     /* Dark blue-gray secondary */
+    --secondary-foreground: 210 40% 98%; /* Light text on secondary */
+    --muted: 217.2 32.6% 17.5%;         /* Dark muted elements */
+    --muted-foreground: 215 20.2% 65.1%; /* Medium gray muted text */
+    --accent: 217.2 32.6% 17.5%;        /* Dark accent */
+    --accent-foreground: 210 40% 98%;   /* Light text on accent */
+    --destructive: 0 62.8% 30.6%;       /* Dark red destructive */
+    --destructive-foreground: 210 40% 98%; /* Light text on destructive */
+    --border: 217.2 32.6% 17.5%;        /* Dark border */
+    --input: 217.2 32.6% 17.5%;         /* Dark input background */
+    --ring: 217.2 91.2% 59.8%;          /* Bright blue focus ring */
+    --chart-1: 217.2 91.2% 59.8%;       /* Bright blue for charts */
+    --chart-2: 221.2 83.2% 53.3%;       /* Medium blue for charts */
+    --chart-3: 212 95% 68%;              /* Light blue for charts */
+    --chart-4: 216 92% 79%;              /* Lighter blue for charts */
+    --chart-5: 210 98% 78%;              /* Very light blue for charts */
   }
 }
 
@@ -390,30 +390,30 @@ html body div[data-radix-toast-viewport] div[data-radix-toast].bg-blue-50 {
 
 /* Header container */
 .header-container {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
+  background: hsl(var(--background));
   position: relative;
   border-bottom: 1px solid hsl(var(--border));
 }
 
 .modern-header {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 700;
-  color: hsl(var(--primary-foreground));
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  letter-spacing: -0.025em;
   /* Mobile responsive font sizing */
-  font-size: 2rem;
-  line-height: 1.2;
+  font-size: 1.875rem;
+  line-height: 1.25;
 }
 
 @media (min-width: 640px) {
   .modern-header {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
   }
 }
 
 @media (min-width: 1024px) {
   .modern-header {
-    font-size: 3rem;
+    font-size: 2.5rem;
   }
 }
 
@@ -434,11 +434,11 @@ html body div[data-radix-toast-viewport] div[data-radix-toast].bg-blue-50 {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 500;
   font-size: 0.875rem;
-  padding: 0.75rem 1.5rem;
-  letter-spacing: 0.01em;
+  padding: 0.625rem 1.25rem;
+  letter-spacing: -0.01em;
   border-radius: var(--radius);
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  transition: all 0.15s ease;
+  box-shadow: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -452,107 +452,35 @@ html body div[data-radix-toast-viewport] div[data-radix-toast].bg-blue-50 {
 
 /* Default styling for modern-button when no specific background is applied */
 .modern-button:not([class*="bg-"]) {
-  border: 1px solid hsl(var(--border));
+  border: 1px solid hsl(var(--primary));
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
 }
 
 @media (min-width: 640px) {
   .modern-button {
-    font-size: 0.9rem;
-    padding: 0.875rem 2rem;
+    font-size: 0.875rem;
+    padding: 0.75rem 1.5rem;
   }
 }
 
 /* Default hover for modern-button when no specific background is applied */
 .modern-button:not([class*="bg-"]):hover {
   background: hsl(var(--primary) / 0.9);
-  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.1);
 }
 
 .modern-button:active {
-  transform: translateY(0.5px);
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.retro-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
-
-.retro-button:hover::before {
-  opacity: 1;
-}
-
-.retro-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 
-    0 3px 0 rgba(0,0,0,0.2),
-    0 6px 12px rgba(0,0,0,0.15);
-}
-
-@media (min-width: 640px) {
-  .retro-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 5px 0 rgba(0,0,0,0.2),
-      0 10px 16px rgba(0,0,0,0.15);
-  }
-}
-
-@media (min-width: 1024px) {
-  .retro-button:hover {
-    box-shadow: 
-      0 6px 0 rgba(0,0,0,0.2),
-      0 12px 20px rgba(0,0,0,0.15);
-  }
-}
-
-.retro-button:active {
-  transform: translateY(1px);
-  box-shadow: 
-    0 1px 0 rgba(0,0,0,0.2),
-    0 2px 4px rgba(0,0,0,0.1);
-}
-
-@media (min-width: 640px) {
-  .retro-button:active {
-    transform: translateY(2px);
-    box-shadow: 
-      0 2px 0 rgba(0,0,0,0.2),
-      0 4px 8px rgba(0,0,0,0.1);
-  }
-}
-
-.retro-button.active {
-  transform: translateY(1px);
-  box-shadow: 
-    0 1px 0 rgba(0,0,0,0.2),
-    0 2px 4px rgba(0,0,0,0.1);
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  border-color: #065f46;
-}
-
-@media (min-width: 640px) {
-  .retro-button.active {
-    transform: translateY(2px);
-    box-shadow: 
-      0 2px 0 rgba(0,0,0,0.2),
-      0 4px 8px rgba(0,0,0,0.1);
-  }
+  transform: translateY(0px);
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
 }
 
 /* Back button */
 .back-button {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  border-color: #991b1b;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--secondary-foreground));
   margin-bottom: 1rem;
 }
 
@@ -563,19 +491,21 @@ html body div[data-radix-toast-viewport] div[data-radix-toast].bg-blue-50 {
 }
 
 .back-button:hover {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: hsl(var(--secondary) / 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.1);
 }
 
 /* Modern star rating buttons */
 .star-button {
   background: none;
   border: none;
-  color: hsl(45 93% 47%);
-  font-size: 1.5rem;
+  color: hsl(45 93% 50%);
+  font-size: 1.25rem;
   cursor: pointer;
-  transition: all 0.15s ease;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.375rem;
+  border-radius: var(--radius);
   min-height: 44px;
   min-width: 44px;
   touch-action: manipulation;
@@ -583,18 +513,18 @@ html body div[data-radix-toast-viewport] div[data-radix-toast].bg-blue-50 {
 
 @media (min-width: 640px) {
   .star-button {
-    font-size: 1.75rem;
-    padding: 0.375rem;
+    font-size: 1.5rem;
+    padding: 0.25rem;
   }
 }
 
 .star-button:hover {
-  background: hsl(45 93% 47% / 0.1);
-  transform: scale(1.05);
+  background: hsl(var(--accent));
+  transform: scale(1.1);
 }
 
 .star-button.filled {
-  color: hsl(45 93% 47%);
+  color: hsl(45 93% 50%);
 }
 
 .star-button.empty {
@@ -604,43 +534,44 @@ html body div[data-radix-toast-viewport] div[data-radix-toast].bg-blue-50 {
 /* Mobile-First Form elements styling */
 input, textarea, select {
   font-family: 'Inter', sans-serif;
-  border: 2px solid #d1d5db;
-  border-radius: 8px;
-  padding: 1rem 0.75rem;
-  transition: border-color 0.2s ease;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 16px; /* Prevents zoom on iOS */
-  min-height: 48px;
+  min-height: 44px;
   width: 100%;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 @media (min-width: 640px) {
   input, textarea, select {
     padding: 0.75rem;
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
 }
 
 /* Cards */
 .card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid hsl(var(--border));
   overflow: hidden;
   margin-bottom: 1rem;
 }
 
 @media (min-width: 640px) {
   .card {
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 2px solid #e5e7eb;
+    border-radius: calc(var(--radius) * 2);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
 }
 
