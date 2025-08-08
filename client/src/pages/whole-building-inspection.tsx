@@ -121,6 +121,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAllComplete, setIsAllComplete] = useState(false);
   const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
   
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -331,6 +332,19 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
     }));
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newImages = Array.from(files);
+      setSelectedImages(prev => [...prev, ...newImages].slice(0, 5)); // Limit to 5 images
+      console.log('Files selected:', newImages.length, 'files');
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleDateChange = (date: string) => {
     setFormData(prev => ({
       ...prev,
@@ -512,6 +526,28 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
     setLastSaved(null);
   };
 
+  const convertImagesToBase64 = async (images: File[]): Promise<string[]> => {
+    const imagePromises = images.map(file => {
+      return new Promise<string>((resolve, reject) => {
+        try {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+    
+    try {
+      return await Promise.all(imagePromises);
+    } catch (error) {
+      console.error('Error converting images to base64:', error);
+      return [];
+    }
+  };
+
   const handleCategorySelect = (category: string) => {
     // Store current scroll position
     const currentScrollY = window.scrollY;
@@ -630,7 +666,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         equipment: formData.equipment === -1 ? null : formData.equipment,
         monitoring: formData.monitoring === -1 ? null : formData.monitoring,
         notes: formData.notes || null,
-        images: []
+        images: await convertImagesToBase64(selectedImages)
       };
 
       const response = await fetch('/api/room-inspections', {
@@ -654,6 +690,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         // Clear current form draft and reset form
         clearCurrentFormDraft();
         resetCurrentForm();
+        setSelectedImages([]);
 
         // Show enhanced success notification
         if (showSuccess) {
@@ -1342,13 +1379,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
                       type="file"
                       multiple
                       accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          console.log('Files selected:', e.target.files.length, 'files');
-                          // Prevent navigation issues by avoiding alert()
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
+                      onChange={handleImageUpload}
                       className="hidden"
                     />
                   </Label>
@@ -1363,20 +1394,42 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
                       type="file"
                       accept="image/*"
                       capture="environment"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          console.log('Camera photo taken:', e.target.files[0].name);
-                          // Prevent navigation issues by avoiding alert()
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
+                      onChange={handleImageUpload}
                       className="hidden"
                     />
                   </Label>
                 </div>
                 <p className="text-sm text-gray-500">
-                  Upload existing images or take new photos to document the inspection
+                  Upload existing images or take new photos to document the inspection (up to 5 images)
                 </p>
+                
+                {/* Image Previews */}
+                {selectedImages.length > 0 && (
+                  <div className="space-y-3">
+                    <Label>Selected Images ({selectedImages.length}/5)</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedImages.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={URL.createObjectURL(image)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-lg border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                            {image.name.length > 10 ? image.name.substring(0, 10) + '...' : image.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </MobileCard>
           ) : (
@@ -1397,13 +1450,7 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
                       type="file"
                       multiple
                       accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          console.log('Files selected:', e.target.files.length, 'files');
-                          // Prevent navigation issues by avoiding alert()
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
+                      onChange={handleImageUpload}
                       className="hidden"
                     />
                   </Label>
@@ -1418,20 +1465,42 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
                       type="file"
                       accept="image/*"
                       capture="environment"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          console.log('Camera photo taken:', e.target.files[0].name);
-                          // Prevent navigation issues by avoiding alert()
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
+                      onChange={handleImageUpload}
                       className="hidden"
                     />
                   </Label>
                 </div>
                 <p className="text-sm text-gray-500">
-                  Select multiple images from your device or take new photos with your camera
+                  Select multiple images from your device or take new photos with your camera (up to 5 images)
                 </p>
+                
+                {/* Image Previews */}
+                {selectedImages.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Selected Images ({selectedImages.length}/5)</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedImages.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={URL.createObjectURL(image)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                            {image.name.length > 12 ? image.name.substring(0, 12) + '...' : image.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
