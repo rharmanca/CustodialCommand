@@ -4,12 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 interface CustodialNotesPageProps {
   onBack?: () => void;
 }
 
 export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     inspectorName: '',
     school: '',
@@ -109,7 +111,11 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       });
 
       if (response.ok) {
-        alert('Custodial note submitted successfully!');
+        toast({
+          title: "Success!",
+          description: "Custodial note submitted successfully!",
+          duration: 4000
+        });
         // Reset form
         setFormData({
           inspectorName: '',
@@ -129,7 +135,11 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       }
     } catch (error) {
       console.error('Error submitting custodial note:', error);
-      alert('Failed to submit custodial note. Please try again.');
+      toast({
+        title: "Submission Failed",
+        description: "Failed to submit custodial note. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 

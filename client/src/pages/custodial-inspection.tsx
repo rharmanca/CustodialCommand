@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface CustodialInspectionPageProps {
@@ -18,6 +19,7 @@ interface CustodialInspectionPageProps {
 
 export default function CustodialInspectionPage({ onBack }: CustodialInspectionPageProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     school: '',
     date: '',
@@ -268,7 +270,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     e.preventDefault();
 
     if (!formData.school || !formData.date) {
-      alert('Please fill in school and date fields');
+      toast({
+        title: "Missing Information",
+        description: "Please fill in school and date fields",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -279,7 +285,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     });
 
     if (!hasRating) {
-      alert('Please provide at least one rating for the inspection categories');
+      toast({
+        title: "Missing Ratings",
+        description: "Please provide at least one rating for the inspection categories",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -329,7 +339,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       });
 
       if (response.ok) {
-        alert('Inspection submitted successfully!');
+        toast({
+          title: "Success!",
+          description: "Inspection submitted successfully!",
+          duration: 4000
+        });
         
         // Clean up draft after successful submission
         if (currentDraftId) {
@@ -368,11 +382,19 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         }
       } else {
         const errorData = await response.json();
-        alert(`Error submitting inspection: ${errorData.error || 'Unknown error'}`);
+        toast({
+          title: "Submission Failed",
+          description: `Error submitting inspection: ${errorData.error || 'Unknown error'}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      alert('Error submitting inspection. Please try again.');
+      toast({
+        title: "Submission Failed",
+        description: "Error submitting inspection. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 

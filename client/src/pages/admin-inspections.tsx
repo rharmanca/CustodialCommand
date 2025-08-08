@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit, Trash2, Plus, LogOut, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import { inspectionCategories } from '@shared/custodial-criteria';
 
 interface AdminInspectionsPageProps {
@@ -20,6 +21,7 @@ interface AdminInspectionsPageProps {
 
 export default function AdminInspectionsPage({ onBack }: AdminInspectionsPageProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
   const [inspections, setInspections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingInspection, setEditingInspection] = useState<any>(null);
@@ -107,7 +109,11 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   const handleSaveCriteria = () => {
     // In a real implementation, this would save to a database or file
     // For now, we'll just show a success message
-    alert('Criteria updated successfully! (Note: This is a demo - changes are not persisted)');
+    toast({
+      title: "Success!",
+      description: "Criteria updated successfully! (Note: This is a demo - changes are not persisted)",
+      duration: 4000
+    });
     setIsCriteriaDialogOpen(false);
     setEditingCriteria(null);
   };
@@ -136,13 +142,25 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
       
       if (response.ok) {
         setInspections(prev => prev.filter(inspection => inspection.id !== id));
-        alert('Inspection deleted successfully');
+        toast({
+          title: "Deleted",
+          description: "Inspection deleted successfully",
+          duration: 3000
+        });
       } else {
-        alert('Failed to delete inspection');
+        toast({
+          title: "Delete Failed",
+          description: "Failed to delete inspection",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error deleting inspection:', error);
-      alert('Error deleting inspection');
+      toast({
+        title: "Delete Failed",
+        description: "Error deleting inspection",
+        variant: "destructive"
+      });
     }
   };
 
@@ -194,14 +212,26 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
         );
         setIsEditDialogOpen(false);
         setEditingInspection(null);
-        alert('Inspection updated successfully');
+        toast({
+          title: "Updated",
+          description: "Inspection updated successfully",
+          duration: 3000
+        });
       } else {
         const errorData = await response.json();
-        alert(`Failed to update inspection: ${errorData.error}`);
+        toast({
+          title: "Update Failed",
+          description: `Failed to update inspection: ${errorData.error}`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error updating inspection:', error);
-      alert('Error updating inspection');
+      toast({
+        title: "Update Failed",
+        description: "Error updating inspection",
+        variant: "destructive"
+      });
     }
   };
 

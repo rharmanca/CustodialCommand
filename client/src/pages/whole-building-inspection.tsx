@@ -579,14 +579,12 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
     if (!formData.inspectorName.trim()) {
       if (showError) {
         showError("Validation Error", "Inspector name is required");
-      } else if (toast) {
+      } else {
         toast({
           title: "Validation Error",
           description: "Inspector name is required",
           variant: "destructive",
         });
-      } else {
-        alert('Inspector name is required');
       }
       return;
     }
@@ -595,14 +593,12 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
     if (!formData.roomNumber.trim()) {
       if (showError) {
         showError("Validation Error", "Room number is required");
-      } else if (toast) {
+      } else {
         toast({
           title: "Validation Error", 
           description: "Room number is required",
           variant: "destructive",
         });
-      } else {
-        alert('Room number is required');
       }
       return;
     }
@@ -700,7 +696,11 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
             8000
           );
         } else {
-          alert(`${categoryLabels[selectedCategory]} inspection submitted successfully! Progress updated automatically.`);
+          toast({
+            title: "Success!",
+            description: `${categoryLabels[selectedCategory]} inspection submitted successfully! Progress updated automatically.`,
+            duration: 4000
+          });
         }
 
         console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
@@ -730,14 +730,12 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
           "Failed to save inspection. Please check your connection and try again.",
           10000
         );
-      } else if (toast) {
+      } else {
         toast({
           title: "Submission Failed",
           description: "Failed to save inspection. Please check your connection and try again.",
           variant: "destructive",
         });
-      } else {
-        alert("Failed to save inspection. Please check your connection and try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -746,7 +744,11 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
 
   const handleFinalSubmit = async () => {
     if (!isAllComplete) {
-      alert('Please complete all required inspections before finalizing.');
+      toast({
+        title: "Incomplete Inspections",
+        description: "Please complete all required inspections before finalizing.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -768,7 +770,11 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
             10000
           );
         } else {
-          alert("Building Inspection Complete! Your whole building inspection has been finalized and saved successfully.");
+          toast({
+            title: "Building Inspection Complete!",
+            description: "Your whole building inspection has been finalized and saved successfully.",
+            duration: 5000
+          });
         }
 
         console.log('Whole building inspection completed successfully!');
@@ -791,14 +797,12 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
           "Failed to finalize building inspection. Please try again.",
           8000
         );
-      } else if (toast) {
+      } else {
         toast({
           title: "Finalization Failed",
           description: "Failed to finalize building inspection. Please try again.",
           variant: "destructive",
         });
-      } else {
-        alert("Failed to finalize building inspection. Please try again.");
       }
     } finally {
       setIsFinalizing(false);
