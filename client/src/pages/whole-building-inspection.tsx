@@ -1206,40 +1206,98 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
           {/* Rating Categories */}
           {isMobile ? (
             <MobileCard title="Rate Each Category">
-              <div className="space-y-6">
-                {inspectionCategories.map((category, index) => (
-                  <div key={category.key} className="space-y-3">
-                    <Label className="text-base font-medium">{category.label}</Label>
-                    {renderMobileStarRating(
-                      category,
-                      formData[category.key as keyof typeof formData] as number,
-                      (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
-                    )}
-                    {index < inspectionCategories.length - 1 && <div className="border-t pt-4" />}
-                  </div>
-                ))}
+              <div className="space-y-4">
+                {inspectionCategories.map((category, index) => {
+                  const currentRating = formData[category.key as keyof typeof formData] as number;
+                  const isRated = currentRating !== -1;
+                  
+                  return (
+                    <Collapsible key={category.key} defaultOpen={isRated}>
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <Label className="text-base font-medium cursor-pointer">
+                              {category.label}
+                            </Label>
+                            {isRated && (
+                              <Badge variant="default" className="text-xs">
+                                {currentRating} star{currentRating > 1 ? 's' : ''}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {isRated ? '✓' : 'Tap to rate'}
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <div className="pl-3">
+                          {renderMobileStarRating(
+                            category,
+                            currentRating,
+                            (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
+                          )}
+                        </div>
+                      </CollapsibleContent>
+                      {index < inspectionCategories.length - 1 && <div className="border-t mt-4" />}
+                    </Collapsible>
+                  );
+                })}
               </div>
             </MobileCard>
           ) : (
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-              {inspectionCategories.map((category, index) => {
-                const key = category.key as keyof typeof formData;
-                return (
-                  <Card key={category.key} className="overflow-hidden">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-lg">{category.label}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {renderStarRating(
-                        category,
-                        formData[key] as number,
-                        (rating) => handleInputChange(key, rating)
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Rate Each Category</CardTitle>
+                <CardDescription>
+                  Click on any category below to expand and rate it. Completed ratings are shown with checkmarks.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {inspectionCategories.map((category, index) => {
+                    const key = category.key as keyof typeof formData;
+                    const currentRating = formData[key] as number;
+                    const isRated = currentRating !== -1;
+                    
+                    return (
+                      <Collapsible key={category.key} defaultOpen={isRated}>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg font-medium">
+                                {category.label}
+                              </span>
+                              {isRated && (
+                                <Badge variant="default">
+                                  {currentRating} star{currentRating > 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              {isRated ? (
+                                <span className="text-green-600 font-medium">✓ Rated</span>
+                              ) : (
+                                <span>Click to rate</span>
+                              )}
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-3">
+                          <div className="p-4 bg-white rounded-lg border border-gray-200">
+                            {renderStarRating(
+                              category,
+                              currentRating,
+                              (rating) => handleInputChange(key, rating)
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Notes */}
