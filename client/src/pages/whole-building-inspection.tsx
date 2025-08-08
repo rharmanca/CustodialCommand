@@ -11,6 +11,7 @@ import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface WholeBuildingInspectionPageProps {
@@ -22,6 +23,7 @@ interface WholeBuildingInspectionPageProps {
 
 export default function WholeBuildingInspectionPage({ onBack, showSuccess, showError, showInfo }: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
 
   // Prevent unwanted scrolling during interactions
   useEffect(() => {
@@ -539,7 +541,33 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
 
     // Validate inspector name is provided
     if (!formData.inspectorName.trim()) {
-      alert('Inspector name is required');
+      if (showError) {
+        showError("Validation Error", "Inspector name is required");
+      } else if (toast) {
+        toast({
+          title: "Validation Error",
+          description: "Inspector name is required",
+          variant: "destructive",
+        });
+      } else {
+        alert('Inspector name is required');
+      }
+      return;
+    }
+
+    // Validate room number is provided
+    if (!formData.roomNumber.trim()) {
+      if (showError) {
+        showError("Validation Error", "Room number is required");
+      } else if (toast) {
+        toast({
+          title: "Validation Error", 
+          description: "Room number is required",
+          variant: "destructive",
+        });
+      } else {
+        alert('Room number is required');
+      }
       return;
     }
 
@@ -658,13 +686,19 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
     } catch (error) {
       console.error('Error submitting inspection:', error);
       
-      // Show enhanced error notification
+      // Show enhanced error notification with fallback
       if (showError) {
         showError(
           "Submission Failed",
           "Failed to save inspection. Please check your connection and try again.",
           10000
         );
+      } else if (toast) {
+        toast({
+          title: "Submission Failed",
+          description: "Failed to save inspection. Please check your connection and try again.",
+          variant: "destructive",
+        });
       } else {
         alert("Failed to save inspection. Please check your connection and try again.");
       }
@@ -713,13 +747,19 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
     } catch (error) {
       console.error('Error finalizing inspection:', error);
       
-      // Show error notification
+      // Show error notification with fallback
       if (showError) {
         showError(
           "Finalization Failed",
           "Failed to finalize building inspection. Please try again.",
           8000
         );
+      } else if (toast) {
+        toast({
+          title: "Finalization Failed",
+          description: "Failed to finalize building inspection. Please try again.",
+          variant: "destructive",
+        });
       } else {
         alert("Failed to finalize building inspection. Please try again.");
       }
