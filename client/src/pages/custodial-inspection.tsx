@@ -15,9 +15,12 @@ import { ratingDescriptions, inspectionCategories } from '@shared/custodial-crit
 
 interface CustodialInspectionPageProps {
   onBack?: () => void;
+  showSuccess?: (title: string, description?: string, duration?: number) => string;
+  showError?: (title: string, description?: string, duration?: number) => string;
+  showInfo?: (title: string, description?: string, duration?: number) => string;
 }
 
-export default function CustodialInspectionPage({ onBack }: CustodialInspectionPageProps) {
+export default function CustodialInspectionPage({ onBack, showSuccess, showError, showInfo }: CustodialInspectionPageProps) {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -270,11 +273,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     e.preventDefault();
 
     if (!formData.school || !formData.date) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in school and date fields",
-        variant: "destructive"
-      });
+      if (showError) {
+        showError("Missing Information", "Please fill in school and date fields");
+      } else {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in school and date fields",
+          variant: "destructive"
+        });
+      }
       return;
     }
 
@@ -285,11 +292,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     });
 
     if (!hasRating) {
-      toast({
-        title: "Missing Ratings",
-        description: "Please provide at least one rating for the inspection categories",
-        variant: "destructive"
-      });
+      if (showError) {
+        showError("Missing Ratings", "Please provide at least one rating for the inspection categories");
+      } else {
+        toast({
+          title: "Missing Ratings",
+          description: "Please provide at least one rating for the inspection categories",
+          variant: "destructive"
+        });
+      }
       return;
     }
 
@@ -339,11 +350,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       });
 
       if (response.ok) {
-        toast({
-          title: "Success!",
-          description: "Inspection submitted successfully!",
-          duration: 4000
-        });
+        if (showSuccess) {
+          showSuccess("Success!", "Inspection submitted successfully!", 4000);
+        } else {
+          toast({
+            title: "Success!",
+            description: "Inspection submitted successfully!",
+            duration: 4000
+          });
+        }
         
         // Clean up draft after successful submission
         if (currentDraftId) {
@@ -382,19 +397,27 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         }
       } else {
         const errorData = await response.json();
-        toast({
-          title: "Submission Failed",
-          description: `Error submitting inspection: ${errorData.error || 'Unknown error'}`,
-          variant: "destructive"
-        });
+        if (showError) {
+          showError("Submission Failed", `Error submitting inspection: ${errorData.error || 'Unknown error'}`);
+        } else {
+          toast({
+            title: "Submission Failed",
+            description: `Error submitting inspection: ${errorData.error || 'Unknown error'}`,
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      toast({
-        title: "Submission Failed",
-        description: "Error submitting inspection. Please try again.",
-        variant: "destructive"
-      });
+      if (showError) {
+        showError("Submission Failed", "Error submitting inspection. Please try again.");
+      } else {
+        toast({
+          title: "Submission Failed",
+          description: "Error submitting inspection. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

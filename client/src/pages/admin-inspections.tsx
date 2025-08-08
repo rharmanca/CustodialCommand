@@ -17,9 +17,12 @@ import { inspectionCategories } from '@shared/custodial-criteria';
 
 interface AdminInspectionsPageProps {
   onBack?: () => void;
+  showSuccess?: (title: string, description?: string, duration?: number) => string;
+  showError?: (title: string, description?: string, duration?: number) => string;
+  showInfo?: (title: string, description?: string, duration?: number) => string;
 }
 
-export default function AdminInspectionsPage({ onBack }: AdminInspectionsPageProps) {
+export default function AdminInspectionsPage({ onBack, showSuccess, showError, showInfo }: AdminInspectionsPageProps) {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const [inspections, setInspections] = useState<any[]>([]);
@@ -109,11 +112,15 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   const handleSaveCriteria = () => {
     // In a real implementation, this would save to a database or file
     // For now, we'll just show a success message
-    toast({
-      title: "Success!",
-      description: "Criteria updated successfully! (Note: This is a demo - changes are not persisted)",
-      duration: 4000
-    });
+    if (showSuccess) {
+      showSuccess("Success!", "Criteria updated successfully! (Note: This is a demo - changes are not persisted)", 4000);
+    } else {
+      toast({
+        title: "Success!",
+        description: "Criteria updated successfully! (Note: This is a demo - changes are not persisted)",
+        duration: 4000
+      });
+    }
     setIsCriteriaDialogOpen(false);
     setEditingCriteria(null);
   };
@@ -142,25 +149,37 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
       
       if (response.ok) {
         setInspections(prev => prev.filter(inspection => inspection.id !== id));
-        toast({
-          title: "Deleted",
-          description: "Inspection deleted successfully",
-          duration: 3000
-        });
+        if (showSuccess) {
+          showSuccess("Deleted", "Inspection deleted successfully", 3000);
+        } else {
+          toast({
+            title: "Deleted",
+            description: "Inspection deleted successfully",
+            duration: 3000
+          });
+        }
       } else {
-        toast({
-          title: "Delete Failed",
-          description: "Failed to delete inspection",
-          variant: "destructive"
-        });
+        if (showError) {
+          showError("Delete Failed", "Failed to delete inspection");
+        } else {
+          toast({
+            title: "Delete Failed",
+            description: "Failed to delete inspection",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Error deleting inspection:', error);
-      toast({
-        title: "Delete Failed",
-        description: "Error deleting inspection",
-        variant: "destructive"
-      });
+      if (showError) {
+        showError("Delete Failed", "Error deleting inspection");
+      } else {
+        toast({
+          title: "Delete Failed",
+          description: "Error deleting inspection",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -212,26 +231,38 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
         );
         setIsEditDialogOpen(false);
         setEditingInspection(null);
-        toast({
-          title: "Updated",
-          description: "Inspection updated successfully",
-          duration: 3000
-        });
+        if (showSuccess) {
+          showSuccess("Updated", "Inspection updated successfully", 3000);
+        } else {
+          toast({
+            title: "Updated",
+            description: "Inspection updated successfully",
+            duration: 3000
+          });
+        }
       } else {
         const errorData = await response.json();
-        toast({
-          title: "Update Failed",
-          description: `Failed to update inspection: ${errorData.error}`,
-          variant: "destructive"
-        });
+        if (showError) {
+          showError("Update Failed", `Failed to update inspection: ${errorData.error}`);
+        } else {
+          toast({
+            title: "Update Failed",
+            description: `Failed to update inspection: ${errorData.error}`,
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Error updating inspection:', error);
-      toast({
-        title: "Update Failed",
-        description: "Error updating inspection",
-        variant: "destructive"
-      });
+      if (showError) {
+        showError("Update Failed", "Error updating inspection");
+      } else {
+        toast({
+          title: "Update Failed",
+          description: "Error updating inspection",
+          variant: "destructive"
+        });
+      }
     }
   };
 

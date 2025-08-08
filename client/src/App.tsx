@@ -225,17 +225,17 @@ function App() {
           </div>
         );
       case 'Custodial Inspection':
-        return <CustodialInspectionPage onBack={() => setCurrentPage('Custodial')} />;
+        return <CustodialInspectionPage onBack={() => setCurrentPage('Custodial')} showSuccess={showSuccess} showError={showError} showInfo={showInfo} />;
       case 'Inspection Data':
         return <InspectionDataPage onBack={() => setCurrentPage('Custodial')} />;
       case 'Custodial Notes':
-        return <CustodialNotesPage onBack={() => setCurrentPage('Custodial')} />;
+        return <CustodialNotesPage onBack={() => setCurrentPage('Custodial')} showSuccess={showSuccess} showError={showError} showInfo={showInfo} />;
       case 'Whole Building Inspection':
         return <WholeBuildingInspectionPage onBack={() => setCurrentPage('Custodial')} showSuccess={showSuccess} showError={showError} showInfo={showInfo} />;
       case 'Rating Criteria':
         return <RatingCriteriaPage onBack={() => setCurrentPage('Custodial')} />;
       case 'admin-inspections':
-        return <AdminInspectionsPage onBack={() => setCurrentPage('Custodial')} />;
+        return <AdminInspectionsPage onBack={() => setCurrentPage('Custodial')} showSuccess={showSuccess} showError={showError} showInfo={showInfo} />;
 
       default:
         return null;

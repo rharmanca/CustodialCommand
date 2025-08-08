@@ -8,9 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 
 interface CustodialNotesPageProps {
   onBack?: () => void;
+  showSuccess?: (title: string, description?: string, duration?: number) => string;
+  showError?: (title: string, description?: string, duration?: number) => string;
+  showInfo?: (title: string, description?: string, duration?: number) => string;
 }
 
-export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) {
+export default function CustodialNotesPage({ onBack, showSuccess, showError, showInfo }: CustodialNotesPageProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     inspectorName: '',
@@ -111,11 +114,15 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       });
 
       if (response.ok) {
-        toast({
-          title: "Success!",
-          description: "Custodial note submitted successfully!",
-          duration: 4000
-        });
+        if (showSuccess) {
+          showSuccess("Success!", "Custodial note submitted successfully!", 4000);
+        } else {
+          toast({
+            title: "Success!",
+            description: "Custodial note submitted successfully!",
+            duration: 4000
+          });
+        }
         // Reset form
         setFormData({
           inspectorName: '',
@@ -135,11 +142,15 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       }
     } catch (error) {
       console.error('Error submitting custodial note:', error);
-      toast({
-        title: "Submission Failed",
-        description: "Failed to submit custodial note. Please try again.",
-        variant: "destructive"
-      });
+      if (showError) {
+        showError("Submission Failed", "Failed to submit custodial note. Please try again.");
+      } else {
+        toast({
+          title: "Submission Failed",
+          description: "Failed to submit custodial note. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
