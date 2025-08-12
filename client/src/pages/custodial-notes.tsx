@@ -159,17 +159,26 @@ export default function CustodialNotesPage({ onBack, showSuccess, showError, sho
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit custodial note');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Submit failed:', errorData);
+        if (showError) {
+          showError("Submission Failed", `Error submitting note: ${errorData.error || 'Unknown error'}`);
+        } else {
+          toast({
+            title: "Submission Failed",
+            description: `Error submitting note: ${errorData.error || 'Unknown error'}`,
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Error submitting custodial note:', error);
       if (showError) {
-        showError("Submission Failed", "Failed to submit custodial note. Please try again.");
+        showError("Submission Failed", "Network error while submitting note. Please try again.");
       } else {
         toast({
           title: "Submission Failed",
-          description: "Failed to submit custodial note. Please try again.",
+          description: "Network error while submitting note. Please try again.",
           variant: "destructive"
         });
       }
