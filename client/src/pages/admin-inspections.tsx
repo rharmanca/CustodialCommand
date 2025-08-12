@@ -145,6 +145,9 @@ export default function AdminInspectionsPage({ onBack, showSuccess, showError, s
     try {
       const response = await fetch(`/api/inspections/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
       if (response.ok) {
@@ -159,12 +162,14 @@ export default function AdminInspectionsPage({ onBack, showSuccess, showError, s
           });
         }
       } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Delete failed:', errorData);
         if (showError) {
-          showError("Delete Failed", "Failed to delete inspection");
+          showError("Delete Failed", `Failed to delete inspection: ${errorData.error || 'Unknown error'}`);
         } else {
           toast({
             title: "Delete Failed",
-            description: "Failed to delete inspection",
+            description: `Failed to delete inspection: ${errorData.error || 'Unknown error'}`,
             variant: "destructive"
           });
         }
@@ -172,11 +177,11 @@ export default function AdminInspectionsPage({ onBack, showSuccess, showError, s
     } catch (error) {
       console.error('Error deleting inspection:', error);
       if (showError) {
-        showError("Delete Failed", "Error deleting inspection");
+        showError("Delete Failed", "Network error while deleting inspection");
       } else {
         toast({
           title: "Delete Failed",
-          description: "Error deleting inspection",
+          description: "Network error while deleting inspection",
           variant: "destructive"
         });
       }
