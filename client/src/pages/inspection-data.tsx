@@ -55,14 +55,23 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
       if (inspectionsResponse.ok) {
         const inspectionsData = await inspectionsResponse.json();
         setInspections(inspectionsData);
+      } else {
+        const errorData = await inspectionsResponse.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Failed to fetch inspections:', errorData);
       }
       
       if (notesResponse.ok) {
         const notesData = await notesResponse.json();
         setCustodialNotes(notesData);
+      } else {
+        const errorData = await notesResponse.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Failed to fetch custodial notes:', errorData);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      // Set empty arrays to prevent undefined errors
+      setInspections([]);
+      setCustodialNotes([]);
     } finally {
       setLoading(false);
     }

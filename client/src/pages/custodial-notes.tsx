@@ -32,40 +32,62 @@ export default function CustodialNotesPage({ onBack, showSuccess, showError, sho
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      // Check file size limit (5MB per file)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-      const validFiles = Array.from(files).filter(file => {
-        if (file.size > maxSize) {
-          console.error(`File "${file.name}" is too large. Maximum size is 5MB per file.`);
-          return false;
+    try {
+      const files = event.target.files;
+      if (files && files.length > 0) {
+        // Check file size limit (5MB per file)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        const validFiles = Array.from(files).filter(file => {
+          if (file.size > maxSize) {
+            console.error(`File "${file.name}" is too large. Maximum size is 5MB per file.`);
+            if (showError) {
+              showError("File Too Large", `"${file.name}" is too large. Maximum size is 5MB per file.`);
+            }
+            return false;
+          }
+          return true;
+        });
+
+        if (validFiles.length > 0) {
+          // Limit total images to 5
+          const currentCount = images.length;
+          const availableSlots = 5 - currentCount;
+          const filesToAdd = validFiles.slice(0, availableSlots);
+
+          if (filesToAdd.length < validFiles.length) {
+            console.warn(`Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`);
+            if (showInfo) {
+              showInfo("Image Limit", `Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`);
+            }
+          }
+
+          setImages(prev => [...prev, ...filesToAdd]);
+
+          // Create preview URLs with error handling
+          try {
+            const urls = filesToAdd.map(file => URL.createObjectURL(file));
+            setImagePreviewUrls(prev => [...prev, ...urls]);
+          } catch (urlError) {
+            console.error('Error creating preview URLs:', urlError);
+            if (showError) {
+              showError("Preview Error", "Failed to create image previews, but files were uploaded successfully.");
+            }
+          }
+
+          console.log(`Successfully added ${filesToAdd.length} image(s)`);
         }
-        return true;
-      });
-
-      if (validFiles.length > 0) {
-        // Limit total images to 5
-        const currentCount = images.length;
-        const availableSlots = 5 - currentCount;
-        const filesToAdd = validFiles.slice(0, availableSlots);
-
-        if (filesToAdd.length < validFiles.length) {
-          console.warn(`Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`);
-        }
-
-        setImages(prev => [...prev, ...filesToAdd]);
-
-        // Create preview URLs
-        const urls = filesToAdd.map(file => URL.createObjectURL(file));
-        setImagePreviewUrls(prev => [...prev, ...urls]);
-
-        console.log(`Successfully added ${filesToAdd.length} image(s)`);
+      }
+    } catch (error) {
+      console.error('Error handling image upload:', error);
+      if (showError) {
+        showError("Upload Error", "Failed to process image upload. Please try again.");
+      }
+    } finally {
+      // Reset input value to allow same file to be selected again
+      if (event.target) {
+        event.target.value = '';
       }
     }
-
-    // Reset input value to allow same file to be selected again
-    event.target.value = '';
   };
 
   const capturePhoto = () => {

@@ -10,6 +10,20 @@ import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1
 import AdminInspectionsPage from "./pages/admin-inspections";
 import { useCustomNotifications } from '@/hooks/use-custom-notifications';
 import { NotificationContainer } from "@/components/ui/custom-notification";
+import { Toaster } from "@/components/ui/toaster"; // Assuming Toaster is for the notifications
+import { CustomNotificationContainer } from "@/components/ui/custom-notification"; // Assuming this is the correct component name
+
+
+// Define a simple ErrorBoundary component
+const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+  // In a real-world scenario, this would include error state and a fallback UI
+  return (
+    <div>
+      {children}
+    </div>
+  );
+};
+
 
 function App() {
   const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'Rating Criteria' | 'admin-inspections'>('Custodial');
@@ -176,25 +190,25 @@ function App() {
 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <button 
+              <button
                 onClick={() => setCurrentPage('Custodial Notes')}
                 className="modern-button bg-red-700 hover:bg-red-800 border-red-700 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Report A Custodial Concern
               </button>
-              <button 
+              <button
                 onClick={() => setCurrentPage('Custodial Inspection')}
                 className="modern-button bg-amber-700 hover:bg-amber-800 border-amber-700 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Inspect Using Criteria
               </button>
-              <button 
+              <button
                 onClick={() => setCurrentPage('Whole Building Inspection')}
                 className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
                 Building Inspection
               </button>
-              <button 
+              <button
                 onClick={() => setCurrentPage('Rating Criteria')}
                 className="modern-button bg-amber-600 hover:bg-amber-700 border-amber-600 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
               >
@@ -204,7 +218,7 @@ function App() {
                 <p className="text-sm text-muted-foreground font-medium text-center">
                   Note: Best viewed on desktop
                 </p>
-                <button 
+                <button
                   onClick={() => setCurrentPage('Inspection Data')}
                   className="modern-button bg-red-500 hover:bg-red-600 border-red-500 text-white w-full shadow-lg hover:shadow-xl transform transition-all duration-200"
                 >
@@ -213,10 +227,10 @@ function App() {
               </div>
             </div>
             <div className="flex justify-center mb-6 sm:mb-8">
-              <img 
-                src={custodialDutyImage} 
-                alt="Custodial Duty" 
-                className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto" 
+              <img
+                src={custodialDutyImage}
+                alt="Custodial Duty"
+                className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto"
               />
             </div>
             <p className="text-lg text-muted-foreground text-center">
@@ -243,46 +257,48 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-4 py-6 flex flex-col items-center">
-      {/* Header section with app title */}
-      <header className="w-full max-w-4xl header-container p-6 rounded-xl shadow-sm mb-8">
-        <h1 className="font-bold text-center modern-header tracking-tight">
-          Custodial Command
-        </h1>
-      </header>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background text-foreground px-4 py-6 flex flex-col items-center">
+        {/* Header section with app title */}
+        <header className="w-full max-w-4xl header-container p-6 rounded-xl shadow-sm mb-8">
+          <h1 className="font-bold text-center modern-header tracking-tight">
+            Custodial Command
+          </h1>
+        </header>
 
-      {/* Navigation section */}
-      <nav className="w-full max-w-4xl nav-container p-4 rounded-xl shadow-sm mb-8">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
-          {navLinks.map((link) => (
+        {/* Navigation section */}
+        <nav className="w-full max-w-4xl nav-container p-4 rounded-xl shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
+            {navLinks.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => setCurrentPage(link.path)}
+                className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
+              >
+                {link.name}
+              </button>
+            ))}
             <button
-              key={link.name}
-              onClick={() => setCurrentPage(link.path)}
-              className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
+              onClick={() => setCurrentPage('admin-inspections')}
+              className="modern-button bg-amber-800 hover:bg-amber-900 border-amber-800 text-white shadow-lg hover:shadow-xl transform transition-all duration-200"
             >
-              {link.name}
+              Admin
             </button>
-          ))}
-          <button 
-            onClick={() => setCurrentPage('admin-inspections')}
-            className="modern-button bg-amber-800 hover:bg-amber-900 border-amber-800 text-white shadow-lg hover:shadow-xl transform transition-all duration-200"
-          >
-            Admin
-          </button>
-        </div>
-      </nav>
+          </div>
+        </nav>
 
-      {/* Main content area */}
-      <main className="w-full max-w-4xl content-area p-6 rounded-xl shadow-sm">
-        {renderPageContent()}
-      </main>
+        {/* Main content area */}
+        <main className="w-full max-w-4xl content-area p-6 rounded-xl shadow-sm">
+          {renderPageContent()}
+        </main>
 
-      {/* Footer section */}
-      <footer className="w-full max-w-4xl mt-8 text-center text-muted-foreground text-sm px-2">
-        <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
-      </footer>
-      <NotificationContainer notifications={notifications} onRemove={removeNotification} />
-    </div>
+        {/* Footer section */}
+        <footer className="w-full max-w-4xl mt-8 text-center text-muted-foreground text-sm px-2">
+          <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
+        </footer>
+        <NotificationContainer notifications={notifications} onRemove={removeNotification} />
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -285,9 +285,21 @@ export default function WholeBuildingInspectionPage({ onBack, showSuccess, showE
         setCompleted(completedCount);
         setIsResuming(true);
         setShowInspectionSelector(false);
+      } else {
+        const errorData = await roomResponse.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(`Failed to load rooms: ${errorData.error}`);
       }
     } catch (error) {
       console.error('Error loading inspection:', error);
+      if (showError) {
+        showError("Load Failed", "Failed to load inspection data. Please try again.");
+      } else {
+        toast({
+          title: "Load Failed",
+          description: "Failed to load inspection data. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

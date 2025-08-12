@@ -99,11 +99,16 @@ export default function CustodialInspectionPage({ onBack, showSuccess, showError
       if (savedDrafts) {
         const drafts = JSON.parse(savedDrafts);
         const validDrafts = drafts.filter((draft: any) => {
-          // Filter out old drafts (older than 7 days)
-          const draftDate = new Date(draft.lastModified);
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return draftDate > weekAgo;
+          try {
+            // Filter out old drafts (older than 7 days)
+            const draftDate = new Date(draft.lastModified);
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return draftDate > weekAgo;
+          } catch (filterError) {
+            console.error('Error filtering draft:', draft, filterError);
+            return false;
+          }
         });
 
         if (validDrafts.length > 0) {
@@ -113,11 +118,21 @@ export default function CustodialInspectionPage({ onBack, showSuccess, showError
 
         // Clean up old drafts
         if (validDrafts.length !== drafts.length) {
-          localStorage.setItem('custodial_inspection_drafts', JSON.stringify(validDrafts));
+          try {
+            localStorage.setItem('custodial_inspection_drafts', JSON.stringify(validDrafts));
+          } catch (storageError) {
+            console.error('Error cleaning up drafts:', storageError);
+          }
         }
       }
     } catch (error) {
       console.error('Error loading draft inspections:', error);
+      // Clear corrupted localStorage data
+      try {
+        localStorage.removeItem('custodial_inspection_drafts');
+      } catch (clearError) {
+        console.error('Error clearing corrupted drafts:', clearError);
+      }
     }
   };
 
@@ -191,44 +206,68 @@ export default function CustodialInspectionPage({ onBack, showSuccess, showError
   };
 
   const loadDraft = (draft: any) => {
-    setFormData({
-      school: draft.school || '',
-      date: draft.date || '',
-      inspectionType: draft.inspectionType || 'single_room',
-      locationDescription: draft.locationDescription || '',
-      roomNumber: draft.roomNumber || '',
-      locationCategory: draft.locationCategory || '',
-      floors: draft.floors || 0,
-      verticalHorizontalSurfaces: draft.verticalHorizontalSurfaces || 0,
-      ceiling: draft.ceiling || 0,
-      restrooms: draft.restrooms || 0,
-      customerSatisfaction: draft.customerSatisfaction || 0,
-      trash: draft.trash || 0,
-      projectCleaning: draft.projectCleaning || 0,
-      activitySupport: draft.activitySupport || 0,
-      safetyCompliance: draft.safetyCompliance || 0,
-      equipment: draft.equipment || 0,
-      monitoring: draft.monitoring || 0,
-      notes: draft.notes || '',
-      images: []
-    });
-
-    // Load images from base64
-    if (draft.selectedImages && draft.selectedImages.length > 0) {
-      const imageFiles = draft.selectedImages.map((base64: string, index: number) => {
-        const byteCharacters = atob(base64.split(',')[1]);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        return new File([byteArray], `image_${index}.jpg`, { type: 'image/jpeg' });
+    try {
+      setFormData({
+        school: draft.school || '',
+        date: draft.date || '',
+        inspectionType: draft.inspectionType || 'single_room',
+        locationDescription: draft.locationDescription || '',
+        roomNumber: draft.roomNumber || '',
+        locationCategory: draft.locationCategory || '',
+        floors: draft.floors || 0,
+        verticalHorizontalSurfaces: draft.verticalHorizontalSurfaces || 0,
+        ceiling: draft.ceiling || 0,
+        restrooms: draft.restrooms || 0,
+        customerSatisfaction: draft.customerSatisfaction || 0,
+        trash: draft.trash || 0,
+        projectCleaning: draft.projectCleaning || 0,
+        activitySupport: draft.activitySupport || 0,
+        safetyCompliance: draft.safetyCompliance || 0,
+        equipment: draft.equipment || 0,
+        monitoring: draft.monitoring || 0,
+        notes: draft.notes || '',
+        images: []
       });
-      setSelectedImages(imageFiles);
-    }
 
-    setCurrentDraftId(draft.id);
-    setShowResumeDialog(false);
+      // Load images from base64
+      if (draft.selectedImages && draft.selectedImages.length > 0) {
+        try {
+          const imageFiles = draft.selectedImages.map((base64: string, index: number) => {
+            try {
+              const byteCharacters = atob(base64.split(',')[1]);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              return new File([byteArray], `image_${index}.jpg`, { type: 'image/jpeg' });
+            } catch (imageError) {
+              console.error(`Error loading image ${index}:`, imageError);
+              return null;
+            }
+          }).filter(Boolean);
+          setSelectedImages(imageFiles);
+        } catch (imagesError) {
+          console.error('Error loading draft images:', imagesError);
+          setSelectedImages([]);
+        }
+      }
+
+      setCurrentDraftId(draft.id);
+      setShowResumeDialog(false);
+    } catch (error) {
+      console.error('Error loading draft:', error);
+      if (showError) {
+        showError("Draft Load Failed", "Failed to load saved draft. Starting fresh.");
+      } else {
+        toast({
+          title: "Draft Load Failed",
+          description: "Failed to load saved draft. Starting fresh.",
+          variant: "destructive"
+        });
+      }
+      setShowResumeDialog(false);
+    }
   };
 
   const deleteDraft = (draftId: string) => {
