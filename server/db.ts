@@ -1,5 +1,5 @@
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -8,16 +8,6 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configure connection pool for Supabase
-const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
-
-export { pool };
-export const db = drizzle(pool, { schema });
+// Use Neon's serverless driver for better connection handling
+const sql = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql, { schema });
