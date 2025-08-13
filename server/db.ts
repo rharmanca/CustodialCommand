@@ -1,12 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-// Configure WebSocket for serverless environment
-if (typeof WebSocket === 'undefined') {
-  neonConfig.webSocketConstructor = ws;
-}
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -14,13 +8,16 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configure connection pool for serverless
+// Configure connection pool for Supabase
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 1, // Reduce pool size for serverless
-  idleTimeoutMillis: 30000, // Close idle connections faster
-  connectionTimeoutMillis: 10000, // Shorter connection timeout
+  ssl: {
+    rejectUnauthorized: false
+  },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 });
 
 export { pool };
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });
