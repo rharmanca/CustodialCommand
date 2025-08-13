@@ -77,3 +77,5 @@ export function useApi(options?: UseApiOptions) {
     delete: del
   };
 }
+  )
+}
