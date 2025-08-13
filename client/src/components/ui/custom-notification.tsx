@@ -14,6 +14,8 @@ export function CustomNotification({ id, title, description, type, duration = 50
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    if (duration <= 0) return; // Don't auto-remove if duration is 0 or negative
+    
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(() => onRemove(id), 300); // Wait for fade out animation

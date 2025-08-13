@@ -14,6 +14,7 @@ import { Edit, Trash2, Plus, LogOut, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { inspectionCategories } from '@shared/custodial-criteria';
+import { LoadingState } from '@/components/ui/loading-spinner';
 
 interface AdminInspectionsPageProps {
   onBack?: () => void;
@@ -340,9 +341,7 @@ export default function AdminInspectionsPage({ onBack, showSuccess, showError, s
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 max-w-6xl">
-        <div className="text-center">Loading inspections...</div>
-      </div>
+      <LoadingState>Loading inspections...</LoadingState>
     );
   }
 

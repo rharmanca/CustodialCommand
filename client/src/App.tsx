@@ -9,20 +9,11 @@ import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_
 import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 import AdminInspectionsPage from "./pages/admin-inspections";
 import { useCustomNotifications } from '@/hooks/use-custom-notifications';
-import { NotificationContainer } from "@/components/ui/custom-notification";
 import { Toaster } from "@/components/ui/toaster"; // Assuming Toaster is for the notifications
-import { CustomNotificationContainer } from "@/components/ui/custom-notification"; // Assuming this is the correct component name
+import { NotificationContainer } from "@/components/ui/custom-notification";
 
 
-// Define a simple ErrorBoundary component
-const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
-  // In a real-world scenario, this would include error state and a fallback UI
-  return (
-    <div>
-      {children}
-    </div>
-  );
-};
+import ErrorBoundary from "@/components/ui/error-boundary";
 
 
 function App() {

@@ -40,12 +40,19 @@ export const removeStorageItem = (key: string): boolean => {
 export const clearOldDrafts = (key: string, maxAge: number = 7): void => {
   try {
     const drafts = getStorageItem(key, []);
+    if (!Array.isArray(drafts)) {
+      console.warn('Invalid drafts data, clearing storage');
+      removeStorageItem(key);
+      return;
+    }
+    
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - maxAge);
 
     const validDrafts = drafts.filter((draft: any) => {
+      if (!draft || typeof draft !== 'object') return false;
       const draftDate = new Date(draft.lastModified || draft.createdAt);
-      return draftDate > cutoffDate;
+      return !isNaN(draftDate.getTime()) && draftDate > cutoffDate;
     });
 
     if (validDrafts.length !== drafts.length) {
@@ -53,5 +60,7 @@ export const clearOldDrafts = (key: string, maxAge: number = 7): void => {
     }
   } catch (error) {
     console.error('Failed to clean old drafts:', error);
+    // Clear corrupted data
+    removeStorageItem(key);
   }
 };

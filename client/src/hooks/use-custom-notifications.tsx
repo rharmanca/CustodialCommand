@@ -17,6 +17,13 @@ export function useCustomNotifications() {
     
     setNotifications(prev => [...prev, newNotification]);
     
+    // Auto-remove notification after duration
+    if (notification.duration && notification.duration > 0) {
+      setTimeout(() => {
+        removeNotification(id);
+      }, notification.duration);
+    }
+    
     return id;
   }, []);
 
@@ -29,15 +36,15 @@ export function useCustomNotifications() {
   }, []);
 
   // Convenience methods for different types
-  const showSuccess = useCallback((title: string, description?: string, duration?: number) => {
+  const showSuccess = useCallback((title: string, description?: string, duration: number = 4000) => {
     return addNotification({ title, description, type: 'success', duration });
   }, [addNotification]);
 
-  const showError = useCallback((title: string, description?: string, duration?: number) => {
+  const showError = useCallback((title: string, description?: string, duration: number = 5000) => {
     return addNotification({ title, description, type: 'error', duration });
   }, [addNotification]);
 
-  const showInfo = useCallback((title: string, description?: string, duration?: number) => {
+  const showInfo = useCallback((title: string, description?: string, duration: number = 4000) => {
     return addNotification({ title, description, type: 'info', duration });
   }, [addNotification]);
 
