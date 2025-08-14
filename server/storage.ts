@@ -11,7 +11,7 @@ import {
   type InsertCustodialNote,
   type RoomInspection,
   type InsertRoomInspection,
-} from "@shared/schema";
+} from "../shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
