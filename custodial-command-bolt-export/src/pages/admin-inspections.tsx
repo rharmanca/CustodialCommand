@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit, Trash2, Plus, LogOut, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import { inspectionCategories } from '@shared/custodial-criteria';
 
 interface AdminInspectionsPageProps {
@@ -20,6 +21,7 @@ interface AdminInspectionsPageProps {
 
 export default function AdminInspectionsPage({ onBack }: AdminInspectionsPageProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
   const [inspections, setInspections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingInspection, setEditingInspection] = useState<any>(null);
@@ -107,7 +109,10 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   const handleSaveCriteria = () => {
     // In a real implementation, this would save to a database or file
     // For now, we'll just show a success message
-    alert('Criteria updated successfully! (Note: This is a demo - changes are not persisted)');
+    toast({
+      title: "✅ Criteria Updated",
+      description: "Criteria updated successfully! (Note: This is a demo - changes are not persisted)"
+    });
     setIsCriteriaDialogOpen(false);
     setEditingCriteria(null);
   };
@@ -136,13 +141,24 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
       
       if (response.ok) {
         setInspections(prev => prev.filter(inspection => inspection.id !== id));
-        alert('Inspection deleted successfully');
+        toast({
+          title: "✅ Inspection Deleted",
+          description: "Inspection deleted successfully"
+        });
       } else {
-        alert('Failed to delete inspection');
+        toast({
+          variant: "destructive",
+          title: "Deletion Failed",
+          description: "Failed to delete inspection"
+        });
       }
     } catch (error) {
       console.error('Error deleting inspection:', error);
-      alert('Error deleting inspection');
+      toast({
+        variant: "destructive",
+        title: "Network Error",
+        description: "Error deleting inspection. Please check your connection and try again."
+      });
     }
   };
 

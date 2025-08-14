@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 
 interface CustodialInspectionPageProps {
@@ -18,6 +19,7 @@ interface CustodialInspectionPageProps {
 
 export default function CustodialInspectionPage({ onBack }: CustodialInspectionPageProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     school: '',
     date: '',
@@ -45,6 +47,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // School options
   const schoolOptions = [
@@ -253,9 +256,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return; // Prevent multiple submissions
 
     if (!formData.school || !formData.date) {
-      console.error('Please fill in school and date fields');
+      toast({
+        variant: "destructive",
+        title: "Missing Required Fields",
+        description: "Please fill in school and date fields before submitting."
+      });
       return;
     }
 
@@ -266,9 +275,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     });
 
     if (!hasRating) {
-      console.error('Please provide at least one rating for the inspection categories');
+      toast({
+        variant: "destructive",
+        title: "Missing Ratings",
+        description: "Please provide at least one rating for the inspection categories."
+      });
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       // Convert images to base64 strings
@@ -312,7 +327,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       });
 
       if (response.ok) {
-        console.log('Inspection submitted successfully!');
+        // Show success notification
+        toast({
+          title: "✅ Inspection Submitted Successfully!",
+          description: `Single area inspection for ${formData.school} has been submitted and saved.`,
+          variant: "default"
+        });
         
         // Clean up draft after successful submission
         if (currentDraftId) {
@@ -345,17 +365,29 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         setCurrentDraftId(null);
         setLastSaved(null);
         
-        // Navigate back to home page
-        if (onBack) {
-          onBack();
-        }
+        // Navigate back to home page after a brief delay to show the notification
+        setTimeout(() => {
+          if (onBack) {
+            onBack();
+          }
+        }, 1500);
       } else {
-        const errorData = await response.json();
-        console.error(`Error submitting inspection: ${errorData.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        toast({
+          variant: "destructive",
+          title: "Submission Failed",
+          description: `Error: ${errorData.message || 'Unable to submit inspection. Please try again.'}`
+        });
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      console.error('Error submitting inspection. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Network Error",
+        description: "Unable to connect to the server. Please check your connection and try again."
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -815,9 +847,17 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <Button 
             type="submit" 
             size="lg" 
-            className={`bg-blue-600 hover:bg-blue-700 ${isMobile ? 'w-full h-14 text-lg' : ''}`}
+            disabled={isSubmitting}
+            className={`bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed ${isMobile ? 'w-full h-14 text-lg' : ''}`}
           >
-            Submit Inspection
+            {isSubmitting ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                Submitting...
+              </>
+            ) : (
+              'Submit Inspection'
+            )}
           </Button>
         </div>
       </form>

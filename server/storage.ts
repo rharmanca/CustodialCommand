@@ -26,7 +26,6 @@ export interface IStorage {
   getInspections(): Promise<Inspection[]>;
   getInspection(id: number): Promise<Inspection | undefined>;
   updateInspection(id: number, updates: Partial<Inspection>): Promise<Inspection | undefined>;
-  deleteInspection(id: number): Promise<boolean>;
   createCustodialNote(custodialNote: InsertCustodialNote): Promise<CustodialNote>;
   getCustodialNotes(): Promise<CustodialNote[]>;
   getCustodialNote(id: number): Promise<CustodialNote | undefined>;
