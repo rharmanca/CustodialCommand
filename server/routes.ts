@@ -33,11 +33,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       let inspections;
       
       inspections = await storage.getInspections();
+      console.log(`[GET] Found ${inspections.length} total inspections`);
       
       if (type === 'whole_building' && incomplete === 'true') {
+        const beforeFilter = inspections.length;
         inspections = inspections.filter(inspection => 
           inspection.inspectionType === 'whole_building' && !inspection.isCompleted
         );
+        console.log(`[GET] Filtered whole_building incomplete: ${beforeFilter} → ${inspections.length} inspections`);
+        console.log(`[GET] Incomplete inspections:`, inspections.map(i => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
       }
       
       res.json(inspections);
@@ -102,10 +106,15 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
+      console.log(`[PATCH] Updating inspection ${id} with:`, updates);
+      
       const inspection = await storage.updateInspection(id, updates);
       if (!inspection) {
+        console.log(`[PATCH] Inspection ${id} not found`);
         return res.status(404).json({ error: "Inspection not found" });
       }
+      
+      console.log(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
       res.json(inspection);
     } catch (error) {
       console.error("Error updating inspection:", error);

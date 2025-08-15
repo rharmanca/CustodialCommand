@@ -794,14 +794,20 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                             )}
                           </div>
                         </div>
-                        <Button
-                          onClick={() => selectInspection(inspection)}
-                          variant="outline"
-                          size="sm"
-                          className="border-amber-400 text-amber-700 hover:bg-amber-100"
-                        >
-                          Continue
-                        </Button>
+                        {!inspection.isCompleted ? (
+                          <Button
+                            onClick={() => selectInspection(inspection)}
+                            variant="outline"
+                            size="sm"
+                            className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                          >
+                            Continue
+                          </Button>
+                        ) : (
+                          <Badge variant="default" className="bg-green-500">
+                            Completed ✓
+                          </Badge>
+                        )}
                       </div>
                     ))}
                   </div>
