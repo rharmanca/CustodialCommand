@@ -7,12 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Star, Upload, Camera, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface CustodialInspectionPageProps {
   onBack?: () => void;
 }
 
 export default function CustodialInspectionPage({ onBack }: CustodialInspectionPageProps) {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     school: '',
     date: '',
@@ -210,7 +212,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
       if (response.ok) {
         const inspection = await response.json();
-        alert('Inspection submitted successfully!');
+        toast({
+          title: "Success!",
+          description: "Inspection submitted successfully!",
+          duration: 6000,
+        });
         // Reset form
         setFormData({
           school: '',
@@ -237,7 +243,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      alert('Failed to submit inspection. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to submit inspection. Please try again.",
+        variant: "destructive",
+        duration: 6000,
+      });
     }
   };
 

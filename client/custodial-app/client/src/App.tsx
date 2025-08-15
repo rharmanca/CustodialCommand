@@ -2,6 +2,7 @@ import { useState } from 'react';
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('Home');
@@ -105,6 +106,7 @@ function App() {
       <main className="w-full max-w-4xl bg-white rounded-lg shadow-2xl p-8">
         {renderPageContent()}
       </main>
+      <Toaster />
     </div>
   );
 }

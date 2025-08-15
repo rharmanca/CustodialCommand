@@ -323,34 +323,7 @@ input[type="number"], input[type="tel"], textarea {
 .font-inter-semibold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 600; }
 .font-inter-bold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 700; }
 
-/* Toast Notification Positioning Fix - Maximum Specificity */
-html body div[data-radix-toast-viewport],
-div[data-radix-toast-viewport] {
-  position: fixed !important;
-  top: 1rem !important;
-  right: 1rem !important;
-  bottom: auto !important;
-  left: auto !important;
-  z-index: 99999 !important;
-  max-width: 400px !important;
-  width: auto !important;
-  transform: none !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-}
-
-/* Override any conflicting positioning */
-html body div[data-radix-toast-viewport].fixed.top-0 {
-  top: 1rem !important;
-  bottom: auto !important;
-}
-
-html body div[data-radix-toast-viewport].sm\\:bottom-0 {
-  bottom: auto !important;
-  top: 1rem !important;
-}
-
-/* Enhanced toast styling for better visibility */
+/* Toast styling (positioning handled by component) */
 html body div[data-radix-toast-viewport] div[data-radix-toast],
 div[data-radix-toast-viewport] div[data-radix-toast] {
   background: white !important;
