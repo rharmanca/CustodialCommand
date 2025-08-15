@@ -672,8 +672,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       if (response.ok) {
         // Show success toast notification
         toast({
-          title: "Building Inspection Complete!",
-          description: "Your whole building inspection has been finalized and saved successfully.",
+          title: "🎉 You Did Your Duty, Thank You! 🎉",
+          description: "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
           duration: 5000,
         });
 
