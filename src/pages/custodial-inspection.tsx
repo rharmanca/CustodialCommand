@@ -396,7 +396,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           if (onBack) {
             onBack();
           }
-        }, 3000);
+        }, 6000);
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         toast({
