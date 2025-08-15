@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
@@ -718,37 +719,46 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </CardContent>
         </Card>
 
-        {/* Inspection Categories - Organized in columns */}
+        {/* Inspection Categories - Collapsible sections */}
         <Card>
             <CardHeader>
               <CardTitle>Inspection Categories</CardTitle>
               <CardDescription>
                 {isMobile 
-                  ? "Rate each category using the dropdown menus. Detailed criteria will appear when you select a rating."
-                  : "Rate each category based on the criteria (1-5 stars). Detailed criteria will appear when you select a rating."
+                  ? "Expand each category to rate it. Detailed criteria will appear when you select a rating."
+                  : "Expand each category to rate it based on the criteria (1-5 stars). Detailed criteria will appear when you select a rating."
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
             {isMobile ? (
-              // Mobile: Keep single column for better readability
+              // Mobile: Keep single column with collapsible sections
               inspectionCategories.map((category, index) => (
-                <div key={category.key}>
-                  <div className="space-y-3">
-                    <Label className="font-medium text-lg">{category.label}</Label>
-                    {renderMobileStarRating(category, formData[category.key as keyof typeof formData] as number)}
-                  </div>
-                  {index < inspectionCategories.length - 1 && <Separator className="mt-4" />}
-                </div>
+                <CollapsibleSection
+                  key={category.key}
+                  title={category.label}
+                  defaultCollapsed={true}
+                  className="border border-gray-200"
+                  titleClassName="text-left font-medium"
+                  contentClassName="space-y-3"
+                >
+                  {renderMobileStarRating(category, formData[category.key as keyof typeof formData] as number)}
+                </CollapsibleSection>
               ))
             ) : (
-              // Desktop: Use two-column layout
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              // Desktop: Two-column layout with collapsible sections
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {inspectionCategories.map((category, index) => (
-                  <div key={category.key} className="space-y-4 p-4 border rounded-lg bg-gray-50/50">
-                    <Label className="font-medium text-base text-primary">{category.label}</Label>
+                  <CollapsibleSection
+                    key={category.key}
+                    title={category.label}
+                    defaultCollapsed={true}
+                    className="border border-gray-200"
+                    titleClassName="text-left font-medium"
+                    contentClassName="space-y-3"
+                  >
                     {renderStarRating(category, formData[category.key as keyof typeof formData] as number)}
-                  </div>
+                  </CollapsibleSection>
                 ))}
               </div>
             )}

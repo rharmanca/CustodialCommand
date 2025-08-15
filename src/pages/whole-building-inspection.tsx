@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { MobileCard } from "@/components/ui/mobile-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
@@ -1138,20 +1139,25 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Card>
           )}
 
-          {/* Rating Categories */}
+          {/* Rating Categories - Collapsible sections */}
           {isMobile ? (
             <MobileCard title="Rate Each Category">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {inspectionCategories.map((category, index) => (
-                  <div key={category.key} className="space-y-3">
-                    <Label className="text-base font-medium">{category.label}</Label>
+                  <CollapsibleSection
+                    key={category.key}
+                    title={category.label}
+                    defaultCollapsed={true}
+                    className="border border-gray-200"
+                    titleClassName="text-left font-medium"
+                    contentClassName="space-y-3"
+                  >
                     {renderMobileStarRating(
                       category,
                       formData[category.key as keyof typeof formData] as number,
                       (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
                     )}
-                    {index < inspectionCategories.length - 1 && <div className="border-t pt-4" />}
-                  </div>
+                  </CollapsibleSection>
                 ))}
               </div>
             </MobileCard>
@@ -1160,18 +1166,20 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               {inspectionCategories.map((category, index) => {
                 const key = category.key as keyof typeof formData;
                 return (
-                  <Card key={category.key} className="overflow-hidden">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-lg">{category.label}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {renderStarRating(
-                        category,
-                        formData[key] as number,
-                        (rating) => handleInputChange(key, rating)
-                      )}
-                    </CardContent>
-                  </Card>
+                  <CollapsibleSection
+                    key={category.key}
+                    title={category.label}
+                    defaultCollapsed={true}
+                    className="border border-gray-200"
+                    titleClassName="text-left font-medium"
+                    contentClassName="space-y-3"
+                  >
+                    {renderStarRating(
+                      category,
+                      formData[key] as number,
+                      (rating) => handleInputChange(key, rating)
+                    )}
+                  </CollapsibleSection>
                 );
               })}
             </div>
