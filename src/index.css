@@ -577,25 +577,32 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* Toast Notification Positioning Fix - Centered */
-html body div[data-radix-toast-viewport],
-div[data-radix-toast-viewport] {
+/* Toast Notification Positioning Fix - Force Center */
+[data-radix-toast-viewport] {
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
   right: auto !important;
   bottom: auto !important;
   transform: translate(-50%, -50%) !important;
-  z-index: 9999999 !important;
-  max-width: 480px !important;
+  z-index: 999999 !important;
   width: auto !important;
+  max-width: 500px !important;
+  padding: 1rem !important;
+  display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
 }
 
-/* Override any conflicting positioning */
-html body div[data-radix-toast-viewport].fixed.top-0,
-html body div[data-radix-toast-viewport].sm\\:bottom-0 {
+/* Force positioning regardless of any other classes */
+[data-radix-toast-viewport][class*="top-"],
+[data-radix-toast-viewport][class*="bottom-"],
+[data-radix-toast-viewport][class*="left-"],
+[data-radix-toast-viewport][class*="right-"],
+[data-radix-toast-viewport].fixed,
+[data-radix-toast-viewport][class*="fixed"] {
   top: 50% !important;
   left: 50% !important;
   right: auto !important;
@@ -604,8 +611,7 @@ html body div[data-radix-toast-viewport].sm\\:bottom-0 {
 }
 
 /* Enhanced toast styling for better visibility */
-html body div[data-radix-toast-viewport] div[data-radix-toast],
-div[data-radix-toast-viewport] div[data-radix-toast] {
+[data-radix-toast] {
   background: white !important;
   border: 2px solid #e5e7eb !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
@@ -619,17 +625,20 @@ div[data-radix-toast-viewport] div[data-radix-toast] {
   position: relative !important;
   transform: none !important;
   font-size: 1rem !important;
+  pointer-events: auto !important;
+  width: 100% !important;
 }
 
 /* Success toast styling */
-html body div[data-radix-toast-viewport] div[data-radix-toast].bg-green-50 {
+[data-radix-toast][data-state="open"]:not([class*="destructive"]) {
   background-color: #f0fdf4 !important;
   border-color: #22c55e !important;
   color: #166534 !important;
 }
 
-/* Error toast styling */
-html body div[data-radix-toast-viewport] div[data-radix-toast].bg-red-50 {
+/* Error/destructive toast styling */
+[data-radix-toast].destructive,
+[data-radix-toast][class*="destructive"] {
   background-color: #fef2f2 !important;
   border-color: #ef4444 !important;
   color: #991b1b !important;
