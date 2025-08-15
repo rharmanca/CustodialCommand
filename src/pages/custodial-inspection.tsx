@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
@@ -733,7 +733,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <CardContent className="space-y-4">
             {isMobile ? (
               // Mobile: Keep single column with collapsible sections
-              inspectionCategories.map((category, index) => (
+              inspectionCategories.map((category) => (
                 <CollapsibleSection
                   key={category.key}
                   title={category.label}
@@ -748,7 +748,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             ) : (
               // Desktop: Two-column layout with collapsible sections
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {inspectionCategories.map((category, index) => (
+                {inspectionCategories.map((category) => (
                   <CollapsibleSection
                     key={category.key}
                     title={category.label}
