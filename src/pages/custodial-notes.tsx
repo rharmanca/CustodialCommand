@@ -133,7 +133,8 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         toast({
           title: "✅ Custodial Note Submitted Successfully!",
           description: "Your custodial concern has been recorded and will be reviewed.",
-          variant: "default"
+          variant: "default",
+          duration: 5000
         });
         
         // Reset form
@@ -150,18 +151,19 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
         
-        // Navigate back to home page after a brief delay
+        // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
           if (onBack) {
             onBack();
           }
-        }, 1500);
+        }, 3000);
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         toast({
           variant: "destructive",
           title: "Submission Failed",
-          description: `Error: ${errorData.message || 'Unable to submit custodial note. Please try again.'}`
+          description: `Error: ${errorData.message || 'Unable to submit custodial note. Please try again.'}`,
+          duration: 7000
         });
       }
     } catch (error) {
@@ -169,7 +171,8 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       toast({
         variant: "destructive",
         title: "Network Error",
-        description: "Unable to connect to the server. Please check your connection and try again."
+        description: "Unable to connect to the server. Please check your connection and try again.",
+        duration: 7000
       });
     } finally {
       setIsSubmitting(false);

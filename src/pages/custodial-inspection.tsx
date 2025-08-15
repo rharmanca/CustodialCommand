@@ -263,7 +263,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       toast({
         variant: "destructive",
         title: "Missing Required Fields",
-        description: "Please fill in school and date fields before submitting."
+        description: "Please fill in school and date fields before submitting.",
+        duration: 6000
       });
       return;
     }
@@ -278,7 +279,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       toast({
         variant: "destructive",
         title: "Missing Ratings",
-        description: "Please provide at least one rating for the inspection categories."
+        description: "Please provide at least one rating for the inspection categories.",
+        duration: 6000
       });
       return;
     }
@@ -331,7 +333,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         toast({
           title: "✅ Inspection Submitted Successfully!",
           description: `Single area inspection for ${formData.school} has been submitted and saved.`,
-          variant: "default"
+          variant: "default",
+          duration: 5000
         });
         
         // Clean up draft after successful submission
@@ -365,18 +368,19 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         setCurrentDraftId(null);
         setLastSaved(null);
         
-        // Navigate back to home page after a brief delay to show the notification
+        // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
           if (onBack) {
             onBack();
           }
-        }, 1500);
+        }, 3000);
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         toast({
           variant: "destructive",
           title: "Submission Failed",
-          description: `Error: ${errorData.message || 'Unable to submit inspection. Please try again.'}`
+          description: `Error: ${errorData.message || 'Unable to submit inspection. Please try again.'}`,
+          duration: 7000
         });
       }
     } catch (error) {
@@ -384,7 +388,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       toast({
         variant: "destructive",
         title: "Network Error",
-        description: "Unable to connect to the server. Please check your connection and try again."
+        description: "Unable to connect to the server. Please check your connection and try again.",
+        duration: 7000
       });
     } finally {
       setIsSubmitting(false);

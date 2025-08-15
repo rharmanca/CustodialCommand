@@ -625,7 +625,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         toast({
           title: "Inspection Submitted",
           description: `${categoryLabels[selectedCategory]} inspection has been saved successfully!`,
-          duration: 3000,
+          duration: 4000,
         });
 
         console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
@@ -653,7 +653,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         title: "Submission Failed",
         description: "Failed to save inspection. Please check your connection and try again.",
         variant: "destructive",
-        duration: 4000,
+        duration: 7000,
       });
     }
   };
@@ -677,15 +677,15 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         toast({
           title: "Building Inspection Complete!",
           description: "Your whole building inspection has been finalized and saved successfully.",
-          duration: 4000,
+          duration: 5000,
         });
 
         console.log('Whole building inspection completed successfully!');
         
-        // Delay navigation slightly to let user see the success message
+        // Delay navigation to let user see the success message
         setTimeout(() => {
           if (onBack) onBack();
-        }, 1000);
+        }, 3000);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to finalize inspection');
@@ -698,7 +698,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         title: "Finalization Failed",
         description: "Failed to finalize building inspection. Please try again.",
         variant: "destructive",
-        duration: 4000,
+        duration: 7000,
       });
     }
   };

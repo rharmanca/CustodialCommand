@@ -159,16 +159,16 @@ button, input, select, textarea, a {
 input, select, textarea, button {
   /* Prevent zoom on focus in mobile browsers */
   font-size: 16px !important;
-  
+
   /* Firefox mobile specific optimizations */
   -moz-appearance: none;
   -webkit-appearance: none;
   appearance: none;
-  
+
   /* Better touch targets */
   min-height: 44px;
   padding: 12px 16px;
-  
+
   /* Disable text selection on form controls */
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -192,7 +192,7 @@ input[type="number"], input[type="tel"], textarea {
   -moz-transform: translateZ(0);
   -ms-transform: translateZ(0);
   transform: translateZ(0);
-  
+
   /* Reduce layout thrashing */
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
@@ -240,10 +240,10 @@ input[type="number"], input[type="tel"], textarea {
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    
+
     /* Prevent zoom on mobile when focusing inputs */
     font-size: 16px; /* Base font size to prevent zoom */
-    
+
     /* Improve scroll performance */
     -webkit-overflow-scrolling: touch;
     -moz-overflow-scrolling: touch;
@@ -259,17 +259,17 @@ input[type="number"], input[type="tel"], textarea {
     padding-bottom: var(--safe-area-inset-bottom);
     padding-left: var(--safe-area-inset-left);
     padding-right: var(--safe-area-inset-right);
-    
+
     /* Firefox mobile optimizations */
     -moz-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    
+
     /* Touch optimizations */
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     -webkit-touch-callout: none;
-    
+
     /* Memory optimization for low-end devices */
     will-change: auto;
   }
@@ -575,4 +575,74 @@ input:focus, textarea:focus, select:focus {
     margin-left: 0.5rem !important;
     margin-right: 0.5rem !important;
   }
+}
+
+/* Toast Notification Positioning Fix - Centered */
+html body div[data-radix-toast-viewport],
+div[data-radix-toast-viewport] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999999 !important;
+  max-width: 480px !important;
+  width: auto !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* Override any conflicting positioning */
+html body div[data-radix-toast-viewport].fixed.top-0,
+html body div[data-radix-toast-viewport].sm\\:bottom-0 {
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Enhanced toast styling for better visibility */
+html body div[data-radix-toast-viewport] div[data-radix-toast],
+div[data-radix-toast-viewport] div[data-radix-toast] {
+  background: white !important;
+  border: 2px solid #e5e7eb !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.75rem !important;
+  padding: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+  min-height: 70px !important;
+  min-width: 320px !important;
+  max-width: 480px !important;
+  font-weight: 500 !important;
+  position: relative !important;
+  transform: none !important;
+  font-size: 1rem !important;
+}
+
+/* Success toast styling */
+html body div[data-radix-toast-viewport] div[data-radix-toast].bg-green-50 {
+  background-color: #f0fdf4 !important;
+  border-color: #22c55e !important;
+  color: #166534 !important;
+}
+
+/* Error toast styling */
+html body div[data-radix-toast-viewport] div[data-radix-toast].bg-red-50 {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  color: #991b1b !important;
+}
+
+/* Custom notification backdrop */
+.notification-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  z-index: 9999998 !important;
+  pointer-events: none !important;
 }
