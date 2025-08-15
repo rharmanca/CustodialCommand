@@ -596,6 +596,11 @@ input:focus, textarea:focus, select:focus {
   pointer-events: none !important;
 }
 
+/* Ensure toast content is visible */
+[data-radix-toast-viewport] > * {
+  pointer-events: auto !important;
+}
+
 /* Force positioning regardless of any other classes */
 [data-radix-toast-viewport][class*="top-"],
 [data-radix-toast-viewport][class*="bottom-"],
