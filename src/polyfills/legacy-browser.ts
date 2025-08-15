@@ -247,7 +247,7 @@ if (!('classList' in document.createElement('_'))) {
     DOMTokenList[protoProp].toggle = function(token: string, force?: boolean) {
       token += '';
       var result = this.contains(token),
-          method = result ? force !== true && 'remove' || force === true && 'add';
+          method = result ? (force !== true && 'remove') || (force === true && 'add') : null;
       if (method) {
         this[method](token);
       }

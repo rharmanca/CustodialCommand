@@ -1,9 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Star, BookOpen } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
 
 interface RatingCriteriaPageProps {
@@ -11,7 +9,6 @@ interface RatingCriteriaPageProps {
 }
 
 export default function RatingCriteriaPage({ onBack }: RatingCriteriaPageProps) {
-  const { isMobile } = useIsMobile();
 
   const renderStarDisplay = (rating: number) => {
     return (
