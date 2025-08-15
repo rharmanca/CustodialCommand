@@ -65,6 +65,11 @@ app.use((req, res, next) => {
       serveStatic(app);
     }
 
+    // Add a simple test route to verify the server is responding
+    app.get('/health', (req, res) => {
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.
