@@ -336,19 +336,19 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const renderMobileStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
-      <div className="space-y-3">
-        <div className="bg-gray-50 rounded-lg p-3 border">
-          <div className="text-sm font-medium text-gray-700 mb-2 text-center">
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-lg p-4 border">
+          <div className="text-sm font-medium text-gray-700 mb-3 text-center">
             Rate this category:
           </div>
 
-          {/* Compact Star Rating Buttons */}
-          <div className="flex justify-center gap-1 mb-3">
+          {/* Star Rating Buttons */}
+          <div className="flex justify-center gap-2 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
-                className="p-1.5 rounded-md hover:bg-yellow-50 transition-colors touch-manipulation"
+                className="p-2 rounded-md hover:bg-yellow-50 transition-colors touch-manipulation"
                 onClick={() => onRatingChange(star)}
               >
                 <Star
@@ -362,11 +362,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             ))}
           </div>
 
-          {/* Compact Not Rated Button */}
+          {/* Not Rated Button */}
           <div className="flex justify-center">
             <button
               type="button"
-              className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors touch-manipulation ${
+              className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors touch-manipulation ${
                 currentRating === -1
                   ? 'bg-muted border-border text-foreground'
                   : 'bg-card border-border text-muted-foreground hover:bg-muted'
@@ -377,9 +377,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </button>
           </div>
         </div>
-        {currentRating > 0 && currentRating !== -1 && (
-          <div className="space-y-3">
-            <div className="text-center space-y-1">
+
+        {/* Current Rating Status */}
+        <div className="text-center">
+          {currentRating > 0 && currentRating !== -1 ? (
+            <div className="space-y-2">
               <div className="text-base font-semibold text-yellow-600">
                 {ratingDescriptions[currentRating - 1]?.label}
               </div>
@@ -387,25 +389,21 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
-            {category?.criteria && category.criteria[currentRating] && (
-              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <div className="text-sm font-medium text-blue-900 mb-1">
-                  Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
-                </div>
-                <div className="text-sm text-blue-800">
-                  {category.criteria[currentRating]}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        {currentRating === -1 && (
-          <div className="text-center space-y-1">
+          ) : (
             <div className="text-base font-semibold text-gray-600">
-              Not Rated
-            </div>
-            <div className="text-sm text-gray-600">
               No rating selected
+            </div>
+          )}
+        </div>
+
+        {/* Detailed Criteria */}
+        {currentRating > 0 && currentRating !== -1 && category?.criteria && category.criteria[currentRating] && (
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <div className="text-sm font-medium text-blue-900 mb-1">
+              Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
+            </div>
+            <div className="text-sm text-blue-800">
+              {category.criteria[currentRating]}
             </div>
           </div>
         )}
@@ -415,13 +413,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const renderStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
     return (
-      <div className="space-y-3">
-        <div className="flex justify-center gap-1">
+      <div className="space-y-4">
+        <div className="flex justify-center gap-2">
           <Button
             type="button"
-            variant="ghost"
+            variant={currentRating === -1 ? "default" : "outline"}
             size="sm"
-            className="px-2 py-1 h-auto text-xs"
+            className="px-3 py-2 text-xs"
             onClick={() => onRatingChange(-1)}
           >
             Not Rated
@@ -432,7 +430,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               type="button"
               variant="ghost"
               size="sm"
-              className="p-1 h-auto"
+              className="p-2 h-auto"
               onClick={() => onRatingChange(star)}
             >
               <Star
@@ -445,9 +443,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Button>
           ))}
         </div>
-        {currentRating > 0 && currentRating !== -1 && (
-          <div className="space-y-3">
-            <div className="text-center">
+
+        {/* Current Rating Status */}
+        <div className="text-center">
+          {currentRating > 0 && currentRating !== -1 ? (
+            <div className="space-y-2">
               <div className="text-lg font-semibold text-yellow-600">
                 {ratingDescriptions[currentRating - 1]?.label}
               </div>
@@ -455,25 +455,21 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
-            {category?.criteria && category.criteria[currentRating] && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="text-sm font-medium text-blue-900 mb-2">
-                  Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
-                </div>
-                <div className="text-sm text-blue-800">
-                  {category.criteria[currentRating]}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        {currentRating === -1 && (
-          <div className="text-center">
+          ) : (
             <div className="text-lg font-semibold text-gray-600">
-              Not Rated
-            </div>
-            <div className="text-sm text-gray-600">
               No rating selected
+            </div>
+          )}
+        </div>
+
+        {/* Detailed Criteria */}
+        {currentRating > 0 && currentRating !== -1 && category?.criteria && category.criteria[currentRating] && (
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="text-sm font-medium text-blue-900 mb-2">
+              Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
+            </div>
+            <div className="text-sm text-blue-800">
+              {category.criteria[currentRating]}
             </div>
           </div>
         )}

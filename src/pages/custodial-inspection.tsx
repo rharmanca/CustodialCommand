@@ -421,19 +421,19 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const renderMobileStarRating = (categoryObj: any, currentRating: number) => {
     return (
-      <div className="space-y-3">
-        <div className="bg-gray-50 rounded-lg p-3 border">
-          <div className="text-sm font-medium text-gray-700 mb-2 text-center">
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-lg p-4 border">
+          <div className="text-sm font-medium text-gray-700 mb-3 text-center">
             Rate this category:
           </div>
           
-          {/* Compact Star Rating Buttons */}
-          <div className="flex justify-center gap-1 mb-3">
+          {/* Star Rating Buttons */}
+          <div className="flex justify-center gap-2 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
-                className="p-1.5 rounded-md hover:bg-yellow-50 transition-colors touch-manipulation"
+                className="p-2 rounded-md hover:bg-yellow-50 transition-colors touch-manipulation"
                 onClick={() => handleInputChange(categoryObj.key, star)}
               >
                 <Star
@@ -447,11 +447,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             ))}
           </div>
           
-          {/* Compact Not Rated Button */}
+          {/* Not Rated Button */}
           <div className="flex justify-center">
             <button
               type="button"
-              className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors touch-manipulation ${
+              className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors touch-manipulation ${
                 currentRating === 0
                   ? 'bg-gray-100 border-gray-300 text-gray-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -463,29 +463,25 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </div>
         </div>
 
-        {/* Compact Rating Description */}
-        {currentRating > 0 && (
-          <div className="text-center">
-            <Badge variant="secondary" className="text-sm px-3 py-1">
-              {ratingDescriptions[currentRating - 1]?.label}
-            </Badge>
-            <div className="text-xs text-muted-foreground mt-1">
-              {ratingDescriptions[currentRating - 1]?.description}
+        {/* Current Rating Status */}
+        <div className="text-center">
+          {currentRating > 0 ? (
+            <div className="space-y-2">
+              <Badge variant="secondary" className="text-sm px-3 py-1">
+                {ratingDescriptions[currentRating - 1]?.label}
+              </Badge>
+              <div className="text-xs text-muted-foreground">
+                {ratingDescriptions[currentRating - 1]?.description}
+              </div>
             </div>
-          </div>
-        )}
-        {currentRating === 0 && (
-          <div className="text-center">
+          ) : (
             <Badge variant="outline" className="text-sm px-3 py-1">
-              Not Rated
-            </Badge>
-            <div className="text-xs text-muted-foreground mt-1">
               No rating selected
-            </div>
-          </div>
-        )}
+            </Badge>
+          )}
+        </div>
 
-        {/* Compact Detailed Criteria */}
+        {/* Detailed Criteria */}
         {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-3">
@@ -502,13 +498,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const renderStarRating = (categoryObj: any, currentRating: number) => {
     return (
-      <div className="space-y-3">
-        <div className="flex justify-center gap-1">
+      <div className="space-y-4">
+        <div className="flex justify-center gap-2">
           <Button
             type="button"
             variant={currentRating === 0 ? "default" : "outline"}
             size="sm"
-            className="px-2 py-1 h-auto text-xs"
+            className="px-3 py-2 text-xs"
             onClick={() => handleInputChange(categoryObj.key, 0)}
           >
             Not Rated
@@ -519,7 +515,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               type="button"
               variant="ghost"
               size="sm"
-              className="p-1 h-auto"
+              className="p-2 h-auto"
               onClick={() => handleInputChange(categoryObj.key, star)}
             >
               <Star
@@ -533,31 +529,27 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           ))}
         </div>
 
-        {/* Compact Rating Description */}
-        {currentRating > 0 && (
-          <div className="text-center space-y-1">
-            <Badge variant="secondary" className="text-sm px-3 py-1">
-              {ratingDescriptions[currentRating - 1]?.label}
-            </Badge>
-            <div className="text-xs text-gray-600">
-              {ratingDescriptions[currentRating - 1]?.description}
+        {/* Current Rating Status */}
+        <div className="text-center">
+          {currentRating > 0 ? (
+            <div className="space-y-2">
+              <Badge variant="secondary" className="text-sm px-3 py-1">
+                {ratingDescriptions[currentRating - 1]?.label}
+              </Badge>
+              <div className="text-xs text-gray-600">
+                {ratingDescriptions[currentRating - 1]?.description}
+              </div>
             </div>
-          </div>
-        )}
-        {currentRating === 0 && (
-          <div className="text-center space-y-1">
+          ) : (
             <Badge variant="outline" className="text-sm px-3 py-1">
-              Not Rated
-            </Badge>
-            <div className="text-xs text-gray-600">
               No rating selected
-            </div>
-          </div>
-        )}
+            </Badge>
+          )}
+        </div>
 
-        {/* Compact Detailed Criteria */}
+        {/* Detailed Criteria */}
         {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
-          <Card className="mt-2 bg-accent/10 border-accent/30">
+          <Card className="bg-accent/10 border-accent/30">
             <CardContent className="p-3">
               <div className="text-xs text-accent-foreground">
                 <strong className="text-sm">Rating {currentRating} Criteria:</strong>
