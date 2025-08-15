@@ -246,8 +246,30 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     const files = event.target.files;
     if (files && files.length > 0) {
       const newImages = Array.from(files);
-      setSelectedImages(prev => [...prev, ...newImages].slice(0, 5)); // Limit to 5 images
-      console.log('Files selected:', newImages.length, 'files');
+      const currentCount = selectedImages.length;
+      const availableSlots = 5 - currentCount;
+      const imagesToAdd = newImages.slice(0, availableSlots);
+      
+      setSelectedImages(prev => [...prev, ...imagesToAdd]);
+      
+      if (imagesToAdd.length > 0) {
+        toast({
+          title: "📸 Photos Uploaded Successfully!",
+          description: `Added ${imagesToAdd.length} photo${imagesToAdd.length > 1 ? 's' : ''} to inspection documentation.`,
+          duration: 3000
+        });
+      }
+      
+      if (imagesToAdd.length < newImages.length) {
+        toast({
+          variant: "destructive",
+          title: "Upload Limit Reached",
+          description: `Only ${imagesToAdd.length} photos were added. Maximum of 5 images allowed per inspection.`,
+          duration: 5000
+        });
+      }
+      
+      console.log('Files selected:', imagesToAdd.length, 'files');
     }
   };
 

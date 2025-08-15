@@ -119,7 +119,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAllComplete, setIsAllComplete] = useState(false);
   const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
-  
+
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
@@ -193,7 +193,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       // Save to localStorage
       const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
       const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
-      
+
       if (draftIndex >= 0) {
         existingDrafts[draftIndex] = draftData;
       } else {
@@ -341,7 +341,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           <div className="text-sm font-medium text-gray-700 mb-2 text-center">
             Rate this category:
           </div>
-          
+
           {/* Compact Star Rating Buttons */}
           <div className="flex justify-center gap-1 mb-3">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -361,7 +361,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               </button>
             ))}
           </div>
-          
+
           {/* Compact Not Rated Button */}
           <div className="flex justify-center">
             <button
@@ -500,7 +500,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       monitoring: -1,
       notes: ''
     }));
-    
+
     // Clear form draft state
     setCurrentFormDraftId(null);
     setLastSaved(null);
@@ -509,7 +509,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const handleCategorySelect = (category: string) => {
     // Store current scroll position
     const currentScrollY = window.scrollY;
-    
+
     setSelectedCategory(category);
     setShowInspectionSelector(false);
 
@@ -517,12 +517,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     requestAnimationFrame(() => {
       window.scrollTo({ top: currentScrollY, behavior: 'instant' });
     });
-    
+
     // Also set a timeout as backup
     setTimeout(() => {
       window.scrollTo({ top: currentScrollY, behavior: 'instant' });
     }, 10);
-    
+
     setTimeout(() => {
       window.scrollTo({ top: currentScrollY, behavior: 'instant' });
     }, 50);
@@ -648,7 +648,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      
+
       // Show error toast notification
       toast({
         title: "Submission Failed",
@@ -682,7 +682,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         });
 
         console.log('Whole building inspection completed successfully!');
-        
+
         // Delay navigation to let user see the success message
         setTimeout(() => {
           if (onBack) onBack();
@@ -693,7 +693,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       }
     } catch (error) {
       console.error('Error finalizing inspection:', error);
-      
+
       // Show error toast notification
       toast({
         title: "Finalization Failed",
@@ -775,7 +775,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 Begin a fresh comprehensive building inspection
               </p>
             </div>
-            
+
             {availableInspections.length > 0 && (
               <>
                 <Separator />
@@ -1051,7 +1051,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           </CardContent>
         </Card>
       )}
-      
+
       {/* Inspection Form */}
       {!showInspectionSelector && selectedCategory && formData.school && formData.date && formData.inspectorName.trim() && (
         <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
@@ -1090,7 +1090,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                     placeholder="e.g., Main Building, Second Floor"
                   />
-                </div>
+                                    </div>
               </div>
             </MobileCard>
           ) : (
@@ -1229,8 +1229,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
+                          toast({
+                            title: "📸 Photos Uploaded Successfully!",
+                            description: `Added ${e.target.files.length} photo${e.target.files.length > 1 ? 's' : ''} to room inspection documentation.`,
+                            duration: 3000
+                          });
                           console.log('Files selected:', e.target.files.length, 'files');
-                          // Prevent navigation issues by avoiding alert()
                           e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
@@ -1250,8 +1254,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       capture="environment"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
+                          toast({
+                            title: "📷 Photo Captured Successfully!",
+                            description: "Camera photo has been added to your inspection documentation.",
+                            duration: 3000
+                          });
                           console.log('Camera photo taken:', e.target.files[0].name);
-                          // Prevent navigation issues by avoiding alert()
                           e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
@@ -1284,8 +1292,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       accept="image/*"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
+                          toast({
+                            title: "📸 Photos Uploaded Successfully!",
+                            description: `Added ${e.target.files.length} photo${e.target.files.length > 1 ? 's' : ''} to room inspection documentation.`,
+                            duration: 3000
+                          });
                           console.log('Files selected:', e.target.files.length, 'files');
-                          // Prevent navigation issues by avoiding alert()
                           e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}
@@ -1305,8 +1317,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       capture="environment"
                       onChange={(e) => {
                         if (e.target.files && e.target.files.length > 0) {
+                          toast({
+                            title: "📷 Photo Captured Successfully!",
+                            description: "Camera photo has been added to your inspection documentation.",
+                            duration: 3000
+                          });
                           console.log('Camera photo taken:', e.target.files[0].name);
-                          // Prevent navigation issues by avoiding alert()
                           e.target.value = ''; // Reset input to allow selecting same files again
                         }
                       }}

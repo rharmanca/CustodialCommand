@@ -66,8 +66,9 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         setImagePreviewUrls(prev => [...prev, ...urls]);
 
         toast({
-          title: "Images Added",
-          description: `Successfully added ${filesToAdd.length} image(s)`
+          title: "📸 Photos Uploaded Successfully!",
+          description: `Successfully added ${filesToAdd.length} photo${filesToAdd.length > 1 ? 's' : ''} to your custodial note documentation.`,
+          duration: 3000
         });
       }
     }
@@ -90,7 +91,18 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment';
-    input.onchange = (e) => handleImageUpload(e as any);
+    input.onchange = (e) => {
+      const event = e as any;
+      if (event.target.files && event.target.files.length > 0) {
+        // Show immediate feedback for camera capture
+        toast({
+          title: "📷 Photo Captured Successfully!",
+          description: "Camera photo is being processed and added to your documentation.",
+          duration: 2000
+        });
+      }
+      handleImageUpload(event);
+    };
     input.click();
   };
 
