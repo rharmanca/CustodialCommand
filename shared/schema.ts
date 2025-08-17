@@ -79,7 +79,10 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   id: true,
   createdAt: true,
 }).extend({
-  buildingInspectionId: z.number().optional(),
+  buildingInspectionId: z.number().nullable().optional(),
+  images: z.array(z.string()).optional().default([]),
+  verifiedRooms: z.array(z.string()).optional().default([]),
+  isCompleted: z.boolean().optional().default(false),
 });
 
 export const insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
