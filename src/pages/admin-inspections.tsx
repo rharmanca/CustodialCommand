@@ -516,7 +516,11 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                     </Dialog>
 
                     <AlertDialog open={deleteDialogOpen === inspection.id} onOpenChange={(open) => {
-                      if (!open) setDeleteDialogOpen(null);
+                      if (open) {
+                        setDeleteDialogOpen(inspection.id);
+                      } else {
+                        setDeleteDialogOpen(null);
+                      }
                     }}>
                       <AlertDialogTrigger asChild>
                         <Button 
