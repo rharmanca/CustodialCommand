@@ -33,6 +33,7 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
   const [editingCriteria, setEditingCriteria] = useState<any>(null);
   const [criteriaForm, setCriteriaForm] = useState({});
   const [isCriteriaDialogOpen, setIsCriteriaDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
 
   // School options
   const schoolOptions = [
@@ -189,6 +190,11 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
     setIsEditDialogOpen(true);
   };
 
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setEditingInspection(null);
+  };
+
   const handleSaveEdit = async () => {
     if (!editingInspection) return;
 
@@ -208,9 +214,11 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
             inspection.id === editingInspection.id ? updatedInspection : inspection
           )
         );
-        setIsEditDialogOpen(false);
-        setEditingInspection(null);
-        alert('Inspection updated successfully');
+        handleCloseEditDialog();
+        toast({
+          title: "✅ Inspection Updated",
+          description: "Inspection updated successfully"
+        });
       } else {
         const errorData = await response.json();
         alert(`Failed to update inspection: ${errorData.error}`);
@@ -358,7 +366,9 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Dialog open={isEditDialogOpen && editingInspection?.id === inspection.id} onOpenChange={setIsEditDialogOpen}>
+                    <Dialog open={isEditDialogOpen && editingInspection?.id === inspection.id} onOpenChange={(open) => {
+                      if (!open) handleCloseEditDialog();
+                    }}>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
@@ -494,7 +504,7 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
-                            onClick={() => setIsEditDialogOpen(false)}
+                            onClick={handleCloseEditDialog}
                           >
                             Cancel
                           </Button>
@@ -505,9 +515,16 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                       </DialogContent>
                     </Dialog>
 
-                    <AlertDialog>
+                    <AlertDialog open={deleteDialogOpen === inspection.id} onOpenChange={(open) => {
+                      if (!open) setDeleteDialogOpen(null);
+                    }}>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => setDeleteDialogOpen(inspection.id)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -519,9 +536,12 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel onClick={() => setDeleteDialogOpen(null)}>Cancel</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => handleDelete(inspection.id)}
+                            onClick={() => {
+                              handleDelete(inspection.id);
+                              setDeleteDialogOpen(null);
+                            }}
                             className="bg-red-600 hover:bg-red-700"
                           >
                             Delete
