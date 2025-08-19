@@ -89,7 +89,7 @@ app.use((req, res, next) => {
       serveStatic(app);
       logger.info("Static file serving configured");
     }
-    
+
     // Add final error handler
     app.use(errorHandler);
 
@@ -97,10 +97,11 @@ app.use((req, res, next) => {
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.
     // It is the only port that is not firewalled.
-    const port = parseInt(process.env.PORT || '5000', 10);
-    logger.info(`About to listen on port ${port}...`);
-    server.listen(port, "0.0.0.0", () => {
-      logger.info(`Server running on port ${port}`, {
+    const PORT = parseInt(process.env.PORT || '5000', 10);
+    const HOST = '0.0.0.0';
+    logger.info(`About to listen on port ${PORT}...`);
+    server.listen(PORT, HOST, () => {
+      logger.info(`Server running on port ${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
         version: process.env.npm_package_version || '1.0.0'
       });
