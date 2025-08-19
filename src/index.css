@@ -23,14 +23,22 @@ body {
   user-select: none;
 }
 
-/* Better touch targets for mobile */
-button, input, select, textarea, a {
+/* Better touch targets for mobile - only when needed */
+.touch-target {
   -webkit-user-select: auto;
   -moz-user-select: auto;
   -ms-user-select: auto;
   user-select: auto;
   min-height: 44px; /* iOS/Android recommended touch target size */
   min-width: 44px;
+}
+
+/* Default user-select for interactive elements */
+button, input, select, textarea, a {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
 }
 
 /* Legacy flexbox with vendor prefixes */
@@ -155,17 +163,17 @@ button, input, select, textarea, a {
   }
 }
 
-/* Firefox mobile and legacy browser optimizations */
+/* Firefox mobile and legacy browser optimizations - less aggressive */
 input, select, textarea, button {
-  /* Prevent zoom on focus in mobile browsers */
-  font-size: 16px !important;
-
-  /* Firefox mobile specific optimizations */
+  /* Prevent zoom on focus in mobile browsers - only when needed */
   -moz-appearance: none;
   -webkit-appearance: none;
   appearance: none;
+}
 
-  /* Better touch targets */
+/* Apply form styling only to forms that need it */
+.legacy-form input, .legacy-form select, .legacy-form textarea, .legacy-form button {
+  font-size: 16px !important;
   min-height: 44px;
   padding: 12px 16px;
 
@@ -185,9 +193,9 @@ input[type="number"], input[type="tel"], textarea {
   user-select: auto;
 }
 
-/* Performance optimizations for older devices */
-* {
-  /* Hardware acceleration for animations */
+/* Performance optimizations for older devices - applied selectively to avoid layout issues */
+.hardware-accelerated {
+  /* Hardware acceleration for animations - only when needed */
   -webkit-transform: translateZ(0);
   -moz-transform: translateZ(0);
   -ms-transform: translateZ(0);
@@ -492,8 +500,8 @@ input[type="number"], input[type="tel"], textarea {
   color: hsl(var(--muted-foreground));
 }
 
-/* Mobile-First Form elements styling */
-input, textarea, select {
+/* Mobile-First Form elements styling - let Tailwind handle responsive behavior */
+.responsive-form input, .responsive-form textarea, .responsive-form select {
   font-family: 'Inter', sans-serif;
   border: 2px solid #d1d5db;
   border-radius: 8px;
@@ -505,13 +513,13 @@ input, textarea, select {
 }
 
 @media (min-width: 640px) {
-  input, textarea, select {
+  .responsive-form input, .responsive-form textarea, .responsive-form select {
     padding: 0.75rem;
     font-size: 1rem;
   }
 }
 
-input:focus, textarea:focus, select:focus {
+.responsive-form input:focus, .responsive-form textarea:focus, .responsive-form select:focus {
   outline: none;
   border-color: #f59e0b;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
@@ -535,45 +543,33 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* Mobile Grid Improvements */
+/* Mobile Grid Improvements - Less aggressive, work with Tailwind */
 @media (max-width: 767px) {
-  .grid {
+  /* Only override when necessary, let Tailwind handle most responsive behavior */
+  .force-mobile-stack {
     display: block !important;
   }
 
-  .grid > * {
+  .force-mobile-stack > * {
     margin-bottom: 1rem;
   }
 
-  .grid > *:last-child {
+  .force-mobile-stack > *:last-child {
     margin-bottom: 0;
   }
 
   /* Enhanced mobile image handling */
   img {
-    max-width: 100% !important;
-    height: auto !important;
+    max-width: 100%;
+    height: auto;
     border-radius: 8px;
   }
 
-  /* Better mobile spacing */
-  .p-4 { padding: 1rem !important; }
-  .p-6 { padding: 1.25rem !important; }
-  .p-8 { padding: 1.5rem !important; }
-
-  .mb-4 { margin-bottom: 1rem !important; }
-  .mb-6 { margin-bottom: 1.25rem !important; }
-  .mb-8 { margin-bottom: 1.5rem !important; }
-
-  /* Mobile typography improvements */
-  .text-4xl { font-size: 2rem !important; line-height: 1.1 !important; }
-  .text-6xl { font-size: 2.5rem !important; line-height: 1 !important; }
-
-  /* Container improvements */
-  .max-w-4xl {
-    max-width: 100% !important;
-    margin-left: 0.5rem !important;
-    margin-right: 0.5rem !important;
+  /* Mobile container safety - only for containers that need it */
+  .mobile-safe-container {
+    max-width: 100%;
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
   }
 }
 
