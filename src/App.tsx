@@ -6,8 +6,12 @@ import CustodialNotesPage from './pages/custodial-notes';
 import WholeBuildingInspectionPage from './pages/whole-building-inspection';
 import RatingCriteriaPage from './pages/rating-criteria';
 import AdminInspectionsPage from "./pages/admin-inspections";
+import { useIsMobile } from './hooks/use-mobile';
+import { useCustomNotifications } from '@/hooks/use-custom-notifications';
 import { Toaster } from "@/components/ui/toaster";
-import custodialDutyImage from './assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
+import { NotificationContainer } from "@/components/ui/custom-notification";
+import custodialDutyImage from '@assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
+import sharedServicesImage from '@assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'Rating Criteria' | 'admin-inspections'>('Custodial');
@@ -268,6 +272,10 @@ function App() {
       </footer>
       
       <Toaster />
+      <NotificationContainer 
+        notifications={notifications} 
+        onRemove={removeNotification} 
+      />
     </div>
   );
 }

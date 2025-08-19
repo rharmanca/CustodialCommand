@@ -31,7 +31,7 @@
     /* Node.js types */
     "types": ["node"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/temp-types.d.ts"],
   "exclude": ["node_modules", "dist", "server/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
