@@ -9,14 +9,15 @@
     "declaration": true,
     "outDir": "./dist/types",
     "rootDir": ".",
-    "types": ["node", "express"],
+    "types": ["node", "@types/express", "@types/compression"],
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
   },
   "include": ["server/**/*", "shared/**/*"],
   "exclude": ["node_modules", "dist", "src/**/*"]

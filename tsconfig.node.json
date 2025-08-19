@@ -2,11 +2,13 @@
   "compilerOptions": {
     "composite": true,
     "skipLibCheck": true,
-    "module": "ESNext",
+    "module": "ESNext", 
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "target": "ES2020"
+    "target": "ES2020",
+    "types": ["node", "vite/client"],
+    "esModuleInterop": true
   },
-  "include": ["vite.config.ts", "server/**/*", "shared/**/*"]
+  "include": ["vite.config.ts"]
 }

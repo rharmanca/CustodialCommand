@@ -1,5 +1,6 @@
 
-import { createRoot } from "react-dom/client";
+import * as ReactDOM from "react-dom/client";
+const { createRoot } = ReactDOM;
 import App from "./App";
 import "./index.css";
 

@@ -1,5 +1,6 @@
 
-import { useState, useCallback } from 'react';
+import * as React from 'react';
+const { useState, useCallback } = React;
 
 export interface Notification {
   id: string;
@@ -21,13 +22,13 @@ export const useCustomNotifications = () => {
       duration: notification.duration || defaultDuration
     };
     
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications((prev: Notification[]) => [...prev, newNotification]);
     
     return id;
   }, []);
 
   const removeNotification = useCallback((id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev: Notification[]) => prev.filter((n: Notification) => n.id !== id));
   }, []);
 
   const clearAllNotifications = useCallback(() => {

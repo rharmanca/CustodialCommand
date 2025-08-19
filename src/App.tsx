@@ -1,5 +1,6 @@
 
-import { useState, useEffect } from 'react';
+import * as React from 'react';
+const { useState, useEffect } = React;
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
@@ -18,6 +19,9 @@ function App() {
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
+  
+  // Custom notifications hook
+  const { notifications, removeNotification } = useCustomNotifications();
 
   // Detect PWA installation status
   useEffect(() => {

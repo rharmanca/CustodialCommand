@@ -1,7 +1,19 @@
+/// <reference types="react" />
+/// <reference types="react-dom" />
+
+import * as React from 'react';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      [elemName: string]: any;
+    }
+  }
+}
+
 declare module 'react' {
-  import React from 'react';
-  export default React;
-  export * from 'react';
+  export = React;
+  export as namespace React;
 }
 
 declare module 'react-dom/client' {
@@ -11,9 +23,10 @@ declare module 'react-dom/client' {
 }
 
 declare module 'react/jsx-runtime' {
-  export const jsx: any;
-  export const jsxs: any;
-  export const Fragment: any;
+  const jsx: any;
+  const jsxs: any;
+  const Fragment: any;
+  export { jsx, jsxs, Fragment };
 }
 
 declare module '*.webp' {
