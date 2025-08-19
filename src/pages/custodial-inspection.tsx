@@ -630,7 +630,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <p className="text-sm text-blue-800 leading-relaxed">
               <strong>📋 Important:</strong> This form is for inspecting a single room or area using the same rating criteria as the Whole Building Inspection. However, single area inspections are recorded separately and do not automatically count toward a building-wide inspection or monthly metrics. If you're conducting these inspections as part of a comprehensive building review or to meet monthly inspection requirements, you'll need to manually track your progress across all required areas.
             </p>
-          </div></div>
+          </div>
           
           {/* Save Status Indicator */}
           {(lastSaved || isAutoSaving) && (
