@@ -1,5 +1,5 @@
 
-import { createRoot } from "react-dom/client";
+<old_str>import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
@@ -22,4 +22,15 @@ if (!container) {
 }
 
 const root = createRoot(container);
-root.render(<App />);
+root.render(<App />);</old_str>
+<new_str>import { createRoot } from "react-dom/client";
+import App from "./App-simple";
+import "./index.css";
+
+const container = document.getElementById("root");
+if (!container) {
+  throw new Error("Could not find root element");
+}
+
+const root = createRoot(container);
+root.render(<App />);</new_str>
