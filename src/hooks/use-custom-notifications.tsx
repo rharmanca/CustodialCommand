@@ -1,20 +1,18 @@
+import { useState, useCallback } from 'react';
 
-import * as React from 'react';
-const { useState, useCallback } = React;
-
-export interface Notification {
+export interface CustomNotification {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
   message: string;
-  title?: string;
   duration?: number;
 }
 
-export const useCustomNotifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+export function useCustomNotifications() {
+  const [notifications, setNotifications] = useState<CustomNotification[]>([]);
 
-  const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
-    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  const addNotification = useCallback((notification: Omit<CustomNotification, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
     const defaultDuration = notification.type === 'error' ? 7000 : 5000;
     const newNotification = { 
       ...notification, 
@@ -22,13 +20,20 @@ export const useCustomNotifications = () => {
       duration: notification.duration || defaultDuration
     };
     
-    setNotifications((prev: Notification[]) => [...prev, newNotification]);
+    setNotifications((prev: CustomNotification[]) => [...prev, newNotification]);
+    
+    // Auto remove after duration
+    if (newNotification.duration !== 0) {
+      setTimeout(() => {
+        removeNotification(id);
+      }, newNotification.duration);
+    }
     
     return id;
   }, []);
 
   const removeNotification = useCallback((id: string) => {
-    setNotifications((prev: Notification[]) => prev.filter((n: Notification) => n.id !== id));
+    setNotifications((prev: CustomNotification[]) => prev.filter((n: CustomNotification) => n.id !== id));
   }, []);
 
   const clearAllNotifications = useCallback(() => {
@@ -62,4 +67,4 @@ export const useCustomNotifications = () => {
     showInfo,
     showWarning
   };
-};
+}

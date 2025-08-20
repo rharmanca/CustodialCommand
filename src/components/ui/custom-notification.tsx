@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from './alert';
 import { Button } from './button';
@@ -79,44 +78,47 @@ export const CustomNotification: React.FC<CustomNotificationProps> = ({
   );
 };
 
-export const NotificationContainer: React.FC<{
-  notifications: Array<{ id: string; type: 'success' | 'error' | 'warning' | 'info'; message: string; title?: string; }>;
+import type { CustomNotification as CustomNotificationType } from '@/hooks/use-custom-notifications';
+
+interface NotificationContainerProps {
+  notifications: CustomNotificationType[];
   onRemove: (id: string) => void;
-}> = ({ notifications, onRemove }) => {
-  if (notifications.length === 0) return null;
+}
+
+export function NotificationContainer({ notifications, onRemove }: NotificationContainerProps) {
+  if (!notifications.length) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-[9999999] pointer-events-none flex items-center justify-center"
-      style={{ 
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 9999999,
-        pointerEvents: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      {/* Semi-transparent backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/20"
-        style={{ pointerEvents: 'none' }}
-      />
-      
-      {/* Notification stack */}
-      <div className="relative flex flex-col items-center space-y-2 px-4">
-        {notifications.map(notification => (
-          <CustomNotification
-            key={notification.id}
-            {...notification}
-            onRemove={onRemove}
-          />
-        ))}
-      </div>
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={`
+            p-4 rounded-lg shadow-lg max-w-sm cursor-pointer transform transition-all
+            ${notification.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : ''}
+            ${notification.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' : ''}
+            ${notification.type === 'warning' ? 'bg-yellow-50 border border-yellow-200 text-yellow-800' : ''}
+            ${notification.type === 'info' ? 'bg-blue-50 border border-blue-200 text-blue-800' : ''}
+          `}
+          onClick={() => onRemove(notification.id)}
+        >
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h4 className="font-medium">{notification.title}</h4>
+              <p className="text-sm mt-1">{notification.message}</p>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(notification.id);
+              }}
+              className="ml-2 text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
-};
+}

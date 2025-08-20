@@ -1,6 +1,5 @@
 
-import * as React from 'react';
-const { useState, useEffect } = React;
+import React, { useState, useEffect } from 'react';
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
 import CustodialNotesPage from './pages/custodial-notes';
