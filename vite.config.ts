@@ -17,8 +17,8 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [/.replit\.dev$/],
     hmr: {
-      port: 443,
-      protocol: "wss"
+      protocol: "wss",
+      clientPort: 443
     },
     proxy: {
       "/api": {
