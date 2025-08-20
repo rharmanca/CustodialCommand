@@ -50,7 +50,7 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values([insertUser])
       .returning();
     return user;
   }
@@ -58,7 +58,7 @@ export class DatabaseStorage implements IStorage {
   async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
     const [inspection] = await db
       .insert(inspections)
-      .values(insertInspection)
+      .values([insertInspection])
       .returning();
     return inspection;
   }
@@ -75,7 +75,7 @@ export class DatabaseStorage implements IStorage {
   async createCustodialNote(insertCustodialNote: InsertCustodialNote): Promise<CustodialNote> {
     const [custodialNote] = await db
       .insert(custodialNotes)
-      .values(insertCustodialNote)
+      .values([insertCustodialNote])
       .returning();
     return custodialNote;
   }
@@ -101,7 +101,7 @@ export class DatabaseStorage implements IStorage {
   async createRoomInspection(insertRoomInspection: InsertRoomInspection): Promise<RoomInspection> {
     const [roomInspection] = await db
       .insert(roomInspections)
-      .values(insertRoomInspection)
+      .values([insertRoomInspection])
       .returning();
     return roomInspection;
   }
