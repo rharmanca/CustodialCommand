@@ -1,0 +1,62 @@
+Please fix the remaining Vite host/HMR issues in this repl. It still shows 'Blocked request. This host is not allowed' or fails to hot reload.
+Do the following and show diffs and logs:
+Scripts: Ensure only one dev process runs.
+In package.json set:
+dev: NODE_ENV=development tsx server/index.ts
+Keep dev:client but do not run it by default.
+Remove concurrently from 'dev'.
+Show the diff.
+Vite config: Allow Replit and configure HMR.
+Create or edit vite.config.ts (preferred) or .js:
+ts
+
+
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  server: {
+    host: true,
+    allowedHosts: [/.+\\.replit\\.dev$/, 'localhost', '127.0.0.1'],
+    hmr: { protocol: 'wss', clientPort: 443 },
+  },
+})
+If allowedHosts is not recognized, upgrade Vite to latest and re-apply:
+Run: npm i -D vite@latest
+setupVite: Ensure middleware mode uses the same settings and DOES NOT override the user config.
+Open the module imported as './vite' that exports setupVite, serveStatic, log.
+In setupVite(app, server), create the Vite dev server like this (do not call vite.listen()):
+ts
+
+
+import { createServer as createViteServer } from 'vite'
+import type { Express } from 'express'
+
+export async function setupVite(app: Express) {
+  const vite = await createViteServer({
+    appType: 'custom',
+    server: {
+      middlewareMode: true,
+      hmr: { protocol: 'wss', clientPort: 443 },
+      allowedHosts: [/.+\\.replit\\.dev$/, 'localhost', '127.0.0.1'],
+    },
+  })
+  app.use(vite.middlewares)
+  return vite
+}
+Important: Do NOT set configFile: false. If it’s set, remove it so vite.config.ts is loaded. If you must keep configFile: false, then include the allowedHosts + hmr options above inline.
+Confirm server/index.ts only calls setupVite in development (it already does) and listens on process.env.PORT (default 5000) with host 0.0.0.0.
+Restart and verify:
+Stop the repl, then run npm run dev.
+Paste the full console output. It should show the Express server listening on port 5000 and NO separate vite.listen().
+Open the Replit preview on port 5000 and confirm:
+No 'Blocked request. This host is not allowed.'
+HMR connects (no WebSocket errors).
+If HMR still fails, add hmr.host set to the current preview hostname from Replit and retry:
+ts
+
+
+server: {
+  hmr: { protocol: 'wss', clientPort: 443, host: process.env.REPL_SLUG ? window.location.hostname : undefined }
+}
+If window is unavailable server-side, hardcode the current hostname for testing, e.g. 'YOUR-SUBDOMAIN.picard.replit.dev'.
+Show all diffs you made (package.json, vite.config.*, and the ./vite module). Also include the final console output after restart."
