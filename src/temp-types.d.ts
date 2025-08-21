@@ -19,7 +19,9 @@ declare module 'react' {
 declare module 'react-dom/client' {
   export function createRoot(container: Element | DocumentFragment): {
     render(element: React.ReactElement): void;
+    unmount(): void;
   };
+  export * from 'react-dom/client';
 }
 
 declare module 'react/jsx-runtime' {
