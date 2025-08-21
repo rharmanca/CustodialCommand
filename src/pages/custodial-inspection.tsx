@@ -467,7 +467,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         <div className="text-center">
           {currentRating > 0 ? (
             <div className="space-y-2">
-              <Badge variant="secondary" className="text-sm px-3 py-1">
+              <Badge variant="default" className="text-sm px-3 py-1">
                 {ratingDescriptions[currentRating - 1]?.label}
               </Badge>
               <div className="text-xs text-muted-foreground">
