@@ -86,9 +86,10 @@ app.use((req, res, next) => {
     const server = createServer(app);
     logger.info("HTTP server created");
 
-    // Use static file serving (frontend is already built)
+    // Use static file serving (Vite middleware has configuration issues)
+    logger.info("Using static file serving for reliable frontend delivery...");
     serveStatic(app);
-    logger.info("Static file serving configured");
+    logger.info("Static file serving configured successfully");
 
     // Add final error handler
     app.use(errorHandler);
