@@ -1,8 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
 import { z } from "zod";
+
+// Add async wrapper for better error handling
+const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
 export async function registerRoutes(app: Express): Promise<void> {
   // put application routes here
@@ -12,7 +18,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
   // Inspection routes
-  app.post("/api/inspections", async (req: any, res: any) => {
+  app.post("/api/inspections", asyncHandler(async (req: Request, res: Response) => {
     try {
       const validatedData = insertInspectionSchema.parse(req.body);
       const inspection = await storage.createInspection(validatedData);
@@ -22,10 +28,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid inspection data", details: error.errors });
       } else {
-        res.status(500).json({ error: "Failed to create inspection" });
+        res.status(500).json({ 
+          error: "Failed to create inspection",
+          message: process.env.NODE_ENV === 'development' ? 
+            (error instanceof Error ? error.message : 'Unknown error') : 
+            undefined
+        });
       }
     }
-  });
+  }));
 
   app.get("/api/inspections", async (req: any, res: any) => {
     try {

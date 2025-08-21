@@ -8,18 +8,21 @@ if (typeof WebSocket === 'undefined') {
   neonConfig.webSocketConstructor = ws;
 }
 
+// Replit optimization
+neonConfig.poolQueryViaFetch = true;
+
 if (!process.env.DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "DATABASE_URL must be set. Check your Replit Secrets tab.",
   );
 }
 
-// Configure connection pool for serverless
+// Configure connection pool for Replit
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 1, // Reduce pool size for serverless
-  idleTimeoutMillis: 30000, // Close idle connections faster
-  connectionTimeoutMillis: 10000, // Shorter connection timeout
+  max: process.env.NODE_ENV === 'production' ? 3 : 1,
+  idleTimeoutMillis: 60000, // Longer for Replit
+  connectionTimeoutMillis: 15000, // Longer timeout for Replit
 });
 
 export { pool };

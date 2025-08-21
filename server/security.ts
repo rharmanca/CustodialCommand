@@ -18,20 +18,26 @@ export const apiRateLimit = createRateLimit(15 * 60 * 1000, 100);
 // Strict rate limiter for sensitive operations - 10 requests per 15 minutes
 export const strictRateLimit = createRateLimit(15 * 60 * 1000, 10);
 
-// Input sanitization middleware
+// Improved input sanitization
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
+  const sanitizeString = (str: string): string => {
+    return str
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '');
+  };
+
   const sanitizeObject = (obj: any): any => {
-    if (typeof obj !== 'object' || obj === null) return obj;
-    
-    for (const key in obj) {
-      if (typeof obj[key] === 'string') {
-        // Basic XSS protection
-        obj[key] = obj[key].replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-        // SQL injection protection for common patterns
-        obj[key] = obj[key].replace(/(\bDROP\b|\bDELETE\b|\bINSERT\b|\bUPDATE\b|\bSELECT\b)/gi, '');
-      } else if (typeof obj[key] === 'object') {
-        obj[key] = sanitizeObject(obj[key]);
+    if (typeof obj === 'string') {
+      return sanitizeString(obj);
+    } else if (Array.isArray(obj)) {
+      return obj.map(sanitizeObject);
+    } else if (typeof obj === 'object' && obj !== null) {
+      const sanitized: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        sanitized[key] = sanitizeObject(value);
       }
+      return sanitized;
     }
     return obj;
   };
@@ -43,30 +49,31 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
   next();
 };
 
-// CORS security middleware
+// Updated CORS for Replit
 export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
+  const allowedOrigins = [
+    'http://localhost:5000',
+    'http://localhost:5173'
+  ];
+  
+  // Replit-specific origins
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    allowedOrigins.push(
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+      `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
+    );
+  }
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   // Security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  
-  // CORS configuration
-  const allowedOrigins = [
-    'http://localhost:5000',
-    'http://localhost:5173',
-    'https://*.replit.app',
-    'https://*.repl.co'
-  ];
-  
-  const origin = req.headers.origin;
-  if (origin && (allowedOrigins.some(allowed => 
-    allowed.includes('*') ? 
-      new RegExp(allowed.replace('*', '.*')).test(origin) : 
-      allowed === origin
-  ))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
