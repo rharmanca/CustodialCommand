@@ -70,9 +70,18 @@ async function start() {
   // Validate environment variables
   const requiredEnvVars = ['DATABASE_URL'];
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-  
+
   if (missingVars.length > 0) {
     console.warn(`Warning: Missing environment variables: ${missingVars.join(', ')}`);
+  }
+
+  // Add root health check before other routes
+  app.get("/", (req, res) => {
+    res.status(200).json({ status: "ok", message: "Custodial Command API is running" });
+  });
+
+  // Register API routes
+  await registerRoutes(app);
   }
 
   // Register API routes first
