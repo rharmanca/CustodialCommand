@@ -28,3 +28,7 @@ integrations = ["javascript_object_storage==1.0.0"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-05f774ee-e32e-4546-a20e-4f7dda619508"
+
+[deployment]
+build = ["sh", "-c", "npm run build"]
+deploymentTarget = "cloudrun"
