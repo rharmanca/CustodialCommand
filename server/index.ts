@@ -84,9 +84,6 @@ app.use((req, res, next) => {
     // Use static file serving (frontend is already built)
     // Health check and monitoring endpoints (MUST be before static serving)
     // Root path health check for deployment health checks
-    app.get("/", (req: Request, res: Response) => {
-      res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
-    });
     
     app.get("/health", healthCheck);
     app.get("/metrics", (req: any, res: any) => {
