@@ -158,7 +158,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
       // Get existing drafts
       const existingDrafts = JSON.parse(localStorage.getItem('custodial_inspection_drafts') || '[]');
-      
+
       // Update or add current draft
       const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
       if (draftIndex >= 0) {
@@ -222,7 +222,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     const updatedDrafts = existingDrafts.filter((d: any) => d.id !== draftId);
     localStorage.setItem('custodial_inspection_drafts', JSON.stringify(updatedDrafts));
     setDraftInspections(updatedDrafts);
-    
+
     if (currentDraftId === draftId) {
       setCurrentDraftId(null);
       setLastSaved(null);
@@ -249,9 +249,9 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       const currentCount = selectedImages.length;
       const availableSlots = 5 - currentCount;
       const imagesToAdd = newImages.slice(0, availableSlots);
-      
+
       setSelectedImages(prev => [...prev, ...imagesToAdd]);
-      
+
       if (imagesToAdd.length > 0) {
         toast({
           title: "📸 Photos Uploaded Successfully!",
@@ -259,7 +259,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           duration: 3000
         });
       }
-      
+
       if (imagesToAdd.length < newImages.length) {
         toast({
           variant: "destructive",
@@ -268,7 +268,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           duration: 5000
         });
       }
-      
+
       console.log('Files selected:', imagesToAdd.length, 'files');
     }
   };
@@ -279,7 +279,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return; // Prevent multiple submissions
 
     if (!formData.school || !formData.date) {
@@ -359,12 +359,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           variant: "default",
           duration: 5000
         });
-        
+
         // Clean up draft after successful submission
         if (currentDraftId) {
           deleteDraft(currentDraftId);
         }
-        
+
         // Reset form
         setFormData({
           school: '',
@@ -390,7 +390,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         setSelectedImages([]);
         setCurrentDraftId(null);
         setLastSaved(null);
-        
+
         // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
           if (onBack) {
@@ -398,7 +398,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           }
         }, 6000);
       } else {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: `Server returned ${response.status}: ${response.statusText}` };
+        }
+        console.error('Server error:', errorData);
         toast({
           variant: "destructive",
           title: "Submission Failed",
@@ -426,7 +432,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <div className="text-sm font-medium text-gray-700 mb-3 text-center">
             Rate this category:
           </div>
-          
+
           {/* Star Rating Buttons */}
           <div className="flex justify-center gap-2 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -446,7 +452,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               </button>
             ))}
           </div>
-          
+
           {/* Not Rated Button */}
           <div className="flex justify-center">
             <button
@@ -613,7 +619,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <div className="container mx-auto p-6 max-w-4xl">
       <div className="flex items-center gap-4 mb-6">
         {onBack && (
@@ -624,14 +630,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">Submit Inspection</h1>
           <p className="text-muted-foreground mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
-          
+
           {/* Important Note */}
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800 leading-relaxed">
               <strong>📋 Important:</strong> This form is for inspecting a single room or area using the same rating criteria as the Whole Building Inspection. However, single area inspections are recorded separately and do not automatically count toward a building-wide inspection or monthly metrics. If you're conducting these inspections as part of a comprehensive building review or to meet monthly inspection requirements, you'll need to manually track your progress across all required areas.
             </p>
           </div>
-          
+
           {/* Save Status Indicator */}
           {(lastSaved || isAutoSaving) && (
             <div className="mt-2 flex items-center space-x-2 text-sm text-muted-foreground">
@@ -649,7 +655,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </div>
           )}
         </div>
-        
+
         {/* Manual Save Button */}
         {currentDraftId && (
           <Button
@@ -827,7 +833,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     className="hidden"
                   />
                 </Label>
-                
+
                 <Label htmlFor="camera-capture" className="cursor-pointer">
                   <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                     <Camera className="w-4 h-4" />

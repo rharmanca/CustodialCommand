@@ -3,6 +3,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import helmet from "helmet";
 import http from "node:http";
+import { registerRoutes } from "./routes";
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
@@ -39,6 +40,8 @@ if (isProd) {
 app.get("/health", (_req, res) => res.status(200).json({ ok: true }));
 
 async function start() {
+  // Register API routes first
+  await registerRoutes(app);
   // Create a single HTTP server so Vite HMR can attach its WS to it
   const httpServer = http.createServer(app);
 
@@ -48,12 +51,8 @@ async function start() {
       appType: "custom",
       server: {
         middlewareMode: true,
-        // Attach HMR to our HTTP server and force secure WS via Replit proxy
         hmr: {
           server: httpServer,
-          protocol: "wss",
-          clientPort: 443,
-          // host: undefined // default uses location.hostname (works in preview)
         },
       },
     });
