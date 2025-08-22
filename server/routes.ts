@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { custodialCriteria } from "../shared/custodial-criteria";
 import { objectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { mediaStorage } from "./object-storage";
+// Removed old object-storage import - using objectStorageService instead
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
 import { z } from "zod";
 import multer from 'multer';
@@ -348,8 +348,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ error: "No files uploaded" });
       }
 
-      const uploadedFiles = [];
-      const errors = [];
+      const uploadedFiles: any[] = [];
+      const errors: any[] = [];
 
       // Process files with better error handling
       for (const file of req.files) {
@@ -361,14 +361,15 @@ export async function registerRoutes(app: Express): Promise<void> {
           
           console.log(`Uploading file: ${fileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
           
-          await mediaStorage.uploadMediaFile(fileName, file.buffer, file.mimetype);
+          const objectPath = await objectStorageService.uploadLargeFile(file.buffer, fileName, file.mimetype);
           
           uploadedFiles.push({
             fileName,
             originalName: file.originalname,
             size: file.size,
             mimeType: file.mimetype,
-            sizeFormatted: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+            sizeFormatted: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+            objectPath
           });
         } catch (fileError) {
           console.error(`Error uploading file ${file.originalname}:`, fileError);
@@ -426,71 +427,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Get file information
-  app.get("/api/media/:fileName/info", async (req, res) => {
-    try {
-      const { fileName } = req.params;
-      const fileInfo = await mediaStorage.getFileInfo(fileName);
-
-      if (!fileInfo) {
-        return res.status(404).json({ error: "File not found" });
-      }
-
-      res.json({
-        fileName,
-        size: fileInfo.size,
-        sizeFormatted: `${(fileInfo.size / 1024 / 1024).toFixed(2)}MB`,
-        contentType: fileInfo.contentType,
-        uploadedAt: fileInfo.uploadedAt
-      });
-    } catch (error) {
-      console.error("File info retrieval error:", error);
-      res.status(500).json({ error: "Failed to get file information" });
-    }
-  });
-
-  // Serve media files with enhanced headers and error handling
-  app.get("/api/media/:fileName", async (req, res) => {
-    try {
-      const { fileName } = req.params;
-      
-      // Get file info first to set proper headers
-      const fileInfo = await mediaStorage.getFileInfo(fileName);
-      if (fileInfo) {
-        res.setHeader('Content-Type', fileInfo.contentType);
-        res.setHeader('Content-Length', fileInfo.size);
-      }
-      
-      const fileBuffer = await mediaStorage.getMediaFile(fileName);
-
-      // Set appropriate cache and security headers
-      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('Accept-Ranges', 'bytes');
-      
-      res.send(fileBuffer);
-    } catch (error) {
-      console.error("Media retrieval error:", error);
-      res.status(404).json({ error: "Media file not found" });
-    }
-  });
-
-  // Delete media file
-  app.delete("/api/media/:fileName", async (req, res) => {
-    try {
-      const { fileName } = req.params;
-      const deleted = await mediaStorage.deleteMediaFile(fileName);
-
-      if (deleted) {
-        res.json({ message: "File deleted successfully" });
-      } else {
-        res.status(404).json({ error: "File not found" });
-      }
-    } catch (error) {
-      console.error("Media deletion error:", error);
-      res.status(500).json({ error: "Failed to delete media file" });
-    }
-  });
+  // Legacy media routes removed - using /objects/ routes and objectStorageService instead
 
   // Routes are now registered on the app
 }
