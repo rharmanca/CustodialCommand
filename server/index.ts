@@ -42,14 +42,14 @@ if (isProd) {
 }
 
 // Health and metrics endpoints
-// Root path health check for deployment systems
-app.get("/", async (req, res, next) => {
-  try {
-    const { healthCheck } = await import('./monitoring');
-    await healthCheck(req, res);
-  } catch (error) {
-    next(error);
-  }
+// Root path health check for deployment systems - simple and fast response
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Service is running",
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime())
+  });
 });
 
 app.get("/health", async (req, res, next) => {
