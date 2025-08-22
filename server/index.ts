@@ -4,12 +4,17 @@ import fs from "node:fs/promises";
 import helmet from "helmet";
 import http from "node:http";
 import { registerRoutes } from "./routes";
+import { requestIdMiddleware } from "./logger";
+import { performanceMonitor, metricsMiddleware, errorHandler } from "./monitoring";
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
 const PORT = Number(process.env.PORT) || 5000;
 
 app.set("trust proxy", 1);
+app.use(requestIdMiddleware);
+app.use(performanceMonitor);
+app.use(metricsMiddleware);
 app.use(express.json());
 
 // Security: strict in prod, relaxed in dev so Replit preview (iframe) works
@@ -36,10 +41,30 @@ if (isProd) {
   });
 }
 
-// Health
-app.get("/health", (_req, res) => res.status(200).json({ ok: true }));
+// Health and metrics endpoints
+app.get("/health", async (req, res, next) => {
+  try {
+    const { healthCheck } = await import('./monitoring');
+    await healthCheck(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/metrics", (req, res) => {
+  const { metricsCollector } = require('./monitoring');
+  res.json(metricsCollector.getMetrics());
+});
 
 async function start() {
+  // Validate environment variables
+  const requiredEnvVars = ['DATABASE_URL'];
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.warn(`Warning: Missing environment variables: ${missingVars.join(', ')}`);
+  }
+
   // Register API routes first
   await registerRoutes(app);
   // Create a single HTTP server so Vite HMR can attach its WS to it
@@ -77,6 +102,9 @@ async function start() {
     app.use(express.static(dist));
     app.get("*", (_req, res) => res.sendFile(path.join(dist, "index.html")));
   }
+
+  // Add error handler as the last middleware
+  app.use(errorHandler);
 
   httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on ${PORT} (${isProd ? "prod" : "dev + Vite middleware + HMR"})`);

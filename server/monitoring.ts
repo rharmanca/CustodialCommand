@@ -66,8 +66,12 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
     let dbStatus: HealthCheck['database'] = 'connected';
     try {
       // Import the pool from your db.ts file
-      const { pool } = await import('./db');
-      await pool.query('SELECT 1');
+      const dbModule = await import('./db');
+      if (dbModule.pool) {
+        await dbModule.pool.query('SELECT 1');
+      } else {
+        throw new Error('Database pool not available');
+      }
     } catch (error) {
       dbStatus = 'error';
       logger.error('Database health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
