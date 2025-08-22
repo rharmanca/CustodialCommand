@@ -258,60 +258,156 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.json(custodialCriteria);
   });
 
-  // Configure multer for file uploads
+  // Configure multer for file uploads with larger limits
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB limit per file
+      fileSize: 200 * 1024 * 1024, // 200MB limit per file
+      files: 20, // Allow up to 20 files
+      fieldSize: 200 * 1024 * 1024, // 200MB field size
+      fieldNameSize: 100, // Field name size
+      fields: 10 // Number of non-file fields
     },
     fileFilter: (req, file, cb) => {
-      // Allow images and videos
-      if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      // Allow images, videos, and documents
+      const allowedTypes = [
+        'image/',
+        'video/',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type));
+      
+      if (isAllowed) {
         cb(null, true);
       } else {
-        cb(new Error('Only image and video files are allowed'));
+        cb(new Error('File type not allowed. Only images, videos, and documents are permitted.'));
       }
     }
   });
 
-  // Upload media files
-  app.post("/api/media/upload", upload.array('files', 10), async (req, res) => {
+  // Upload media files with enhanced handling for larger files
+  app.post("/api/media/upload", upload.array('files', 20), async (req, res) => {
     try {
       if (!req.files || !Array.isArray(req.files)) {
         return res.status(400).json({ error: "No files uploaded" });
       }
 
       const uploadedFiles = [];
+      const errors = [];
 
+      // Process files with better error handling
       for (const file of req.files) {
-        const fileName = `${Date.now()}-${file.originalname}`;
-        await mediaStorage.uploadMediaFile(fileName, file.buffer, file.mimetype);
-        uploadedFiles.push({
-          fileName,
-          originalName: file.originalname,
-          size: file.size,
-          mimeType: file.mimetype
-        });
+        try {
+          // Generate unique filename with timestamp and random suffix
+          const timestamp = Date.now();
+          const randomSuffix = Math.random().toString(36).substring(2, 8);
+          const fileName = `${timestamp}-${randomSuffix}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          
+          console.log(`Uploading file: ${fileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+          
+          await mediaStorage.uploadMediaFile(fileName, file.buffer, file.mimetype);
+          
+          uploadedFiles.push({
+            fileName,
+            originalName: file.originalname,
+            size: file.size,
+            mimeType: file.mimetype,
+            sizeFormatted: `${(file.size / 1024 / 1024).toFixed(2)}MB`
+          });
+        } catch (fileError) {
+          console.error(`Error uploading file ${file.originalname}:`, fileError);
+          errors.push({
+            fileName: file.originalname,
+            error: fileError instanceof Error ? fileError.message : 'Upload failed'
+          });
+        }
       }
 
-      res.json({ 
-        message: "Files uploaded successfully",
+      // Return results with both successes and errors
+      const response: any = {
+        message: `${uploadedFiles.length} file(s) uploaded successfully`,
         files: uploadedFiles
-      });
+      };
+
+      if (errors.length > 0) {
+        response.errors = errors;
+        response.message += `, ${errors.length} file(s) failed`;
+      }
+
+      res.json(response);
     } catch (error) {
       console.error("Media upload error:", error);
-      res.status(500).json({ error: "Failed to upload media files" });
+      
+      // Handle specific multer errors
+      if (error instanceof Error) {
+        if (error.message.includes('File too large')) {
+          return res.status(413).json({ 
+            error: "File too large", 
+            message: "Maximum file size is 200MB per file" 
+          });
+        }
+        if (error.message.includes('Too many files')) {
+          return res.status(413).json({ 
+            error: "Too many files", 
+            message: "Maximum 20 files allowed per upload" 
+          });
+        }
+      }
+      
+      res.status(500).json({ 
+        error: "Failed to upload media files",
+        details: process.env.NODE_ENV === 'development' ? 
+          (error instanceof Error ? error.message : 'Unknown error') : 
+          undefined
+      });
     }
   });
 
-  // Serve media files
+  // Get file information
+  app.get("/api/media/:fileName/info", async (req, res) => {
+    try {
+      const { fileName } = req.params;
+      const fileInfo = await mediaStorage.getFileInfo(fileName);
+
+      if (!fileInfo) {
+        return res.status(404).json({ error: "File not found" });
+      }
+
+      res.json({
+        fileName,
+        size: fileInfo.size,
+        sizeFormatted: `${(fileInfo.size / 1024 / 1024).toFixed(2)}MB`,
+        contentType: fileInfo.contentType,
+        uploadedAt: fileInfo.uploadedAt
+      });
+    } catch (error) {
+      console.error("File info retrieval error:", error);
+      res.status(500).json({ error: "Failed to get file information" });
+    }
+  });
+
+  // Serve media files with enhanced headers and error handling
   app.get("/api/media/:fileName", async (req, res) => {
     try {
       const { fileName } = req.params;
+      
+      // Get file info first to set proper headers
+      const fileInfo = await mediaStorage.getFileInfo(fileName);
+      if (fileInfo) {
+        res.setHeader('Content-Type', fileInfo.contentType);
+        res.setHeader('Content-Length', fileInfo.size);
+      }
+      
       const fileBuffer = await mediaStorage.getMediaFile(fileName);
 
-      // Set appropriate headers
+      // Set appropriate cache and security headers
       res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Accept-Ranges', 'bytes');
+      
       res.send(fileBuffer);
     } catch (error) {
       console.error("Media retrieval error:", error);

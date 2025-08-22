@@ -9,29 +9,74 @@ export class MediaStorageService {
   }
 
   async uploadMediaFile(fileName: string, fileBuffer: Buffer, contentType: string): Promise<string> {
-    try {
-      // Upload file to Object Storage
-      await this.client.uploadFromBytes(fileName, fileBuffer, {
-        contentType,
-        metadata: {
-          uploadedAt: new Date().toISOString()
+    const maxRetries = 3;
+    let retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Uploading ${fileName} to Object Storage (attempt ${retryCount + 1}/${maxRetries})`);
+        
+        // Upload file to Object Storage with enhanced metadata
+        await this.client.uploadFromBytes(fileName, fileBuffer, {
+          contentType,
+          metadata: {
+            uploadedAt: new Date().toISOString(),
+            fileSize: fileBuffer.length.toString(),
+            originalContentType: contentType,
+            uploadVersion: '2.0'
+          }
+        });
+        
+        console.log(`Successfully uploaded ${fileName} (${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB)`);
+        return fileName;
+      } catch (error) {
+        retryCount++;
+        console.error(`Upload attempt ${retryCount} failed for ${fileName}:`, error);
+        
+        if (retryCount >= maxRetries) {
+          console.error(`Failed to upload ${fileName} after ${maxRetries} attempts`);
+          throw new Error(`Media upload failed after ${maxRetries} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-      });
-      
-      // Return the file URL/path
-      return fileName;
-    } catch (error) {
-      console.error('Failed to upload media file:', error);
-      throw new Error('Media upload failed');
+        
+        // Wait before retrying (exponential backoff)
+        const waitTime = Math.pow(2, retryCount) * 1000;
+        console.log(`Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
     }
+    
+    throw new Error('Upload failed unexpectedly');
   }
 
   async getMediaFile(fileName: string): Promise<Buffer> {
     try {
-      return await this.client.downloadAsBytes(fileName);
+      console.log(`Retrieving ${fileName} from Object Storage`);
+      const buffer = await this.client.downloadAsBytes(fileName);
+      console.log(`Successfully retrieved ${fileName} (${(buffer.length / 1024 / 1024).toFixed(2)}MB)`);
+      return buffer;
     } catch (error) {
-      console.error('Failed to retrieve media file:', error);
-      throw new Error('Media retrieval failed');
+      console.error(`Failed to retrieve media file ${fileName}:`, error);
+      throw new Error(`Media retrieval failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getFileInfo(fileName: string): Promise<{size: number, contentType: string, uploadedAt: string} | null> {
+    try {
+      const files = await this.client.list();
+      const fileInfo = files.find(file => file.name === fileName);
+      
+      if (!fileInfo) {
+        return null;
+      }
+
+      return {
+        size: fileInfo.size || 0,
+        contentType: fileInfo.contentType || 'application/octet-stream',
+        uploadedAt: fileInfo.timeCreated || new Date().toISOString()
+      };
+    } catch (error) {
+      console.error(`Failed to get file info for ${fileName}:`, error);
+      return null;
     }
   }
 
