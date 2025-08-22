@@ -1,27 +1,26 @@
+run = "npm run build && npm start"
+entrypoint = "server/index.ts"
 modules = ["nodejs-20"]
+[nix]
+channel = "stable-25_05"
+packages = ["yakut", "psmisc"]
 
 [deployment]
-run = ["node", "dist/index.js"]
-build = ["npm", "run", "build"]
+run = ["sh", "-c", "npm run build && npm start"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
 
 [workflows]
-runButton = "Dev Server"
+runButton = "Start App"
 
 [[workflows.workflow]]
-name = "Dev Server"
+name = "Start App"
 author = 44956573
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
-
-[nix]
-channel = "stable-25_05"
-
-[objectStorage]
-defaultBucketID = "replit-objstore-05f774ee-e32e-4546-a20e-4f7dda619508"
-
-[[ports]]
-localPort = 5000
-externalPort = 80
+args = "npm run build && npm start"
