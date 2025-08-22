@@ -260,16 +260,16 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.json(custodialCriteria);
   });
 
-  // Configure multer for very large file uploads (up to 1GB per file)
+  // Configure multer for reasonable file uploads (up to 100MB per file)
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 1024 * 1024 * 1024, // 1GB limit per file
-      files: 5, // Allow up to 5 files for larger uploads
-      fieldSize: 1024 * 1024 * 1024, // 1GB field size
+      fileSize: 100 * 1024 * 1024, // 100MB limit per file
+      files: 5, // Allow up to 5 files
+      fieldSize: 100 * 1024 * 1024, // 100MB field size
       fieldNameSize: 200, // Field name size
       fields: 20, // Number of non-file fields
-      parts: 1000 // Increase parts limit for larger files
+      parts: 500 // Reasonable parts limit
     },
     fileFilter: (req, file, cb) => {
       // Allow images, videos, and documents
@@ -400,14 +400,14 @@ export async function registerRoutes(app: Express): Promise<void> {
         if (error.message.includes('File too large')) {
           return res.status(413).json({ 
             error: "File too large", 
-            message: "Maximum file size is 1GB per file",
-            maxSizeBytes: 1024 * 1024 * 1024
+            message: "Maximum file size is 100MB per file",
+            maxSizeBytes: 100 * 1024 * 1024
           });
         }
         if (error.message.includes('Too many files')) {
           return res.status(413).json({ 
             error: "Too many files", 
-            message: "Maximum 5 files allowed per upload for large file handling"
+            message: "Maximum 5 files allowed per upload (100MB each)"
           });
         }
         if (error.message.includes('too many parts')) {

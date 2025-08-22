@@ -35,6 +35,6 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*", "src/temp-types.d.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "dist", "server/**/*"],
+  "exclude": ["node_modules", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
