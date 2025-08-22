@@ -42,6 +42,16 @@ if (isProd) {
 }
 
 // Health and metrics endpoints
+// Root path health check for deployment systems
+app.get("/", async (req, res, next) => {
+  try {
+    const { healthCheck } = await import('./monitoring');
+    await healthCheck(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/health", async (req, res, next) => {
   try {
     const { healthCheck } = await import('./monitoring');
