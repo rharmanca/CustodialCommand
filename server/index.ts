@@ -75,17 +75,6 @@ app.use((req, res, next) => {
       });
     }
 
-    // Health check and monitoring endpoints (before other routes)
-    // Root path health check for deployment health checks
-    app.get('/', (req: Request, res: Response) => {
-      res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
-    
-    app.get('/health', healthCheck);
-    app.get('/metrics', (req: any, res: any) => {
-      res.json(metricsCollector.getMetrics());
-    });
-
     await registerRoutes(app);
     logger.info("Routes registered successfully");
 
@@ -95,6 +84,18 @@ app.use((req, res, next) => {
     // Use static file serving (frontend is already built)
     serveStatic(app);
     logger.info("Static file serving configured");
+
+    // Health check and monitoring endpoints (after static serving to override catch-all)
+    // Root path health check for deployment health checks
+    app.get('/', (req: Request, res: Response) => {
+      res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+    
+    app.get('/health', healthCheck);
+    app.get('/metrics', (req: any, res: any) => {
+      res.json(metricsCollector.getMetrics());
+    });
+    logger.info("Health check endpoints configured");
 
     // Add final error handler
     app.use(errorHandler);
