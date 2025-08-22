@@ -1,4 +1,9 @@
 modules = ["nodejs-20"]
+
+[deployment]
+run = ["node", "dist/server/index.js"]
+build = ["npm", "run", "build"]
+
 [workflows]
 runButton = "Dev Server"
 
