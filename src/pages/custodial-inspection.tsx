@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, processImageForStorage, getStorageStats } from '@/utils/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,9 +77,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
-  // Load existing drafts on component mount
+  // Load existing drafts on component mount and migrate legacy storage
   useEffect(() => {
+    migrateLegacyDrafts();
     loadDraftInspections();
+    
+    // Log storage stats for debugging
+    const stats = getStorageStats();
+    console.log('Storage stats:', stats);
   }, []);
 
   // Auto-save functionality
@@ -94,25 +100,27 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const loadDraftInspections = () => {
     try {
-      const savedDrafts = localStorage.getItem('custodial_inspection_drafts');
-      if (savedDrafts) {
-        const drafts = JSON.parse(savedDrafts);
+      // Try to load from optimized storage first
+      const draftData = loadDraft(STORAGE_KEYS.DRAFT_INSPECTION);
+      if (draftData) {
+        setDraftInspections([draftData]);
+        setShowResumeDialog(true);
+      }
+      
+      // Also check for any legacy drafts and show them
+      const legacyDrafts = localStorage.getItem('custodial_inspection_drafts');
+      if (legacyDrafts && !draftData) {
+        const drafts = JSON.parse(legacyDrafts);
         const validDrafts = drafts.filter((draft: any) => {
-          // Filter out old drafts (older than 7 days)
           const draftDate = new Date(draft.lastModified);
           const weekAgo = new Date();
           weekAgo.setDate(weekAgo.getDate() - 7);
           return draftDate > weekAgo;
         });
-
+        
         if (validDrafts.length > 0) {
           setDraftInspections(validDrafts);
           setShowResumeDialog(true);
-        }
-
-        // Clean up old drafts
-        if (validDrafts.length !== drafts.length) {
-          localStorage.setItem('custodial_inspection_drafts', JSON.stringify(validDrafts));
         }
       }
     } catch (error) {
@@ -136,17 +144,17 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         setCurrentDraftId(draftId);
       }
 
-      // Convert images to base64 for storage
-      const imagePromises = selectedImages.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
-
-      const imageData = await Promise.all(imagePromises);
+      // Process images with compression for optimized storage
+      const imageData: string[] = [];
+      for (const file of selectedImages) {
+        try {
+          const processedImage = await processImageForStorage(file);
+          imageData.push(processedImage);
+        } catch (error) {
+          console.error('Failed to process image:', error);
+          // Skip the problematic image rather than failing completely
+        }
+      }
 
       const draftData = {
         id: draftId,
@@ -156,18 +164,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         title: `${formData.school} - ${formData.roomNumber || 'Room'} - ${formData.locationCategory || 'Inspection'}`
       };
 
-      // Get existing drafts
-      const existingDrafts = JSON.parse(localStorage.getItem('custodial_inspection_drafts') || '[]');
-      
-      // Update or add current draft
-      const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
-      if (draftIndex >= 0) {
-        existingDrafts[draftIndex] = draftData;
-      } else {
-        existingDrafts.push(draftData);
-      }
-
-      localStorage.setItem('custodial_inspection_drafts', JSON.stringify(existingDrafts));
+      // Use optimized storage system
+      saveDraft(STORAGE_KEYS.DRAFT_INSPECTION, draftData);
       setLastSaved(new Date());
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -218,11 +216,17 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   };
 
   const deleteDraft = (draftId: string) => {
+    // Clear from optimized storage
+    clearDraft(STORAGE_KEYS.DRAFT_INSPECTION);
+    
+    // Also clean up any legacy storage entries
     const existingDrafts = JSON.parse(localStorage.getItem('custodial_inspection_drafts') || '[]');
     const updatedDrafts = existingDrafts.filter((d: any) => d.id !== draftId);
-    localStorage.setItem('custodial_inspection_drafts', JSON.stringify(updatedDrafts));
-    setDraftInspections(updatedDrafts);
+    if (updatedDrafts.length !== existingDrafts.length) {
+      localStorage.setItem('custodial_inspection_drafts', JSON.stringify(updatedDrafts));
+    }
     
+    setDraftInspections([]);
     if (currentDraftId === draftId) {
       setCurrentDraftId(null);
       setLastSaved(null);

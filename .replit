@@ -1,3 +1,4 @@
+modules = ["nodejs-20"]
 [workflows]
 runButton = "Dev Server"
 
@@ -9,3 +10,9 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[nix]
+channel = "stable-25_05"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-05f774ee-e32e-4546-a20e-4f7dda619508"

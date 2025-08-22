@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, getStorageStats } from '@/utils/storage';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -153,7 +154,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     };
 
     loadAvailableInspections();
+    migrateLegacyDrafts();
     loadFormDraft();
+    
+    // Log storage stats for monitoring
+    const stats = getStorageStats();
+    console.log('Building inspection storage stats:', stats);
   }, []);
 
   // Auto-save current form state
@@ -190,17 +196,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         title: `${formData.school} - Building - ${categoryLabels[selectedCategory] || selectedCategory}`
       };
 
-      // Save to localStorage
-      const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
-      const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
-
-      if (draftIndex >= 0) {
-        existingDrafts[draftIndex] = draftData;
-      } else {
-        existingDrafts.push(draftData);
-      }
-
-      localStorage.setItem('building_form_drafts', JSON.stringify(existingDrafts));
+      // Use optimized storage system
+      saveDraft(`${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${draftId}`, draftData);
       setLastSaved(new Date());
     } catch (error) {
       console.error('Error saving form draft:', error);
@@ -233,9 +230,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const clearCurrentFormDraft = () => {
     if (currentFormDraftId) {
+      // Clear from optimized storage
+      clearDraft(`${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${currentFormDraftId}`);
+      
+      // Also clean up legacy storage
       const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
       const updatedDrafts = existingDrafts.filter((d: any) => d.id !== currentFormDraftId);
-      localStorage.setItem('building_form_drafts', JSON.stringify(updatedDrafts));
+      if (updatedDrafts.length !== existingDrafts.length) {
+        localStorage.setItem('building_form_drafts', JSON.stringify(updatedDrafts));
+      }
+      
       setCurrentFormDraftId(null);
       setLastSaved(null);
     }
