@@ -119,10 +119,10 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return; // Prevent multiple submissions
     setIsSubmitting(true);
-    
+
     try {
       const formDataToSend = new FormData();
 
@@ -148,7 +148,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           variant: "default",
           duration: 5000
         });
-        
+
         // Reset form
         setFormData({
           inspectorName: '',
@@ -162,7 +162,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         // Clean up preview URLs
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
-        
+
         // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
           if (onBack) {
@@ -343,7 +343,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
             type="submit" 
             size="lg" 
             disabled={isSubmitting}
-            className="w-full md:w-auto disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className={`bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed border-4 border-red-800 hover:border-red-900 shadow-lg hover:shadow-xl ring-2 ring-red-300 hover:ring-red-400 transition-all duration-200 font-bold`}
           >
             {isSubmitting ? (
               <>
