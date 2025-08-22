@@ -4,6 +4,8 @@ import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { custodialCriteria } from "../shared/custodial-criteria";
 import { objectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { mediaStorage } from "./object-storage";
+import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
 import { z } from "zod";
 import multer from 'multer';
 
@@ -258,15 +260,16 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.json(custodialCriteria);
   });
 
-  // Configure multer for very large file uploads
+  // Configure multer for very large file uploads (up to 1GB per file)
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 500 * 1024 * 1024, // 500MB limit per file (increased from 200MB)
-      files: 10, // Allow up to 10 files (reduced for larger files)
-      fieldSize: 500 * 1024 * 1024, // 500MB field size
+      fileSize: 1024 * 1024 * 1024, // 1GB limit per file
+      files: 5, // Allow up to 5 files for larger uploads
+      fieldSize: 1024 * 1024 * 1024, // 1GB field size
       fieldNameSize: 200, // Field name size
-      fields: 20 // Number of non-file fields
+      fields: 20, // Number of non-file fields
+      parts: 1000 // Increase parts limit for larger files
     },
     fileFilter: (req, file, cb) => {
       // Allow images, videos, and documents
@@ -275,7 +278,10 @@ export async function registerRoutes(app: Express): Promise<void> {
         'video/',
         'application/pdf',
         'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/octet-stream'
       ];
       
       const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type));
@@ -283,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isAllowed) {
         cb(null, true);
       } else {
-        cb(new Error('File type not allowed. Only images, videos, PDF documents, and MS Office files are permitted.'));
+        cb(new Error('File type not allowed. Only images, videos, PDF documents, archives, and MS Office files are permitted.'));
       }
     }
   });
@@ -336,7 +342,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Upload media files with enhanced handling for larger files
-  app.post("/api/media/upload", upload.array('files', 10), async (req, res) => {
+  app.post("/api/media/upload", upload.array('files', 5), async (req, res) => {
     try {
       if (!req.files || !Array.isArray(req.files)) {
         return res.status(400).json({ error: "No files uploaded" });
@@ -393,13 +399,20 @@ export async function registerRoutes(app: Express): Promise<void> {
         if (error.message.includes('File too large')) {
           return res.status(413).json({ 
             error: "File too large", 
-            message: "Maximum file size is 500MB per file" 
+            message: "Maximum file size is 1GB per file",
+            maxSizeBytes: 1024 * 1024 * 1024
           });
         }
         if (error.message.includes('Too many files')) {
           return res.status(413).json({ 
             error: "Too many files", 
-            message: "Maximum 10 files allowed per upload" 
+            message: "Maximum 5 files allowed per upload for large file handling"
+          });
+        }
+        if (error.message.includes('too many parts')) {
+          return res.status(413).json({ 
+            error: "Request too complex", 
+            message: "File upload request has too many parts"
           });
         }
       }

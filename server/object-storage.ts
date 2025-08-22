@@ -9,25 +9,32 @@ export class MediaStorageService {
   }
 
   async uploadMediaFile(fileName: string, fileBuffer: Buffer, contentType: string): Promise<string> {
-    const maxRetries = 3;
+    const maxRetries = 5; // Increased retries for large files
     let retryCount = 0;
+    const fileSizeMB = fileBuffer.length / (1024 * 1024);
+
+    // For very large files (>100MB), use different strategy
+    const isLargeFile = fileSizeMB > 100;
 
     while (retryCount < maxRetries) {
       try {
-        console.log(`Uploading ${fileName} to Object Storage (attempt ${retryCount + 1}/${maxRetries})`);
+        console.log(`Uploading ${fileName} to Object Storage (${fileSizeMB.toFixed(2)}MB, attempt ${retryCount + 1}/${maxRetries})`);
         
         // Upload file to Object Storage with enhanced metadata
         await this.client.uploadFromBytes(fileName, fileBuffer, {
           contentType,
+          resumable: isLargeFile, // Enable resumable uploads for large files
           metadata: {
             uploadedAt: new Date().toISOString(),
             fileSize: fileBuffer.length.toString(),
+            fileSizeMB: fileSizeMB.toFixed(2),
             originalContentType: contentType,
-            uploadVersion: '2.0'
+            uploadVersion: '3.0',
+            isLargeFile: isLargeFile.toString()
           }
         });
         
-        console.log(`Successfully uploaded ${fileName} (${(fileBuffer.length / 1024 / 1024).toFixed(2)}MB)`);
+        console.log(`Successfully uploaded ${fileName} (${fileSizeMB.toFixed(2)}MB)`);
         return fileName;
       } catch (error) {
         retryCount++;
@@ -38,8 +45,9 @@ export class MediaStorageService {
           throw new Error(`Media upload failed after ${maxRetries} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
         
-        // Wait before retrying (exponential backoff)
-        const waitTime = Math.pow(2, retryCount) * 1000;
+        // Longer wait times for large files
+        const baseWaitTime = isLargeFile ? 5000 : 1000;
+        const waitTime = Math.pow(2, retryCount) * baseWaitTime;
         console.log(`Waiting ${waitTime}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
