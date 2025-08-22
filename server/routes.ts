@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { custodialCriteria } from "../shared/custodial-criteria";
-import { mediaStorage } from "./object-storage";
+import { objectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { z } from "zod";
 import multer from 'multer';
 
@@ -258,15 +258,15 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.json(custodialCriteria);
   });
 
-  // Configure multer for file uploads with larger limits
+  // Configure multer for very large file uploads
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 200 * 1024 * 1024, // 200MB limit per file
-      files: 20, // Allow up to 20 files
-      fieldSize: 200 * 1024 * 1024, // 200MB field size
-      fieldNameSize: 100, // Field name size
-      fields: 10 // Number of non-file fields
+      fileSize: 500 * 1024 * 1024, // 500MB limit per file (increased from 200MB)
+      files: 10, // Allow up to 10 files (reduced for larger files)
+      fieldSize: 500 * 1024 * 1024, // 500MB field size
+      fieldNameSize: 200, // Field name size
+      fields: 20 // Number of non-file fields
     },
     fileFilter: (req, file, cb) => {
       // Allow images, videos, and documents
@@ -283,13 +283,60 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isAllowed) {
         cb(null, true);
       } else {
-        cb(new Error('File type not allowed. Only images, videos, and documents are permitted.'));
+        cb(new Error('File type not allowed. Only images, videos, PDF documents, and MS Office files are permitted.'));
       }
     }
   });
 
+  // Get presigned URL for very large file uploads (direct to Object Storage)
+  app.post("/api/large-upload/presigned", async (req: Request, res: Response) => {
+    try {
+      const { fileName, fileType } = req.body;
+      
+      if (!fileName || !fileType) {
+        return res.status(400).json({ 
+          error: "Missing required fields", 
+          message: "fileName and fileType are required" 
+        });
+      }
+
+      // Generate presigned URL for direct upload to Object Storage
+      const fileExtension = fileName.split('.').pop() || '';
+      const uploadURL = await objectStorageService.getLargeFileUploadURL(`.${fileExtension}`);
+      
+      res.json({ 
+        uploadURL,
+        message: "Presigned URL generated for large file upload"
+      });
+    } catch (error) {
+      console.error("Error generating presigned URL:", error);
+      res.status(500).json({ 
+        error: "Failed to generate upload URL",
+        details: process.env.NODE_ENV === 'development' ? 
+          (error instanceof Error ? error.message : 'Unknown error') : undefined
+      });
+    }
+  });
+
+  // Serve uploaded files from Object Storage
+  app.get("/objects/:fileName", async (req: Request, res: Response) => {
+    try {
+      const { fileName } = req.params;
+      const objectPath = `/objects/${fileName}`;
+      
+      const file = await objectStorageService.getObjectFile(objectPath);
+      await objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error serving file:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      res.status(500).json({ error: "Error serving file" });
+    }
+  });
+
   // Upload media files with enhanced handling for larger files
-  app.post("/api/media/upload", upload.array('files', 20), async (req, res) => {
+  app.post("/api/media/upload", upload.array('files', 10), async (req, res) => {
     try {
       if (!req.files || !Array.isArray(req.files)) {
         return res.status(400).json({ error: "No files uploaded" });
@@ -346,13 +393,13 @@ export async function registerRoutes(app: Express): Promise<void> {
         if (error.message.includes('File too large')) {
           return res.status(413).json({ 
             error: "File too large", 
-            message: "Maximum file size is 200MB per file" 
+            message: "Maximum file size is 500MB per file" 
           });
         }
         if (error.message.includes('Too many files')) {
           return res.status(413).json({ 
             error: "Too many files", 
-            message: "Maximum 20 files allowed per upload" 
+            message: "Maximum 10 files allowed per upload" 
           });
         }
       }

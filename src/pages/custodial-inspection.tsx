@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
+import { LargeFileUploader } from '@/components/LargeFileUploader';
 import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
