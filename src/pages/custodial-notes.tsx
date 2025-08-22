@@ -351,7 +351,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 Submitting...
               </>
             ) : (
-              'Report a Problem'
+              'Submit'
             )}
           </Button>
         </div>
