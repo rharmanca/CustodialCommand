@@ -6,3 +6,16 @@ PORT = "5000"
 
 [[ports]]
 localPort = 5000
+externalPort = 443
+
+[workflows]
+runButton = "Dev Server"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = 44956573
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=development tsx watch server/index.ts"
