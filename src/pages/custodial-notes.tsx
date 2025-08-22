@@ -199,7 +199,6 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         </Button>
       )}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-blue-800 mb-2">Submit Custodial Note</h1>
         <p className="text-gray-600">Report maintenance issues, concerns, or general observations</p>
       </div>
 
