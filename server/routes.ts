@@ -2,8 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
-import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
+import { custodialCriteria } from "../shared/custodial-criteria";
+import { mediaStorage } from "./object-storage";
 import { z } from "zod";
+import multer from 'multer';
 
 // Add async wrapper for better error handling
 const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
@@ -42,10 +44,10 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const { type, incomplete } = req.query;
       let inspections;
-      
+
       inspections = await storage.getInspections();
       console.log(`[GET] Found ${inspections.length} total inspections`);
-      
+
       if (type === 'whole_building' && incomplete === 'true') {
         const beforeFilter = inspections.length;
         inspections = inspections.filter(inspection => 
@@ -54,7 +56,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         console.log(`[GET] Filtered whole_building incomplete: ${beforeFilter} → ${inspections.length} inspections`);
         console.log(`[GET] Incomplete inspections:`, inspections.map(i => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
       }
-      
+
       res.json(inspections);
     } catch (error) {
       console.error("Error fetching inspections:", error);
@@ -127,13 +129,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       const updates = req.body;
       console.log(`[PATCH] Updating inspection ${id} with:`, updates);
-      
+
       const inspection = await storage.updateInspection(id, updates);
       if (!inspection) {
         console.log(`[PATCH] Inspection ${id} not found`);
         return res.status(404).json({ error: "Inspection not found" });
       }
-      
+
       console.log(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
       res.json(inspection);
     } catch (error) {
@@ -248,6 +250,89 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       console.error("Error fetching room inspection:", error);
       res.status(500).json({ error: "Failed to fetch room inspection" });
+    }
+  });
+
+  // Get custodial criteria
+  app.get("/api/custodial-criteria", (req, res) => {
+    res.json(custodialCriteria);
+  });
+
+  // Configure multer for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB limit per file
+    },
+    fileFilter: (req, file, cb) => {
+      // Allow images and videos
+      if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image and video files are allowed'));
+      }
+    }
+  });
+
+  // Upload media files
+  app.post("/api/media/upload", upload.array('files', 10), async (req, res) => {
+    try {
+      if (!req.files || !Array.isArray(req.files)) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+
+      const uploadedFiles = [];
+
+      for (const file of req.files) {
+        const fileName = `${Date.now()}-${file.originalname}`;
+        await mediaStorage.uploadMediaFile(fileName, file.buffer, file.mimetype);
+        uploadedFiles.push({
+          fileName,
+          originalName: file.originalname,
+          size: file.size,
+          mimeType: file.mimetype
+        });
+      }
+
+      res.json({ 
+        message: "Files uploaded successfully",
+        files: uploadedFiles
+      });
+    } catch (error) {
+      console.error("Media upload error:", error);
+      res.status(500).json({ error: "Failed to upload media files" });
+    }
+  });
+
+  // Serve media files
+  app.get("/api/media/:fileName", async (req, res) => {
+    try {
+      const { fileName } = req.params;
+      const fileBuffer = await mediaStorage.getMediaFile(fileName);
+
+      // Set appropriate headers
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Media retrieval error:", error);
+      res.status(404).json({ error: "Media file not found" });
+    }
+  });
+
+  // Delete media file
+  app.delete("/api/media/:fileName", async (req, res) => {
+    try {
+      const { fileName } = req.params;
+      const deleted = await mediaStorage.deleteMediaFile(fileName);
+
+      if (deleted) {
+        res.json({ message: "File deleted successfully" });
+      } else {
+        res.status(404).json({ error: "File not found" });
+      }
+    } catch (error) {
+      console.error("Media deletion error:", error);
+      res.status(500).json({ error: "Failed to delete media file" });
     }
   });
 
