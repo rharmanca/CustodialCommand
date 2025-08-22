@@ -272,10 +272,9 @@ function App() {
       </div>
 
       {/* Footer section */}
-        <footer className="w-full mt-6 text-center text-muted-foreground text-sm">
-          <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
-        </footer>
-      </div>
+      <footer className="w-full mt-6 text-center text-muted-foreground text-sm">
+        <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
+      </footer>
       
       <Toaster />
       <NotificationContainer 

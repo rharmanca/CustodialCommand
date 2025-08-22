@@ -778,11 +778,6 @@ app.use((req, res, next) => {
     logger.info("Health check endpoints configured");
     serveStatic(app);
     logger.info("Static file serving configured");
-    app.get("/health", healthCheck);
-    app.get("/metrics", (req, res) => {
-      res.json(metricsCollector.getMetrics());
-    });
-    logger.info("Health check endpoints configured");
     app.use(errorHandler);
     const PORT = parseInt(process.env.PORT || "5000", 10);
     const HOST = "0.0.0.0";
