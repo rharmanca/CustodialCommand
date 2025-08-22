@@ -43,13 +43,17 @@ if (isProd) {
 
 // Health and metrics endpoints
 // Root path health check for deployment systems - simple and fast response
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    message: "Service is running",
-    timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime())
+  app.get("/", (req, res) => {
+    return res.status(200).json({ status: "ok", message: "Custodial Command API is running" });
   });
+
+  app.get("/health", async (req, res, next) => {
+    const { healthCheck } = await import('./monitoring');
+    try {
+      await healthCheck(req, res);
+    } catch (error) {
+      next(error);
+    }
 });
 
 app.get("/health", async (req, res, next) => {
@@ -75,7 +79,16 @@ async function start() {
     console.warn(`Warning: Missing environment variables: ${missingVars.join(', ')}`);
   }
 
+  // Add root health check before other routes
+  app.get("/", (req, res) => {
+    res.status(200).json({ status: "ok", message: "Custodial Command API is running" });
+  });
+
   // Register API routes
+  await registerRoutes(app);
+  }
+
+  // Register API routes first
   await registerRoutes(app);
   // Create a single HTTP server so Vite HMR can attach its WS to it
   const httpServer = http.createServer(app);
