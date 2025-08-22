@@ -143,28 +143,28 @@ function App() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div className="responsive-grid mb-6">
                 <button 
                   onClick={() => setCurrentPage('Custodial Notes')}
-                  className="modern-button bg-accent hover:bg-accent/90 border-accent text-accent-foreground w-full"
+                  className="modern-button bg-accent hover:bg-accent/90 border-accent text-accent-foreground"
                 >
                   Report A Custodial Concern
                 </button>
                 <button 
                   onClick={() => setCurrentPage('Custodial Inspection')}
-                  className="modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground w-full"
+                  className="modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground"
                 >
                   Single Area Inspection
                 </button>
                 <button 
                   onClick={() => setCurrentPage('Whole Building Inspection')}
-                  className="modern-button bg-secondary hover:bg-secondary/90 border-secondary text-secondary-foreground w-full"
+                  className="modern-button bg-secondary hover:bg-secondary/90 border-secondary text-secondary-foreground"
                 >
                   Building Inspection
                 </button>
                 <button 
                   onClick={() => setCurrentPage('Rating Criteria')}
-                  className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white w-full"
+                  className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
                 >
                   Rating Criteria Guide
                 </button>
@@ -174,17 +174,17 @@ function App() {
                   </p>
                   <button 
                     onClick={() => setCurrentPage('Inspection Data')}
-                    className="modern-button bg-muted hover:bg-muted/90 border-muted text-muted-foreground w-full"
+                    className="modern-button bg-muted hover:bg-muted/90 border-muted text-muted-foreground"
                   >
                     View Data & Reports
                   </button>
                 </div>
               </div>
-              <div className="flex justify-center mb-6 sm:mb-8">
+              <div className="flex justify-center mb-6">
                 <img 
                   src={custodialDutyImage} 
                   alt="Custodial Duty" 
-                  className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto" 
+                  className="responsive-image shadow-lg max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md" 
                 />
               </div>
               <p className="text-lg text-muted-foreground text-center">
@@ -235,44 +235,47 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-4 py-6 flex flex-col items-center">
-      {/* Header section with app title */}
-      <header className="w-full max-w-4xl header-container p-6 rounded-xl shadow-sm mb-8">
-        <h1 className="font-bold text-center modern-header tracking-tight">
-          Custodial Command
-        </h1>
-      </header>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="main-container">
+        {/* Header section with app title */}
+        <header className="w-full header-container rounded-xl shadow-sm">
+          <h1 className="font-bold modern-header tracking-tight">
+            Custodial Command
+          </h1>
+        </header>
 
-      {/* Navigation section */}
-      <nav className="w-full max-w-4xl nav-container p-4 rounded-xl shadow-sm mb-8">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
-          {navLinks.map((link) => (
-            <button
-              key={link.name}
-              onClick={() => setCurrentPage(link.path)}
-              className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
+        {/* Navigation section */}
+        <nav className="w-full nav-container rounded-xl shadow-sm">
+          <div className="button-container">
+            {navLinks.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => setCurrentPage(link.path)}
+                className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
+              >
+                {link.name}
+              </button>
+            ))}
+            <button 
+              onClick={() => setCurrentPage('admin-inspections')}
+              className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
             >
-              {link.name}
+              Admin
             </button>
-          ))}
-          <button 
-            onClick={() => setCurrentPage('admin-inspections')}
-            className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
-          >
-            Admin
-          </button>
-        </div>
-      </nav>
+          </div>
+        </nav>
 
-      {/* Main content area */}
-      <main className="w-full max-w-4xl content-area p-6 rounded-xl shadow-sm">
-        {renderPageContent()}
-      </main>
+        {/* Main content area */}
+        <main className="w-full content-area rounded-xl shadow-sm">
+          {renderPageContent()}
+        </main>
+      </div>
 
       {/* Footer section */}
-      <footer className="w-full max-w-4xl mt-8 text-center text-muted-foreground text-sm px-2">
-        <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
-      </footer>
+        <footer className="w-full mt-6 text-center text-muted-foreground text-sm">
+          <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
+        </footer>
+      </div>
       
       <Toaster />
       <NotificationContainer 
