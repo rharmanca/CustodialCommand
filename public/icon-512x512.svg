@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#8B4513" rx="64"/>
+  
+  <!-- Inner border -->
+  <rect x="32" y="32" width="448" height="448" fill="#D2691E" rx="52"/>
+  
+  <!-- Main content area -->
+  <rect x="64" y="64" width="384" height="384" fill="#F5DEB3" rx="40"/>
+  
+  <!-- Decorative rays/bars at top -->
+  <rect x="108" y="128" width="296" height="16" fill="#CD853F" rx="8"/>
+  <rect x="128" y="154" width="256" height="12" fill="#8B4513" rx="6"/>
+  <rect x="148" y="176" width="216" height="12" fill="#CD853F" rx="6"/>
+  
+  <!-- Main SSC text -->
+  <text x="256" y="290" text-anchor="middle" font-size="96" font-weight="bold" fill="#8B4513" font-family="Arial, sans-serif">SSC</text>
+  
+  <!-- Subtitle -->
+  <text x="256" y="330" text-anchor="middle" font-size="32" font-weight="normal" fill="#A0522D" font-family="Arial, sans-serif">COMMAND</text>
+  
+  <!-- Bottom decorative elements -->
+  <circle cx="160" cy="380" r="8" fill="#CD853F"/>
+  <circle cx="256" cy="380" r="8" fill="#8B4513"/>
+  <circle cx="352" cy="380" r="8" fill="#CD853F"/>
+</svg>

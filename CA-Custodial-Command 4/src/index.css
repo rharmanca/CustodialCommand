@@ -1,0 +1,658 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Legacy browser polyfills and vendor prefixes */
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* Optimize for older mobile browsers */
+body {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Better touch targets for mobile - only when needed */
+.touch-target {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+  min-height: 44px; /* iOS/Android recommended touch target size */
+  min-width: 44px;
+}
+
+/* Default user-select for interactive elements */
+button, input, select, textarea, a {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Legacy flexbox with vendor prefixes */
+.legacy-flex {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.legacy-flex-column {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -moz-box-orient: vertical;
+  -moz-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.legacy-flex-center {
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -moz-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -moz-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+/* Float-based layout for very old browsers */
+.legacy-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  overflow: hidden; /* Clearfix */
+}
+
+.legacy-container:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.legacy-col-half {
+  float: left;
+  width: 48%;
+  margin-right: 4%;
+}
+
+.legacy-col-half:last-child {
+  margin-right: 0;
+}
+
+@layer base {
+  :root {
+    /* Retro propaganda poster color palette - matching your image */
+    --background: 46 45% 88%;        /* Cream/beige background like the poster */
+    --foreground: 14 15% 25%;        /* Dark charcoal for text */
+    --card: 46 45% 92%;             /* Slightly lighter cream for cards */
+    --card-foreground: 14 15% 25%;   /* Dark charcoal for card text */
+    --popover: 46 45% 92%;          /* Light cream for popovers */
+    --popover-foreground: 14 15% 25%; /* Dark charcoal for popover text */
+    --primary: 8 76% 45%;           /* Bold red from the poster */
+    --primary-foreground: 46 45% 88%; /* Cream text on red backgrounds */
+    --secondary: 14 15% 35%;        /* Dark gray/charcoal like the robot */
+    --secondary-foreground: 46 45% 88%; /* Cream text on dark backgrounds */
+    --muted: 46 25% 80%;            /* Muted cream for subtle elements */
+    --muted-foreground: 14 15% 45%; /* Medium gray for muted text */
+    --accent: 8 65% 55%;            /* Lighter red for accents */
+    --accent-foreground: 46 45% 88%; /* Cream text on accent backgrounds */
+    --destructive: 8 85% 50%;       /* Bright red for destructive actions */
+    --destructive-foreground: 46 45% 88%; /* Cream text on destructive backgrounds */
+    --border: 46 25% 75%;           /* Subtle cream border */
+    --input: 46 35% 85%;            /* Light cream for inputs */
+    --ring: 8 76% 45%;              /* Red focus ring */
+    --chart-1: 8 76% 45%;           /* Red for charts */
+    --chart-2: 14 15% 35%;          /* Charcoal for charts */
+    --chart-3: 46 45% 65%;          /* Medium cream for charts */
+    --chart-4: 8 55% 60%;           /* Light red for charts */
+    --chart-5: 14 10% 55%;          /* Medium gray for charts */
+    --radius: 0.75rem;
+
+    /* Safe area insets with fallbacks for older browsers */
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-right: 0px;
+    --safe-area-inset-bottom: 0px;
+    --safe-area-inset-left: 0px;
+  }
+
+  .dark {
+    /* Dark retro theme - inverted poster colors */
+    --background: 14 15% 12%;           /* Very dark charcoal background */
+    --foreground: 46 35% 85%;           /* Light cream text */
+    --card: 14 15% 18%;                 /* Dark charcoal cards */
+    --card-foreground: 46 35% 85%;      /* Light cream card text */
+    --popover: 14 15% 18%;              /* Dark charcoal popovers */
+    --popover-foreground: 46 35% 85%;   /* Light cream popover text */
+    --primary: 8 85% 55%;               /* Bright red primary */
+    --primary-foreground: 14 15% 12%;   /* Dark text on red */
+    --secondary: 46 25% 65%;            /* Medium cream secondary */
+    --secondary-foreground: 14 15% 12%; /* Dark text on cream */
+    --muted: 14 10% 25%;                /* Dark muted elements */
+    --muted-foreground: 46 20% 65%;     /* Light cream muted text */
+    --accent: 8 75% 60%;                /* Red accent */
+    --accent-foreground: 14 15% 12%;    /* Dark text on accent */
+    --destructive: 8 90% 60%;           /* Bright red destructive */
+    --destructive-foreground: 46 35% 85%; /* Light cream on destructive */
+    --border: 14 10% 30%;               /* Dark border */
+    --input: 14 10% 22%;                /* Dark input background */
+    --ring: 8 85% 55%;                  /* Red focus ring */
+    --chart-1: 8 85% 55%;               /* Red for charts */
+    --chart-2: 46 35% 75%;              /* Light cream for charts */
+    --chart-3: 14 15% 45%;              /* Medium gray for charts */
+    --chart-4: 8 65% 65%;               /* Light red for charts */
+    --chart-5: 46 20% 55%;              /* Medium cream for charts */
+  }
+}
+
+/* Firefox mobile and legacy browser optimizations - less aggressive */
+input, select, textarea, button {
+  /* Prevent zoom on focus in mobile browsers - only when needed */
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Apply form styling only to forms that need it */
+.legacy-form input, .legacy-form select, .legacy-form textarea, .legacy-form button {
+  font-size: 16px !important;
+  min-height: 44px;
+  padding: 12px 16px;
+
+  /* Disable text selection on form controls */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Enable text selection for input fields */
+input[type="text"], input[type="email"], input[type="password"], 
+input[type="number"], input[type="tel"], textarea {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Performance optimizations for older devices - applied selectively to avoid layout issues */
+.hardware-accelerated {
+  /* Hardware acceleration for animations - only when needed */
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+
+  /* Reduce layout thrashing */
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Legacy flexbox support */
+.flex-legacy {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -moz-box !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+}
+
+.flex-column-legacy {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -moz-box-orient: vertical;
+  -moz-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+/* Scrollable areas optimization */
+.scrollable-legacy {
+  -webkit-overflow-scrolling: touch;
+  -moz-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+  overflow-y: auto;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Legacy browser and Firefox mobile optimizations */
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+
+    /* Prevent zoom on mobile when focusing inputs */
+    font-size: 16px; /* Base font size to prevent zoom */
+
+    /* Improve scroll performance */
+    -webkit-overflow-scrolling: touch;
+    -moz-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    /* Add safe area padding for devices with notches */
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+
+    /* Firefox mobile optimizations */
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+
+    /* Touch optimizations */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+
+    /* Memory optimization for low-end devices */
+    will-change: auto;
+  }
+}
+
+/* Modern font classes */
+.font-inter-light { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; }
+.font-inter-regular { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 400; }
+.font-inter-medium { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 500; }
+.font-inter-semibold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 600; }
+.font-inter-bold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 700; }
+
+/* Modern Clean Design */
+
+/* Header container */
+.header-container {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
+  position: relative;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.modern-header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  color: hsl(var(--primary-foreground));
+  letter-spacing: -0.02em;
+  /* Mobile responsive font sizing */
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .modern-header {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modern-header {
+    font-size: 3rem;
+  }
+}
+
+/* Navigation container */
+.nav-container {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+/* Content area */
+.content-area {
+  background: hsl(var(--background));
+}
+
+/* Modern buttons */
+.modern-button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.75rem 1.5rem;
+  letter-spacing: 0.01em;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* Touch optimization */
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 640px) {
+  .modern-button {
+    font-size: 0.9rem;
+    padding: 0.875rem 2rem;
+  }
+}
+
+.modern-button:hover {
+  background: hsl(var(--primary) / 0.9);
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
+}
+
+.modern-button:active {
+  transform: translateY(0.5px);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.retro-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.retro-button:hover::before {
+  opacity: 1;
+}
+
+.retro-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0,0,0,0.2),
+    0 6px 12px rgba(0,0,0,0.15);
+}
+
+@media (min-width: 640px) {
+  .retro-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 5px 0 rgba(0,0,0,0.2),
+      0 10px 16px rgba(0,0,0,0.15);
+  }
+}
+
+@media (min-width: 1024px) {
+  .retro-button:hover {
+    box-shadow: 
+      0 6px 0 rgba(0,0,0,0.2),
+      0 12px 20px rgba(0,0,0,0.15);
+  }
+}
+
+.retro-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0,0,0,0.2),
+    0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (min-width: 640px) {
+  .retro-button:active {
+    transform: translateY(2px);
+    box-shadow: 
+      0 2px 0 rgba(0,0,0,0.2),
+      0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+.retro-button.active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0,0,0,0.2),
+    0 2px 4px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border-color: #065f46;
+}
+
+@media (min-width: 640px) {
+  .retro-button.active {
+    transform: translateY(2px);
+    box-shadow: 
+      0 2px 0 rgba(0,0,0,0.2),
+      0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+/* Back button */
+.back-button {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #991b1b;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .back-button {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.back-button:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Modern star rating buttons */
+.star-button {
+  background: none;
+  border: none;
+  color: hsl(45 93% 47%);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+@media (min-width: 640px) {
+  .star-button {
+    font-size: 1.75rem;
+    padding: 0.375rem;
+  }
+}
+
+.star-button:hover {
+  background: hsl(45 93% 47% / 0.1);
+  transform: scale(1.05);
+}
+
+.star-button.filled {
+  color: hsl(45 93% 47%);
+}
+
+.star-button.empty {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Mobile-First Form elements styling - let Tailwind handle responsive behavior */
+.responsive-form input, .responsive-form textarea, .responsive-form select {
+  font-family: 'Inter', sans-serif;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1rem 0.75rem;
+  transition: border-color 0.2s ease;
+  font-size: 16px; /* Prevents zoom on iOS */
+  min-height: 48px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .responsive-form input, .responsive-form textarea, .responsive-form select {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+}
+
+.responsive-form input:focus, .responsive-form textarea:focus, .responsive-form select:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+  }
+}
+
+/* Mobile Grid Improvements - Less aggressive, work with Tailwind */
+@media (max-width: 767px) {
+  /* Only override when necessary, let Tailwind handle most responsive behavior */
+  .force-mobile-stack {
+    display: block !important;
+  }
+
+  .force-mobile-stack > * {
+    margin-bottom: 1rem;
+  }
+
+  .force-mobile-stack > *:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Enhanced mobile image handling */
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  /* Mobile container safety - only for containers that need it */
+  .mobile-safe-container {
+    max-width: 100%;
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+  }
+}
+
+/* Toast Notification Positioning Fix - Force Center */
+[data-radix-toast-viewport] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999999 !important;
+  width: auto !important;
+  max-width: 500px !important;
+  padding: 1rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+}
+
+/* Ensure toast content is visible */
+[data-radix-toast-viewport] > * {
+  pointer-events: auto !important;
+}
+
+/* Force positioning regardless of any other classes */
+[data-radix-toast-viewport][class*="top-"],
+[data-radix-toast-viewport][class*="bottom-"],
+[data-radix-toast-viewport][class*="left-"],
+[data-radix-toast-viewport][class*="right-"],
+[data-radix-toast-viewport].fixed,
+[data-radix-toast-viewport][class*="fixed"] {
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Enhanced toast styling for better visibility */
+[data-radix-toast] {
+  background: white !important;
+  border: 2px solid #e5e7eb !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.75rem !important;
+  padding: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+  min-height: 70px !important;
+  min-width: 320px !important;
+  max-width: 480px !important;
+  font-weight: 500 !important;
+  position: relative !important;
+  transform: none !important;
+  font-size: 1rem !important;
+  pointer-events: auto !important;
+  width: 100% !important;
+}
+
+/* Success toast styling */
+[data-radix-toast][data-state="open"]:not([class*="destructive"]) {
+  background-color: #f0fdf4 !important;
+  border-color: #22c55e !important;
+  color: #166534 !important;
+}
+
+/* Error/destructive toast styling */
+[data-radix-toast].destructive,
+[data-radix-toast][class*="destructive"] {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  color: #991b1b !important;
+}
+
+/* Custom notification backdrop */
+.notification-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  z-index: 9999998 !important;
+  pointer-events: none !important;
+}

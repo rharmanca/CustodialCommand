@@ -1,0 +1,283 @@
+## Replit Code Fixes
+
+Please apply these fixes to your Node.js server code:
+
+### 1. Fix index.ts (Line 51)
+Replace the corrupted character:
+```typescript
+// OLD (line 51):
+logLine = logLine.slice(0, 79) + "â€¦";
+
+// NEW:
+logLine = logLine.slice(0, 79) + "…";
+```
+
+### 2. Update security.ts - Replace entire file content:
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import rateLimit from 'express-rate-limit';
+
+// Rate limiting middleware
+export const createRateLimit = (windowMs: number, max: number) => {
+  return rateLimit({
+    windowMs,
+    max,
+    message: { error: 'Too many requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+};
+
+// API rate limiter - 100 requests per 15 minutes
+export const apiRateLimit = createRateLimit(15 * 60 * 1000, 100);
+
+// Strict rate limiter for sensitive operations - 10 requests per 15 minutes
+export const strictRateLimit = createRateLimit(15 * 60 * 1000, 10);
+
+// Improved input sanitization
+export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
+  const sanitizeString = (str: string): string => {
+    return str
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '');
+  };
+
+  const sanitizeObject = (obj: any): any => {
+    if (typeof obj === 'string') {
+      return sanitizeString(obj);
+    } else if (Array.isArray(obj)) {
+      return obj.map(sanitizeObject);
+    } else if (typeof obj === 'object' && obj !== null) {
+      const sanitized: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        sanitized[key] = sanitizeObject(value);
+      }
+      return sanitized;
+    }
+    return obj;
+  };
+
+  if (req.body && typeof req.body === 'object') {
+    req.body = sanitizeObject(req.body);
+  }
+  
+  next();
+};
+
+// Updated CORS for Replit
+export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
+  const allowedOrigins = [
+    'http://localhost:5000',
+    'http://localhost:5173'
+  ];
+  
+  // Replit-specific origins
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    allowedOrigins.push(
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+      `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
+    );
+  }
+  
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+};
+
+// Request validation middleware
+export const validateRequest = (req: Request, res: Response, next: NextFunction) => {
+  // Check content length
+  const contentLength = parseInt(req.headers['content-length'] || '0');
+  if (contentLength > 10 * 1024 * 1024) { // 10MB limit
+    return res.status(413).json({ error: 'Request too large' });
+  }
+  
+  // Validate content type for POST/PUT/PATCH
+  if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+    const contentType = req.headers['content-type'];
+    if (!contentType || (!contentType.includes('application/json') && !contentType.includes('multipart/form-data'))) {
+      return res.status(400).json({ error: 'Invalid content type' });
+    }
+  }
+  
+  next();
+};
+```
+
+### 3. Update monitoring.ts - Replace the healthCheck function (around line 60):
+```typescript
+// Health check endpoint handler
+export const healthCheck = async (req: Request, res: Response): Promise<void> => {
+  const startTime = Date.now();
+  
+  try {
+    // Check database connection
+    let dbStatus: HealthCheck['database'] = 'connected';
+    try {
+      // Import the pool from your db.ts file
+      const { pool } = await import('./db');
+      await pool.query('SELECT 1');
+    } catch (error) {
+      dbStatus = 'error';
+      logger.error('Database health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+    
+    // Memory usage
+    const memUsage = process.memoryUsage();
+    const memory = {
+      used: Math.round(memUsage.heapUsed / 1024 / 1024),
+      total: Math.round(memUsage.heapTotal / 1024 / 1024),
+      percentage: Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100)
+    };
+    
+    const health: HealthCheck = {
+      status: dbStatus === 'error' ? 'error' : 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      database: dbStatus,
+      memory
+    };
+    
+    const responseTime = Date.now() - startTime;
+    res.setHeader('X-Response-Time', `${responseTime}ms`);
+    
+    if (health.status === 'error') {
+      res.status(503).json(health);
+    } else {
+      res.json(health);
+    }
+    
+  } catch (error) {
+    logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      message: 'Health check failed'
+    });
+  }
+};
+```
+
+### 4. Delete middleware.ts entirely
+This file has duplicate functions that conflict with monitoring.ts. Remove the entire file and update your imports.
+
+### 5. Update db.ts to add Replit optimization:
+```typescript
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
+import * as schema from "../shared/schema";
+
+// Configure WebSocket for serverless environment
+if (typeof WebSocket === 'undefined') {
+  neonConfig.webSocketConstructor = ws;
+}
+
+// Replit optimization
+neonConfig.poolQueryViaFetch = true;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL must be set. Check your Replit Secrets tab.",
+  );
+}
+
+// Configure connection pool for Replit
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  max: process.env.NODE_ENV === 'production' ? 3 : 1,
+  idleTimeoutMillis: 60000, // Longer for Replit
+  connectionTimeoutMillis: 15000, // Longer timeout for Replit
+});
+
+export { pool };
+export const db = drizzle({ client: pool, schema });
+```
+
+### 6. Update index.ts - Add Replit logging at startup (around line 45):
+```typescript
+(async () => {
+  try {
+    logger.info("Starting server setup...");
+    
+    // Log Replit environment info
+    if (process.env.REPL_SLUG) {
+      logger.info('Running on Replit', {
+        slug: process.env.REPL_SLUG,
+        owner: process.env.REPL_OWNER
+      });
+    }
+
+    // ... rest of your startup code
+```
+
+### 7. Update routes.ts - Add better error handling wrapper at the top:
+```typescript
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { Request, Response, NextFunction } from "express";
+import { storage } from "./storage";
+import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
+import { z } from "zod";
+
+// Add async wrapper for better error handling
+const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+export async function registerRoutes(app: Express): Promise<void> {
+  // Update all your route handlers to use asyncHandler, for example:
+  app.post("/api/inspections", asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertInspectionSchema.parse(req.body);
+      const inspection = await storage.createInspection(validatedData);
+      res.json(inspection);
+    } catch (error) {
+      console.error("Error creating inspection:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid inspection data", details: error.errors });
+      } else {
+        res.status(500).json({ 
+          error: "Failed to create inspection",
+          message: process.env.NODE_ENV === 'development' ? 
+            (error instanceof Error ? error.message : 'Unknown error') : 
+            undefined
+        });
+      }
+    }
+  }));
+  
+  // Apply asyncHandler to all your other routes too...
+  // (keep the rest of your routes but wrap them with asyncHandler)
+}
+```
+
+### Quick Summary of Changes:
+1. Fixed corrupted Unicode character in index.ts
+2. Improved input sanitization and CORS for Replit
+3. Added proper database health check
+4. Removed duplicate error handler file
+5. Optimized database config for Replit
+6. Added better error handling wrapper
+
+After making these changes, restart your Replit and test the `/health` endpoint to make sure everything is working properly.

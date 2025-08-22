@@ -30,11 +30,11 @@
     },
 
     /* React types */
-    "types": ["node", "vite/client", "react", "react-dom"],
+    "types": ["node", "vite/client"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "src/working-types.d.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "dist"],
+  "include": ["src/**/*", "src/temp-types.d.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "server/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
