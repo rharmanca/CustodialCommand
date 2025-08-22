@@ -82,14 +82,21 @@ app.use((req, res, next) => {
     logger.info("HTTP server created");
 
     // Use static file serving (frontend is already built)
+    // Health check and monitoring endpoints (MUST be before static serving)
+    // Root path health check for deployment health checks
+    app.get("/", (req: Request, res: Response) => {
+      res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+    });
+    
+    app.get("/health", healthCheck);
+    app.get("/metrics", (req: any, res: any) => {
+      res.json(metricsCollector.getMetrics());
+    });
+    logger.info("Health check endpoints configured");
+
+    // Use static file serving (frontend is already built)
     serveStatic(app);
     logger.info("Static file serving configured");
-
-    // Health check and monitoring endpoints (after static serving to override catch-all)
-    // Root path health check for deployment health checks
-    app.get('/', (req: Request, res: Response) => {
-      res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
     
     app.get('/health', healthCheck);
     app.get('/metrics', (req: any, res: any) => {

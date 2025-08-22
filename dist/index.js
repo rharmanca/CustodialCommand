@@ -466,7 +466,10 @@ var log = console.log;
 function serveStatic(app2) {
   const distPath = path.join(process.cwd(), "dist/public");
   app2.use(express.static(distPath));
-  app2.get("*", (req, res) => {
+  app2.get("*", (req, res, next) => {
+    if (req.path === "/" || req.path === "/health" || req.path === "/metrics") {
+      return next();
+    }
     res.sendFile(path.join(distPath, "index.html"));
   });
 }
@@ -764,16 +767,25 @@ app.use((req, res, next) => {
         owner: process.env.REPL_OWNER
       });
     }
-    app.get("/health", healthCheck);
-    app.get("/metrics", (req, res) => {
-      res.json(metricsCollector.getMetrics());
-    });
     await registerRoutes(app);
     logger.info("Routes registered successfully");
     const server = createServer(app);
     logger.info("HTTP server created");
+    app.get("/", (req, res) => {
+      res.status(200).json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+    });
+    app.get("/health", healthCheck);
+    app.get("/metrics", (req, res) => {
+      res.json(metricsCollector.getMetrics());
+    });
+    logger.info("Health check endpoints configured");
     serveStatic(app);
     logger.info("Static file serving configured");
+    app.get("/health", healthCheck);
+    app.get("/metrics", (req, res) => {
+      res.json(metricsCollector.getMetrics());
+    });
+    logger.info("Health check endpoints configured");
     app.use(errorHandler);
     const PORT = parseInt(process.env.PORT || "5000", 10);
     const HOST = "0.0.0.0";

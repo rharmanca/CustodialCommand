@@ -21,7 +21,12 @@ export function serveStatic(app: express.Application) {
   app.use(express.static(distPath));
   
   // Handle client-side routing
-  app.get("*", (req, res) => {
+  // Handle client-side routing (excluding health endpoints)
+  app.get("*", (req, res, next) => {
+    // Skip health check endpoints
+    if (req.path === "/" || req.path === "/health" || req.path === "/metrics") {
+      return next();
+    }
     res.sendFile(path.join(distPath, "index.html"));
   });
 }

@@ -1,7 +1,7 @@
 modules = ["nodejs-20"]
 
 [deployment]
-run = ["node", "dist/server/index.js"]
+run = ["node", "dist/index.js"]
 build = ["npm", "run", "build"]
 
 [workflows]
