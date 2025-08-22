@@ -75,16 +75,7 @@ async function start() {
     console.warn(`Warning: Missing environment variables: ${missingVars.join(', ')}`);
   }
 
-  // Add root health check before other routes
-  app.get("/", (req, res) => {
-    res.status(200).json({ status: "ok", message: "Custodial Command API is running" });
-  });
-
   // Register API routes
-  await registerRoutes(app);
-  }
-
-  // Register API routes first
   await registerRoutes(app);
   // Create a single HTTP server so Vite HMR can attach its WS to it
   const httpServer = http.createServer(app);
