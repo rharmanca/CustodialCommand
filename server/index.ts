@@ -8,6 +8,7 @@ import { securityHeaders, validateRequest, apiRateLimit, sanitizeInput } from ".
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
 
+
 const app = express();
 
 // Request tracking and logging
@@ -75,6 +76,11 @@ app.use((req, res, next) => {
     }
 
     // Health check and monitoring endpoints (before other routes)
+    // Root path health check for deployment health checks
+    app.get('/', (req: Request, res: Response) => {
+      res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+    
     app.get('/health', healthCheck);
     app.get('/metrics', (req: any, res: any) => {
       res.json(metricsCollector.getMetrics());
