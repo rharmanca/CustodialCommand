@@ -29,7 +29,7 @@ if (isProd) {
     res.removeHeader("Strict-Transport-Security");
     res.setHeader(
       "Content-Security-Policy",
-      "frame-ancestors self https://*.replit.dev https://*.repl.co https://*.replit.app"
+      "frame-ancestors 'self' https://*.replit.dev https://*.repl.co https://*.replit.app"
     );
     next();
   });
