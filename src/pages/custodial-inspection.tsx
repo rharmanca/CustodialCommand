@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
-import { LargeFileUploader } from '@/components/LargeFileUploader';
 import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
@@ -75,7 +74,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     { value: 'staff_single_restroom', label: 'Staff or Single Restroom' }
   ];
 
-  const [selectedImages, setSelectedImages] = useState<File[]>([]); // This should be images: string[] for the base64 representation
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   // Load existing drafts on component mount
   useEffect(() => {
@@ -159,7 +158,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
       // Get existing drafts
       const existingDrafts = JSON.parse(localStorage.getItem('custodial_inspection_drafts') || '[]');
-
+      
       // Update or add current draft
       const draftIndex = existingDrafts.findIndex((d: any) => d.id === draftId);
       if (draftIndex >= 0) {
@@ -223,7 +222,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     const updatedDrafts = existingDrafts.filter((d: any) => d.id !== draftId);
     localStorage.setItem('custodial_inspection_drafts', JSON.stringify(updatedDrafts));
     setDraftInspections(updatedDrafts);
-
+    
     if (currentDraftId === draftId) {
       setCurrentDraftId(null);
       setLastSaved(null);
@@ -243,64 +242,34 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }));
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const files = Array.from(event.target.files);
-      const validFiles = files.filter(file =>
-        file.type.startsWith('image/') && file.size <= 50 * 1024 * 1024 // Increased to 50MB
-      );
-
-      if (validFiles.length < files.length) {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newImages = Array.from(files);
+      const currentCount = selectedImages.length;
+      const availableSlots = 5 - currentCount;
+      const imagesToAdd = newImages.slice(0, availableSlots);
+      
+      setSelectedImages(prev => [...prev, ...imagesToAdd]);
+      
+      if (imagesToAdd.length > 0) {
         toast({
-          variant: "destructive",
-          title: "Some files were rejected",
-          description: "Only image files under 50MB are allowed."
+          title: "📸 Photos Uploaded Successfully!",
+          description: `Added ${imagesToAdd.length} photo${imagesToAdd.length > 1 ? 's' : ''} to inspection documentation.`,
+          duration: 3000
         });
       }
-
-      try {
-        const formData = new FormData();
-        // Only upload up to the remaining capacity
-        const remainingSlots = 5 - selectedImages.length;
-        validFiles.slice(0, remainingSlots).forEach(file => {
-          formData.append('files', file);
-        });
-
-        if (formData.get('files')) { // Only make the API call if there are files to upload
-          const response = await fetch('/api/media/upload', {
-            method: 'POST',
-            body: formData
-          });
-
-          if (!response.ok) {
-            throw new Error('Upload failed');
-          }
-
-          const result = await response.json();
-          // result.files should be an array of URLs or identifiers for the uploaded files
-          setSelectedImages(prev => [...prev, ...result.files]);
-
-          toast({
-            title: "📸 Photos Uploaded Successfully!",
-            description: `Successfully uploaded ${result.files.length} photo${result.files.length > 1 ? 's' : ''}.`,
-            duration: 3000
-          });
-        } else if (validFiles.length > 0 && remainingSlots === 0) {
-          toast({
-            variant: "destructive",
-            title: "Upload Limit Reached",
-            description: "You have already reached the maximum of 5 images.",
-            duration: 5000
-          });
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
+      
+      if (imagesToAdd.length < newImages.length) {
         toast({
           variant: "destructive",
-          title: "Upload Failed",
-          description: "Failed to upload images. Please try again."
+          title: "Upload Limit Reached",
+          description: `Only ${imagesToAdd.length} photos were added. Maximum of 5 images allowed per inspection.`,
+          duration: 5000
         });
       }
+      
+      console.log('Files selected:', imagesToAdd.length, 'files');
     }
   };
 
@@ -310,7 +279,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (isSubmitting) return; // Prevent multiple submissions
 
     if (!formData.school || !formData.date) {
@@ -342,36 +311,44 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     setIsSubmitting(true);
 
     try {
-      // Prepare the body, using the stored image identifiers/URLs from Object Storage
-      const submissionData = {
-        school: formData.school,
-        date: formData.date,
-        inspectionType: formData.inspectionType,
-        locationDescription: formData.locationDescription,
-        roomNumber: formData.roomNumber,
-        locationCategory: formData.locationCategory,
-        floors: formData.floors || null,
-        verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces || null,
-        ceiling: formData.ceiling || null,
-        restrooms: formData.restrooms || null,
-        customerSatisfaction: formData.customerSatisfaction || null,
-        trash: formData.trash || null,
-        projectCleaning: formData.projectCleaning || null,
-        activitySupport: formData.activitySupport || null,
-        safetyCompliance: formData.safetyCompliance || null,
-        equipment: formData.equipment || null,
-        monitoring: formData.monitoring || null,
-        notes: formData.notes,
-        // 'images' should now be the array of URLs/identifiers returned from the media upload API
-        images: selectedImages
-      };
+      // Convert images to base64 strings
+      const imagePromises = selectedImages.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const imageData = await Promise.all(imagePromises);
 
       const response = await fetch('/api/inspections', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(submissionData)
+        body: JSON.stringify({
+          school: formData.school,
+          date: formData.date,
+          inspectionType: formData.inspectionType,
+          locationDescription: formData.locationDescription,
+          roomNumber: formData.roomNumber,
+          locationCategory: formData.locationCategory,
+          floors: formData.floors || null,
+          verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces || null,
+          ceiling: formData.ceiling || null,
+          restrooms: formData.restrooms || null,
+          customerSatisfaction: formData.customerSatisfaction || null,
+          trash: formData.trash || null,
+          projectCleaning: formData.projectCleaning || null,
+          activitySupport: formData.activitySupport || null,
+          safetyCompliance: formData.safetyCompliance || null,
+          equipment: formData.equipment || null,
+          monitoring: formData.monitoring || null,
+          notes: formData.notes,
+          images: imageData
+        })
       });
 
       if (response.ok) {
@@ -382,12 +359,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           variant: "default",
           duration: 5000
         });
-
+        
         // Clean up draft after successful submission
         if (currentDraftId) {
           deleteDraft(currentDraftId);
         }
-
+        
         // Reset form
         setFormData({
           school: '',
@@ -413,7 +390,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         setSelectedImages([]);
         setCurrentDraftId(null);
         setLastSaved(null);
-
+        
         // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
           if (onBack) {
@@ -421,13 +398,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           }
         }, 6000);
       } else {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = { message: `Server returned ${response.status}: ${response.statusText}` };
-        }
-        console.error('Server error:', errorData);
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         toast({
           variant: "destructive",
           title: "Submission Failed",
@@ -455,7 +426,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <div className="text-sm font-medium text-gray-700 mb-3 text-center">
             Rate this category:
           </div>
-
+          
           {/* Star Rating Buttons */}
           <div className="flex justify-center gap-2 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -475,7 +446,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               </button>
             ))}
           </div>
-
+          
           {/* Not Rated Button */}
           <div className="flex justify-center">
             <button
@@ -496,7 +467,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         <div className="text-center">
           {currentRating > 0 ? (
             <div className="space-y-2">
-              <Badge variant="default" className="text-sm px-3 py-1">
+              <Badge variant="secondary" className="text-sm px-3 py-1">
                 {ratingDescriptions[currentRating - 1]?.label}
               </Badge>
               <div className="text-xs text-muted-foreground">
@@ -642,7 +613,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </div>
         </DialogContent>
       </Dialog>
-
+      
       <div className="container mx-auto p-6 max-w-4xl">
       <div className="flex items-center gap-4 mb-6">
         {onBack && (
@@ -653,14 +624,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">Submit Inspection</h1>
           <p className="text-muted-foreground mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
-
+          
           {/* Important Note */}
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800 leading-relaxed">
               <strong>📋 Important:</strong> This form is for inspecting a single room or area using the same rating criteria as the Whole Building Inspection. However, single area inspections are recorded separately and do not automatically count toward a building-wide inspection or monthly metrics. If you're conducting these inspections as part of a comprehensive building review or to meet monthly inspection requirements, you'll need to manually track your progress across all required areas.
             </p>
           </div>
-
+          
           {/* Save Status Indicator */}
           {(lastSaved || isAutoSaving) && (
             <div className="mt-2 flex items-center space-x-2 text-sm text-muted-foreground">
@@ -678,7 +649,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             </div>
           )}
         </div>
-
+        
         {/* Manual Save Button */}
         {currentDraftId && (
           <Button
@@ -774,7 +745,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <CardHeader>
               <CardTitle>Inspection Categories</CardTitle>
               <CardDescription>
-                {isMobile
+                {isMobile 
                   ? "Expand each category to rate it. Detailed criteria will appear when you select a rating."
                   : "Expand each category to rate it based on the criteria (1-5 stars). Detailed criteria will appear when you select a rating."
                 }
@@ -856,7 +827,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     className="hidden"
                   />
                 </Label>
-
+                
                 <Label htmlFor="camera-capture" className="cursor-pointer">
                   <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
                     <Camera className="w-4 h-4" />
@@ -884,7 +855,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     {selectedImages.map((image, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={typeof image === 'string' ? image : URL.createObjectURL(image)}
+                          src={URL.createObjectURL(image)}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg border"
                         />
@@ -895,11 +866,9 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                         >
                           <X className="w-4 h-4" />
                         </button>
-                        {typeof image === 'string' && (
-                           <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
-                             {image.substring(image.lastIndexOf('/') + 1).length > 12 ? image.substring(image.lastIndexOf('/') + 1, image.lastIndexOf('/') + 1 + 12) + '...' : image.substring(image.lastIndexOf('/') + 1)}
-                           </div>
-                        )}
+                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                          {image.name.length > 12 ? image.name.substring(0, 12) + '...' : image.name}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -911,9 +880,9 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4">
-          <Button
-            type="submit"
-            size="lg"
+          <Button 
+            type="submit" 
+            size="lg" 
             disabled={isSubmitting}
             className={`bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed ${isMobile ? 'w-full h-14 text-lg' : ''}`}
           >

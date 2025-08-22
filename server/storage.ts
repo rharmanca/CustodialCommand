@@ -56,13 +56,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
-    try {
-      const [result] = await db.insert(inspections).values(insertInspection).returning();
-      return result;
-    } catch (error) {
-      console.error('Database error creating inspection:', error);
-      throw new Error(`Failed to create inspection: ${error instanceof Error ? error.message : 'Unknown database error'}`);
-    }
+    const [inspection] = await db
+      .insert(inspections)
+      .values([insertInspection])
+      .returning();
+    return inspection;
   }
 
   async getInspections(): Promise<Inspection[]> {

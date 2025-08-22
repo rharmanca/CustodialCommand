@@ -1,5 +1,4 @@
 
-// @ts-ignore - Temporary fix for React types
 import React, { useState, useEffect } from 'react';
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
@@ -72,7 +71,6 @@ function App() {
       switch (currentPage) {
         case 'Custodial':
           return (
-            // @ts-ignore - JSX runtime fix
             <div className="p-8 text-center">
               {/* PWA Installation Status */}
               <div className="mb-8 max-w-2xl mx-auto">
@@ -182,7 +180,13 @@ function App() {
                   </button>
                 </div>
               </div>
-              
+              <div className="flex justify-center mb-6 sm:mb-8">
+                <img 
+                  src={custodialDutyImage} 
+                  alt="Custodial Duty" 
+                  className="rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto" 
+                />
+              </div>
               <p className="text-lg text-muted-foreground text-center">
                 Cleanliness is a duty for all.
               </p>

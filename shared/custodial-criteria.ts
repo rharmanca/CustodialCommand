@@ -132,9 +132,3 @@ export const inspectionCategories = [
     }
   }
 ];
-
-// Export a combined object for backward compatibility
-export const custodialCriteria = {
-  ratingDescriptions,
-  inspectionCategories
-};

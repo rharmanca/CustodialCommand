@@ -2,12 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
-import { custodialCriteria } from "../shared/custodial-criteria";
-import { objectStorageService, ObjectNotFoundError } from "./objectStorage";
-// Removed old object-storage import - using objectStorageService instead
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
 import { z } from "zod";
-import multer from 'multer';
 
 // Add async wrapper for better error handling
 const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
@@ -46,10 +42,10 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const { type, incomplete } = req.query;
       let inspections;
-
+      
       inspections = await storage.getInspections();
       console.log(`[GET] Found ${inspections.length} total inspections`);
-
+      
       if (type === 'whole_building' && incomplete === 'true') {
         const beforeFilter = inspections.length;
         inspections = inspections.filter(inspection => 
@@ -58,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         console.log(`[GET] Filtered whole_building incomplete: ${beforeFilter} → ${inspections.length} inspections`);
         console.log(`[GET] Incomplete inspections:`, inspections.map(i => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
       }
-
+      
       res.json(inspections);
     } catch (error) {
       console.error("Error fetching inspections:", error);
@@ -131,13 +127,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       const updates = req.body;
       console.log(`[PATCH] Updating inspection ${id} with:`, updates);
-
+      
       const inspection = await storage.updateInspection(id, updates);
       if (!inspection) {
         console.log(`[PATCH] Inspection ${id} not found`);
         return res.status(404).json({ error: "Inspection not found" });
       }
-
+      
       console.log(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
       res.json(inspection);
     } catch (error) {
@@ -254,180 +250,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.status(500).json({ error: "Failed to fetch room inspection" });
     }
   });
-
-  // Get custodial criteria
-  app.get("/api/custodial-criteria", (req, res) => {
-    res.json(custodialCriteria);
-  });
-
-  // Configure multer for reasonable file uploads (up to 100MB per file)
-  const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-      fileSize: 100 * 1024 * 1024, // 100MB limit per file
-      files: 5, // Allow up to 5 files
-      fieldSize: 100 * 1024 * 1024, // 100MB field size
-      fieldNameSize: 200, // Field name size
-      fields: 20, // Number of non-file fields
-      parts: 500 // Reasonable parts limit
-    },
-    fileFilter: (req, file, cb) => {
-      // Allow images, videos, and documents
-      const allowedTypes = [
-        'image/',
-        'video/',
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/zip',
-        'application/x-zip-compressed',
-        'application/octet-stream'
-      ];
-      
-      const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type));
-      
-      if (isAllowed) {
-        cb(null, true);
-      } else {
-        cb(new Error('File type not allowed. Only images, videos, PDF documents, archives, and MS Office files are permitted.'));
-      }
-    }
-  });
-
-  // Get presigned URL for very large file uploads (direct to Object Storage)
-  app.post("/api/large-upload/presigned", async (req: Request, res: Response) => {
-    try {
-      const { fileName, fileType } = req.body;
-      
-      if (!fileName || !fileType) {
-        return res.status(400).json({ 
-          error: "Missing required fields", 
-          message: "fileName and fileType are required" 
-        });
-      }
-
-      // Generate presigned URL for direct upload to Object Storage
-      const fileExtension = fileName.split('.').pop() || '';
-      const uploadURL = await objectStorageService.getLargeFileUploadURL(`.${fileExtension}`);
-      
-      res.json({ 
-        uploadURL,
-        message: "Presigned URL generated for large file upload"
-      });
-    } catch (error) {
-      console.error("Error generating presigned URL:", error);
-      res.status(500).json({ 
-        error: "Failed to generate upload URL",
-        details: process.env.NODE_ENV === 'development' ? 
-          (error instanceof Error ? error.message : 'Unknown error') : undefined
-      });
-    }
-  });
-
-  // Serve uploaded files from Object Storage
-  app.get("/objects/:fileName", async (req: Request, res: Response) => {
-    try {
-      const { fileName } = req.params;
-      const objectPath = `/objects/${fileName}`;
-      
-      const file = await objectStorageService.getObjectFile(objectPath);
-      await objectStorageService.downloadObject(file, res);
-    } catch (error) {
-      console.error("Error serving file:", error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: "File not found" });
-      }
-      res.status(500).json({ error: "Error serving file" });
-    }
-  });
-
-  // Upload media files with enhanced handling for larger files
-  app.post("/api/media/upload", upload.array('files', 5), async (req, res) => {
-    try {
-      if (!req.files || !Array.isArray(req.files)) {
-        return res.status(400).json({ error: "No files uploaded" });
-      }
-
-      const uploadedFiles: any[] = [];
-      const errors: any[] = [];
-
-      // Process files with better error handling
-      for (const file of req.files) {
-        try {
-          // Generate unique filename with timestamp and random suffix
-          const timestamp = Date.now();
-          const randomSuffix = Math.random().toString(36).substring(2, 8);
-          const fileName = `${timestamp}-${randomSuffix}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-          
-          console.log(`Uploading file: ${fileName} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-          
-          const objectPath = await objectStorageService.uploadLargeFile(file.buffer, fileName, file.mimetype);
-          
-          uploadedFiles.push({
-            fileName,
-            originalName: file.originalname,
-            size: file.size,
-            mimeType: file.mimetype,
-            sizeFormatted: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-            objectPath
-          });
-        } catch (fileError) {
-          console.error(`Error uploading file ${file.originalname}:`, fileError);
-          errors.push({
-            fileName: file.originalname,
-            error: fileError instanceof Error ? fileError.message : 'Upload failed'
-          });
-        }
-      }
-
-      // Return results with both successes and errors
-      const response: any = {
-        message: `${uploadedFiles.length} file(s) uploaded successfully`,
-        files: uploadedFiles
-      };
-
-      if (errors.length > 0) {
-        response.errors = errors;
-        response.message += `, ${errors.length} file(s) failed`;
-      }
-
-      res.json(response);
-    } catch (error) {
-      console.error("Media upload error:", error);
-      
-      // Handle specific multer errors
-      if (error instanceof Error) {
-        if (error.message.includes('File too large')) {
-          return res.status(413).json({ 
-            error: "File too large", 
-            message: "Maximum file size is 100MB per file",
-            maxSizeBytes: 100 * 1024 * 1024
-          });
-        }
-        if (error.message.includes('Too many files')) {
-          return res.status(413).json({ 
-            error: "Too many files", 
-            message: "Maximum 5 files allowed per upload (100MB each)"
-          });
-        }
-        if (error.message.includes('too many parts')) {
-          return res.status(413).json({ 
-            error: "Request too complex", 
-            message: "File upload request has too many parts"
-          });
-        }
-      }
-      
-      res.status(500).json({ 
-        error: "Failed to upload media files",
-        details: process.env.NODE_ENV === 'development' ? 
-          (error instanceof Error ? error.message : 'Unknown error') : 
-          undefined
-      });
-    }
-  });
-
-  // Legacy media routes removed - using /objects/ routes and objectStorageService instead
 
   // Routes are now registered on the app
 }
