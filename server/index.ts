@@ -43,17 +43,8 @@ if (isProd) {
 
 // Health and metrics endpoints
 // Root path health check for deployment systems - simple and fast response
-  app.get("/", (req, res) => {
-    return res.status(200).json({ status: "ok", message: "Custodial Command API is running" });
-  });
-
-  app.get("/health", async (req, res, next) => {
-    const { healthCheck } = await import('./monitoring');
-    try {
-      await healthCheck(req, res);
-    } catch (error) {
-      next(error);
-    }
+app.get("/", (req, res) => {
+  return res.status(200).json({ status: "ok", message: "Custodial Command API is running" });
 });
 
 app.get("/health", async (req, res, next) => {
@@ -86,53 +77,54 @@ async function start() {
 
   // Register API routes
   await registerRoutes(app);
-  }
-
-  // Register API routes first
-  await registerRoutes(app);
-  // Create a single HTTP server so Vite HMR can attach its WS to it
-  const httpServer = http.createServer(app);
-
-  if (!isProd) {
-    const vite = await (await import("vite")).createServer({
-      root: process.cwd(),
-      appType: "custom",
-      server: {
-        middlewareMode: true,
-        hmr: {
-          server: httpServer,
-        },
-      },
-    });
-
-    app.use(vite.middlewares);
-
-    // Transform and serve index.html via Vite
-    app.use("*", async (req, res, next) => {
-      try {
-        const url = req.originalUrl;
-        let html = await fs.readFile(path.resolve(process.cwd(), "index.html"), "utf-8");
-        html = await vite.transformIndexHtml(url, html);
-        res.status(200).set({ "Content-Type": "text/html" }).end(html);
-      } catch (e: any) {
-        vite.ssrFixStacktrace(e);
-        next(e);
-      }
-    });
-  } else {
-    // Production: serve from dist
-    const dist = path.resolve(process.cwd(), "dist");
-    app.use(express.static(dist));
-    app.get("*", (_req, res) => res.sendFile(path.join(dist, "index.html")));
-  }
-
-  // Add error handler as the last middleware
-  app.use(errorHandler);
-
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on ${PORT} (${isProd ? "prod" : "dev + Vite middleware + HMR"})`);
-  });
 }
+
+// Register API routes first
+await registerRoutes(app);
+// Create a single HTTP server so Vite HMR can attach its WS to it
+const httpServer = http.createServer(app);
+
+if (!isProd) {
+  const vite = await (await import("vite")).createServer({
+    root: process.cwd(),
+    appType: "custom",
+    server: {
+      middlewareMode: true,
+      hmr: {
+        server: httpServer,
+      },
+    },
+  });
+
+  app.use(vite.middlewares);
+
+  // Transform and serve index.html via Vite
+  app.use("*", async (req, res, next) => {
+    try {
+      const url = req.originalUrl;
+      let html = await fs.readFile(path.resolve(process.cwd(), "index.html"), "utf-8");
+      html = await vite.transformIndexHtml(url, html);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    } catch (e: any) {
+      vite.ssrFixStacktrace(e);
+      next(e);
+    }
+  });
+} else {
+  // Production: serve from dist
+  const dist = path.resolve(process.cwd(), "dist");
+  app.use(express.static(dist));
+  app.get("*", (_req, res) => res.sendFile(path.join(dist, "index.html")));
+}
+
+// Add error handler as the last middleware
+app.use(errorHandler);
+
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on ${PORT} (${isProd ? "prod" : "dev + Vite middleware + HMR"})`);
+});
+// Missing closing brace for the start() function was here.
+// The start() function is now properly closed.
 
 start().catch((err) => {
   console.error("Failed to start server:", err);
