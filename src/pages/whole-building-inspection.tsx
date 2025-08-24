@@ -14,7 +14,9 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
-import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
+import { ratingDescriptions, inspectionCategories as categories } from '../../shared/custodial-criteria'; // Renamed inspectionCategories to categories for clarity
+import { Progress } from "@/components/ui/progress";
+
 
 interface WholeBuildingInspectionPageProps {
   onBack?: () => void;
@@ -156,7 +158,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     loadAvailableInspections();
     migrateLegacyDrafts();
     loadFormDraft();
-    
+
     // Log storage stats for monitoring
     const stats = getStorageStats();
     console.log('Building inspection storage stats:', stats);
@@ -232,14 +234,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     if (currentFormDraftId) {
       // Clear from optimized storage
       clearDraft(`${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${currentFormDraftId}`);
-      
+
       // Also clean up legacy storage
       const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
       const updatedDrafts = existingDrafts.filter((d: any) => d.id !== currentFormDraftId);
       if (updatedDrafts.length !== existingDrafts.length) {
         localStorage.setItem('building_form_drafts', JSON.stringify(updatedDrafts));
       }
-      
+
       setCurrentFormDraftId(null);
       setLastSaved(null);
     }
@@ -635,9 +637,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         setTimeout(() => {
           const progressSection = document.querySelector('[data-inspection-progress]');
           if (progressSection) {
-            progressSection.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'start' 
+            progressSection.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
             });
           }
         }, 100);
@@ -718,8 +720,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         <div className="flex justify-center px-4">
           <Collapsible className="w-full max-w-lg">
             <CollapsibleTrigger asChild>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full p-3 h-auto font-normal text-center text-primary hover:text-primary/80 hover:bg-accent/10 border border-accent/30 rounded-lg text-sm sm:text-base leading-relaxed"
               >
                 📋 How to conduct a whole building inspection ↓
@@ -925,47 +927,79 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             )}
           </p>
           <div className="space-y-3">
-            {Object.entries(requirements).map(([category, required]) => {
-              const completedCount = completed[category];
+            {Object.entries(requirements).map(([category, required], index) => {
+              const completedCount = completed[category] || 0;
               const isComplete = completedCount >= required;
+              const progress = Math.min((completedCount / required) * 100, 100);
+              const categoryData = categories.find(c => c.key === category);
+
+              // Color scheme for each category
+              const colorSchemes = [
+                { bg: 'bg-blue-50', border: 'border-blue-300', accent: 'bg-blue-500', text: 'text-blue-900' },
+                { bg: 'bg-green-50', border: 'border-green-300', accent: 'bg-green-500', text: 'text-green-900' },
+                { bg: 'bg-purple-50', border: 'border-purple-300', accent: 'bg-purple-500', text: 'text-purple-900' },
+                { bg: 'bg-orange-50', border: 'border-orange-300', accent: 'bg-orange-500', text: 'text-orange-900' },
+                { bg: 'bg-teal-50', border: 'border-teal-300', accent: 'bg-teal-500', text: 'text-teal-900' },
+                { bg: 'bg-indigo-50', border: 'border-indigo-300', accent: 'bg-indigo-500', text: 'text-indigo-900' },
+                { bg: 'bg-pink-50', border: 'border-pink-300', accent: 'bg-pink-500', text: 'text-pink-900' }
+              ];
+
+              const colorScheme = colorSchemes[index % colorSchemes.length];
+              const isSelected = selectedCategory === category;
 
               return (
                 <div
                   key={category}
-                  className={`p-3 rounded-lg border ${
-                    isComplete 
-                      ? 'bg-green-50 border-green-200' 
-                      : selectedCategory === category 
-                        ? 'bg-blue-50 border-blue-300 border-2' 
-                        : 'bg-gray-50 border-gray-200'
-                  }`}
+                  className={`border-2 rounded-lg p-3 space-y-3 transition-all duration-200 ${
+                    isSelected
+                      ? `${colorScheme.bg} ${colorScheme.border} shadow-md ring-2 ring-${colorScheme.accent.split('-')[1]}-300`
+                      : `${colorScheme.bg} ${colorScheme.border} border-opacity-50`
+                  } ${isComplete ? 'ring-2 ring-green-400 bg-green-50' : ''}`}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
-                      }`}>
-                        {isComplete && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className={`font-medium text-sm block leading-tight ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
-                          {categoryLabels[category]}
-                        </span>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge variant={isComplete ? 'default' : 'secondary'} className="text-xs">
-                            {completedCount}/{required} Done
-                          </Badge>
-                          {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCategorySelect(category)}
-                              className={`text-xs px-3 py-1 h-7 ${selectedCategory === category ? 'border-blue-500 bg-blue-50' : ''}`}
-                            >
-                              Select
-                            </Button>
-                          )}
+                    <div className="flex-1 pr-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-6 h-6 rounded-full ${colorScheme.accent} flex items-center justify-center text-white font-bold text-xs`}>
+                          {(index + 1)}
                         </div>
+                        <div className={`font-semibold text-sm ${colorScheme.text}`}>
+                          {categoryData?.label}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-600 mb-2">
+                        Required: {required} inspections
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                        <span>Progress: {completedCount}/{required}</span>
+                        <span className="font-semibold">{Math.round(progress)}%</span>
+                      </div>
+                      <Progress
+                        value={progress}
+                        className={`h-2 ${isComplete ? 'bg-green-100' : 'bg-gray-200'}`}
+                      />
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge
+                        variant={isComplete ? "default" : "secondary"}
+                        className={`text-xs ${isComplete ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        {isComplete ? "✓ Done" : "Todo"}
+                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
+                          <Button
+                            size="sm"
+                            variant={isSelected ? "default" : "outline"}
+                            onClick={() => handleCategorySelect(category)}
+                            className={`text-xs px-3 py-1 h-7 font-semibold transition-all duration-200 ${
+                              isSelected
+                                ? `${colorScheme.accent} text-white shadow-sm`
+                                : `${colorScheme.border} hover:${colorScheme.bg}`
+                            }`}
+                          >
+                            {isSelected ? 'Selected' : 'Select'}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -988,44 +1022,92 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {Object.entries(requirements).map(([category, required]) => {
-              const completedCount = completed[category];
+            {Object.entries(requirements).map(([category, required], index) => {
+              const completedCount = completed[category] || 0;
               const isComplete = completedCount >= required;
+              const progress = Math.min((completedCount / required) * 100, 100);
+              const categoryData = categories.find(c => c.key === category);
+
+              // Color scheme for each category
+              const colorSchemes = [
+                { bg: 'bg-blue-50', border: 'border-blue-200', accent: 'bg-blue-500', hover: 'hover:bg-blue-100' },
+                { bg: 'bg-green-50', border: 'border-green-200', accent: 'bg-green-500', hover: 'hover:bg-green-100' },
+                { bg: 'bg-purple-50', border: 'border-purple-200', accent: 'bg-purple-500', hover: 'hover:bg-purple-100' },
+                { bg: 'bg-orange-50', border: 'border-orange-200', accent: 'bg-orange-500', hover: 'hover:bg-orange-100' },
+                { bg: 'bg-teal-50', border: 'border-teal-200', accent: 'bg-teal-500', hover: 'hover:bg-teal-100' },
+                { bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'bg-indigo-500', hover: 'hover:bg-indigo-100' },
+                { bg: 'bg-pink-50', border: 'border-pink-200', accent: 'bg-pink-500', hover: 'hover:bg-pink-100' }
+              ];
+
+              const colorScheme = colorSchemes[index % colorSchemes.length];
+              const isSelected = selectedCategory === category;
 
               return (
                 <div
                   key={category}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    isComplete 
-                      ? 'bg-green-50 border-green-200' 
-                      : selectedCategory === category 
-                        ? 'bg-blue-50 border-blue-300 border-2' 
-                        : 'bg-gray-50 border-gray-200'
-                  }`}
+                  className={`relative p-4 border-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
+                    isSelected
+                      ? `${colorScheme.bg} ${colorScheme.border} border-opacity-100 shadow-lg ring-2 ring-${colorScheme.accent.split('-')[1]}-300`
+                      : `${colorScheme.bg} ${colorScheme.border} ${colorScheme.hover}`
+                  } ${isComplete ? 'ring-2 ring-green-300 bg-green-50' : ''}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center ${
-                      isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
-                    }`}>
-                      {isComplete && <Check className="w-4 h-4 text-white" />}
+                  {/* Category icon/indicator */}
+                  <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${colorScheme.accent}`}></div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full ${colorScheme.accent} flex items-center justify-center text-white font-bold text-sm`}>
+                            {(index + 1)}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-900 text-base">{categoryData?.label}</span>
+                            <div className="text-sm text-gray-600 mt-1">
+                              Required: {required} inspections
+                            </div>
+                          </div>
+                        </div>
+                        <Badge
+                          variant={isComplete ? "default" : "secondary"}
+                          className={`${isComplete ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'} font-semibold px-3 py-1`}
+                        >
+                          {completedCount}/{required}
+                        </Badge>
+                      </div>
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                          <span>Progress</span>
+                          <span>{Math.round(progress)}%</span>
+                        </div>
+                        <Progress
+                          value={progress}
+                          className={`h-3 ${isComplete ? 'bg-green-100' : 'bg-gray-200'}`}
+                        />
+                      </div>
                     </div>
-                    <span className={`font-medium ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
-                      {categoryLabels[category]}
-                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={isComplete ? 'default' : 'secondary'}>
-                      {completedCount}/{required} Completed
-                    </Badge>
-                    {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCategorySelect(category)}
-                        className={selectedCategory === category ? 'border-blue-500' : ''}
-                      >
-                        Select
-                      </Button>
+
+                  <div className="flex justify-end mt-2">
+                    {isComplete ? (
+                      <Badge className="bg-green-600 text-white font-semibold px-4 py-2 text-sm">
+                        ✓ Complete
+                      </Badge>
+                    ) : (
+                      formData.school && formData.date && formData.inspectorName.trim() && (
+                        <Button
+                          size="sm"
+                          variant={isSelected ? "default" : "outline"}
+                          onClick={() => handleCategorySelect(category)}
+                          className={`font-semibold px-6 py-2 transition-all duration-200 ${
+                            isSelected
+                              ? `${colorScheme.accent} text-white shadow-md hover:shadow-lg`
+                              : `border-2 ${colorScheme.border} hover:${colorScheme.bg} hover:border-opacity-60`
+                          }`}
+                        >
+                          {isSelected ? 'Selected' : 'Select Category'}
+                        </Button>
+                      )
                     )}
                   </div>
                 </div>
@@ -1096,7 +1178,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                     placeholder="e.g., Main Building, Second Floor"
                   />
-                                    </div>
+                </div>
               </div>
             </MobileCard>
           ) : (
@@ -1139,7 +1221,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                       placeholder="e.g., Main Building, Second Floor"
                     />
-                                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1149,7 +1231,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           {isMobile ? (
             <MobileCard title="Rate Each Category">
               <div className="space-y-4">
-                {inspectionCategories.map((category, index) => (
+                {categories.map((category, index) => ( // Use 'categories' here
                   <CollapsibleSection
                     key={category.key}
                     title={category.label}
@@ -1169,7 +1251,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </MobileCard>
           ) : (
             <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-              {inspectionCategories.map((category, index) => {
+              {categories.map((category, index) => { // Use 'categories' here
                 const key = category.key as keyof typeof formData;
                 return (
                   <CollapsibleSection
@@ -1343,9 +1425,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Card>
           )}
 
-          <Button 
-            type="submit" 
-            size="lg" 
+          <Button
+            type="submit"
+            size="lg"
             className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
           >
             Submit {categoryLabels[selectedCategory]} Inspection
