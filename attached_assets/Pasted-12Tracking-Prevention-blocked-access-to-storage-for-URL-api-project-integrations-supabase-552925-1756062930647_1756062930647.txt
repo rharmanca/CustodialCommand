@@ -1,0 +1,23 @@
+12Tracking Prevention blocked access to storage for <URL>.
+/api/project/integrations/supabase/55292559:1   Failed to load resource: the server responded with a status of 404 ()
+blitz.96435430.js:19  [Contextify] [WARNING] running source code in new context
+(anonymous) @ blitz.96435430.js:19
+blitz.96435430.js:19  [Contextify] [WARNING] running source code in new context
+(anonymous) @ blitz.96435430.js:19
+headless?coep=credentialless&version=1.6.4-internal.3:1  The resource https://w-credentialless-staticblitz.com/fetch.worker.96435430.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+headless?coep=credentialless&version=1.6.4-internal.3:1  The resource https://w-credentialless-staticblitz.com/fetch.worker.96435430.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+headless?coep=credentialless&version=1.6.4-internal.3:1  The resource https://w-credentialless-staticblitz.com/fetch.worker.96435430.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+.localservice@service.worker.96435430.js:26  TypeError: Cannot navigate to URL: https://zp1v56uxy8rdx5ypatb0ockcb9tr6a-oci3--5000--96435430.local-credentialless.webcontainer-api.io/
+_refreshClients @ .localservice@service.worker.96435430.js:26
+await in _refreshClients
+serverReady @ .localservice@service.worker.96435430.js:26
+await in serverReady
+checkIfServerIsReady @ .localservice@service.worker.96435430.js:26
+await in checkIfServerIsReady
+connectToProject @ .localservice@service.worker.96435430.js:26
+_0x3fc16b @ .localservice@service.worker.96435430.js:1
