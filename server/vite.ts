@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer, createLogger } from "vite";
 import { nanoid } from "nanoid";
 import { readFile } from "fs/promises";
+import { existsSync } from "fs";
 import path from "path";
 
 export const log = console.log;
@@ -21,7 +22,7 @@ export async function setupVite(app: express.Application, server: any) {
 export function serveStatic(app: express.Application) {
   const distPath = path.join(process.cwd(), "dist/public");
 
-  if (!require('fs').existsSync(distPath)) {
+  if (!existsSync(distPath)) {
     log.error('Build directory not found. Run "npm run build" first.');
     app.get("*", (req, res) => {
       if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
