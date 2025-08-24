@@ -1,11 +1,5 @@
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -468,11 +462,12 @@ async function registerRoutes(app2) {
 // server/vite.ts
 import express from "express";
 import { createServer as createViteServer } from "vite";
+import { existsSync } from "fs";
 import path from "path";
 var log = console.log;
 function serveStatic(app2) {
   const distPath = path.join(process.cwd(), "dist/public");
-  if (!__require("fs").existsSync(distPath)) {
+  if (!existsSync(distPath)) {
     log.error('Build directory not found. Run "npm run build" first.');
     app2.get("*", (req, res) => {
       if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
