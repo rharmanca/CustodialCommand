@@ -4,11 +4,46 @@ import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 // Add async wrapper for better error handling
 const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
+
+// Configure multer for file uploads (5MB limit to match client-side)
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename: timestamp + random + original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage_config,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 5 // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<void> {
   // put application routes here
@@ -79,15 +114,91 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Custodial Notes routes
-  app.post("/api/custodial-notes", async (req: any, res: any) => {
+  // Custodial Notes routes - now supports file uploads
+  app.post("/api/custodial-notes", upload.array('image', 5), async (req: any, res: any) => {
     try {
-      const validatedData = insertCustodialNoteSchema.parse(req.body);
+      console.log("Received custodial note submission:");
+      console.log("Body:", req.body);
+      console.log("Files:", req.files?.map((f: any) => ({ name: f.originalname, size: f.size, path: f.path })));
+      
+      // Handle case where files are sent with indexed names (image_0, image_1, etc.)
+      let imageFiles = req.files || [];
+      
+      // If no files in standard array, check for indexed field names
+      if (!imageFiles.length && req.body) {
+        const fileFields = Object.keys(req.body).filter(key => key.startsWith('image_'));
+        if (fileFields.length > 0) {
+          console.log("Found indexed image fields, but files should be in req.files");
+        }
+      }
+      
+      // Prepare data for database - combine form fields with file paths
+      const noteData = {
+        inspectorName: req.body.inspectorName,
+        school: req.body.school,
+        date: req.body.date,
+        location: req.body.location,
+        locationDescription: req.body.locationDescription,
+        notes: req.body.notes
+      };
+      
+      // Add file paths to notes if images were uploaded
+      if (imageFiles.length > 0) {
+        const imagePaths = imageFiles.map((file: any) => file.path).join(', ');
+        noteData.notes = `${noteData.notes}\n\nUploaded Images: ${imagePaths}`;
+      }
+      
+      console.log("Validating data:", noteData);
+      const validatedData = insertCustodialNoteSchema.parse(noteData);
+      
       const custodialNote = await storage.createCustodialNote(validatedData);
+      
+      console.log("Successfully created custodial note:", custodialNote.id);
       res.json(custodialNote);
+      
     } catch (error) {
       console.error("Error creating custodial note:", error);
-      res.status(400).json({ error: "Invalid custodial note data" });
+      
+      // Clean up uploaded files if database save failed
+      if (req.files) {
+        req.files.forEach((file: any) => {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (unlinkError) {
+            console.error("Error cleaning up file:", unlinkError);
+          }
+        });
+      }
+      
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          error: "Invalid custodial note data", 
+          details: error.errors,
+          message: "Please check all required fields are filled correctly"
+        });
+      } else if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          res.status(400).json({ 
+            error: "File too large",
+            message: "Maximum file size is 5MB per file"
+          });
+        } else if (error.code === 'LIMIT_FILE_COUNT') {
+          res.status(400).json({ 
+            error: "Too many files",
+            message: "Maximum 5 files allowed"
+          });
+        } else {
+          res.status(400).json({ 
+            error: "File upload error",
+            message: error.message
+          });
+        }
+      } else {
+        res.status(500).json({ 
+          error: "Failed to create custodial note",
+          message: "Server error occurred. Please try again."
+        });
+      }
     }
   });
 
