@@ -1,5 +1,11 @@
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -465,6 +471,16 @@ import path from "path";
 var log = console.log;
 function serveStatic(app2) {
   const distPath = path.join(process.cwd(), "dist/public");
+  if (!__require("fs").existsSync(distPath)) {
+    log.error('Build directory not found. Run "npm run build" first.');
+    app2.get("*", (req, res) => {
+      if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
+        return res.status(500).json({ error: "Application not built" });
+      }
+      res.status(500).send('<h1>Run "npm run build" first</h1>');
+    });
+    return;
+  }
   app2.use(express.static(distPath));
   app2.get("*", (req, res, next) => {
     if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
@@ -766,6 +782,17 @@ app.use((req, res, next) => {
         slug: process.env.REPL_SLUG,
         owner: process.env.REPL_OWNER
       });
+    }
+    const requiredEnvVars = ["DATABASE_URL"];
+    const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+    if (missingEnvVars.length > 0) {
+      logger.error("Missing required environment variables", { missing: missingEnvVars });
+      process.exit(1);
+    }
+    if (!process.env.SESSION_SECRET) {
+      const crypto = __require("crypto");
+      process.env.SESSION_SECRET = crypto.randomBytes(32).toString("hex");
+      logger.warn("Generated temporary session secret");
     }
     await registerRoutes(app);
     logger.info("Routes registered successfully");
