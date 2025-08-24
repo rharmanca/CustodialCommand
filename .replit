@@ -24,3 +24,6 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run build && npm start"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-05f774ee-e32e-4546-a20e-4f7dda619508"
