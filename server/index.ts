@@ -85,8 +85,8 @@ app.use((req, res, next) => {
     }
 
     if (!process.env.SESSION_SECRET) {
-      const crypto = require('crypto');
-      process.env.SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+      const { randomBytes } = await import('crypto');
+      process.env.SESSION_SECRET = randomBytes(32).toString('hex');
       logger.warn('Generated temporary session secret');
     }
 
