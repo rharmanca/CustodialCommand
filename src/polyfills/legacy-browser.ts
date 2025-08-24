@@ -179,9 +179,7 @@ if (!('classList' in document.createElement('_'))) {
     var classListProp = 'classList',
         protoProp = 'prototype',
         elemCtrProto = view.Element[protoProp],
-        objCtr = Object,
-        strTrim: (this: string) => string,
-        arrIndexOf: (this: any[], item: any) => number;
+        objCtr = Object;
 
     // Helper functions with proper types
     function legacyAddClass(element: HTMLElement, className: string): void {
@@ -202,20 +200,20 @@ if (!('classList' in document.createElement('_'))) {
       }
     }
 
-    if (objCtr.defineProperty) {
-      var defineProperty = {
-        get: function() {
-          return new DOMTokenList(this);
-        }
-      };
-      try {
+    var defineProperty: PropertyDescriptor = {
+      get: function() {
+        return new (DOMTokenList as any)();
+      },
+      enumerable: false,
+      configurable: false
+    };
+    try {
+      objCtr.defineProperty(elemCtrProto, classListProp, defineProperty);
+    } catch (ex: any) {
+      if (ex && ex.number === -0x7FF5EC54) {
+        defineProperty.enumerable = false;
+        defineProperty.configurable = false;
         objCtr.defineProperty(elemCtrProto, classListProp, defineProperty);
-      } catch (ex) {
-        if (ex.number === -0x7FF5EC54) {
-          defineProperty.enumerable = false;
-          defineProperty.configurable = false;
-          objCtr.defineProperty(elemCtrProto, classListProp, defineProperty);
-        }
       }
     }
   }(window));

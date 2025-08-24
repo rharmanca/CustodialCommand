@@ -9,6 +9,9 @@ import { useIsMobile } from './hooks/use-mobile';
 import { useCustomNotifications } from '@/hooks/use-custom-notifications';
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationContainer } from "@/components/ui/custom-notification";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Router } from 'wouter';
+import { queryClient } from '@/lib/queryClient';
 import custodialDutyImage from './assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 import sharedServicesImage from './assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
 

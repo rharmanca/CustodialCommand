@@ -1,4 +1,6 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+
+type QueryFunction<T = unknown> = (context: { queryKey: string[] }) => Promise<T>;
 
 // Legacy XMLHttpRequest for better browser compatibility
 function createXHR(): XMLHttpRequest {
@@ -109,7 +111,7 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  function({ queryKey }) {
+  function({ queryKey }: { queryKey: string[] }) {
     return new Promise(function(resolve, reject) {
       safeFetch(queryKey.join("/") as string, {
         credentials: "include",

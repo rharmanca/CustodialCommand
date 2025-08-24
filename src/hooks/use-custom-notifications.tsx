@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 export interface CustomNotification {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
+  title?: string;
   message: string;
   duration?: number;
 }
@@ -42,19 +42,19 @@ export function useCustomNotifications() {
 
   // Convenience methods
   const showSuccess = useCallback((message: string, title?: string, duration?: number) => {
-    return addNotification({ type: 'success', message, title, duration });
+    return addNotification({ type: 'success', message, title: title || 'Success', duration });
   }, [addNotification]);
 
   const showError = useCallback((message: string, title?: string, duration?: number) => {
-    return addNotification({ type: 'error', message, title, duration });
+    return addNotification({ type: 'error', message, title: title || 'Error', duration });
   }, [addNotification]);
 
   const showInfo = useCallback((message: string, title?: string, duration?: number) => {
-    return addNotification({ type: 'info', message, title, duration });
+    return addNotification({ type: 'info', message, title: title || 'Info', duration });
   }, [addNotification]);
 
   const showWarning = useCallback((message: string, title?: string, duration?: number) => {
-    return addNotification({ type: 'warning', message, title, duration });
+    return addNotification({ type: 'warning', message, title: title || 'Warning', duration });
   }, [addNotification]);
 
   return {
