@@ -790,8 +790,8 @@ app.use((req, res, next) => {
       process.exit(1);
     }
     if (!process.env.SESSION_SECRET) {
-      const crypto = __require("crypto");
-      process.env.SESSION_SECRET = crypto.randomBytes(32).toString("hex");
+      const { randomBytes } = await import("crypto");
+      process.env.SESSION_SECRET = randomBytes(32).toString("hex");
       logger.warn("Generated temporary session secret");
     }
     await registerRoutes(app);
