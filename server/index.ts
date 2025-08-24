@@ -12,6 +12,9 @@ import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metri
 
 const app = express();
 
+// Trust proxy for Replit infrastructure
+app.set('trust proxy', true);
+
 // Request tracking and logging
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
