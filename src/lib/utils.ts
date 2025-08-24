@@ -1,4 +1,6 @@
-import clsx, { type ClassValue } from "clsx"
+import clsx from "clsx"
+
+type ClassValue = string | number | boolean | undefined | null | { [key: string]: any } | ClassValue[]
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {

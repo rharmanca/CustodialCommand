@@ -91,7 +91,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   useEffect(() => {
     if (currentDraftId) {
       const timeoutId = setTimeout(() => {
-        saveDraft();
+        saveDraftData();
       }, 2000); // Auto-save after 2 seconds of inactivity
 
       return () => clearTimeout(timeoutId);
@@ -132,7 +132,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     return `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
 
-  const saveDraft = async () => {
+  const saveDraftData = async () => {
     if (!formData.school || !formData.date) {
       return; // Don't save empty drafts
     }
@@ -659,7 +659,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <Button
             type="button"
             variant="outline"
-            onClick={saveDraft}
+            onClick={saveDraftData}
             disabled={isAutoSaving}
             className="flex-shrink-0"
           >
