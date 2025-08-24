@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -13,7 +14,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "react",
 
     /* Linting */
     "strict": true,
@@ -35,6 +35,6 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*", "src/temp-types.d.ts"],
-  "exclude": ["node_modules", "dist", "server/**/*"],
+  "exclude": ["node_modules", "dist", "server/**/*", "src/working-types.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
