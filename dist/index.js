@@ -181,6 +181,7 @@ var init_db = __esm({
 // server/index.ts
 import express2 from "express";
 import { createServer } from "http";
+import { randomBytes } from "crypto";
 import helmet from "helmet";
 import compression from "compression";
 
@@ -790,7 +791,6 @@ app.use((req, res, next) => {
       process.exit(1);
     }
     if (!process.env.SESSION_SECRET) {
-      const { randomBytes } = await import("crypto");
       process.env.SESSION_SECRET = randomBytes(32).toString("hex");
       logger.warn("Generated temporary session secret");
     }
