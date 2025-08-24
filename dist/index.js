@@ -246,9 +246,41 @@ var storage = new DatabaseStorage();
 // server/routes.ts
 init_schema();
 import { z as z2 } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 var asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
+var storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = "uploads";
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+var upload = multer({
+  storage: storage_config,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    // 5MB limit
+    files: 5
+    // Maximum 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  }
+});
 async function registerRoutes(app2) {
   app2.post("/api/inspections", asyncHandler(async (req, res) => {
     try {
@@ -303,14 +335,77 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch inspection" });
     }
   });
-  app2.post("/api/custodial-notes", async (req, res) => {
+  app2.post("/api/custodial-notes", upload.array("image", 5), async (req, res) => {
     try {
-      const validatedData = insertCustodialNoteSchema.parse(req.body);
+      console.log("Received custodial note submission:");
+      console.log("Body:", req.body);
+      console.log("Files:", req.files?.map((f) => ({ name: f.originalname, size: f.size, path: f.path })));
+      let imageFiles = req.files || [];
+      if (!imageFiles.length && req.body) {
+        const fileFields = Object.keys(req.body).filter((key) => key.startsWith("image_"));
+        if (fileFields.length > 0) {
+          console.log("Found indexed image fields, but files should be in req.files");
+        }
+      }
+      const noteData = {
+        inspectorName: req.body.inspectorName,
+        school: req.body.school,
+        date: req.body.date,
+        location: req.body.location,
+        locationDescription: req.body.locationDescription,
+        notes: req.body.notes
+      };
+      if (imageFiles.length > 0) {
+        const imagePaths = imageFiles.map((file) => file.path).join(", ");
+        noteData.notes = `${noteData.notes}
+
+Uploaded Images: ${imagePaths}`;
+      }
+      console.log("Validating data:", noteData);
+      const validatedData = insertCustodialNoteSchema.parse(noteData);
       const custodialNote = await storage.createCustodialNote(validatedData);
+      console.log("Successfully created custodial note:", custodialNote.id);
       res.json(custodialNote);
     } catch (error) {
       console.error("Error creating custodial note:", error);
-      res.status(400).json({ error: "Invalid custodial note data" });
+      if (req.files) {
+        req.files.forEach((file) => {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (unlinkError) {
+            console.error("Error cleaning up file:", unlinkError);
+          }
+        });
+      }
+      if (error instanceof z2.ZodError) {
+        res.status(400).json({
+          error: "Invalid custodial note data",
+          details: error.errors,
+          message: "Please check all required fields are filled correctly"
+        });
+      } else if (error instanceof multer.MulterError) {
+        if (error.code === "LIMIT_FILE_SIZE") {
+          res.status(400).json({
+            error: "File too large",
+            message: "Maximum file size is 5MB per file"
+          });
+        } else if (error.code === "LIMIT_FILE_COUNT") {
+          res.status(400).json({
+            error: "Too many files",
+            message: "Maximum 5 files allowed"
+          });
+        } else {
+          res.status(400).json({
+            error: "File upload error",
+            message: error.message
+          });
+        }
+      } else {
+        res.status(500).json({
+          error: "Failed to create custodial note",
+          message: "Server error occurred. Please try again."
+        });
+      }
     }
   });
   app2.get("/api/custodial-notes", async (req, res) => {
@@ -463,10 +558,10 @@ async function registerRoutes(app2) {
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import { existsSync } from "fs";
-import path from "path";
+import path2 from "path";
 var log = console.log;
 function serveStatic(app2) {
-  const distPath = path.join(process.cwd(), "dist/public");
+  const distPath = path2.join(process.cwd(), "dist/public");
   if (!existsSync(distPath)) {
     log.error('Build directory not found. Run "npm run build" first.');
     app2.get("*", (req, res) => {
@@ -482,7 +577,7 @@ function serveStatic(app2) {
     if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
       return next();
     }
-    res.sendFile(path.join(distPath, "index.html"));
+    res.sendFile(path2.join(distPath, "index.html"));
   });
 }
 
@@ -749,7 +844,7 @@ app.use(express2.urlencoded({ extended: false, limit: "10mb" }));
 app.use("/api", apiRateLimit);
 app.use((req, res, next) => {
   const start = Date.now();
-  const path2 = req.path;
+  const path3 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -758,8 +853,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path2.startsWith("/api")) {
-      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+    if (path3.startsWith("/api")) {
+      let logLine = `${req.method} ${path3} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
