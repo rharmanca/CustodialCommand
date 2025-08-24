@@ -731,6 +731,7 @@ var metricsMiddleware = (req, res, next) => {
 
 // server/index.ts
 var app = express2();
+app.set("trust proxy", true);
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);
