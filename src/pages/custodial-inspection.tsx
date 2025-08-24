@@ -174,7 +174,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }
   };
 
-  const loadDraft = (draft: any) => {
+  const loadDraftData = (draft: any) => {
     setFormData({
       school: draft.school || '',
       date: draft.date || '',
@@ -594,7 +594,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   <div className="flex space-x-2">
                     <Button
                       size="sm"
-                      onClick={() => loadDraft(draft)}
+                      onClick={() => loadDraftData(draft)}
                     >
                       Resume
                     </Button>
