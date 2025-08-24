@@ -18,12 +18,21 @@ export async function setupVite(app: express.Application, server: any) {
 
 export function serveStatic(app: express.Application) {
   const distPath = path.join(process.cwd(), "dist/public");
+
+  if (!require('fs').existsSync(distPath)) {
+    log.error('Build directory not found. Run "npm run build" first.');
+    app.get("*", (req, res) => {
+      if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
+        return res.status(500).json({ error: "Application not built" });
+      }
+      res.status(500).send('<h1>Run "npm run build" first</h1>');
+    });
+    return;
+  }
+
   app.use(express.static(distPath));
-  
-  // Handle client-side routing
-  // Handle client-side routing (excluding health endpoints)
+
   app.get("*", (req, res, next) => {
-    // Skip health check endpoints
     if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
       return next();
     }

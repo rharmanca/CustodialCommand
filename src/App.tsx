@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import CustodialInspectionPage from './pages/custodial-inspection';
 import InspectionDataPage from './pages/inspection-data';
@@ -13,12 +12,43 @@ import { NotificationContainer } from "@/components/ui/custom-notification";
 import custodialDutyImage from './assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp';
 import sharedServicesImage from './assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp';
 
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): {hasError: boolean} {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center max-w-md mx-auto">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
+            <p className="text-gray-600 mb-4">Please refresh the page to try again.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   const [currentPage, setCurrentPage] = useState<'Custodial' | 'Custodial Inspection' | 'Custodial Notes' | 'Inspection Data' | 'Whole Building Inspection' | 'Rating Criteria' | 'admin-inspections'>('Custodial');
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
-  
+
   // Custom notifications hook
   const { notifications, removeNotification } = useCustomNotifications();
 
@@ -235,53 +265,60 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="main-container">
-        {/* Header section with app title */}
-        <header className="w-full header-container rounded-xl shadow-sm">
-          <h1 className="font-bold modern-header tracking-tight">
-            Custodial Command
-          </h1>
-        </header>
+    <ErrorBoundary>
+      {/* QueryClientProvider and Router are now wrapped within ErrorBoundary */}
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <div className="min-h-screen bg-background text-foreground">
+            <div className="main-container">
+              {/* Header section with app title */}
+              <header className="w-full header-container rounded-xl shadow-sm">
+                <h1 className="font-bold modern-header tracking-tight">
+                  Custodial Command
+                </h1>
+              </header>
 
-        {/* Navigation section */}
-        <nav className="w-full nav-container rounded-xl shadow-sm">
-          <div className="button-container">
-            {navLinks.map((link) => (
-              <button
-                key={link.name}
-                onClick={() => setCurrentPage(link.path)}
-                className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
-              >
-                {link.name}
-              </button>
-            ))}
-            <button 
-              onClick={() => setCurrentPage('admin-inspections')}
-              className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
-            >
-              Admin
-            </button>
+              {/* Navigation section */}
+              <nav className="w-full nav-container rounded-xl shadow-sm">
+                <div className="button-container">
+                  {navLinks.map((link) => (
+                    <button
+                      key={link.name}
+                      onClick={() => setCurrentPage(link.path)}
+                      className={`modern-button ${currentPage === link.path ? 'bg-primary/80' : ''}`}
+                    >
+                      {link.name}
+                    </button>
+                  ))}
+                  <button 
+                    onClick={() => setCurrentPage('admin-inspections')}
+                    className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
+                  >
+                    Admin
+                  </button>
+                </div>
+              </nav>
+
+              {/* Main content area */}
+              <main className="w-full content-area rounded-xl shadow-sm">
+                {renderPageContent()}
+              </main>
+            </div>
+
+            {/* Footer section */}
+            <footer className="w-full mt-6 text-center text-muted-foreground text-sm">
+              <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
+            </footer>
+
+            <Toaster />
+            <NotificationContainer 
+              notifications={notifications} 
+              onRemove={removeNotification} 
+            />
           </div>
-        </nav>
-
-        {/* Main content area */}
-        <main className="w-full content-area rounded-xl shadow-sm">
-          {renderPageContent()}
-        </main>
-      </div>
-
-      {/* Footer section */}
-      <footer className="w-full mt-6 text-center text-muted-foreground text-sm">
-        <p>&copy; 2025 Shared Service Command. All rights reserved. For the People!</p>
-      </footer>
-      
-      <Toaster />
-      <NotificationContainer 
-        notifications={notifications} 
-        onRemove={removeNotification} 
-      />
-    </div>
+        </Router>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

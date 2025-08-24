@@ -198,3 +198,24 @@ async function signObjectURL({
 }
 
 export const objectStorageService = new ObjectStorageService();
+export interface ObjectStorage {
+  uploadFile(file: Buffer, filename: string): Promise<string>;
+  deleteFile(filename: string): Promise<boolean>;
+  getFileUrl(filename: string): string;
+}
+
+export class LocalObjectStorage implements ObjectStorage {
+  async uploadFile(file: Buffer, filename: string): Promise<string> {
+    return `data:image/jpeg;base64,${file.toString('base64')}`;
+  }
+
+  async deleteFile(filename: string): Promise<boolean> {
+    return true;
+  }
+
+  getFileUrl(filename: string): string {
+    return filename;
+  }
+}
+
+export const objectStorage = new LocalObjectStorage();

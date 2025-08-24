@@ -66,13 +66,28 @@ app.use((req, res, next) => {
 (async () => {
   try {
     logger.info("Starting server setup...");
-    
+
     // Log Replit environment info
     if (process.env.REPL_SLUG) {
       logger.info('Running on Replit', {
         slug: process.env.REPL_SLUG,
         owner: process.env.REPL_OWNER
       });
+    }
+
+    // Add environment validation and session secret generation
+    const requiredEnvVars = ['DATABASE_URL'];
+    const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+    if (missingEnvVars.length > 0) {
+      logger.error('Missing required environment variables', { missing: missingEnvVars });
+      process.exit(1);
+    }
+
+    if (!process.env.SESSION_SECRET) {
+      const crypto = require('crypto');
+      process.env.SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+      logger.warn('Generated temporary session secret');
     }
 
     await registerRoutes(app);
