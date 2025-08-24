@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
+import { randomBytes } from "crypto";
 import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
@@ -85,7 +86,6 @@ app.use((req, res, next) => {
     }
 
     if (!process.env.SESSION_SECRET) {
-      const { randomBytes } = await import('crypto');
       process.env.SESSION_SECRET = randomBytes(32).toString('hex');
       logger.warn('Generated temporary session secret');
     }
