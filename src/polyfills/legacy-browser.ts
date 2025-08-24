@@ -12,7 +12,7 @@ try {
     document.documentElement.classList.add('touch');
   }
 
-  const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+  const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                          window.innerWidth <= 768;
   if (isMobileDevice && document.documentElement.classList) {
     document.documentElement.classList.add('mobile');
@@ -31,7 +31,7 @@ console.log('[Polyfills] Legacy browser support initialized');
 // Array.from polyfill
 if (!Array.from) {
   Array.from = function<T>(arrayLike: ArrayLike<T>): T[] {
-    var result = [];
+    var result: T[] = [];
     for (var i = 0; i < arrayLike.length; i++) {
       result.push(arrayLike[i]);
     }
@@ -60,7 +60,7 @@ if (!String.prototype.endsWith) {
 // Promise polyfill (basic implementation)
 if (typeof Promise === 'undefined') {
   (window as any).Promise = function(executor: Function) {
-    var self = this;
+    var self: any = this;
     self.state = 'pending';
     self.value = undefined;
     self.reason = undefined;
@@ -94,7 +94,7 @@ if (typeof Promise === 'undefined') {
   };
 
   (window as any).Promise.prototype.then = function(onFulfilled?: Function, onRejected?: Function) {
-    var self = this;
+    var self: any = this;
     return new (window as any).Promise(function(resolve: Function, reject: Function) {
       function handle() {
         if (self.state === 'fulfilled') {
@@ -171,17 +171,6 @@ if (!window.cancelAnimationFrame) {
   };
 }
 
-// Console polyfill for very old browsers
-if (!window.console) {
-  window.console = {
-    log: function() {},
-    warn: function() {},
-    error: function() {},
-    info: function() {},
-    debug: function() {}
-  } as any;
-}
-
 // classList polyfill for older browsers
 if (!('classList' in document.createElement('_'))) {
   (function(view: any) {
@@ -191,71 +180,27 @@ if (!('classList' in document.createElement('_'))) {
         protoProp = 'prototype',
         elemCtrProto = view.Element[protoProp],
         objCtr = Object,
-        strTrim = String[protoProp].trim || function() {
-          return this.replace(/^\s+|\s+$/g, '');
-        },
-        arrIndexOf = Array[protoProp].indexOf || function(item: any) {
-          var i = 0, len = this.length;
-          for (; i < len; i++) {
-            if (i in this && this[i] === item) {
-              return i;
-            }
-          }
-          return -1;
-        };
+        strTrim: (this: string) => string,
+        arrIndexOf: (this: any[], item: any) => number;
 
-    var DOMTokenList = function(el: any) {
-      this.el = el;
-      var classes = el.className.replace(/^\s+|\s+$/g, '').split(/\s+/);
-      for (var i = 0; i < classes.length; i++) {
-        this.push(classes[i]);
-      }
-      this._updateClassName = function() {
-        el.className = this.toString();
-      };
-    };
-
-    DOMTokenList[protoProp] = [];
-    DOMTokenList[protoProp].item = function(i: number) {
-      return this[i] || null;
-    };
-    DOMTokenList[protoProp].contains = function(token: string) {
-      token += '';
-      return arrIndexOf.call(this, token) !== -1;
-    };
-    DOMTokenList[protoProp].add = function() {
-      var tokens = arguments;
-      for (var i = 0; i < tokens.length; i++) {
-        var token = tokens[i] + '';
-        if (arrIndexOf.call(this, token) === -1) {
-          this.push(token);
+    // Helper functions with proper types
+    function legacyAddClass(element: HTMLElement, className: string): void {
+      if (element.classList) {
+        element.classList.add(className);
+      } else {
+        if (element.className.indexOf(className) === -1) {
+          element.className += ' ' + className;
         }
       }
-      this._updateClassName();
-    };
-    DOMTokenList[protoProp].remove = function() {
-      var tokens = arguments;
-      for (var i = 0; i < tokens.length; i++) {
-        var token = tokens[i] + '';
-        var index = arrIndexOf.call(this, token);
-        if (index !== -1) {
-          this.splice(index, 1);
-        }
+    }
+
+    function legacyRemoveClass(element: HTMLElement, className: string): void {
+      if (element.classList) {
+        element.classList.remove(className);
+      } else {
+        element.className = element.className.replace(new RegExp('\\b' + className + '\\b', 'g'), '');
       }
-      this._updateClassName();
-    };
-    DOMTokenList[protoProp].toggle = function(token: string, force?: boolean) {
-      token += '';
-      var result = this.contains(token),
-          method = result ? (force !== true && 'remove') || (force === true && 'add') : null;
-      if (method) {
-        this[method](token);
-      }
-      return typeof force === 'boolean' ? force : !result;
-    };
-    DOMTokenList[protoProp].toString = function() {
-      return this.join(' ');
-    };
+    }
 
     if (objCtr.defineProperty) {
       var defineProperty = {
@@ -285,7 +230,7 @@ if (isTouchDevice) {
 }
 
 // Mobile detection
-var isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+var isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                      window.innerWidth <= 768;
 if (isMobileDevice) {
   document.documentElement.classList.add('mobile');

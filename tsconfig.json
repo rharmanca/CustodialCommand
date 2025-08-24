@@ -34,7 +34,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "src/temp-types.d.ts"],
+  "include": ["src/**/*", "src/temp-types.d.ts", "src/types/**/*"],
   "exclude": ["node_modules", "dist", "server/**/*", "src/working-types.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
