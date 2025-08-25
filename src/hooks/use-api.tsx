@@ -77,3 +77,16 @@ export function useApi(options?: UseApiOptions) {
     delete: del
   };
 }
+
+export async function createInspection(data: any) {
+  const res = await fetch('/api/inspections', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Create inspection failed: ${res.status} ${text}`);
+  }
+  return res.json();
+}
