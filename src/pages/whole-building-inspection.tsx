@@ -156,7 +156,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     loadAvailableInspections();
     migrateLegacyDrafts();
     loadFormDraft();
-    
+
     // Log storage stats for monitoring
     const stats = getStorageStats();
     console.log('Building inspection storage stats:', stats);
@@ -232,14 +232,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     if (currentFormDraftId) {
       // Clear from optimized storage
       clearDraft(`${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${currentFormDraftId}`);
-      
+
       // Also clean up legacy storage
       const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
       const updatedDrafts = existingDrafts.filter((d: any) => d.id !== currentFormDraftId);
       if (updatedDrafts.length !== existingDrafts.length) {
         localStorage.setItem('building_form_drafts', JSON.stringify(updatedDrafts));
       }
-      
+
       setCurrentFormDraftId(null);
       setLastSaved(null);
     }
@@ -530,7 +530,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('=== BUILDING INSPECTION SUBMISSION DEBUG ===');
     console.log('Selected Category:', selectedCategory);
     console.log('Building ID:', buildingInspectionId);
@@ -584,12 +584,23 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       // Create or get building inspection first
       let currentBuildingId = buildingInspectionId;
 
+      // Additional validation to ensure required API fields are present
+      if (!formData.school || !formData.inspectorName.trim() || !formData.date) {
+        toast({
+          title: "Missing Required Information",
+          description: "School, inspector name, and date are required for building inspection.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        return;
+      }
+
       if (!currentBuildingId) {
         console.log('Creating new building inspection...');
         const buildingPayload = {
-          inspectorName: formData.inspectorName,
-          school: formData.school,
-          date: formData.date,
+          inspectorName: formData.inspectorName || '',
+          school: formData.school || '',
+          date: formData.date || '',
           inspectionType: 'whole_building',
           locationDescription: 'Whole Building Inspection',
           isCompleted: false,
@@ -691,9 +702,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         setTimeout(() => {
           const progressSection = document.querySelector('[data-inspection-progress]');
           if (progressSection) {
-            progressSection.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'start' 
+            progressSection.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
             });
           }
         }, 100);
@@ -801,8 +812,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         <div className="flex justify-center px-4">
           <Collapsible className="w-full max-w-lg">
             <CollapsibleTrigger asChild>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full p-3 h-auto font-normal text-center text-primary hover:text-primary/80 hover:bg-accent/10 border border-accent/30 rounded-lg text-sm sm:text-base leading-relaxed"
               >
                 📋 How to conduct a whole building inspection ↓
@@ -1016,10 +1027,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <div
                   key={category}
                   className={`p-3 rounded-lg border ${
-                    isComplete 
-                      ? 'bg-green-50 border-green-200' 
-                      : selectedCategory === category 
-                        ? 'bg-blue-50 border-blue-300 border-2' 
+                    isComplete
+                      ? 'bg-green-50 border-green-200'
+                      : selectedCategory === category
+                        ? 'bg-blue-50 border-blue-300 border-2'
                         : 'bg-gray-50 border-gray-200'
                   }`}
                 >
@@ -1079,10 +1090,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <div
                   key={category}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
-                    isComplete 
-                      ? 'bg-green-50 border-green-200' 
-                      : selectedCategory === category 
-                        ? 'bg-blue-50 border-blue-300 border-2' 
+                    isComplete
+                      ? 'bg-green-50 border-green-200'
+                      : selectedCategory === category
+                        ? 'bg-blue-50 border-blue-300 border-2'
                         : 'bg-gray-50 border-gray-200'
                   }`}
                 >
@@ -1179,7 +1190,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                     placeholder="e.g., Main Building, Second Floor"
                   />
-                                    </div>
+                </div>
               </div>
             </MobileCard>
           ) : (
@@ -1222,7 +1233,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                       placeholder="e.g., Main Building, Second Floor"
                     />
-                                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1426,9 +1437,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             </Card>
           )}
 
-          <Button 
-            type="submit" 
-            size="lg" 
+          <Button
+            type="submit"
+            size="lg"
             className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
           >
             Submit {categoryLabels[selectedCategory]} Inspection
