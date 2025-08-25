@@ -272,7 +272,7 @@ function App() {
       {/* QueryClientProvider and Router are now wrapped within ErrorBoundary */}
       <QueryClientProvider client={queryClient}>
         <Router>
-          <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+          <div className="min-h-screen bg-background text-foreground">
             <div className="main-container">
               {/* Header section with app title */}
               <header className="w-full header-container rounded-xl shadow-sm">
