@@ -13,6 +13,22 @@ import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metri
 
 const app = express();
 
+// Core middleware configuration - MUST be before routes
+app.use(requestIdMiddleware);
+app.use(performanceMonitor);
+app.use(metricsMiddleware);
+app.use(helmet({
+  contentSecurityPolicy: false, // Allow inline styles for development
+  crossOriginEmbedderPolicy: false
+}));
+app.use(compression());
+app.use(securityHeaders);
+app.use(validateRequest);
+app.use(sanitizeInput);
+
+// Body parsing middleware - CRITICAL: Must be before routes
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Apply rate limiting to API routes
 app.use('/api', apiRateLimit);
