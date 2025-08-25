@@ -277,7 +277,7 @@ function App() {
               {/* Header section with app title */}
               <header className="w-full header-container rounded-xl shadow-sm">
                 <h1 className="font-bold modern-header tracking-tight">
-                  Custodial Command
+                  CA Custodial Command
                 </h1>
               </header>
 
