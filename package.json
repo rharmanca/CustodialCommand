@@ -11,18 +11,9 @@
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --external:fs --external:path --external:crypto --external:http --external:https --external:url --external:os --external:stream --external:util --external:events --external:querystring --external:zlib --outdir=dist",
     "prestart": "node -e \"if (!process.env.DATABASE_URL) { console.error('DATABASE_URL not set'); process.exit(1); }\"",
     "start": "NODE_ENV=production node dist/index.js",
-<<<<<<< HEAD
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push",
     "preview": "vite preview"
-=======
-    "check": "tsc",
-    "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio",
-    "lint": "tsc --noEmit",
-    "clean": "rm -rf dist node_modules/.cache"
->>>>>>> cadfd26dfb434a576df963764ff632b780371326
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

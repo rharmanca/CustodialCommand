@@ -703,7 +703,15 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         throw new Error(errorData.error || 'Failed to submit inspection');
       }
     } catch (error) {
+      console.error('=== ERROR DETAILS ===');
       console.error('Error submitting inspection:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
+      console.error('Error message:', error instanceof Error ? error.message : 'No message');
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
+      console.error('Form data at error:', formData);
+      console.error('Selected category at error:', selectedCategory);
+      console.error('Building ID at error:', buildingInspectionId);
 
       let errorMessage = "Failed to save inspection. Please check your connection and try again.";
       let errorTitle = "Submission Failed";
@@ -718,6 +726,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
           errorTitle = "Network Error";
           errorMessage = "Unable to connect to server. Please check your internet connection.";
+        } else if (error.message.includes('validation') || error.message.includes('Invalid')) {
+          errorTitle = "Data Validation Error";
+          errorMessage = "Please check all required fields are properly filled out.";
         }
       }
 

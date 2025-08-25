@@ -180,7 +180,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       
     } catch (error) {
       console.error("Error creating custodial note:", error);
-<<<<<<< HEAD
       
       // Clean up uploaded files if database save failed
       if (req.files) {
@@ -221,12 +220,6 @@ export async function registerRoutes(app: Express): Promise<void> {
           error: "Failed to create custodial note",
           message: "Server error occurred. Please try again."
         });
-=======
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: "Invalid custodial note data", details: error.errors });
-      } else {
-        res.status(500).json({ error: "Failed to create custodial note" });
->>>>>>> cadfd26dfb434a576df963764ff632b780371326
       }
     }
   });
