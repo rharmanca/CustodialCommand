@@ -83,6 +83,9 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   images: z.array(z.string()).optional().default([]),
   verifiedRooms: z.array(z.string()).optional().default([]),
   isCompleted: z.boolean().optional().default(false),
+  school: z.string().optional().default(''),
+  inspectionType: z.string().optional().default('routine'),
+  locationDescription: z.string().optional().default(''),
 });
 
 export const insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
