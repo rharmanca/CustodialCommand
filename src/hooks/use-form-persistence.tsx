@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { setStorageItem, getStorageItem, removeStorageItem } from '@/utils/storage';
+import { saveDraft as setStorageItem, loadDraft as getStorageItem, clearDraft as removeStorageItem } from '@/utils/storage';
 
 interface FormPersistenceOptions<T> {
   key: string;
@@ -34,7 +34,7 @@ export function useFormPersistence<T extends Record<string, any>>({
     if (!enabled) return null;
     
     try {
-      const savedData = getStorageItem(key, null);
+      const savedData = getStorageItem(key);
       if (savedData && typeof savedData === 'object') {
         // Remove metadata before returning
         const { lastModified, version, ...formData } = savedData;

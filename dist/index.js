@@ -1,250 +1,203 @@
-var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-
-// shared/schema.ts
-var schema_exports = {};
-__export(schema_exports, {
-  custodialNotes: () => custodialNotes,
-  insertCustodialNoteSchema: () => insertCustodialNoteSchema,
-  insertInspectionSchema: () => insertInspectionSchema,
-  insertRoomInspectionSchema: () => insertRoomInspectionSchema,
-  insertUserSchema: () => insertUserSchema,
-  inspections: () => inspections,
-  roomInspections: () => roomInspections,
-  users: () => users
-});
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
-var users, inspections, roomInspections, custodialNotes, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema;
-var init_schema = __esm({
-  "shared/schema.ts"() {
-    "use strict";
-    users = pgTable("users", {
-      id: serial("id").primaryKey(),
-      username: text("username").notNull().unique(),
-      password: text("password").notNull()
-    });
-    inspections = pgTable("inspections", {
-      id: serial("id").primaryKey(),
-      inspectorName: text("inspector_name"),
-      school: text("school").notNull(),
-      date: text("date").notNull(),
-      inspectionType: text("inspection_type").notNull(),
-      // 'single_room' or 'whole_building'
-      locationDescription: text("location_description").notNull(),
-      roomNumber: text("room_number"),
-      // For single room inspections
-      locationCategory: text("location_category"),
-      // New field for location category
-      buildingName: text("building_name"),
-      // For whole building inspections
-      buildingInspectionId: integer("building_inspection_id"),
-      // Reference to parent building inspection
-      // For single room inspections, store ratings directly (nullable for building inspections)
-      floors: integer("floors"),
-      verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
-      ceiling: integer("ceiling"),
-      restrooms: integer("restrooms"),
-      customerSatisfaction: integer("customer_satisfaction"),
-      trash: integer("trash"),
-      projectCleaning: integer("project_cleaning"),
-      activitySupport: integer("activity_support"),
-      safetyCompliance: integer("safety_compliance"),
-      equipment: integer("equipment"),
-      monitoring: integer("monitoring"),
-      notes: text("notes"),
-      images: text("images").array(),
-      verifiedRooms: text("verified_rooms").array(),
-      // For tracking completed room types in building inspections
-      isCompleted: boolean("is_completed").default(false),
-      // For whole building inspections
-      createdAt: timestamp("created_at").defaultNow().notNull()
-    });
-    roomInspections = pgTable("room_inspections", {
-      id: serial("id").primaryKey(),
-      buildingInspectionId: integer("building_inspection_id").notNull(),
-      roomType: text("room_type").notNull(),
-      roomIdentifier: text("room_identifier"),
-      // Specific room number or identifier
-      floors: integer("floors"),
-      verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
-      ceiling: integer("ceiling"),
-      restrooms: integer("restrooms"),
-      customerSatisfaction: integer("customer_satisfaction"),
-      trash: integer("trash"),
-      projectCleaning: integer("project_cleaning"),
-      activitySupport: integer("activity_support"),
-      safetyCompliance: integer("safety_compliance"),
-      equipment: integer("equipment"),
-      monitoring: integer("monitoring"),
-      notes: text("notes"),
-      images: text("images").array().default([]),
-      createdAt: timestamp("created_at").defaultNow().notNull()
-    });
-    custodialNotes = pgTable("custodial_notes", {
-      id: serial("id").primaryKey(),
-      school: text("school").notNull(),
-      date: text("date").notNull(),
-      location: text("location").notNull(),
-      locationDescription: text("location_description").notNull(),
-      notes: text("notes").notNull(),
-      createdAt: timestamp("created_at").defaultNow().notNull()
-    });
-    insertUserSchema = createInsertSchema(users).pick({
-      username: true,
-      password: true
-    });
-    insertInspectionSchema = createInsertSchema(inspections).omit({
-      id: true,
-      createdAt: true
-    }).extend({
-      buildingInspectionId: z.number().nullable().optional(),
-      images: z.array(z.string()).optional().default([]),
-      verifiedRooms: z.array(z.string()).optional().default([]),
-      isCompleted: z.boolean().optional().default(false)
-    });
-    insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
-      id: true,
-      createdAt: true
-    }).extend({
-      images: z.array(z.string()).optional().default([]),
-      floors: z.number().nullable().optional(),
-      verticalHorizontalSurfaces: z.number().nullable().optional(),
-      ceiling: z.number().nullable().optional(),
-      restrooms: z.number().nullable().optional(),
-      customerSatisfaction: z.number().nullable().optional(),
-      trash: z.number().nullable().optional(),
-      projectCleaning: z.number().nullable().optional(),
-      activitySupport: z.number().nullable().optional(),
-      safetyCompliance: z.number().nullable().optional(),
-      equipment: z.number().nullable().optional(),
-      monitoring: z.number().nullable().optional(),
-      notes: z.string().nullable().optional(),
-      roomIdentifier: z.string().nullable().optional()
-    });
-    insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
-      id: true,
-      createdAt: true
-    });
-  }
-});
 
 // server/db.ts
 var db_exports = {};
-__export(db_exports, {
-  db: () => db,
-  pool: () => pool
-});
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import ws from "ws";
-var pool, db;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
-    init_schema();
-    if (typeof WebSocket === "undefined") {
-      neonConfig.webSocketConstructor = ws;
-    }
-    neonConfig.poolQueryViaFetch = true;
     if (!process.env.DATABASE_URL) {
       throw new Error(
         "DATABASE_URL must be set. Check your Replit Secrets tab."
       );
     }
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: process.env.NODE_ENV === "production" ? 3 : 1,
-      idleTimeoutMillis: 6e4,
-      // Longer for Replit
-      connectionTimeoutMillis: 15e3
-      // Longer timeout for Replit
-    });
-    db = drizzle({ client: pool, schema: schema_exports });
   }
 });
 
 // server/index.ts
+import "dotenv/config";
 import express2 from "express";
 import { createServer } from "http";
 import { randomBytes } from "crypto";
-import helmet from "helmet";
-import compression from "compression";
+
+// shared/schema.ts
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+var users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull()
+});
+var inspections = pgTable("inspections", {
+  id: serial("id").primaryKey(),
+  inspectorName: text("inspector_name"),
+  school: text("school").notNull(),
+  date: text("date").notNull(),
+  inspectionType: text("inspection_type").notNull(),
+  // 'single_room' or 'whole_building'
+  locationDescription: text("location_description").notNull(),
+  roomNumber: text("room_number"),
+  // For single room inspections
+  locationCategory: text("location_category"),
+  // New field for location category
+  buildingName: text("building_name"),
+  // For whole building inspections
+  buildingInspectionId: integer("building_inspection_id"),
+  // Reference to parent building inspection
+  // For single room inspections, store ratings directly (nullable for building inspections)
+  floors: integer("floors"),
+  verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
+  ceiling: integer("ceiling"),
+  restrooms: integer("restrooms"),
+  customerSatisfaction: integer("customer_satisfaction"),
+  trash: integer("trash"),
+  projectCleaning: integer("project_cleaning"),
+  activitySupport: integer("activity_support"),
+  safetyCompliance: integer("safety_compliance"),
+  equipment: integer("equipment"),
+  monitoring: integer("monitoring"),
+  notes: text("notes"),
+  images: text("images").array(),
+  verifiedRooms: text("verified_rooms").array(),
+  // For tracking completed room types in building inspections
+  isCompleted: boolean("is_completed").default(false),
+  // For whole building inspections
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+var roomInspections2 = pgTable("room_inspections", {
+  id: serial("id").primaryKey(),
+  buildingInspectionId: integer("building_inspection_id").notNull(),
+  roomType: text("room_type").notNull(),
+  roomIdentifier: text("room_identifier"),
+  // Specific room number or identifier
+  floors: integer("floors"),
+  verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
+  ceiling: integer("ceiling"),
+  restrooms: integer("restrooms"),
+  customerSatisfaction: integer("customer_satisfaction"),
+  trash: integer("trash"),
+  projectCleaning: integer("project_cleaning"),
+  activitySupport: integer("activity_support"),
+  safetyCompliance: integer("safety_compliance"),
+  equipment: integer("equipment"),
+  monitoring: integer("monitoring"),
+  notes: text("notes"),
+  images: text("images").array().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+var custodialNotes = pgTable("custodial_notes", {
+  id: serial("id").primaryKey(),
+  school: text("school").notNull(),
+  date: text("date").notNull(),
+  location: text("location").notNull(),
+  locationDescription: text("location_description").notNull(),
+  notes: text("notes").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+var insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true
+});
+var insertInspectionSchema = createInsertSchema(inspections).omit({
+  id: true,
+  createdAt: true
+}).extend({
+  buildingInspectionId: z.number().nullable().optional(),
+  images: z.array(z.string()).optional().default([]),
+  verifiedRooms: z.array(z.string()).optional().default([]),
+  isCompleted: z.boolean().optional().default(false)
+});
+var insertRoomInspectionSchema = createInsertSchema(roomInspections2).omit({
+  id: true,
+  createdAt: true
+}).extend({
+  images: z.array(z.string()).optional().default([]),
+  floors: z.number().nullable().optional(),
+  verticalHorizontalSurfaces: z.number().nullable().optional(),
+  ceiling: z.number().nullable().optional(),
+  restrooms: z.number().nullable().optional(),
+  customerSatisfaction: z.number().nullable().optional(),
+  trash: z.number().nullable().optional(),
+  projectCleaning: z.number().nullable().optional(),
+  activitySupport: z.number().nullable().optional(),
+  safetyCompliance: z.number().nullable().optional(),
+  equipment: z.number().nullable().optional(),
+  monitoring: z.number().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  roomIdentifier: z.string().nullable().optional()
+});
+var insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
+  id: true,
+  createdAt: true
+});
 
 // server/storage.ts
-init_schema();
 init_db();
 import { eq } from "drizzle-orm";
 var DatabaseStorage = class {
   async getUser(id) {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await (void 0).select().from(users).where(eq(users.id, id));
     return user || void 0;
   }
   async getUserByUsername(username) {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await (void 0).select().from(users).where(eq(users.username, username));
     return user || void 0;
   }
   async createUser(insertUser) {
-    const [user] = await db.insert(users).values([insertUser]).returning();
+    const [user] = await (void 0).insert(users).values([insertUser]).returning();
     return user;
   }
   async createInspection(insertInspection) {
-    const [inspection] = await db.insert(inspections).values([insertInspection]).returning();
+    const [inspection] = await (void 0).insert(inspections).values([insertInspection]).returning();
     return inspection;
   }
   async getInspections() {
-    return await db.select().from(inspections);
+    return await (void 0).select().from(inspections);
   }
   async getInspection(id) {
-    const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
+    const [inspection] = await (void 0).select().from(inspections).where(eq(inspections.id, id));
     return inspection || void 0;
   }
   async createCustodialNote(insertCustodialNote) {
-    const [custodialNote] = await db.insert(custodialNotes).values([insertCustodialNote]).returning();
+    const [custodialNote] = await (void 0).insert(custodialNotes).values([insertCustodialNote]).returning();
     return custodialNote;
   }
   async getCustodialNotes() {
-    return await db.select().from(custodialNotes);
+    return await (void 0).select().from(custodialNotes);
   }
   async getCustodialNote(id) {
-    const [custodialNote] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
+    const [custodialNote] = await (void 0).select().from(custodialNotes).where(eq(custodialNotes.id, id));
     return custodialNote || void 0;
   }
   async updateInspection(id, updates) {
-    const [inspection] = await db.update(inspections).set(updates).where(eq(inspections.id, id)).returning();
+    const [inspection] = await (void 0).update(inspections).set(updates).where(eq(inspections.id, id)).returning();
     return inspection || void 0;
   }
   async createRoomInspection(insertRoomInspection) {
-    const [roomInspection] = await db.insert(roomInspections).values([insertRoomInspection]).returning();
+    const [roomInspection] = await (void 0).insert(roomInspections2).values([insertRoomInspection]).returning();
     return roomInspection;
   }
   async getRoomInspections() {
-    return await db.select().from(roomInspections);
+    return await (void 0).select().from(roomInspections2);
   }
   async getRoomInspection(id) {
-    const [roomInspection] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
+    const [roomInspection] = await (void 0).select().from(roomInspections2).where(eq(roomInspections2.id, id));
     return roomInspection || void 0;
   }
   async getRoomInspectionsByBuildingId(buildingInspectionId) {
-    return await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+    return await (void 0).select().from(roomInspections2).where(eq(roomInspections2.buildingInspectionId, buildingInspectionId));
   }
   async deleteInspection(id) {
-    const result = await db.delete(inspections).where(eq(inspections.id, id)).returning();
+    const result = await (void 0).delete(inspections).where(eq(inspections.id, id)).returning();
     return result.length > 0;
   }
 };
 var storage = new DatabaseStorage();
 
 // server/routes.ts
-init_schema();
 import { z as z2 } from "zod";
 import multer from "multer";
 import path from "path";
@@ -283,18 +236,32 @@ var upload = multer({
 });
 async function registerRoutes(app2) {
   app2.post("/api/inspections", asyncHandler(async (req, res) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`[${requestId}] POST /api/inspections - Starting submission`);
+    console.log(`[${requestId}] Request body keys:`, Object.keys(req.body));
+    console.log(`[${requestId}] Request body:`, JSON.stringify(req.body, null, 2));
     try {
+      console.log(`[${requestId}] Validating data with schema...`);
       const validatedData = insertInspectionSchema.parse(req.body);
+      console.log(`[${requestId}] Validation successful, creating inspection...`);
       const inspection = await storage.createInspection(validatedData);
+      console.log(`[${requestId}] Inspection created successfully with ID:`, inspection.id);
       res.json(inspection);
     } catch (error) {
-      console.error("Error creating inspection:", error);
+      console.error(`[${requestId}] Error creating inspection:`, error);
       if (error instanceof z2.ZodError) {
-        res.status(400).json({ error: "Invalid inspection data", details: error.errors });
+        console.error(`[${requestId}] Validation errors:`, error.errors);
+        res.status(400).json({
+          error: "Invalid inspection data",
+          details: error.errors,
+          requestId
+        });
       } else {
+        console.error(`[${requestId}] Database or server error:`, error);
         res.status(500).json({
           error: "Failed to create inspection",
-          message: process.env.NODE_ENV === "development" ? error instanceof Error ? error.message : "Unknown error" : void 0
+          message: process.env.NODE_ENV === "development" ? error instanceof Error ? error.message : "Unknown error" : "Server error occurred",
+          requestId
         });
       }
     }
@@ -325,6 +292,9 @@ async function registerRoutes(app2) {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       const inspection = await storage.getInspection(id);
       if (!inspection) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -336,10 +306,11 @@ async function registerRoutes(app2) {
     }
   });
   app2.post("/api/custodial-notes", upload.array("image", 5), async (req, res) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
-      console.log("Received custodial note submission:");
-      console.log("Body:", req.body);
-      console.log("Files:", req.files?.map((f) => ({ name: f.originalname, size: f.size, path: f.path })));
+      console.log(`[${requestId}] POST /api/custodial-notes - Starting submission`);
+      console.log(`[${requestId}] Body:`, req.body);
+      console.log(`[${requestId}] Files:`, req.files?.map((f) => ({ name: f.originalname, size: f.size, path: f.path })));
       let imageFiles = req.files || [];
       if (!imageFiles.length && req.body) {
         const fileFields = Object.keys(req.body).filter((key) => key.startsWith("image_"));
@@ -423,6 +394,9 @@ Uploaded Images: ${imagePaths}`;
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid custodial note ID" });
       }
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid custodial note ID" });
+      }
       const custodialNote = await storage.getCustodialNote(id);
       if (!custodialNote) {
         return res.status(404).json({ error: "Custodial note not found" });
@@ -436,6 +410,9 @@ Uploaded Images: ${imagePaths}`;
   app2.patch("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
@@ -459,6 +436,9 @@ Uploaded Images: ${imagePaths}`;
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       const success = await storage.deleteInspection(id);
       if (!success) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -472,6 +452,9 @@ Uploaded Images: ${imagePaths}`;
   app2.put("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
@@ -493,6 +476,9 @@ Uploaded Images: ${imagePaths}`;
   app2.get("/api/inspections/:id/rooms", async (req, res) => {
     try {
       const buildingInspectionId = parseInt(req.params.id);
+      if (isNaN(buildingInspectionId)) {
+        return res.status(400).json({ error: "Invalid building inspection ID" });
+      }
       if (isNaN(buildingInspectionId)) {
         return res.status(400).json({ error: "Invalid building inspection ID" });
       }
@@ -533,15 +519,10 @@ Uploaded Images: ${imagePaths}`;
     try {
       const buildingInspectionId = req.query.buildingInspectionId;
       if (buildingInspectionId) {
-        const id = parseInt(buildingInspectionId);
-        if (isNaN(id)) {
-          return res.status(400).json({ error: "Invalid building inspection ID" });
-        }
-        const roomInspections2 = await storage.getRoomInspectionsByBuildingId(id);
-        res.json(roomInspections2);
+        res.json(roomInspections);
       } else {
-        const roomInspections2 = await storage.getRoomInspections();
-        res.json(roomInspections2);
+        const roomInspections3 = await storage.getRoomInspections();
+        res.json(roomInspections3);
       }
     } catch (error) {
       console.error("Error fetching room inspections:", error);
@@ -551,6 +532,9 @@ Uploaded Images: ${imagePaths}`;
   app2.get("/api/room-inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid room inspection ID" });
+      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid room inspection ID" });
       }
@@ -606,70 +590,6 @@ var createRateLimit = (windowMs, max) => {
 };
 var apiRateLimit = createRateLimit(15 * 60 * 1e3, 100);
 var strictRateLimit = createRateLimit(15 * 60 * 1e3, 10);
-var sanitizeInput = (req, res, next) => {
-  const sanitizeString = (str) => {
-    return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
-  };
-  const sanitizeObject = (obj) => {
-    if (typeof obj === "string") {
-      return sanitizeString(obj);
-    } else if (Array.isArray(obj)) {
-      return obj.map(sanitizeObject);
-    } else if (typeof obj === "object" && obj !== null) {
-      const sanitized = {};
-      for (const [key, value] of Object.entries(obj)) {
-        sanitized[key] = sanitizeObject(value);
-      }
-      return sanitized;
-    }
-    return obj;
-  };
-  if (req.body && typeof req.body === "object") {
-    req.body = sanitizeObject(req.body);
-  }
-  next();
-};
-var securityHeaders = (req, res, next) => {
-  const allowedOrigins = [
-    "http://localhost:5000",
-    "http://localhost:5173"
-  ];
-  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-    allowedOrigins.push(
-      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
-      `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
-      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
-    );
-  }
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-};
-var validateRequest = (req, res, next) => {
-  const contentLength = parseInt(req.headers["content-length"] || "0");
-  if (contentLength > 10 * 1024 * 1024) {
-    return res.status(413).json({ error: "Request too large" });
-  }
-  if (["POST", "PUT", "PATCH"].includes(req.method)) {
-    const contentType = req.headers["content-type"];
-    if (!contentType || !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
-      return res.status(400).json({ error: "Invalid content type" });
-    }
-  }
-  next();
-};
 
 // server/logger.ts
 var Logger = class {
@@ -709,54 +629,15 @@ var Logger = class {
   }
 };
 var logger = new Logger();
-var requestIdMiddleware = (req, res, next) => {
-  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  req.requestId = requestId;
-  res.setHeader("X-Request-ID", requestId);
-  logger.setRequestId(requestId);
-  next();
-};
 
 // server/monitoring.ts
-var performanceMonitor = (req, res, next) => {
-  const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    const method = req.method;
-    const url = req.originalUrl;
-    const statusCode = res.statusCode;
-    if (duration > 1e3) {
-      logger.warn("Slow request detected", {
-        method,
-        url,
-        duration,
-        statusCode
-      });
-    }
-    if (statusCode >= 400) {
-      logger.error("Request failed", {
-        method,
-        url,
-        statusCode,
-        duration
-      });
-    }
-    logger.debug("Request completed", {
-      method,
-      url,
-      statusCode,
-      duration
-    });
-  });
-  next();
-};
 var healthCheck = async (req, res) => {
   const startTime = Date.now();
   try {
     let dbStatus = "connected";
     try {
-      const { pool: pool2 } = await Promise.resolve().then(() => (init_db(), db_exports));
-      await pool2.query("SELECT 1");
+      const { pool } = await Promise.resolve().then(() => (init_db(), db_exports));
+      await pool.query("SELECT 1");
     } catch (error) {
       dbStatus = "error";
       logger.error("Database health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
@@ -824,35 +705,9 @@ var MetricsCollector = class {
   }
 };
 var metricsCollector = new MetricsCollector();
-var metricsMiddleware = (req, res, next) => {
-  metricsCollector.increment("requests_total");
-  metricsCollector.increment(`requests_${req.method.toLowerCase()}`);
-  res.on("finish", () => {
-    metricsCollector.increment(`responses_${res.statusCode}`);
-    if (res.statusCode >= 400) {
-      metricsCollector.increment("errors_total");
-    }
-  });
-  next();
-};
 
 // server/index.ts
 var app = express2();
-app.set("trust proxy", true);
-app.use(requestIdMiddleware);
-app.use(performanceMonitor);
-app.use(metricsMiddleware);
-app.use(helmet({
-  contentSecurityPolicy: false,
-  // Allow inline styles for development
-  crossOriginEmbedderPolicy: false
-}));
-app.use(compression());
-app.use(securityHeaders);
-app.use(validateRequest);
-app.use(sanitizeInput);
-app.use(express2.json({ limit: "10mb" }));
-app.use(express2.urlencoded({ extended: false, limit: "10mb" }));
 app.use("/api", apiRateLimit);
 app.use((req, res, next) => {
   const start = Date.now();

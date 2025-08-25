@@ -383,19 +383,6 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const buildingInspectionId = req.query.buildingInspectionId;
       if (buildingInspectionId) {
-<<<<<<< HEAD
-        const id = parseInt(buildingInspectionId as string);
-        if (isNaN(id)) {
-          return res.status(400).json({ error: "Invalid building inspection ID" });
-        }
-        const roomInspections = await storage.getRoomInspectionsByBuildingId(id);
-=======
-        const parsedId = parseInt(buildingInspectionId as string);
-        if (isNaN(parsedId)) {
-          return res.status(400).json({ error: "Invalid building inspection ID" });
-        }
-        const roomInspections = await storage.getRoomInspectionsByBuildingId(parsedId);
->>>>>>> cadfd26dfb434a576df963764ff632b780371326
         res.json(roomInspections);
       } else {
         const roomInspections = await storage.getRoomInspections();
