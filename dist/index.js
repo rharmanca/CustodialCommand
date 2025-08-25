@@ -347,7 +347,7 @@ async function registerRoutes(app2) {
       console.log(`[${requestId}] Validated payload:`, JSON.stringify(validatedData, null, 2));
       const result = await storage.createInspection(validatedData);
       logger.info("Inspection created successfully", { requestId, inspectionId: result.id });
-      res.status(201).json({ success: true, id: result.id });
+      return res.status(201).json({ success: true, id: result.id });
     } catch (err) {
       console.error(`[${requestId}] Failed to create inspection:`, err);
       logger.error("Failed to create inspection", { requestId, error: err });
@@ -390,18 +390,22 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch inspection" });
     }
   });
-  app2.post("/api/custodial-notes", upload.array("image", 5), async (req, res) => {
+  app2.post("/api/custodial-notes", upload.fields([{ name: "image", maxCount: 10 }, { name: "images", maxCount: 10 }]), async (req, res) => {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
       console.log(`[${requestId}] POST /api/custodial-notes - Starting submission`);
       console.log(`[${requestId}] Body:`, req.body);
       console.log(`[${requestId}] Files:`, req.files?.map((f) => ({ name: f.originalname, size: f.size, path: f.path })));
-      let imageFiles = req.files || [];
-      if (!imageFiles.length && req.body) {
-        const fileFields = Object.keys(req.body).filter((key) => key.startsWith("image_"));
-        if (fileFields.length > 0) {
-          console.log("Found indexed image fields, but files should be in req.files");
-        }
+      const filesRecord = req.files || {};
+      const imageFiles = [
+        ...filesRecord.image || [],
+        ...filesRecord.images || []
+      ];
+      const uploadedPaths = imageFiles.map((f) => f.path);
+      if (uploadedPaths.length) {
+        req.body.notes = `${req.body.notes || ""}
+
+Uploaded Images: ${uploadedPaths.join(", ")}`.trim();
       }
       const noteData = {
         inspectorName: req.body.inspectorName,
@@ -411,12 +415,6 @@ async function registerRoutes(app2) {
         locationDescription: req.body.locationDescription,
         notes: req.body.notes
       };
-      if (imageFiles.length > 0) {
-        const imagePaths = imageFiles.map((file) => file.path).join(", ");
-        noteData.notes = `${noteData.notes}
-
-Uploaded Images: ${imagePaths}`;
-      }
       console.log("Validating data:", noteData);
       const validatedData = insertCustodialNoteSchema.parse(noteData);
       const custodialNote = await storage.createCustodialNote(validatedData);
