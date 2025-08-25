@@ -18,6 +18,8 @@ app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);
 app.use(helmet({
+
+
   contentSecurityPolicy: false, // Allow inline styles for development
   crossOriginEmbedderPolicy: false
 }));
@@ -143,3 +145,50 @@ app.use((req, res, next) => {
   logger.error("Unhandled error in server startup", { error: error instanceof Error ? error.message : 'Unknown error' });
   process.exit(1);
 });
+/** ALLOW_IFRAME_FROM_REPLIT **/
+app.use((req: any, res: any, next: any) => {
+  try {
+    // Remove headers that block embedding
+    res.removeHeader('X-Frame-Options');
+    res.removeHeader('Cross-Origin-Opener-Policy');
+    res.removeHeader('Cross-Origin-Embedder-Policy');
+
+    // Ensure CSP allows Replit to embed this app in an iframe
+    const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
+    const current = res.getHeader('Content-Security-Policy');
+    if (!current) {
+      res.setHeader('Content-Security-Policy', fa);
+    } else {
+      const value = Array.isArray(current) ? current.join('; ') : String(current);
+      const re = /frame-ancestors[^;]*/i;
+      const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
+      res.setHeader('Content-Security-Policy', newVal);
+    }
+  } catch {}
+  next();
+});
+/** END ALLOW_IFRAME_FROM_REPLIT **/
+
+/** ALLOW_IFRAME_FROM_REPLIT **/
+app.use((req: any, res: any, next: any) => {
+  try {
+    // Remove headers that commonly block iframes
+    res.removeHeader('X-Frame-Options');
+    res.removeHeader('Cross-Origin-Opener-Policy');
+    res.removeHeader('Cross-Origin-Embedder-Policy');
+
+    // Ensure CSP allows Replit to embed in an iframe
+    const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
+    const current = res.getHeader('Content-Security-Policy');
+    if (!current) {
+      res.setHeader('Content-Security-Policy', fa);
+    } else {
+      const value = Array.isArray(current) ? current.join('; ') : String(current);
+      const re = /frame-ancestors[^;]*/i;
+      const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
+      res.setHeader('Content-Security-Policy', newVal);
+    }
+  } catch {}
+  next();
+});
+/** END ALLOW_IFRAME_FROM_REPLIT **/
