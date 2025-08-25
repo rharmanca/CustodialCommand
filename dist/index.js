@@ -1,18 +1,166 @@
+var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
+// shared/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  custodialNotes: () => custodialNotes,
+  insertCustodialNoteSchema: () => insertCustodialNoteSchema,
+  insertInspectionSchema: () => insertInspectionSchema,
+  insertRoomInspectionSchema: () => insertRoomInspectionSchema,
+  insertUserSchema: () => insertUserSchema,
+  inspections: () => inspections,
+  roomInspections: () => roomInspections2,
+  users: () => users
+});
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+var users, inspections, roomInspections2, custodialNotes, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema;
+var init_schema = __esm({
+  "shared/schema.ts"() {
+    "use strict";
+    users = pgTable("users", {
+      id: serial("id").primaryKey(),
+      username: text("username").notNull().unique(),
+      password: text("password").notNull()
+    });
+    inspections = pgTable("inspections", {
+      id: serial("id").primaryKey(),
+      inspectorName: text("inspector_name"),
+      school: text("school").notNull(),
+      date: text("date").notNull(),
+      inspectionType: text("inspection_type").notNull(),
+      // 'single_room' or 'whole_building'
+      locationDescription: text("location_description").notNull(),
+      roomNumber: text("room_number"),
+      // For single room inspections
+      locationCategory: text("location_category"),
+      // New field for location category
+      buildingName: text("building_name"),
+      // For whole building inspections
+      buildingInspectionId: integer("building_inspection_id"),
+      // Reference to parent building inspection
+      // For single room inspections, store ratings directly (nullable for building inspections)
+      floors: integer("floors"),
+      verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
+      ceiling: integer("ceiling"),
+      restrooms: integer("restrooms"),
+      customerSatisfaction: integer("customer_satisfaction"),
+      trash: integer("trash"),
+      projectCleaning: integer("project_cleaning"),
+      activitySupport: integer("activity_support"),
+      safetyCompliance: integer("safety_compliance"),
+      equipment: integer("equipment"),
+      monitoring: integer("monitoring"),
+      notes: text("notes"),
+      images: text("images").array(),
+      verifiedRooms: text("verified_rooms").array(),
+      // For tracking completed room types in building inspections
+      isCompleted: boolean("is_completed").default(false),
+      // For whole building inspections
+      createdAt: timestamp("created_at").defaultNow().notNull()
+    });
+    roomInspections2 = pgTable("room_inspections", {
+      id: serial("id").primaryKey(),
+      buildingInspectionId: integer("building_inspection_id").notNull(),
+      roomType: text("room_type").notNull(),
+      roomIdentifier: text("room_identifier"),
+      // Specific room number or identifier
+      floors: integer("floors"),
+      verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
+      ceiling: integer("ceiling"),
+      restrooms: integer("restrooms"),
+      customerSatisfaction: integer("customer_satisfaction"),
+      trash: integer("trash"),
+      projectCleaning: integer("project_cleaning"),
+      activitySupport: integer("activity_support"),
+      safetyCompliance: integer("safety_compliance"),
+      equipment: integer("equipment"),
+      monitoring: integer("monitoring"),
+      notes: text("notes"),
+      images: text("images").array().default([]),
+      createdAt: timestamp("created_at").defaultNow().notNull()
+    });
+    custodialNotes = pgTable("custodial_notes", {
+      id: serial("id").primaryKey(),
+      school: text("school").notNull(),
+      date: text("date").notNull(),
+      location: text("location").notNull(),
+      locationDescription: text("location_description").notNull(),
+      notes: text("notes").notNull(),
+      createdAt: timestamp("created_at").defaultNow().notNull()
+    });
+    insertUserSchema = createInsertSchema(users).pick({
+      username: true,
+      password: true
+    });
+    insertInspectionSchema = createInsertSchema(inspections).omit({
+      id: true,
+      createdAt: true
+    }).extend({
+      buildingInspectionId: z.number().nullable().optional(),
+      images: z.array(z.string()).optional().default([]),
+      verifiedRooms: z.array(z.string()).optional().default([]),
+      isCompleted: z.boolean().optional().default(false),
+      school: z.string().optional().default(""),
+      inspectionType: z.string().optional().default("routine"),
+      locationDescription: z.string().optional().default("")
+    });
+    insertRoomInspectionSchema = createInsertSchema(roomInspections2).omit({
+      id: true,
+      createdAt: true
+    }).extend({
+      images: z.array(z.string()).optional().default([]),
+      floors: z.number().nullable().optional(),
+      verticalHorizontalSurfaces: z.number().nullable().optional(),
+      ceiling: z.number().nullable().optional(),
+      restrooms: z.number().nullable().optional(),
+      customerSatisfaction: z.number().nullable().optional(),
+      trash: z.number().nullable().optional(),
+      projectCleaning: z.number().nullable().optional(),
+      activitySupport: z.number().nullable().optional(),
+      safetyCompliance: z.number().nullable().optional(),
+      equipment: z.number().nullable().optional(),
+      monitoring: z.number().nullable().optional(),
+      notes: z.string().nullable().optional(),
+      roomIdentifier: z.string().nullable().optional()
+    });
+    insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
+      id: true,
+      createdAt: true
+    });
+  }
+});
 
 // server/db.ts
 var db_exports = {};
+__export(db_exports, {
+  db: () => db
+});
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool } from "@neondatabase/serverless";
+import dotenv from "dotenv";
+var pool, db;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
+    init_schema();
+    dotenv.config();
     if (!process.env.DATABASE_URL) {
       throw new Error(
         "DATABASE_URL must be set. Check your Replit Secrets tab."
       );
     }
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    db = drizzle(pool, { schema: schema_exports });
   }
 });
 
@@ -24,182 +172,72 @@ import { randomBytes } from "crypto";
 import helmet from "helmet";
 import compression from "compression";
 
-// shared/schema.ts
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
-var users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull()
-});
-var inspections = pgTable("inspections", {
-  id: serial("id").primaryKey(),
-  inspectorName: text("inspector_name"),
-  school: text("school").notNull(),
-  date: text("date").notNull(),
-  inspectionType: text("inspection_type").notNull(),
-  // 'single_room' or 'whole_building'
-  locationDescription: text("location_description").notNull(),
-  roomNumber: text("room_number"),
-  // For single room inspections
-  locationCategory: text("location_category"),
-  // New field for location category
-  buildingName: text("building_name"),
-  // For whole building inspections
-  buildingInspectionId: integer("building_inspection_id"),
-  // Reference to parent building inspection
-  // For single room inspections, store ratings directly (nullable for building inspections)
-  floors: integer("floors"),
-  verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
-  ceiling: integer("ceiling"),
-  restrooms: integer("restrooms"),
-  customerSatisfaction: integer("customer_satisfaction"),
-  trash: integer("trash"),
-  projectCleaning: integer("project_cleaning"),
-  activitySupport: integer("activity_support"),
-  safetyCompliance: integer("safety_compliance"),
-  equipment: integer("equipment"),
-  monitoring: integer("monitoring"),
-  notes: text("notes"),
-  images: text("images").array(),
-  verifiedRooms: text("verified_rooms").array(),
-  // For tracking completed room types in building inspections
-  isCompleted: boolean("is_completed").default(false),
-  // For whole building inspections
-  createdAt: timestamp("created_at").defaultNow().notNull()
-});
-var roomInspections2 = pgTable("room_inspections", {
-  id: serial("id").primaryKey(),
-  buildingInspectionId: integer("building_inspection_id").notNull(),
-  roomType: text("room_type").notNull(),
-  roomIdentifier: text("room_identifier"),
-  // Specific room number or identifier
-  floors: integer("floors"),
-  verticalHorizontalSurfaces: integer("vertical_horizontal_surfaces"),
-  ceiling: integer("ceiling"),
-  restrooms: integer("restrooms"),
-  customerSatisfaction: integer("customer_satisfaction"),
-  trash: integer("trash"),
-  projectCleaning: integer("project_cleaning"),
-  activitySupport: integer("activity_support"),
-  safetyCompliance: integer("safety_compliance"),
-  equipment: integer("equipment"),
-  monitoring: integer("monitoring"),
-  notes: text("notes"),
-  images: text("images").array().default([]),
-  createdAt: timestamp("created_at").defaultNow().notNull()
-});
-var custodialNotes = pgTable("custodial_notes", {
-  id: serial("id").primaryKey(),
-  school: text("school").notNull(),
-  date: text("date").notNull(),
-  location: text("location").notNull(),
-  locationDescription: text("location_description").notNull(),
-  notes: text("notes").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
-});
-var insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true
-});
-var insertInspectionSchema = createInsertSchema(inspections).omit({
-  id: true,
-  createdAt: true
-}).extend({
-  buildingInspectionId: z.number().nullable().optional(),
-  images: z.array(z.string()).optional().default([]),
-  verifiedRooms: z.array(z.string()).optional().default([]),
-  isCompleted: z.boolean().optional().default(false)
-});
-var insertRoomInspectionSchema = createInsertSchema(roomInspections2).omit({
-  id: true,
-  createdAt: true
-}).extend({
-  images: z.array(z.string()).optional().default([]),
-  floors: z.number().nullable().optional(),
-  verticalHorizontalSurfaces: z.number().nullable().optional(),
-  ceiling: z.number().nullable().optional(),
-  restrooms: z.number().nullable().optional(),
-  customerSatisfaction: z.number().nullable().optional(),
-  trash: z.number().nullable().optional(),
-  projectCleaning: z.number().nullable().optional(),
-  activitySupport: z.number().nullable().optional(),
-  safetyCompliance: z.number().nullable().optional(),
-  equipment: z.number().nullable().optional(),
-  monitoring: z.number().nullable().optional(),
-  notes: z.string().nullable().optional(),
-  roomIdentifier: z.string().nullable().optional()
-});
-var insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
-  id: true,
-  createdAt: true
-});
-
 // server/storage.ts
+init_schema();
 init_db();
 import { eq } from "drizzle-orm";
 var DatabaseStorage = class {
   async getUser(id) {
-    const [user] = await (void 0).select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || void 0;
   }
   async getUserByUsername(username) {
-    const [user] = await (void 0).select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || void 0;
   }
   async createUser(insertUser) {
-    const [user] = await (void 0).insert(users).values([insertUser]).returning();
+    const [user] = await db.insert(users).values([insertUser]).returning();
     return user;
   }
   async createInspection(insertInspection) {
-    const [inspection] = await (void 0).insert(inspections).values([insertInspection]).returning();
+    const [inspection] = await db.insert(inspections).values([insertInspection]).returning();
     return inspection;
   }
   async getInspections() {
-    return await (void 0).select().from(inspections);
+    return await db.select().from(inspections);
   }
   async getInspection(id) {
-    const [inspection] = await (void 0).select().from(inspections).where(eq(inspections.id, id));
+    const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
     return inspection || void 0;
   }
   async createCustodialNote(insertCustodialNote) {
-    const [custodialNote] = await (void 0).insert(custodialNotes).values([insertCustodialNote]).returning();
+    const [custodialNote] = await db.insert(custodialNotes).values([insertCustodialNote]).returning();
     return custodialNote;
   }
   async getCustodialNotes() {
-    return await (void 0).select().from(custodialNotes);
+    return await db.select().from(custodialNotes);
   }
   async getCustodialNote(id) {
-    const [custodialNote] = await (void 0).select().from(custodialNotes).where(eq(custodialNotes.id, id));
+    const [custodialNote] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
     return custodialNote || void 0;
   }
   async updateInspection(id, updates) {
-    const [inspection] = await (void 0).update(inspections).set(updates).where(eq(inspections.id, id)).returning();
+    const [inspection] = await db.update(inspections).set(updates).where(eq(inspections.id, id)).returning();
     return inspection || void 0;
   }
   async createRoomInspection(insertRoomInspection) {
-    const [roomInspection] = await (void 0).insert(roomInspections2).values([insertRoomInspection]).returning();
+    const [roomInspection] = await db.insert(roomInspections2).values([insertRoomInspection]).returning();
     return roomInspection;
   }
   async getRoomInspections() {
-    return await (void 0).select().from(roomInspections2);
+    return await db.select().from(roomInspections2);
   }
   async getRoomInspection(id) {
-    const [roomInspection] = await (void 0).select().from(roomInspections2).where(eq(roomInspections2.id, id));
+    const [roomInspection] = await db.select().from(roomInspections2).where(eq(roomInspections2.id, id));
     return roomInspection || void 0;
   }
   async getRoomInspectionsByBuildingId(buildingInspectionId) {
-    return await (void 0).select().from(roomInspections2).where(eq(roomInspections2.buildingInspectionId, buildingInspectionId));
+    return await db.select().from(roomInspections2).where(eq(roomInspections2.buildingInspectionId, buildingInspectionId));
   }
   async deleteInspection(id) {
-    const result = await (void 0).delete(inspections).where(eq(inspections.id, id)).returning();
+    const result = await db.delete(inspections).where(eq(inspections.id, id)).returning();
     return result.length > 0;
   }
 };
 var storage = new DatabaseStorage();
 
 // server/routes.ts
+init_schema();
 import { z as z2 } from "zod";
 import multer from "multer";
 import path from "path";
@@ -741,8 +779,8 @@ var healthCheck = async (req, res) => {
   try {
     let dbStatus = "connected";
     try {
-      const { pool } = await Promise.resolve().then(() => (init_db(), db_exports));
-      await pool.query("SELECT 1");
+      const { pool: pool2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      await pool2.query("SELECT 1");
     } catch (error) {
       dbStatus = "error";
       logger.error("Database health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
