@@ -1,0 +1,203 @@
+Goal: Make all forms work end-to-end without breaking anything. Apply minimal, safe fixes.
+Constraints:
+- Keep ESM only (no require).
+- Do NOT change .replit, server/index.ts, package.json, or build scripts.
+- Use Neon HTTP driver (no WebSockets).
+- Make /api/custodial-notes accept both “image” and “images”.
+- Ensure POST /api/inspections returns 201 and an id.
+- Add tests and run them.
+
+Step 1) Create safety backups
+- Duplicate these files before editing:
+  - server/db.ts -> server/db.ts.bak
+  - server/routes.ts -> server/routes.ts.bak
+
+Step 2) Fix DB driver: use neon-http (HTTP only, no WebSockets)
+- Replace the entire contents of server/db.ts with EXACTLY the content between DB FILE BEGIN/END.
+
+DB FILE BEGIN
+
+ts
+
+FileEditView
+
+```
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon, neonConfig } from '@neondatabase/serverless';
+import * as schema from '../shared/schema';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Recommended for Node to reuse HTTP connections (now on by default; harmless here)
+neonConfig.fetchConnectionCache = true;
+
+if (!process.env.DATABASE_URL) {
+throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
+}
+
+const sql = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql, { schema });
+```
+
+DB FILE END
+
+Step 3) Ensure the logger import is correct in server/routes.ts
+- At the top of server/routes.ts, ensure:
+import { logger } from "./logger";
+- If it currently says import logger from "./logger", change it to the named import above. Do not change any other imports.
+
+Step 4) Make /api/custodial-notes accept both “image” and “images”
+- Find the registration of the POST route for Custodial Notes (search for:
+router.post('/api/custodial-notes', ...)
+- Replace the multer middleware used for this route with:
+upload.fields([{ name: 'image', maxCount: 10 }, { name: 'images', maxCount: 10 }])
+
+## Notes:
+
+  - If it currently uses upload.single('image'), replace that single(...) part with fields(...) above.
+  - If it uses upload.array('images', N), replace that array(...) part with fields(...) above.
+  - If it uses upload.none(), replace it with fields(...) above.
+- At the very top of that route handler function body (immediately inside the async (req, res) => { ), normalize files into one array and safely append file paths to notes. Insert EXACTLY the lines between NORMALIZE BEGIN/END:
+
+NORMALIZE BEGIN
+
+ts
+
+FileEditView
+
+```
+const filesRecord = (req as any).files || {};
+const imageFiles = [
+...(filesRecord.image || []),
+...(filesRecord.images || []),
+];
+const uploadedPaths = imageFiles.map((f: any) => f.path);
+if (uploadedPaths.length) {
+req.body.notes = `${req.body.notes || ''}\n\nUploaded Images: ${uploadedPaths.join(', ')}`.trim();
+}
+```
+
+NORMALIZE END
+
+- Do not alter validation or storage logic beyond this normalization.
+
+Step 5) Ensure POST /api/inspections returns 201 with id
+- In server/routes.ts, locate the POST /api/inspections handler.
+  - Ensure you log the validated payload before DB insert (if not already):
+console.log(
+
+```
+[${requestId}] Validated payload:
+```
+
+, JSON.stringify(validatedData, null, 2));
+  - On success, ensure it returns status 201 with at least the new id:
+return res.status(201).json({ success: true, id: newId });
+- Do not change shared/schema.ts or loosen global validation.
+
+Step 6) Rebuild and restart the server cleanly
+- In the shell, run:
+pkill -f node || true
+npm run build && npm start
+- Wait a few seconds for the server to come up.
+
+Step 7) Add a simple inspections test (Node 20 has global fetch)
+- Create test-with-logging.js at the repo root with EXACTLY the content between TEST FILE BEGIN/END.
+
+TEST FILE BEGIN
+
+js
+
+FileEditView
+
+```
+async function testSubmission() {
+const testData = {
+  date: new Date().toISOString().slice(0,10),
+  time: "09:00",
+  location: "Test Location",
+  inspector: "Test Inspector",
+  area: "Test Area",
+  score: 85,
+  notes: "Test submission",
+  school: "Test School",
+  inspectionType: "whole_building",
+  locationDescription: "Test building",
+  categories: []
+};
+
+console.log('Sending:', JSON.stringify(testData, null, 2));
+
+try {
+  const response = await fetch('http://localhost:5000/api/inspections', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(testData)
+  });
+
+  const text = await response.text();
+  console.log('Status:', response.status);
+  console.log('Response:', text);
+
+  if (response.status >= 400) {
+    console.log('\nRequest failed - check server logs.');
+  }
+} catch (error) {
+  console.error('Request failed:', error);
+}
+}
+
+testSubmission();
+```
+
+TEST FILE END
+
+Step 8) Verify POST /api/inspections
+- Run in shell:
+node test-with-logging.js
+- Expect: Status 201 and a body like {"success":true,"id":...}.
+
+Step 9) Verify Custodial Notes upload supports both “image” and “images”
+- In shell, create a tiny image and test both field names:
+
+A) Test with field “image” (should succeed):
+  base64 -d > /tmp/px.png <<'B64'
+  iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP8z8DwHwAF/gL9Kp0P1wAAAABJRU5ErkJggg==
+  B64
+
+  curl -sS -X POST http://localhost:5000/api/custodial-notes \
+    -F inspectorName='Test Inspector' \
+    -F school='Test School' \
+    -F date='2025-08-25' \
+    -F location='Classroom' \
+    -F locationDescription='Room 101' \
+    -F notes='Test note' \
+    -F image=@/tmp/px.png
+
+B) Test with field “images”:
+  curl -sS -X POST http://localhost:5000/api/custodial-notes \
+    -F inspectorName='Test Inspector' \
+    -F school='Test School' \
+    -F date='2025-08-25' \
+    -F location='Classroom' \
+    -F locationDescription='Room 101' \
+    -F notes='Test note' \
+    -F images=@/tmp/px.png
+
+- Expect: Both respond 200/201 and append “Uploaded Images: …” in notes.
+
+Step 10) Do not change anything else
+- Do not modify .replit, server/index.ts, package.json scripts, or build outputs.
+- Keep ESM imports only (no require).
+
+Step 11) Optional quality-of-life (run only if asked)
+- Suppress Browserslist warning:
+npx update-browserslist-db@latest
+- Non-breaking security fixes:
+npm audit fix
+
+Report back:
+- Show the output from node test-with-logging.js.
+- Show the JSON response from both curl uploads (image and images).
+- If any step fails, include the last ~100 lines of server logs so I can provide a precise, minimal follow-up patch.

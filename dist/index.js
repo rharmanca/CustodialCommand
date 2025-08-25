@@ -145,22 +145,21 @@ var db_exports = {};
 __export(db_exports, {
   db: () => db
 });
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { Pool } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon, neonConfig } from "@neondatabase/serverless";
 import dotenv from "dotenv";
-var pool, db;
+var sql, db;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
     init_schema();
     dotenv.config();
+    neonConfig.fetchConnectionCache = true;
     if (!process.env.DATABASE_URL) {
-      throw new Error(
-        "DATABASE_URL must be set. Check your Replit Secrets tab."
-      );
+      throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
     }
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    db = drizzle(pool, { schema: schema_exports });
+    sql = neon(process.env.DATABASE_URL);
+    db = drizzle(sql, { schema: schema_exports });
   }
 });
 
@@ -242,9 +241,54 @@ import { z as z2 } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-var asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
+
+// server/logger.ts
+var Logger = class {
+  requestId = null;
+  setRequestId(id) {
+    this.requestId = id;
+  }
+  log(level, message, context) {
+    const entry = {
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      level,
+      message,
+      context,
+      requestId: this.requestId || void 0
+    };
+    if (process.env.NODE_ENV === "production") {
+      console.log(JSON.stringify(entry));
+    } else {
+      const contextStr = context ? ` ${JSON.stringify(context)}` : "";
+      const requestStr = this.requestId ? ` [${this.requestId}]` : "";
+      console.log(`[${entry.timestamp}] ${level}${requestStr}: ${message}${contextStr}`);
+    }
+  }
+  info(message, context) {
+    this.log("INFO", message, context);
+  }
+  warn(message, context) {
+    this.log("WARN", message, context);
+  }
+  error(message, context) {
+    this.log("ERROR", message, context);
+  }
+  debug(message, context) {
+    if (process.env.NODE_ENV === "development") {
+      this.log("DEBUG", message, context);
+    }
+  }
 };
+var logger = new Logger();
+var requestIdMiddleware = (req, res, next) => {
+  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  req.requestId = requestId;
+  res.setHeader("X-Request-ID", requestId);
+  logger.setRequestId(requestId);
+  next();
+};
+
+// server/routes.ts
 var storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = "uploads";
@@ -275,37 +319,41 @@ var upload = multer({
   }
 });
 async function registerRoutes(app2) {
-  app2.post("/api/inspections", asyncHandler(async (req, res) => {
+  app2.post("/api/inspections", async (req, res) => {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`[${requestId}] POST /api/inspections - Starting submission`);
-    console.log(`[${requestId}] Request body keys:`, Object.keys(req.body));
-    console.log(`[${requestId}] Request body:`, JSON.stringify(req.body, null, 2));
+    logger.info("Creating new inspection", { requestId });
     try {
-      console.log(`[${requestId}] Validating data with schema...`);
-      const validatedData = insertInspectionSchema.parse(req.body);
-      console.log(`[${requestId}] Validation successful, creating inspection...`);
-      const inspection = await storage.createInspection(validatedData);
-      console.log(`[${requestId}] Inspection created successfully with ID:`, inspection.id);
-      res.json(inspection);
-    } catch (error) {
-      console.error(`[${requestId}] Error creating inspection:`, error);
-      if (error instanceof z2.ZodError) {
-        console.error(`[${requestId}] Validation errors:`, error.errors);
-        res.status(400).json({
-          error: "Invalid inspection data",
-          details: error.errors,
-          requestId
-        });
-      } else {
-        console.error(`[${requestId}] Database or server error:`, error);
-        res.status(500).json({
-          error: "Failed to create inspection",
-          message: process.env.NODE_ENV === "development" ? error instanceof Error ? error.message : "Unknown error" : "Server error occurred",
-          requestId
-        });
-      }
+      const schema = z2.object({
+        date: z2.string(),
+        time: z2.string(),
+        location: z2.string(),
+        inspector: z2.string(),
+        area: z2.string(),
+        score: z2.number(),
+        notes: z2.string().optional(),
+        school: z2.string().optional().default(""),
+        inspectionType: z2.string().optional().default("whole_building"),
+        locationDescription: z2.string().optional().default(""),
+        categories: z2.array(z2.object({
+          name: z2.string(),
+          items: z2.array(z2.object({
+            name: z2.string(),
+            score: z2.number(),
+            notes: z2.string().optional()
+          }))
+        })).optional()
+      });
+      const validatedData = schema.parse(req.body);
+      console.log(`[${requestId}] Validated payload:`, JSON.stringify(validatedData, null, 2));
+      const result = await storage.createInspection(validatedData);
+      logger.info("Inspection created successfully", { requestId, inspectionId: result.id });
+      res.status(201).json({ success: true, id: result.id });
+    } catch (err) {
+      console.error(`[${requestId}] Failed to create inspection:`, err);
+      logger.error("Failed to create inspection", { requestId, error: err });
+      res.status(500).json({ error: "Failed to create inspection" });
     }
-  }));
+  });
   app2.get("/api/inspections", async (req, res) => {
     try {
       const { type, incomplete } = req.query;
@@ -329,9 +377,6 @@ async function registerRoutes(app2) {
   app2.get("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid inspection ID" });
-      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
@@ -434,9 +479,6 @@ Uploaded Images: ${imagePaths}`;
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid custodial note ID" });
       }
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid custodial note ID" });
-      }
       const custodialNote = await storage.getCustodialNote(id);
       if (!custodialNote) {
         return res.status(404).json({ error: "Custodial note not found" });
@@ -450,9 +492,6 @@ Uploaded Images: ${imagePaths}`;
   app2.patch("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid inspection ID" });
-      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
@@ -476,9 +515,6 @@ Uploaded Images: ${imagePaths}`;
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid inspection ID" });
-      }
       const success = await storage.deleteInspection(id);
       if (!success) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -492,9 +528,6 @@ Uploaded Images: ${imagePaths}`;
   app2.put("/api/inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid inspection ID" });
-      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
@@ -516,9 +549,6 @@ Uploaded Images: ${imagePaths}`;
   app2.get("/api/inspections/:id/rooms", async (req, res) => {
     try {
       const buildingInspectionId = parseInt(req.params.id);
-      if (isNaN(buildingInspectionId)) {
-        return res.status(400).json({ error: "Invalid building inspection ID" });
-      }
       if (isNaN(buildingInspectionId)) {
         return res.status(400).json({ error: "Invalid building inspection ID" });
       }
@@ -575,9 +605,6 @@ Uploaded Images: ${imagePaths}`;
   app2.get("/api/room-inspections/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid room inspection ID" });
-      }
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid room inspection ID" });
       }
@@ -698,52 +725,6 @@ var validateRequest = (req, res, next) => {
   next();
 };
 
-// server/logger.ts
-var Logger = class {
-  requestId = null;
-  setRequestId(id) {
-    this.requestId = id;
-  }
-  log(level, message, context) {
-    const entry = {
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      level,
-      message,
-      context,
-      requestId: this.requestId || void 0
-    };
-    if (process.env.NODE_ENV === "production") {
-      console.log(JSON.stringify(entry));
-    } else {
-      const contextStr = context ? ` ${JSON.stringify(context)}` : "";
-      const requestStr = this.requestId ? ` [${this.requestId}]` : "";
-      console.log(`[${entry.timestamp}] ${level}${requestStr}: ${message}${contextStr}`);
-    }
-  }
-  info(message, context) {
-    this.log("INFO", message, context);
-  }
-  warn(message, context) {
-    this.log("WARN", message, context);
-  }
-  error(message, context) {
-    this.log("ERROR", message, context);
-  }
-  debug(message, context) {
-    if (process.env.NODE_ENV === "development") {
-      this.log("DEBUG", message, context);
-    }
-  }
-};
-var logger = new Logger();
-var requestIdMiddleware = (req, res, next) => {
-  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  req.requestId = requestId;
-  res.setHeader("X-Request-ID", requestId);
-  logger.setRequestId(requestId);
-  next();
-};
-
 // server/monitoring.ts
 var performanceMonitor = (req, res, next) => {
   const start = Date.now();
@@ -782,8 +763,8 @@ var healthCheck = async (req, res) => {
   try {
     let dbStatus = "connected";
     try {
-      const { pool: pool2 } = await Promise.resolve().then(() => (init_db(), db_exports));
-      await pool2.query("SELECT 1");
+      const { pool } = await Promise.resolve().then(() => (init_db(), db_exports));
+      await pool.query("SELECT 1");
     } catch (error) {
       dbStatus = "error";
       logger.error("Database health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
