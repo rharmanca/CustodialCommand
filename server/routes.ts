@@ -382,10 +382,14 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.get("/api/room-inspections", async (req: any, res: any) => {
     try {
       const buildingInspectionId = req.query.buildingInspectionId;
+      const roomInspections = await storage.getRoomInspections();
+      
       if (buildingInspectionId) {
-        res.json(roomInspections);
+        const filteredRooms = roomInspections.filter(room => 
+          room.buildingInspectionId === parseInt(buildingInspectionId)
+        );
+        res.json(filteredRooms);
       } else {
-        const roomInspections = await storage.getRoomInspections();
         res.json(roomInspections);
       }
     } catch (error) {

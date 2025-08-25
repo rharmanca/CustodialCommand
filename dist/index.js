@@ -17,13 +17,13 @@ __export(schema_exports, {
   insertRoomInspectionSchema: () => insertRoomInspectionSchema,
   insertUserSchema: () => insertUserSchema,
   inspections: () => inspections,
-  roomInspections: () => roomInspections2,
+  roomInspections: () => roomInspections,
   users: () => users
 });
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-var users, inspections, roomInspections2, custodialNotes, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema;
+var users, inspections, roomInspections, custodialNotes, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -68,7 +68,7 @@ var init_schema = __esm({
       // For whole building inspections
       createdAt: timestamp("created_at").defaultNow().notNull()
     });
-    roomInspections2 = pgTable("room_inspections", {
+    roomInspections = pgTable("room_inspections", {
       id: serial("id").primaryKey(),
       buildingInspectionId: integer("building_inspection_id").notNull(),
       roomType: text("room_type").notNull(),
@@ -114,7 +114,7 @@ var init_schema = __esm({
       inspectionType: z.string().optional().default("routine"),
       locationDescription: z.string().optional().default("")
     });
-    insertRoomInspectionSchema = createInsertSchema(roomInspections2).omit({
+    insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
       id: true,
       createdAt: true
     }).extend({
@@ -216,18 +216,18 @@ var DatabaseStorage = class {
     return inspection || void 0;
   }
   async createRoomInspection(insertRoomInspection) {
-    const [roomInspection] = await db.insert(roomInspections2).values([insertRoomInspection]).returning();
+    const [roomInspection] = await db.insert(roomInspections).values([insertRoomInspection]).returning();
     return roomInspection;
   }
   async getRoomInspections() {
-    return await db.select().from(roomInspections2);
+    return await db.select().from(roomInspections);
   }
   async getRoomInspection(id) {
-    const [roomInspection] = await db.select().from(roomInspections2).where(eq(roomInspections2.id, id));
+    const [roomInspection] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
     return roomInspection || void 0;
   }
   async getRoomInspectionsByBuildingId(buildingInspectionId) {
-    return await db.select().from(roomInspections2).where(eq(roomInspections2.buildingInspectionId, buildingInspectionId));
+    return await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
   }
   async deleteInspection(id) {
     const result = await db.delete(inspections).where(eq(inspections.id, id)).returning();
@@ -558,11 +558,14 @@ Uploaded Images: ${imagePaths}`;
   app2.get("/api/room-inspections", async (req, res) => {
     try {
       const buildingInspectionId = req.query.buildingInspectionId;
+      const roomInspections2 = await storage.getRoomInspections();
       if (buildingInspectionId) {
-        res.json(roomInspections);
+        const filteredRooms = roomInspections2.filter(
+          (room) => room.buildingInspectionId === parseInt(buildingInspectionId)
+        );
+        res.json(filteredRooms);
       } else {
-        const roomInspections3 = await storage.getRoomInspections();
-        res.json(roomInspections3);
+        res.json(roomInspections2);
       }
     } catch (error) {
       console.error("Error fetching room inspections:", error);

@@ -1,6 +1,6 @@
 run = "npm run build && npm start"
 entrypoint = "server/index.ts"
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 [nix]
 channel = "stable-25_05"
 packages = ["yakut", "psmisc", "nettools"]
