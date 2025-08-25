@@ -87,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const result = await storage.createInspection(validatedData);
 
       logger.info('Inspection created successfully', { requestId, inspectionId: result.id });
-      res.status(201).json({ success: true, id: result.id });
+      return res.status(201).json({ success: true, id: result.id });
     } catch (err) {
       console.error(`[${requestId}] Failed to create inspection:`, err);
       logger.error('Failed to create inspection', { requestId, error: err });
@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
-      
+
       const inspection = await storage.getInspection(id);
       if (!inspection) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -138,22 +138,21 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Custodial Notes routes - now supports file uploads
-  app.post("/api/custodial-notes", upload.array('image', 5), async (req: any, res: any) => {
+  app.post("/api/custodial-notes", upload.fields([{ name: 'image', maxCount: 10 }, { name: 'images', maxCount: 10 }]), async (req: any, res: any) => {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
       console.log(`[${requestId}] POST /api/custodial-notes - Starting submission`);
       console.log(`[${requestId}] Body:`, req.body);
       console.log(`[${requestId}] Files:`, req.files?.map((f: any) => ({ name: f.originalname, size: f.size, path: f.path })));
 
-      // Handle case where files are sent with indexed names (image_0, image_1, etc.)
-      let imageFiles = req.files || [];
-
-      // If no files in standard array, check for indexed field names
-      if (!imageFiles.length && req.body) {
-        const fileFields = Object.keys(req.body).filter(key => key.startsWith('image_'));
-        if (fileFields.length > 0) {
-          console.log("Found indexed image fields, but files should be in req.files");
-        }
+      const filesRecord = (req as any).files || {};
+      const imageFiles = [
+        ...(filesRecord.image || []),
+        ...(filesRecord.images || []),
+      ];
+      const uploadedPaths = imageFiles.map((f: any) => f.path);
+      if (uploadedPaths.length) {
+        req.body.notes = `${req.body.notes || ''}\n\nUploaded Images: ${uploadedPaths.join(', ')}`.trim();
       }
 
       // Prepare data for database - combine form fields with file paths
@@ -165,12 +164,6 @@ export async function registerRoutes(app: Express): Promise<void> {
         locationDescription: req.body.locationDescription,
         notes: req.body.notes
       };
-
-      // Add file paths to notes if images were uploaded
-      if (imageFiles.length > 0) {
-        const imagePaths = imageFiles.map((file: any) => file.path).join(', ');
-        noteData.notes = `${noteData.notes}\n\nUploaded Images: ${imagePaths}`;
-      }
 
       console.log("Validating data:", noteData);
       const validatedData = insertCustodialNoteSchema.parse(noteData);
@@ -242,7 +235,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid custodial note ID" });
       }
-      
+
       const custodialNote = await storage.getCustodialNote(id);
       if (!custodialNote) {
         return res.status(404).json({ error: "Custodial note not found" });
@@ -261,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
-      
+
       const updates = req.body;
       console.log(`[PATCH] Updating inspection ${id} with:`, updates);
 
@@ -286,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
-      
+
       const success = await storage.deleteInspection(id);
       if (!success) {
         return res.status(404).json({ error: "Inspection not found" });
@@ -305,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
-      
+
       const validatedData = insertInspectionSchema.parse(req.body);
       const inspection = await storage.updateInspection(id, validatedData);
       if (!inspection) {
@@ -329,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(buildingInspectionId)) {
         return res.status(400).json({ error: "Invalid building inspection ID" });
       }
-      
+
       const rooms = await storage.getRoomInspectionsByBuildingId(buildingInspectionId);
       res.json(rooms);
     } catch (error) {
@@ -396,7 +389,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid room inspection ID" });
       }
-      
+
       const roomInspection = await storage.getRoomInspection(id);
       if (!roomInspection) {
         return res.status(404).json({ error: "Room inspection not found" });
