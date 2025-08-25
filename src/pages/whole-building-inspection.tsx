@@ -100,6 +100,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     inspectorName: '',
     school: '',
     date: '',
+    inspectionType: 'whole_building',
     locationCategory: '',
     roomNumber: '',
     locationDescription: '',
@@ -253,6 +254,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         inspectorName: inspection.inspectorName || '',
         school: inspection.school,
         date: inspection.date,
+        inspectionType: 'whole_building',
         locationCategory: '',
         roomNumber: '',
         locationDescription: '',
@@ -304,6 +306,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       inspectorName: '',
       school: '',
       date: '',
+      inspectionType: 'whole_building',
       locationCategory: '',
       roomNumber: '',
       locationDescription: '',
@@ -484,6 +487,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const resetCurrentForm = () => {
     setFormData(prev => ({
       ...prev,
+      inspectionType: 'whole_building',
       locationCategory: selectedCategory || '',
       roomNumber: '',
       locationDescription: '',
@@ -598,11 +602,10 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       if (!currentBuildingId) {
         console.log('Creating new building inspection...');
         const buildingPayload = {
-          inspectorName: formData.inspectorName || '',
+          ...formData,
           school: formData.school || '',
-          date: formData.date || '',
-          inspectionType: 'whole_building',
-          locationDescription: 'Whole Building Inspection',
+          inspectionType: formData.inspectionType || 'whole_building',
+          locationDescription: formData.locationDescription || 'Whole Building Inspection',
           isCompleted: false,
           locationCategory: null,
           roomNumber: null,
