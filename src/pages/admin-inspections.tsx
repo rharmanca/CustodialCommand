@@ -13,7 +13,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit, Trash2, Plus, LogOut, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+<<<<<<< HEAD:src/pages/admin-inspections.tsx
 import { inspectionCategories } from '../../shared/custodial-criteria';
+=======
+import { inspectionCategories } from '@shared/custodial-criteria';
+import { LoadingState } from '@/components/ui/loading-spinner';
+>>>>>>> cadfd26dfb434a576df963764ff632b780371326:client/src/pages/admin-inspections.tsx
 
 interface AdminInspectionsPageProps {
   onBack?: () => void;
@@ -298,9 +303,7 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 max-w-6xl">
-        <div className="text-center">Loading inspections...</div>
-      </div>
+      <LoadingState>Loading inspections...</LoadingState>
     );
   }
 

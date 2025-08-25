@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { randomBytes } from "crypto";
@@ -12,6 +13,7 @@ import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metri
 
 const app = express();
 
+<<<<<<< HEAD
 // Trust proxy for Replit infrastructure
 app.set('trust proxy', true);
 
@@ -33,6 +35,13 @@ app.use(sanitizeInput);
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+=======
+// Middleware
+app.use(corsHandler);
+app.use(requestLogger);
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: false, limit: '100mb' }));
+>>>>>>> cadfd26dfb434a576df963764ff632b780371326
 
 // Apply rate limiting to API routes
 app.use('/api', apiRateLimit);

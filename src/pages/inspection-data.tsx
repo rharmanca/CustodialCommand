@@ -6,7 +6,12 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp } from 'lucide-react';
+<<<<<<< HEAD:src/pages/inspection-data.tsx
 import type { Inspection, CustodialNote } from '../../shared/schema';
+=======
+import type { Inspection, CustodialNote } from '@shared/schema';
+import { LoadingState } from '@/components/ui/loading-spinner';
+>>>>>>> cadfd26dfb434a576df963764ff632b780371326:client/src/pages/inspection-data.tsx
 
 interface InspectionDataPageProps {
   onBack?: () => void;
@@ -63,6 +68,15 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+<<<<<<< HEAD:src/pages/inspection-data.tsx
+=======
+      // Set empty arrays to prevent undefined errors
+      setInspections([]);
+      setCustodialNotes([]);
+      // Set empty arrays to prevent undefined errors
+      setInspections([]);
+      setCustodialNotes([]);
+>>>>>>> cadfd26dfb434a576df963764ff632b780371326:client/src/pages/inspection-data.tsx
     } finally {
       setLoading(false);
     }
@@ -193,9 +207,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading inspection data...</div>
-      </div>
+      <LoadingState>Loading inspection data...</LoadingState>
     );
   }
 
