@@ -531,11 +531,46 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedCategory) return;
+    if (!selectedCategory) {
+      toast({
+        title: "Selection Required",
+        description: "Please select a category to inspect.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
 
     // Validate inspector name is provided
     if (!formData.inspectorName.trim()) {
-      console.error('Inspector name is required');
+      toast({
+        title: "Inspector Name Required",
+        description: "Please enter the inspector name before submitting.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.school || !formData.date) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please select school and date before submitting.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
+    // Validate room number
+    if (!formData.roomNumber.trim()) {
+      toast({
+        title: "Room Number Required",
+        description: "Please enter a room number or identifier.",
+        variant: "destructive",
+        duration: 5000,
+      });
       return;
     }
 
@@ -544,39 +579,47 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       let currentBuildingId = buildingInspectionId;
 
       if (!currentBuildingId) {
+        console.log('Creating new building inspection...');
+        const buildingPayload = {
+          inspectorName: formData.inspectorName,
+          school: formData.school,
+          date: formData.date,
+          inspectionType: 'whole_building',
+          locationDescription: 'Whole Building Inspection',
+          isCompleted: false,
+          locationCategory: null,
+          roomNumber: null,
+          floors: null,
+          verticalHorizontalSurfaces: null,
+          ceiling: null,
+          restrooms: null,
+          customerSatisfaction: null,
+          trash: null,
+          projectCleaning: null,
+          activitySupport: null,
+          safetyCompliance: null,
+          equipment: null,
+          monitoring: null,
+          notes: ''
+        };
+
+        console.log('Building inspection payload:', buildingPayload);
+
         const buildingResponse = await fetch('/api/inspections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            inspectorName: formData.inspectorName,
-            school: formData.school,
-            date: formData.date,
-            inspectionType: 'whole_building',
-            locationDescription: 'Whole Building Inspection',
-            isCompleted: false,
-            locationCategory: null,
-            roomNumber: null,
-            floors: null,
-            verticalHorizontalSurfaces: null,
-            ceiling: null,
-            restrooms: null,
-            customerSatisfaction: null,
-            trash: null,
-            projectCleaning: null,
-            activitySupport: null,
-            safetyCompliance: null,
-            equipment: null,
-            monitoring: null,
-            notes: ''
-          }),
+          body: JSON.stringify(buildingPayload),
         });
 
         if (buildingResponse.ok) {
           const buildingInspection = await buildingResponse.json();
           currentBuildingId = buildingInspection.id;
           setBuildingInspectionId(currentBuildingId);
+          console.log('Created building inspection with ID:', currentBuildingId);
         } else {
-          throw new Error('Failed to create building inspection');
+          const errorData = await buildingResponse.json();
+          console.error('Building inspection creation failed:', errorData);
+          throw new Error(errorData.error || 'Failed to create building inspection');
         }
       }
 
@@ -600,14 +643,19 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         images: []
       };
 
+      console.log('Submitting room inspection:', submissionData);
+
       const response = await fetch('/api/room-inspections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submissionData),
       });
 
+      console.log('Room inspection response status:', response.status);
+
       if (response.ok) {
         const savedInspection = await response.json();
+        console.log('Room inspection saved successfully:', savedInspection);
 
         // Update completed count
         setCompleted(prev => ({
@@ -643,16 +691,32 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         }, 100);
       } else {
         const errorData = await response.json();
-        console.error('Error response:', errorData);
+        console.error('Room inspection submission failed:', errorData);
         throw new Error(errorData.error || 'Failed to submit inspection');
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
 
+      let errorMessage = "Failed to save inspection. Please check your connection and try again.";
+      let errorTitle = "Submission Failed";
+
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to create building inspection')) {
+          errorTitle = "Building Setup Failed";
+          errorMessage = "Unable to create the building inspection. Please try again.";
+        } else if (error.message.includes('Failed to submit inspection')) {
+          errorTitle = "Room Inspection Failed";
+          errorMessage = "Unable to save the room inspection. Please verify all fields and try again.";
+        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+          errorTitle = "Network Error";
+          errorMessage = "Unable to connect to server. Please check your internet connection.";
+        }
+      }
+
       // Show error toast notification
       toast({
-        title: "Submission Failed",
-        description: "Failed to save inspection. Please check your connection and try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
         duration: 7000,
       });

@@ -412,10 +412,24 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
+      
+      let errorTitle = "Submission Failed";
+      let errorMessage = "Unable to submit inspection. Please try again.";
+
+      if (error instanceof Error) {
+        if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+          errorTitle = "Network Error";
+          errorMessage = "Unable to connect to the server. Please check your connection and try again.";
+        } else if (error.message.includes('validation') || error.message.includes('Invalid')) {
+          errorTitle = "Invalid Data";
+          errorMessage = "Please check all required fields and try again.";
+        }
+      }
+
       toast({
         variant: "destructive",
-        title: "Network Error",
-        description: "Unable to connect to the server. Please check your connection and try again.",
+        title: errorTitle,
+        description: errorMessage,
         duration: 7000
       });
     } finally {

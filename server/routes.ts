@@ -312,15 +312,32 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Room Inspection routes
   app.post("/api/room-inspections", async (req: any, res: any) => {
     try {
+      console.log("[POST] Creating room inspection with data:", JSON.stringify(req.body, null, 2));
+      
       const validatedData = insertRoomInspectionSchema.parse(req.body);
+      console.log("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
+      
       const roomInspection = await storage.createRoomInspection(validatedData);
+      console.log("[POST] Successfully created room inspection:", roomInspection.id);
+      
       res.json(roomInspection);
     } catch (error) {
       console.error("Error creating room inspection:", error);
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: "Invalid room inspection data", details: error.errors });
+        console.error("Validation errors:", error.errors);
+        res.status(400).json({ 
+          error: "Invalid room inspection data", 
+          details: error.errors,
+          message: "Please check that all required fields are properly filled."
+        });
       } else {
-        res.status(500).json({ error: "Failed to create room inspection" });
+        console.error("Database or server error:", error);
+        res.status(500).json({ 
+          error: "Failed to create room inspection",
+          message: process.env.NODE_ENV === 'development' ? 
+            (error instanceof Error ? error.message : 'Unknown server error') : 
+            'Server error occurred. Please try again.'
+        });
       }
     }
   });
