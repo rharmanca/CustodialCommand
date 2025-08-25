@@ -3,7 +3,7 @@ entrypoint = "server/index.ts"
 modules = ["nodejs-20"]
 [nix]
 channel = "stable-25_05"
-packages = ["yakut", "psmisc"]
+packages = ["yakut", "psmisc", "nettools"]
 
 [deployment]
 run = ["sh", "-c", "npm run build && npm start"]
