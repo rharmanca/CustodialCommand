@@ -39,10 +39,5 @@ export const validateImageFile = (file: File): { valid: boolean; error?: string 
 };
 
 export const validateRatingRange = (rating: number): boolean => {
-<<<<<<< HEAD:src/utils/validation.ts
   return rating >= 1 && rating <= 5;
 };
-=======
-  return Number.isInteger(rating) && rating >= 1 && rating <= 5;
-};
->>>>>>> cadfd26dfb434a576df963764ff632b780371326:client/src/utils/validation.ts

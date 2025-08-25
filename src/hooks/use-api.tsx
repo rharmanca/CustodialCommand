@@ -20,11 +20,11 @@ export function useApi(options?: UseApiOptions) {
     setLoading(true);
     try {
       const data = await apiRequest<T>(url, requestOptions);
-      
+
       if (successMessage) {
         handleSuccess('Success', successMessage);
       }
-      
+
       return data;
     } catch (error) {
       if (error instanceof ApiError) {
