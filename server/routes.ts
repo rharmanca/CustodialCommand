@@ -142,6 +142,17 @@ export async function registerRoutes(app: Express): Promise<void> {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
       console.log(`[${requestId}] POST /api/custodial-notes - Starting submission`);
+
+// NORMALIZED_FILES_PATCH: normalize multer files to an array; support both 'image' and 'images'
+const __filesRecord: any = (req as any).files || {};
+let __files: any[] = Array.isArray(__filesRecord)
+  ? __filesRecord
+  : [
+      ...((__filesRecord.image as any[]) || []),
+      ...((__filesRecord.images as any[]) || []),
+    ];
+(req as any).files = __files;
+// END NORMALIZED_FILES_PATCH
       console.log(`[${requestId}] Body:`, req.body);
       console.log(`[${requestId}] Files:`, req.files?.map((f: any) => ({ name: f.originalname, size: f.size, path: f.path })));
 

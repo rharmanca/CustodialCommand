@@ -394,6 +394,12 @@ async function registerRoutes(app2) {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
       console.log(`[${requestId}] POST /api/custodial-notes - Starting submission`);
+      const __filesRecord = req.files || {};
+      let __files = Array.isArray(__filesRecord) ? __filesRecord : [
+        ...__filesRecord.image || [],
+        ...__filesRecord.images || []
+      ];
+      req.files = __files;
       console.log(`[${requestId}] Body:`, req.body);
       console.log(`[${requestId}] Files:`, req.files?.map((f) => ({ name: f.originalname, size: f.size, path: f.path })));
       const filesRecord = req.files || {};
