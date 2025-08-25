@@ -292,12 +292,17 @@ input[type="number"], input[type="tel"], textarea {
 
 /* Modern Clean Design - Mobile-First Responsive */
 
-/* Main container responsive layout */
+/* Main container responsive layout - improved centering */
 .main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
 }
 
 @media (min-width: 768px) {
@@ -389,11 +394,16 @@ input[type="number"], input[type="tel"], textarea {
   }
 }
 
-/* Content area */
+/* Content area - improved centering */
 .content-area {
   background: hsl(var(--background));
   padding: 1rem;
   margin-bottom: 1rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (min-width: 768px) {
