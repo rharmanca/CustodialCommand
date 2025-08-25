@@ -530,8 +530,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('=== BUILDING INSPECTION SUBMISSION DEBUG ===');
+    console.log('Selected Category:', selectedCategory);
+    console.log('Building ID:', buildingInspectionId);
+    console.log('Form Data:', formData);
 
     if (!selectedCategory) {
+      console.error('No category selected');
       toast({
         title: "Selection Required",
         description: "Please select a category to inspect.",
@@ -643,7 +649,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         images: []
       };
 
-      console.log('Submitting room inspection:', submissionData);
+      console.log('=== ROOM INSPECTION SUBMISSION ===');
+      console.log('Payload:', JSON.stringify(submissionData, null, 2));
+      console.log('Payload size:', JSON.stringify(submissionData).length, 'bytes');
 
       const response = await fetch('/api/room-inspections', {
         method: 'POST',

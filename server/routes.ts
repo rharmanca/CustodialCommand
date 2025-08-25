@@ -54,20 +54,38 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Inspection routes
   app.post("/api/inspections", asyncHandler(async (req: Request, res: Response) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`[${requestId}] POST /api/inspections - Starting submission`);
+    console.log(`[${requestId}] Request body keys:`, Object.keys(req.body));
+    console.log(`[${requestId}] Request body:`, JSON.stringify(req.body, null, 2));
+    
     try {
+      console.log(`[${requestId}] Validating data with schema...`);
       const validatedData = insertInspectionSchema.parse(req.body);
+      console.log(`[${requestId}] Validation successful, creating inspection...`);
+      
       const inspection = await storage.createInspection(validatedData);
+      console.log(`[${requestId}] Inspection created successfully with ID:`, inspection.id);
+      
       res.json(inspection);
     } catch (error) {
-      console.error("Error creating inspection:", error);
+      console.error(`[${requestId}] Error creating inspection:`, error);
+      
       if (error instanceof z.ZodError) {
-        res.status(400).json({ error: "Invalid inspection data", details: error.errors });
+        console.error(`[${requestId}] Validation errors:`, error.errors);
+        res.status(400).json({ 
+          error: "Invalid inspection data", 
+          details: error.errors,
+          requestId 
+        });
       } else {
+        console.error(`[${requestId}] Database or server error:`, error);
         res.status(500).json({ 
           error: "Failed to create inspection",
           message: process.env.NODE_ENV === 'development' ? 
             (error instanceof Error ? error.message : 'Unknown error') : 
-            undefined
+            'Server error occurred',
+          requestId
         });
       }
     }
@@ -119,10 +137,11 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Custodial Notes routes - now supports file uploads
   app.post("/api/custodial-notes", upload.array('image', 5), async (req: any, res: any) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     try {
-      console.log("Received custodial note submission:");
-      console.log("Body:", req.body);
-      console.log("Files:", req.files?.map((f: any) => ({ name: f.originalname, size: f.size, path: f.path })));
+      console.log(`[${requestId}] POST /api/custodial-notes - Starting submission`);
+      console.log(`[${requestId}] Body:`, req.body);
+      console.log(`[${requestId}] Files:`, req.files?.map((f: any) => ({ name: f.originalname, size: f.size, path: f.path })));
       
       // Handle case where files are sent with indexed names (image_0, image_1, etc.)
       let imageFiles = req.files || [];

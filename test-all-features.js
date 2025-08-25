@@ -52,26 +52,57 @@ class FeatureTester {
   async testDatabaseOperations() {
     await this.log('=== Testing Database Operations ===');
     
-    // Test creating an inspection
-    const testInspection = {
-      school: 'Test School',
-      room_number: 'TEST-101',
-      inspection_type: 'room',
+    // Test creating a single room inspection (matching current schema)
+    const testSingleInspection = {
+      inspectorName: 'Test Inspector',
+      school: 'ASA',
+      date: new Date().toISOString().split('T')[0],
+      inspectionType: 'single_room',
+      locationDescription: 'Test Location',
+      roomNumber: 'TEST-101',
+      locationCategory: 'classroom',
       floors: 5,
-      vertical_horizontal_surfaces: 4,
+      verticalHorizontalSurfaces: 4,
       ceiling: 5,
       restrooms: 3,
-      customer_satisfaction: 4,
+      customerSatisfaction: 4,
       trash: 5,
-      project_cleaning: 3,
-      activity_support: 4,
-      safety: 5,
+      projectCleaning: 3,
+      activitySupport: 4,
+      safetyCompliance: 5,
       equipment: 4,
       monitoring: 3,
-      concerns: 'Test inspection created by automated test'
+      notes: 'Test inspection created by automated test',
+      images: []
     };
 
-    await this.testEndpoint('Create Inspection', '/api/inspections', 'POST', testInspection);
+    await this.testEndpoint('Create Single Inspection', '/api/inspections', 'POST', testSingleInspection);
+    
+    // Test creating a whole building inspection
+    const testBuildingInspection = {
+      inspectorName: 'Test Inspector',
+      school: 'LCA',
+      date: new Date().toISOString().split('T')[0],
+      inspectionType: 'whole_building',
+      locationDescription: 'Whole Building Inspection',
+      isCompleted: false,
+      locationCategory: null,
+      roomNumber: null,
+      floors: null,
+      verticalHorizontalSurfaces: null,
+      ceiling: null,
+      restrooms: null,
+      customerSatisfaction: null,
+      trash: null,
+      projectCleaning: null,
+      activitySupport: null,
+      safetyCompliance: null,
+      equipment: null,
+      monitoring: null,
+      notes: ''
+    };
+
+    await this.testEndpoint('Create Building Inspection', '/api/inspections', 'POST', testBuildingInspection);
     await this.testEndpoint('Get All Inspections', '/api/inspections');
     
     // Test whole building inspection
