@@ -1,0 +1,187 @@
+Goal
+Make all forms work end‑to‑end without breaking anything.
+Keep ESM only (no require).
+Do NOT change .replit, server/index.ts, package.json/scripts, or build outputs.
+Use Neon HTTP driver (no WebSockets).
+Make /api/custodial-notes accept both “image” and “images”.
+Ensure POST /api/inspections returns 201 with id.
+Start the server in the background and capture logs to /tmp/server.log.
+Important constraints for execution
+Do NOT run “npm start” in the foreground. Always background it: (npm start > /tmp/server.log 2>&1 &) and then sleep 3.
+Use tail/sed to view logs. Do not use lsof.
+Step 1) Create backups for safety (no other files)
+Run:
+bash
+
+
+cp server/db.ts server/db.ts.bak || true
+cp server/routes.ts server/routes.ts.bak || true
+Step 2) Fix DB driver to Neon HTTP (no WebSockets)
+Replace the entire contents of server/db.ts with EXACTLY the code below:
+DB FILE BEGIN
+ts
+
+
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon, neonConfig } from '@neondatabase/serverless';
+import * as schema from '../shared/schema';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Recommended for Node to reuse HTTP connections (now on by default; harmless here)
+neonConfig.fetchConnectionCache = true;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
+}
+
+const sql = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql, { schema });
+DB FILE END
+Step 3) Ensure logger import is correct in server/routes.ts
+At the top of server/routes.ts, ensure this exact import is present (named export, correct path):
+ts
+
+
+import { logger } from "./logger";
+If the file currently has “import logger from './logger'”, change it to the named import above.
+Do not change any other imports.
+Step 4) Make /api/custodial-notes accept both “image” and “images”
+Locate the route registration for POST /api/custodial-notes in server/routes.ts.
+Replace the multer middleware used for this route with:
+ts
+
+
+upload.fields([{ name: 'image', maxCount: 10 }, { name: 'images', maxCount: 10 }])
+Notes:
+If it currently uses upload.single('image') or upload.array('images', N) or upload.none(), replace that specific part with upload.fields([...]) above. Do not alter any other middleware or route order.
+At the very top of that route handler function body (immediately inside async (req, res) => { ), insert EXACTLY these lines to normalize files and safely append file paths to notes:
+NORMALIZE BEGIN
+ts
+
+
+const filesRecord = (req as any).files || {};
+const imageFiles = [
+  ...(filesRecord.image || []),
+  ...(filesRecord.images || []),
+];
+const uploadedPaths = imageFiles.map((f: any) => f.path);
+if (uploadedPaths.length) {
+  req.body.notes = `${req.body.notes || ''}\n\nUploaded Images: ${uploadedPaths.join(', ')}`.trim();
+}
+NORMALIZE END
+Keep all existing validation and storage logic intact. Do not edit other routes.
+Step 5) Ensure POST /api/inspections returns 201 with id
+In server/routes.ts, find the POST /api/inspections handler.
+Immediately before DB insert, ensure we log the validated payload:
+ts
+
+
+console.log(`[${requestId}] Validated payload:`, JSON.stringify(validatedData, null, 2));
+On success, ensure the handler returns 201 with at least the new id:
+ts
+
+
+return res.status(201).json({ success: true, id: newId });
+Do not modify shared/schema.ts or global validation.
+Step 6) Rebuild and start the server in the background, capture logs
+Run:
+bash
+
+
+pkill -f node || true
+npm run build && (npm start > /tmp/server.log 2>&1 &) && sleep 3
+echo "---- First 60 lines ----"; sed -n '1,60p' /tmp/server.log || true
+echo "---- Last 120 lines ----"; tail -n 120 /tmp/server.log || true
+Step 7) Create a simple inspections test (Node 20 global fetch)
+Create test-with-logging.js at project root with EXACTLY this file:
+TEST FILE BEGIN
+js
+
+
+async function testSubmission() {
+  const testData = {
+    date: new Date().toISOString().slice(0,10),
+    time: "09:00",
+    location: "Test Location",
+    inspector: "Test Inspector",
+    area: "Test Area",
+    score: 85,
+    notes: "Test submission",
+    school: "Test School",
+    inspectionType: "whole_building",
+    locationDescription: "Test building",
+    categories: []
+  };
+
+  console.log('Sending:', JSON.stringify(testData, null, 2));
+
+  try {
+    const response = await fetch('http://localhost:5000/api/inspections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testData)
+    });
+
+    const text = await response.text();
+    console.log('Status:', response.status);
+    console.log('Response:', text);
+
+    if (response.status >= 400) {
+      console.log('\nRequest failed - check server logs.');
+    }
+  } catch (error) {
+    console.error('Request failed:', error);
+  }
+}
+
+testSubmission();
+TEST FILE END
+Run:
+bash
+
+
+node test-with-logging.js
+tail -n 120 /tmp/server.log || true
+Expected: Status 201 and JSON like {"success":true,"id":...}.
+Step 8) Verify Custodial Notes upload for both field names
+Create a tiny PNG and run two curl tests:
+
+
+# tiny PNG
+base64 -d > /tmp/px.png <<'B64'
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP8z8DwHwAF/gL9Kp0P1wAAAABJRU5ErkJggg==
+B64
+
+# should succeed (field: image)
+curl -sS -X POST http://localhost:5000/api/custodial-notes \
+  -F inspectorName='Test Inspector' \
+  -F school='Test School' \
+  -F date='2025-08-25' \
+  -F location='Classroom' \
+  -F locationDescription='Room 101' \
+  -F notes='Test note' \
+  -F image=@/tmp/px.png; echo
+
+# should also succeed (field: images)
+curl -sS -X POST http://localhost:5000/api/custodial-notes \
+  -F inspectorName='Test Inspector' \
+  -F school='Test School' \
+  -F date='2025-08-25' \
+  -F location='Classroom' \
+  -F locationDescription='Room 101' \
+  -F notes='Test note' \
+  -F images=@/tmp/px.png; echo
+
+tail -n 200 /tmp/server.log || true
+Expected: Both respond 200/201 and notes include “Uploaded Images: …”.
+Step 9) Do not change anything else
+Do not modify .replit, server/index.ts, package.json scripts, or build outputs.
+Keep ESM imports only (no require).
+Do not add new dependencies.
+Step 10) Report back
+Provide:
+Status and body from node test-with-logging.js.
+JSON responses from both curl uploads.
+If any step failed, include the last 120 lines of /tmp/server.log and the exact error.
