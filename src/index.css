@@ -379,6 +379,18 @@ input[type="number"], input[type="tel"], textarea {
   align-items: stretch;
 }
 
+/* Responsive grid for main page buttons */
+.responsive-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
 @media (min-width: 480px) {
   .button-container {
     flex-direction: row;
@@ -431,6 +443,13 @@ input[type="number"], input[type="tel"], textarea {
   min-height: 48px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* When used in responsive-grid, maintain consistent width */
+.responsive-grid .modern-button {
+  width: 100%;
+  max-width: 400px;
+  min-width: 280px;
 }
 
 @media (min-width: 480px) {
