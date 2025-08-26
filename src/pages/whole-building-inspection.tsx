@@ -787,7 +787,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Separator />
                 <div className="space-y-3">
                   <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
                     {availableInspections.map((inspection) => (
                       <div
                         key={inspection.id}
@@ -821,8 +821,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 text-center">
+                  <p className="text-xs text-gray-500 text-center mt-2">
                     These inspections were started but not completed
+                    {availableInspections.length > 3 && (
+                      <span className="block text-blue-600 font-medium">
+                        ↕ Scroll to see more inspections
+                      </span>
+                    )}
                   </p>
                 </div>
               </>
