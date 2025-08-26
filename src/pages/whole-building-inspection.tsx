@@ -787,15 +787,26 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Separator />
                 <div className="space-y-3">
                   <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
-                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
-                    {availableInspections.map((inspection) => (
+                  <div className="space-y-2 max-h-60 overflow-y-auto border-2 border-amber-300 rounded-lg p-3 bg-amber-25 shadow-inner">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-amber-200">
+                      <span className="text-sm font-medium text-amber-800">Available Inspections</span>
+                      <span className="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                        {availableInspections.length} found
+                      </span>
+                    </div>
+                    {availableInspections.map((inspection, index) => (
                       <div
                         key={inspection.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 bg-amber-50 border-amber-200"
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-amber-100 bg-amber-50 border-amber-200 transition-colors"
                       >
-                        <div>
-                          <div className="font-medium text-amber-900">{inspection.school}</div>
-                          <div className="text-sm text-amber-700">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-medium">
+                              #{index + 1}
+                            </span>
+                            <div className="font-medium text-amber-900">{inspection.school}</div>
+                          </div>
+                          <div className="text-sm text-amber-700 mt-1">
                             {new Date(inspection.date).toLocaleDateString()}
                             {inspection.inspectorName && (
                               <span className="block text-sm text-amber-800 font-medium">
@@ -809,7 +820,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                             onClick={() => selectInspection(inspection)}
                             variant="outline"
                             size="sm"
-                            className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                            className="border-amber-400 text-amber-700 hover:bg-amber-100 font-medium"
                           >
                             Continue
                           </Button>
@@ -820,14 +831,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                         )}
                       </div>
                     ))}
+                    {availableInspections.length > 3 && (
+                      <div className="text-center py-2 border-t border-amber-200 mt-2">
+                        <span className="text-xs text-amber-600 bg-amber-100 px-3 py-1 rounded-full">
+                          ↕ Scroll to see all {availableInspections.length} inspections
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-xs text-gray-500 text-center mt-2">
                     These inspections were started but not completed
-                    {availableInspections.length > 3 && (
-                      <span className="block text-blue-600 font-medium">
-                        ↕ Scroll to see more inspections
-                      </span>
-                    )}
                   </p>
                 </div>
               </>
