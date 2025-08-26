@@ -110,9 +110,24 @@ var init_schema = __esm({
       images: z.array(z.string()).optional().default([]),
       verifiedRooms: z.array(z.string()).optional().default([]),
       isCompleted: z.boolean().optional().default(false),
-      school: z.string().optional().default(""),
-      inspectionType: z.string().optional().default("routine"),
-      locationDescription: z.string().optional().default("")
+      school: z.string().min(1, "School is required"),
+      inspectionType: z.string().optional().default("whole_building"),
+      locationDescription: z.string().optional().default(""),
+      inspectorName: z.string().min(1, "Inspector name is required"),
+      date: z.string().min(1, "Date is required"),
+      // Make these fields nullable for building inspections
+      floors: z.number().nullable().optional(),
+      verticalHorizontalSurfaces: z.number().nullable().optional(),
+      ceiling: z.number().nullable().optional(),
+      restrooms: z.number().nullable().optional(),
+      customerSatisfaction: z.number().nullable().optional(),
+      trash: z.number().nullable().optional(),
+      projectCleaning: z.number().nullable().optional(),
+      activitySupport: z.number().nullable().optional(),
+      safetyCompliance: z.number().nullable().optional(),
+      equipment: z.number().nullable().optional(),
+      monitoring: z.number().nullable().optional(),
+      notes: z.string().nullable().optional()
     });
     insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
       id: true,
@@ -189,8 +204,15 @@ var DatabaseStorage = class {
     return user;
   }
   async createInspection(insertInspection) {
-    const [inspection] = await db.insert(inspections).values([insertInspection]).returning();
-    return inspection;
+    console.log("Creating inspection with data:", JSON.stringify(insertInspection, null, 2));
+    try {
+      const [inspection] = await db.insert(inspections).values([insertInspection]).returning();
+      console.log("Successfully created inspection:", inspection);
+      return inspection;
+    } catch (error) {
+      console.error("Database error creating inspection:", error);
+      throw error;
+    }
   }
   async getInspections() {
     return await db.select().from(inspections);
@@ -323,34 +345,23 @@ async function registerRoutes(app2) {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     logger.info("Creating new inspection", { requestId });
     try {
-      const schema = z2.object({
-        date: z2.string(),
-        time: z2.string(),
-        location: z2.string(),
-        inspector: z2.string(),
-        area: z2.string(),
-        score: z2.number(),
-        notes: z2.string().optional(),
-        school: z2.string().optional().default(""),
-        inspectionType: z2.string().optional().default("whole_building"),
-        locationDescription: z2.string().optional().default(""),
-        categories: z2.array(z2.object({
-          name: z2.string(),
-          items: z2.array(z2.object({
-            name: z2.string(),
-            score: z2.number(),
-            notes: z2.string().optional()
-          }))
-        })).optional()
-      });
-      const validatedData = schema.parse(req.body);
+      console.log(`[${requestId}] Raw request body:`, JSON.stringify(req.body, null, 2));
+      const validatedData = insertInspectionSchema.parse(req.body);
       console.log(`[${requestId}] Validated payload:`, JSON.stringify(validatedData, null, 2));
       const result = await storage.createInspection(validatedData);
       logger.info("Inspection created successfully", { requestId, inspectionId: result.id });
-      return res.status(201).json({ success: true, id: result.id });
+      return res.status(201).json({ success: true, id: result.id, ...result });
     } catch (err) {
       console.error(`[${requestId}] Failed to create inspection:`, err);
       logger.error("Failed to create inspection", { requestId, error: err });
+      if (err instanceof z2.ZodError) {
+        console.error(`[${requestId}] Validation errors:`, err.errors);
+        return res.status(400).json({
+          error: "Invalid inspection data",
+          details: err.errors,
+          message: "Please check all required fields are filled correctly"
+        });
+      }
       res.status(500).json({ error: "Failed to create inspection" });
     }
   });
@@ -850,6 +861,7 @@ var metricsMiddleware = (req, res, next) => {
 
 // server/index.ts
 var app = express2();
+app.set("trust proxy", true);
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);
