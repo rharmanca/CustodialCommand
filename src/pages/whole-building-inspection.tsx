@@ -15,7 +15,7 @@ import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
-import { useNavigate } from 'react-router-dom'; // Assuming you are using react-router-dom for navigation
+// Navigation handled by onBack prop
 
 interface WholeBuildingInspectionPageProps {
   onBack?: () => void;
@@ -554,7 +554,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
     // Validation
     const requiredFields = ['inspectorName', 'school', 'date'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
 
     if (missingFields.length > 0) {
       toast({
@@ -626,17 +626,15 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           comments: ''
         });
 
-        // Navigate back or to next category
-        // Assuming you have categoryOptions defined globally or imported
-        // Placeholder for categoryOptions - replace with actual definition if available
+        // Navigate to next category or reset selection
         const categoryOptions = Object.keys(requirements).map(key => ({ value: key, label: categoryLabels[key] }));
 
         const nextCategoryIndex = categoryOptions.findIndex(cat => cat.value === selectedCategory) + 1;
         if (nextCategoryIndex < categoryOptions.length) {
           setSelectedCategory(categoryOptions[nextCategoryIndex].value);
         } else {
-          // All categories completed, navigate to summary or home
-          navigate('/admin-inspections');
+          // All categories completed, clear selection
+          setSelectedCategory(null);
         }
       } else {
         throw new Error(result.message || 'Submission failed');
@@ -649,12 +647,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
       if (error instanceof TypeError && error.message.includes('fetch')) {
         errorMessage = "Network error. Please check your internet connection.";
-      } else if (error.message.includes('404')) {
-        errorMessage = "Server endpoint not found. Please contact support.";
-      } else if (error.message.includes('500')) {
-        errorMessage = "Server error. Please try again later.";
-      } else if (error.message && error.message !== 'Submission failed') {
-        errorMessage = error.message;
+      } else if (error instanceof Error) {
+        if (error.message.includes('404')) {
+          errorMessage = "Server endpoint not found. Please contact support.";
+        } else if (error.message.includes('500')) {
+          errorMessage = "Server error. Please try again later.";
+        } else if (error.message && error.message !== 'Submission failed') {
+          errorMessage = error.message;
+        }
       }
 
       toast({
