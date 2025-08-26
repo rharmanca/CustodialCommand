@@ -131,9 +131,9 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         formDataToSend.append(key, value);
       });
 
-      // Add images
-      images.forEach((image, index) => {
-        formDataToSend.append(`image_${index}`, image);
+      // Add images - use 'images' field name that backend expects
+      images.forEach((image) => {
+        formDataToSend.append('images', image);
       });
 
       const response = await fetch('/api/custodial-notes', {
