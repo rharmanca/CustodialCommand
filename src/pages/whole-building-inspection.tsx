@@ -22,7 +22,6 @@ interface WholeBuildingInspectionPageProps {
 }
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
-  const navigate = useNavigate(); // Initialize navigate
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
 
