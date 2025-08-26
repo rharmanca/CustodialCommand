@@ -53,16 +53,6 @@ export async function registerRoutes(app: Express): Promise<void> {
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
-  // Catch-all handler for unknown API routes (must be at the end)
-  app.use('/api/*', (req: any, res: any) => {
-    res.status(404).json({ 
-      error: 'API endpoint not found',
-      path: req.path,
-      method: req.method,
-      timestamp: new Date().toISOString()
-    });
-  });
-
   // Inspection routes
   // POST /api/inspections
   app.post('/api/inspections', async (req, res) => {
