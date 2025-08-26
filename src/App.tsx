@@ -139,10 +139,10 @@ function App() {
                 ) : (
                   <button
                     onClick={() => setIsInstallSectionOpen(!isInstallSectionOpen)}
-                    className="modern-button bg-amber-100 hover:bg-amber-150 border-amber-300 text-amber-900 flex items-center justify-between"
+                    className="w-full p-4 bg-amber-100 border-2 border-amber-300 rounded-lg shadow-md hover:bg-amber-150 transition-colors flex items-center justify-between"
                   >
-                    <span className="text-lg font-bold">📱 Install on Your Mobile Device</span>
-                    <span className="text-xl">
+                    <span className="text-lg font-bold text-amber-900">📱 Install on Your Mobile Device</span>
+                    <span className="text-amber-900 text-xl">
                       {isInstallSectionOpen ? '−' : '+'}
                     </span>
                   </button>
