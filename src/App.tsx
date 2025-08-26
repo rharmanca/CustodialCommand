@@ -213,13 +213,7 @@ function App() {
                   </button>
                 </div>
               </div>
-              <div className="flex justify-center mb-6">
-                <img 
-                  src={custodialDutyImage} 
-                  alt="Custodial Duty" 
-                  className="responsive-image shadow-lg max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md" 
-                />
-              </div>
+              
               <p className="text-lg text-muted-foreground text-center">
                 Cleanliness is a duty for all.
               </p>
