@@ -341,14 +341,6 @@ var upload = multer({
   }
 });
 async function registerRoutes(app2) {
-  app2.use("/api/*", (req, res) => {
-    res.status(404).json({
-      error: "API endpoint not found",
-      path: req.path,
-      method: req.method,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    });
-  });
   app2.post("/api/inspections", async (req, res) => {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     logger.info("Creating new inspection", { requestId });
