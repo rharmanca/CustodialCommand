@@ -379,6 +379,21 @@ input[type="number"], input[type="tel"], textarea {
   align-items: stretch;
 }
 
+@media (min-width: 640px) {
+  .button-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .button-container {
+    gap: 1.5rem;
+  }
+}
+
 /* Responsive grid for main page buttons */
 .responsive-grid {
   display: flex;
@@ -389,20 +404,6 @@ input[type="number"], input[type="tel"], textarea {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
-}
-
-@media (min-width: 480px) {
-  .button-container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-}
-
-@media (min-width: 768px) {
-  .button-container {
-    gap: 1rem;
-  }
 }
 
 /* Content area */
