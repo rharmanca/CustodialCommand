@@ -341,6 +341,14 @@ var upload = multer({
   }
 });
 async function registerRoutes(app2) {
+  app2.use("/api/*", (req, res) => {
+    res.status(404).json({
+      error: "API endpoint not found",
+      path: req.path,
+      method: req.method,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  });
   app2.post("/api/inspections", async (req, res) => {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     logger.info("Creating new inspection", { requestId });
@@ -561,6 +569,30 @@ Uploaded Images: ${uploadedPaths.join(", ")}`.trim();
       }
     }
   });
+  app2.post("/api/submit-building-inspection", async (req, res) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    logger.info("Creating building inspection via submit endpoint", { requestId });
+    try {
+      console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
+      const validatedData = insertInspectionSchema.parse(req.body);
+      console.log(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
+      const result = await storage.createInspection(validatedData);
+      logger.info("Building inspection created successfully", { requestId, inspectionId: result.id });
+      return res.status(201).json({ success: true, id: result.id, ...result });
+    } catch (err) {
+      console.error(`[${requestId}] Failed to create building inspection:`, err);
+      logger.error("Failed to create building inspection", { requestId, error: err });
+      if (err instanceof z2.ZodError) {
+        console.error(`[${requestId}] Validation errors:`, err.errors);
+        return res.status(400).json({
+          error: "Invalid building inspection data",
+          details: err.errors,
+          message: "Please check all required fields are filled correctly"
+        });
+      }
+      res.status(500).json({ error: "Failed to create building inspection" });
+    }
+  });
   app2.get("/api/inspections/:id/rooms", async (req, res) => {
     try {
       const buildingInspectionId = parseInt(req.params.id);
@@ -633,6 +665,21 @@ Uploaded Images: ${uploadedPaths.join(", ")}`.trim();
       res.status(500).json({ error: "Failed to fetch room inspection" });
     }
   });
+  app2.use("/api/*", (req, res) => {
+    res.status(404).json({
+      error: "API endpoint not found",
+      path: req.path,
+      method: req.method,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      availableEndpoints: [
+        "POST /api/inspections",
+        "GET /api/inspections",
+        "POST /api/submit-building-inspection",
+        "POST /api/custodial-notes",
+        "POST /api/room-inspections"
+      ]
+    });
+  });
 }
 
 // server/vite.ts
@@ -673,7 +720,19 @@ var createRateLimit = (windowMs, max) => {
     legacyHeaders: false
   });
 };
-var apiRateLimit = createRateLimit(15 * 60 * 1e3, 100);
+var apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 100,
+  message: { error: "Too many requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: false,
+  // Set to false to avoid trust proxy warnings on Replit
+  keyGenerator: (req) => {
+    return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
+  }
+});
 var strictRateLimit = createRateLimit(15 * 60 * 1e3, 10);
 var sanitizeInput = (req, res, next) => {
   const sanitizeString = (str) => {
@@ -861,7 +920,11 @@ var metricsMiddleware = (req, res, next) => {
 
 // server/index.ts
 var app = express2();
-app.set("trust proxy", true);
+if (process.env.REPL_SLUG) {
+  app.set("trust proxy", 1);
+} else {
+  app.set("trust proxy", false);
+}
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);
@@ -931,6 +994,16 @@ app.use((req, res, next) => {
     logger.info("Health check endpoints configured");
     serveStatic(app);
     logger.info("Static file serving configured");
+    app.use("/api", (err, req, res, next) => {
+      console.error("API Error:", err);
+      const statusCode = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      res.status(statusCode).json({
+        error: message,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        path: req.path
+      });
+    });
     app.use(errorHandler);
     const PORT = parseInt(process.env.PORT || "5000", 10);
     const HOST = "0.0.0.0";
