@@ -1,0 +1,34 @@
+I need to fix critical form submission issues in my CA-Custodial-Command application. The main problem is that my code is using local file system storage for images, but on Replit this is ephemeral and files disappear on container restart. I have Replit Object Storage properly configured but my code isn't using it.
+
+CURRENT ISSUES:
+1. Forms with image uploads appear to work but images disappear after Replit restarts
+2. The code uses multer disk storage instead of Replit Object Storage
+3. There's a bucket ID mismatch between .replit config and environment variables
+
+MY REPLIT SECRETS ARE CONFIGURED WITH:
+- DATABASE_URL: (Neon PostgreSQL - working)
+- DEFAULT_OBJECT_STORAGE_BUCKET_ID: "replit-objstore-9ab1e270-b577-4f89-aea6-66a15e56bd1f"
+- PRIVATE_OBJECT_DIR: "/replit-objstore-9ab1e270-b577-4f89-aea6-66a15e56bd1f/.private"
+
+PLEASE MAKE THESE SPECIFIC CHANGES:
+
+1. UPDATE .replit file:
+   - Fix defaultBucketID to match my secrets: "replit-objstore-9ab1e270-b577-4f89-aea6-66a15e56bd1f"
+
+2. MODIFY server/routes.ts:
+   - Replace multer.diskStorage with multer.memoryStorage
+   - Update the custodial notes route (around line 96) to use objectStorageService.uploadLargeFile() instead of saving to local filesystem
+   - Store uploaded image URLs in the notes field
+   - Remove file cleanup code since we're using object storage
+
+3. ADD image serving route:
+   - Add GET /objects/:filename route to serve images from object storage
+   - Use objectStorageService.getObjectFile() and downloadObject()
+
+4. UPDATE other routes with file uploads:
+   - Apply same object storage pattern to inspection routes
+   - Use memory storage + object storage upload instead of disk storage
+
+The objectStorage.ts file already exists with the proper implementation. I just need the routes updated to use it instead of the local filesystem.
+
+Focus on the custodial notes form first since that's most critical. Make sure images are uploaded to object storage and URLs are stored in the database, not local file paths.
