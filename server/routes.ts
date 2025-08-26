@@ -73,7 +73,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (err) {
       console.error(`[${requestId}] Failed to create inspection:`, err);
       logger.error('Failed to create inspection', { requestId, error: err });
-      
+
       if (err instanceof z.ZodError) {
         console.error(`[${requestId}] Validation errors:`, err.errors);
         return res.status(400).json({ 
@@ -82,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           message: 'Please check all required fields are filled correctly'
         });
       }
-      
+
       res.status(500).json({ error: 'Failed to create inspection' });
     }
   });

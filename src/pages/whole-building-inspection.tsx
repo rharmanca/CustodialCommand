@@ -15,12 +15,14 @@ import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
+import { useNavigate } from 'react-router-dom'; // Assuming you are using react-router-dom for navigation
 
 interface WholeBuildingInspectionPageProps {
   onBack?: () => void;
 }
 
 export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
+  const navigate = useNavigate(); // Initialize navigate
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
 
@@ -115,12 +117,15 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     safetyCompliance: -1,
     equipment: -1,
     monitoring: -1,
-    notes: ''
+    notes: '',
+    // Add comments field to formData if it's intended to be used
+    comments: ''
   });
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAllComplete, setIsAllComplete] = useState(false);
   const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // State for submission
 
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -269,7 +274,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         safetyCompliance: -1,
         equipment: -1,
         monitoring: -1,
-        notes: ''
+        notes: '',
+        comments: '' // Ensure comments is reset or handled
       };
       setFormData(newFormData);
 
@@ -321,7 +327,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       safetyCompliance: -1,
       equipment: -1,
       monitoring: -1,
-      notes: ''
+      notes: '',
+      comments: ''
     });
   };
 
@@ -502,7 +509,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       safetyCompliance: -1,
       equipment: -1,
       monitoring: -1,
-      notes: ''
+      notes: '',
+      comments: '' // Ensure comments is reset
     }));
 
     // Clear form draft state
@@ -532,232 +540,130 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }, 50);
   };
 
-  const handleCategorySubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('=== BUILDING INSPECTION SUBMISSION DEBUG ===');
-    console.log('Selected Category:', selectedCategory);
-    console.log('Building ID:', buildingInspectionId);
-    console.log('Form Data:', formData);
-
     if (!selectedCategory) {
-      console.error('No category selected');
       toast({
-        title: "Selection Required",
-        description: "Please select a category to inspect.",
+        title: "Category Required",
+        description: "Please select a category before submitting.",
         variant: "destructive",
-        duration: 5000,
       });
       return;
     }
 
-    // Validate inspector name is provided
-    if (!formData.inspectorName.trim()) {
-      toast({
-        title: "Inspector Name Required",
-        description: "Please enter the inspector name before submitting.",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
+    // Validation
+    const requiredFields = ['inspectorName', 'school', 'date'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
 
-    // Validate required fields
-    if (!formData.school || !formData.date) {
+    if (missingFields.length > 0) {
       toast({
         title: "Missing Required Fields",
-        description: "Please select school and date before submitting.",
+        description: `Please fill in: ${missingFields.join(', ')}`,
         variant: "destructive",
-        duration: 5000,
       });
       return;
     }
 
-    // Validate room number
-    if (!formData.roomNumber.trim()) {
-      toast({
-        title: "Room Number Required",
-        description: "Please enter a room number or identifier.",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
+    setIsSubmitting(true);
 
     try {
-      // Create or get building inspection first
-      let currentBuildingId = buildingInspectionId;
-
-      // Additional validation to ensure required API fields are present
-      if (!formData.school || !formData.inspectorName.trim() || !formData.date) {
-        toast({
-          title: "Missing Required Information",
-          description: "School, inspector name, and date are required for building inspection.",
-          variant: "destructive",
-          duration: 5000,
-        });
-        return;
-      }
-
-      if (!currentBuildingId) {
-        console.log('Creating new building inspection...');
-        const buildingPayload = {
-          inspectorName: formData.inspectorName,
-          school: formData.school,
-          date: formData.date,
-          inspectionType: 'whole_building',
-          locationDescription: formData.locationDescription || 'Whole Building Inspection',
-          isCompleted: false,
-          locationCategory: null,
-          roomNumber: null,
-          buildingName: null,
-          buildingInspectionId: null,
-          floors: null,
-          verticalHorizontalSurfaces: null,
-          ceiling: null,
-          restrooms: null,
-          customerSatisfaction: null,
-          trash: null,
-          projectCleaning: null,
-          activitySupport: null,
-          safetyCompliance: null,
-          equipment: null,
-          monitoring: null,
-          notes: '',
-          images: [],
-          verifiedRooms: []
-        };
-
-        console.log('Building inspection payload:', buildingPayload);
-
-        const buildingResponse = await fetch('/api/inspections', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(buildingPayload),
-        });
-
-        if (buildingResponse.ok) {
-          const buildingInspection = await buildingResponse.json();
-          currentBuildingId = buildingInspection.id;
-          setBuildingInspectionId(currentBuildingId);
-          console.log('Created building inspection with ID:', currentBuildingId);
-        } else {
-          const errorData = await buildingResponse.json();
-          console.error('Building inspection creation failed:', errorData);
-          throw new Error(errorData.error || 'Failed to create building inspection');
-        }
-      }
-
-      // Submit room inspection
       const submissionData = {
-        buildingInspectionId: currentBuildingId,
-        roomType: selectedCategory,
-        roomIdentifier: formData.roomNumber,
-        floors: formData.floors === -1 ? null : formData.floors,
-        verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces === -1 ? null : formData.verticalHorizontalSurfaces,
-        ceiling: formData.ceiling === -1 ? null : formData.ceiling,
-        restrooms: formData.restrooms === -1 ? null : formData.restrooms,
-        customerSatisfaction: formData.customerSatisfaction === -1 ? null : formData.customerSatisfaction,
-        trash: formData.trash === -1 ? null : formData.trash,
-        projectCleaning: formData.projectCleaning === -1 ? null : formData.projectCleaning,
-        activitySupport: formData.activitySupport === -1 ? null : formData.activitySupport,
-        safetyCompliance: formData.safetyCompliance === -1 ? null : formData.safetyCompliance,
-        equipment: formData.equipment === -1 ? null : formData.equipment,
-        monitoring: formData.monitoring === -1 ? null : formData.monitoring,
-        notes: formData.notes || null,
-        images: []
+        ...formData,
+        category: selectedCategory,
+        buildingInspectionId,
+        timestamp: new Date().toISOString(),
+        type: 'building'
       };
 
-      console.log('=== ROOM INSPECTION SUBMISSION ===');
-      console.log('Payload:', JSON.stringify(submissionData, null, 2));
-      console.log('Payload size:', JSON.stringify(submissionData).length, 'bytes');
+      console.log('Submitting building inspection:', submissionData);
 
-      const response = await fetch('/api/room-inspections', {
+      const response = await fetch('/api/submit-building-inspection', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
       });
 
-      console.log('Room inspection response status:', response.status);
+      const result = await response.json();
+      console.log('Submission response:', result);
 
-      if (response.ok) {
-        const savedInspection = await response.json();
-        console.log('Room inspection saved successfully:', savedInspection);
+      if (!response.ok) {
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
 
-        // Update completed count
-        setCompleted(prev => ({
-          ...prev,
-          [selectedCategory]: prev[selectedCategory] + 1
-        }));
-
-        // Add to saved inspections
-        setSavedInspections(prev => [...prev, savedInspection]);
-
-        // Clear current form draft and reset form
-        clearCurrentFormDraft();
-        resetCurrentForm();
-
-        // Show success toast notification
+      if (result.success) {
         toast({
-          title: "Inspection Submitted",
-          description: `${categoryLabels[selectedCategory]} inspection has been saved successfully!`,
-          duration: 4000,
+          title: "Success",
+          description: "Building inspection submitted successfully!",
         });
 
-        console.log(`${categoryLabels[selectedCategory]} inspection submitted successfully!`);
+        // Clear the current form draft
+        clearCurrentFormDraft();
 
-        // Scroll to the inspection progress section after confirmation is dismissed
-        setTimeout(() => {
-          const progressSection = document.querySelector('[data-inspection-progress]');
-          if (progressSection) {
-            progressSection.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
-            });
-          }
-        }, 100);
+        // Reset form
+        setFormData({
+          inspectorName: '',
+          school: '',
+          date: '',
+          inspectionType: 'whole_building',
+          locationCategory: '',
+          roomNumber: '',
+          locationDescription: '',
+          floors: -1,
+          verticalHorizontalSurfaces: -1,
+          ceiling: -1,
+          restrooms: -1,
+          customerSatisfaction: -1,
+          trash: -1,
+          projectCleaning: -1,
+          activitySupport: -1,
+          safetyCompliance: -1,
+          equipment: -1,
+          monitoring: -1,
+          notes: '',
+          comments: ''
+        });
+
+        // Navigate back or to next category
+        // Assuming you have categoryOptions defined globally or imported
+        // Placeholder for categoryOptions - replace with actual definition if available
+        const categoryOptions = Object.keys(requirements).map(key => ({ value: key, label: categoryLabels[key] }));
+
+        const nextCategoryIndex = categoryOptions.findIndex(cat => cat.value === selectedCategory) + 1;
+        if (nextCategoryIndex < categoryOptions.length) {
+          setSelectedCategory(categoryOptions[nextCategoryIndex].value);
+        } else {
+          // All categories completed, navigate to summary or home
+          navigate('/admin-inspections');
+        }
       } else {
-        const errorData = await response.json();
-        console.error('Room inspection submission failed:', errorData);
-        throw new Error(errorData.error || 'Failed to submit inspection');
+        throw new Error(result.message || 'Submission failed');
       }
     } catch (error) {
-      console.error('=== ERROR DETAILS ===');
-      console.error('Error submitting inspection:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error name:', error instanceof Error ? error.name : 'Unknown');
-      console.error('Error message:', error instanceof Error ? error.message : 'No message');
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack');
-      console.error('Form data at error:', formData);
-      console.error('Selected category at error:', selectedCategory);
-      console.error('Building ID at error:', buildingInspectionId);
+      console.error('Building inspection submission error:', error);
 
+      // Provide more specific error messages
       let errorMessage = "Failed to save inspection. Please check your connection and try again.";
-      let errorTitle = "Submission Failed";
 
-      if (error instanceof Error) {
-        if (error.message.includes('Failed to create building inspection')) {
-          errorTitle = "Building Setup Failed";
-          errorMessage = "Unable to create the building inspection. Please try again.";
-        } else if (error.message.includes('Failed to submit inspection')) {
-          errorTitle = "Room Inspection Failed";
-          errorMessage = "Unable to save the room inspection. Please verify all fields and try again.";
-        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
-          errorTitle = "Network Error";
-          errorMessage = "Unable to connect to server. Please check your internet connection.";
-        } else if (error.message.includes('validation') || error.message.includes('Invalid')) {
-          errorTitle = "Data Validation Error";
-          errorMessage = "Please check all required fields are properly filled out.";
-        }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = "Network error. Please check your internet connection.";
+      } else if (error.message.includes('404')) {
+        errorMessage = "Server endpoint not found. Please contact support.";
+      } else if (error.message.includes('500')) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (error.message && error.message !== 'Submission failed') {
+        errorMessage = error.message;
       }
 
-      // Show error toast notification
       toast({
-        title: errorTitle,
+        title: "Submission Failed",
         description: errorMessage,
         variant: "destructive",
-        duration: 7000,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -801,7 +707,6 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         title: "Finalization Failed",
         description: "Failed to finalize building inspection. Please try again.",
         variant: "destructive",
-        duration: 7000,
       });
     }
   };
@@ -1162,7 +1067,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
       {/* Inspection Form */}
       {!showInspectionSelector && selectedCategory && formData.school && formData.date && formData.inspectorName.trim() && (
-        <form onSubmit={handleCategorySubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
+        <form onSubmit={handleSubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
           {isMobile ? (
             <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
               {lastSaved && (
@@ -1449,8 +1354,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             type="submit"
             size="lg"
             className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
+            disabled={isSubmitting} // Disable button while submitting
           >
-            Submit {categoryLabels[selectedCategory]} Inspection
+            {isSubmitting ? 'Submitting...' : `Submit ${categoryLabels[selectedCategory]} Inspection`}
           </Button>
         </form>
       )}
