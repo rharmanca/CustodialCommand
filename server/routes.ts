@@ -53,6 +53,16 @@ export async function registerRoutes(app: Express): Promise<void> {
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
+  // Catch-all handler for unknown API routes (must be at the end)
+  app.use('/api/*', (req: any, res: any) => {
+    res.status(404).json({ 
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Inspection routes
   // POST /api/inspections
   app.post('/api/inspections', async (req, res) => {
@@ -318,6 +328,38 @@ let __files: any[] = Array.isArray(__filesRecord)
     }
   });
 
+  // Submit building inspection endpoint (alias for POST /api/inspections)
+  app.post("/api/submit-building-inspection", async (req: any, res: any) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    logger.info('Creating building inspection via submit endpoint', { requestId });
+
+    try {
+      console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
+
+      const validatedData = insertInspectionSchema.parse(req.body);
+      console.log(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
+
+      const result = await storage.createInspection(validatedData);
+
+      logger.info('Building inspection created successfully', { requestId, inspectionId: result.id });
+      return res.status(201).json({ success: true, id: result.id, ...result });
+    } catch (err) {
+      console.error(`[${requestId}] Failed to create building inspection:`, err);
+      logger.error('Failed to create building inspection', { requestId, error: err });
+
+      if (err instanceof z.ZodError) {
+        console.error(`[${requestId}] Validation errors:`, err.errors);
+        return res.status(400).json({ 
+          error: 'Invalid building inspection data', 
+          details: err.errors,
+          message: 'Please check all required fields are filled correctly'
+        });
+      }
+
+      res.status(500).json({ error: 'Failed to create building inspection' });
+    }
+  });
+
   // Get rooms for a specific building inspection
   app.get("/api/inspections/:id/rooms", async (req: any, res: any) => {
     try {
@@ -402,6 +444,23 @@ let __files: any[] = Array.isArray(__filesRecord)
       console.error("Error fetching room inspection:", error);
       res.status(500).json({ error: "Failed to fetch room inspection" });
     }
+  });
+
+  // Catch-all handler for unknown API routes (must be at the end)
+  app.use('/api/*', (req: any, res: any) => {
+    res.status(404).json({ 
+      error: 'API endpoint not found',
+      path: req.path,
+      method: req.method,
+      timestamp: new Date().toISOString(),
+      availableEndpoints: [
+        'POST /api/inspections',
+        'GET /api/inspections',
+        'POST /api/submit-building-inspection',
+        'POST /api/custodial-notes',
+        'POST /api/room-inspections'
+      ]
+    });
   });
 
   // Routes are now registered on the app

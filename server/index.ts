@@ -14,7 +14,12 @@ import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metri
 const app = express();
 
 // Core middleware configuration - MUST be before routes
-app.set('trust proxy', true); // Fix for rate limiting on Replit
+// Configure trust proxy for Replit environment (but not for rate limiting)
+if (process.env.REPL_SLUG) {
+  app.set('trust proxy', 1); // Trust first proxy only on Replit
+} else {
+  app.set('trust proxy', false); // Disable in other environments
+}
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);
@@ -108,6 +113,20 @@ app.use((req, res, next) => {
     // Use static file serving (frontend is already built)
     serveStatic(app);
     logger.info("Static file serving configured");
+
+    // JSON error handler for API routes
+    app.use('/api', (err: any, req: any, res: any, next: any) => {
+      console.error('API Error:', err);
+      const statusCode = err.status || err.statusCode || 500;
+      const message = err.message || 'Internal Server Error';
+      
+      // Always return JSON for API routes
+      res.status(statusCode).json({ 
+        error: message,
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+    });
 
     // Add final error handler
     app.use(errorHandler);

@@ -12,8 +12,19 @@ export const createRateLimit = (windowMs: number, max: number) => {
   });
 };
 
-// API rate limiter - 100 requests per 15 minutes
-export const apiRateLimit = createRateLimit(15 * 60 * 1000, 100);
+// API rate limiter - 100 requests per 15 minutes (configured for Replit proxy)
+export const apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: false, // Set to false to avoid trust proxy warnings on Replit
+  keyGenerator: (req) => {
+    // Use forwarded IP or fallback to connection IP
+    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'anonymous';
+  }
+});
 
 // Strict rate limiter for sensitive operations - 10 requests per 15 minutes
 export const strictRateLimit = createRateLimit(15 * 60 * 1000, 10);
