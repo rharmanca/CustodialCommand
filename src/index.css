@@ -402,7 +402,7 @@ input[type="number"], input[type="tel"], textarea {
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -450,8 +450,8 @@ input[type="number"], input[type="tel"], textarea {
 /* When used in responsive-grid, maintain consistent width */
 .responsive-grid .modern-button {
   width: 100%;
-  max-width: 450px;
-  min-width: 320px;
+  max-width: 400px;
+  min-width: 280px;
 }
 
 @media (min-width: 480px) {

@@ -201,13 +201,13 @@ function App() {
                 >
                   Rating Criteria Guide
                 </button>
-                <div className="flex flex-col items-center space-y-3 w-full max-w-450px">
+                <div className="flex flex-col items-center space-y-3 w-full max-w-400px">
                   <p className="text-sm text-muted-foreground font-medium text-center">
                     Note: Best viewed on desktop
                   </p>
                   <button 
                     onClick={() => setCurrentPage('Inspection Data')}
-                    className="modern-button bg-muted hover:bg-muted/90 border-muted text-muted-foreground w-full max-w-450px min-w-320px"
+                    className="modern-button bg-muted hover:bg-muted/90 border-muted text-muted-foreground w-full max-w-400px min-w-280px"
                   >
                     View Data & Reports
                   </button>
