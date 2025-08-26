@@ -60,37 +60,29 @@ export async function registerRoutes(app: Express): Promise<void> {
     logger.info('Creating new inspection', { requestId });
 
     try {
-      const schema = z.object({
-        date: z.string(),
-        time: z.string(),
-        location: z.string(),
-        inspector: z.string(),
-        area: z.string(),
-        score: z.number(),
-        notes: z.string().optional(),
-        school: z.string().optional().default(""),
-        inspectionType: z.string().optional().default("whole_building"),
-        locationDescription: z.string().optional().default(""),
-        categories: z.array(z.object({
-          name: z.string(),
-          items: z.array(z.object({
-            name: z.string(),
-            score: z.number(),
-            notes: z.string().optional()
-          }))
-        })).optional()
-      });
+      console.log(`[${requestId}] Raw request body:`, JSON.stringify(req.body, null, 2));
 
-      const validatedData = schema.parse(req.body);
+      // Use the proper schema for validation
+      const validatedData = insertInspectionSchema.parse(req.body);
       console.log(`[${requestId}] Validated payload:`, JSON.stringify(validatedData, null, 2));
 
       const result = await storage.createInspection(validatedData);
 
       logger.info('Inspection created successfully', { requestId, inspectionId: result.id });
-      return res.status(201).json({ success: true, id: result.id });
+      return res.status(201).json({ success: true, id: result.id, ...result });
     } catch (err) {
       console.error(`[${requestId}] Failed to create inspection:`, err);
       logger.error('Failed to create inspection', { requestId, error: err });
+      
+      if (err instanceof z.ZodError) {
+        console.error(`[${requestId}] Validation errors:`, err.errors);
+        return res.status(400).json({ 
+          error: 'Invalid inspection data', 
+          details: err.errors,
+          message: 'Please check all required fields are filled correctly'
+        });
+      }
+      
       res.status(500).json({ error: 'Failed to create inspection' });
     }
   });

@@ -602,13 +602,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       if (!currentBuildingId) {
         console.log('Creating new building inspection...');
         const buildingPayload = {
-          ...formData,
-          school: formData.school || '',
-          inspectionType: formData.inspectionType || 'whole_building',
+          inspectorName: formData.inspectorName,
+          school: formData.school,
+          date: formData.date,
+          inspectionType: 'whole_building',
           locationDescription: formData.locationDescription || 'Whole Building Inspection',
           isCompleted: false,
           locationCategory: null,
           roomNumber: null,
+          buildingName: null,
+          buildingInspectionId: null,
           floors: null,
           verticalHorizontalSurfaces: null,
           ceiling: null,
@@ -620,7 +623,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           safetyCompliance: null,
           equipment: null,
           monitoring: null,
-          notes: ''
+          notes: '',
+          images: [],
+          verifiedRooms: []
         };
 
         console.log('Building inspection payload:', buildingPayload);

@@ -14,6 +14,7 @@ import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metri
 const app = express();
 
 // Core middleware configuration - MUST be before routes
+app.set('trust proxy', true); // Fix for rate limiting on Replit
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);

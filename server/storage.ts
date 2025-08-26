@@ -56,11 +56,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
-    const [inspection] = await db
-      .insert(inspections)
-      .values([insertInspection])
-      .returning();
-    return inspection;
+    console.log('Creating inspection with data:', JSON.stringify(insertInspection, null, 2));
+
+    try {
+      const [inspection] = await db.insert(inspections).values([insertInspection]).returning();
+      console.log('Successfully created inspection:', inspection);
+      return inspection;
+    } catch (error) {
+      console.error('Database error creating inspection:', error);
+      throw error;
+    }
   }
 
   async getInspections(): Promise<Inspection[]> {

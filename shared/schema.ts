@@ -83,9 +83,24 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   images: z.array(z.string()).optional().default([]),
   verifiedRooms: z.array(z.string()).optional().default([]),
   isCompleted: z.boolean().optional().default(false),
-  school: z.string().optional().default(''),
-  inspectionType: z.string().optional().default('routine'),
+  school: z.string().min(1, "School is required"),
+  inspectionType: z.string().optional().default('whole_building'),
   locationDescription: z.string().optional().default(''),
+  inspectorName: z.string().min(1, "Inspector name is required"),
+  date: z.string().min(1, "Date is required"),
+  // Make these fields nullable for building inspections
+  floors: z.number().nullable().optional(),
+  verticalHorizontalSurfaces: z.number().nullable().optional(),
+  ceiling: z.number().nullable().optional(),
+  restrooms: z.number().nullable().optional(),
+  customerSatisfaction: z.number().nullable().optional(),
+  trash: z.number().nullable().optional(),
+  projectCleaning: z.number().nullable().optional(),
+  activitySupport: z.number().nullable().optional(),
+  safetyCompliance: z.number().nullable().optional(),
+  equipment: z.number().nullable().optional(),
+  monitoring: z.number().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 export const insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
