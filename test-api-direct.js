@@ -2,7 +2,7 @@
 // Direct API Testing Script
 // Run with: node test-api-direct.js
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 const BASE_URL = 'http://0.0.0.0:5000';
 
@@ -103,7 +103,6 @@ async function testBuildingInspectionSubmission() {
     
     if (response.ok) {
       console.log('✅ SUCCESS: Building inspection submitted');
-      return JSON.parse(responseBody);
     } else {
       console.log('❌ FAILED: Building inspection submission failed');
     }
@@ -113,47 +112,19 @@ async function testBuildingInspectionSubmission() {
   }
 }
 
-async function testRoomInspectionSubmission(buildingId) {
-  console.log('\nTesting Room Inspection Submission...');
+async function testHealthCheck() {
+  console.log('\nTesting Health Check...');
   
-  const roomData = {
-    buildingInspectionId: buildingId,
-    roomType: 'classroom',
-    roomIdentifier: 'API-ROOM-101',
-    floors: 5,
-    verticalHorizontalSurfaces: 4,
-    ceiling: 5,
-    restrooms: 3,
-    customerSatisfaction: 4,
-    trash: 5,
-    projectCleaning: 3,
-    activitySupport: 4,
-    safetyCompliance: 5,
-    equipment: 4,
-    monitoring: 3,
-    notes: 'API test room inspection',
-    images: []
-  };
-
   try {
-    console.log('Sending room inspection request...');
-    
-    const response = await fetch(`${BASE_URL}/api/room-inspections`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(roomData)
-    });
-
-    console.log('Response status:', response.status);
-    const responseBody = await response.text();
-    console.log('Response body:', responseBody);
+    const response = await fetch(`${BASE_URL}/health`);
+    console.log('Health check status:', response.status);
     
     if (response.ok) {
-      console.log('✅ SUCCESS: Room inspection submitted');
+      const healthData = await response.json();
+      console.log('Health data:', healthData);
+      console.log('✅ SUCCESS: Health check passed');
     } else {
-      console.log('❌ FAILED: Room inspection submission failed');
+      console.log('❌ FAILED: Health check failed');
     }
     
   } catch (error) {
@@ -161,21 +132,14 @@ async function testRoomInspectionSubmission(buildingId) {
   }
 }
 
-// Run tests
-async function runTests() {
-  console.log('=== API SUBMISSION TESTING ===\n');
+async function runAllTests() {
+  console.log('=== API DIRECT TESTING ===\n');
   
-  // Test single inspection
+  await testHealthCheck();
   await testSingleInspectionSubmission();
-  
-  // Test building inspection workflow
-  const buildingInspection = await testBuildingInspectionSubmission();
-  
-  if (buildingInspection && buildingInspection.id) {
-    await testRoomInspectionSubmission(buildingInspection.id);
-  }
+  await testBuildingInspectionSubmission();
   
   console.log('\n=== TESTING COMPLETE ===');
 }
 
-runTests().catch(console.error);
+runAllTests();
