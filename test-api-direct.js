@@ -2,7 +2,7 @@
 // Direct API Testing Script
 // Run with: node test-api-direct.js
 
-const fetch = require('node-fetch');
+import fetch from('node-fetch');
 
 const BASE_URL = 'http://0.0.0.0:5000';
 
