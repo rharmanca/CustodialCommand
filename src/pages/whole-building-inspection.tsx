@@ -1,27 +1,55 @@
-import { useState, useEffect } from 'react';
-import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, getStorageStats } from '@/utils/storage';
+import { useState, useEffect } from "react";
+import {
+  saveDraft,
+  loadDraft,
+  clearDraft,
+  STORAGE_KEYS,
+  migrateLegacyDrafts,
+  getStorageStats,
+} from "@/utils/storage";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { MobileCard } from "@/components/ui/mobile-card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
-import { Star, Check, X, Upload, Camera, Save, Clock } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useToast } from '@/hooks/use-toast';
-import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
+import { Star, Check, X, Upload, Camera, Save, Clock } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
+import {
+  ratingDescriptions,
+  inspectionCategories,
+} from "../../shared/custodial-criteria";
 // Navigation handled by onBack prop
 
 interface WholeBuildingInspectionPageProps {
   onBack?: () => void;
 }
 
-export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingInspectionPageProps) {
+export default function WholeBuildingInspectionPage({
+  onBack,
+}: WholeBuildingInspectionPageProps) {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
 
@@ -29,17 +57,21 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   useEffect(() => {
     const preventScroll = (e: Event) => {
       const target = e.target as HTMLElement;
-      if (target && typeof target.closest === 'function' && target.closest('[data-radix-select-content]')) {
+      if (
+        target &&
+        typeof target.closest === "function" &&
+        target.closest("[data-radix-select-content]")
+      ) {
         e.preventDefault();
         e.stopPropagation();
       }
     };
 
     // Add scroll prevention for select dropdowns
-    document.addEventListener('scroll', preventScroll, { passive: false });
+    document.addEventListener("scroll", preventScroll, { passive: false });
 
     return () => {
-      document.removeEventListener('scroll', preventScroll);
+      document.removeEventListener("scroll", preventScroll);
     };
   }, []);
 
@@ -54,37 +86,37 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     hallway: 3,
     stairwell: 2,
     restroom: 2,
-    staff_single_restroom: 1
+    staff_single_restroom: 1,
   };
 
   // Category labels for display
   const categoryLabels: Record<string, string> = {
-    exterior: 'Exterior',
-    gym_bleachers: 'Gym and Bleachers',
-    classroom: 'Classroom',
-    cafeteria: 'Cafeteria',
-    utility_storage: 'Utility Or Storage',
-    admin_office: 'Admin or Office Area',
-    hallway: 'Hallway',
-    stairwell: 'Stairwell',
-    restroom: 'Restroom',
-    staff_single_restroom: 'Staff or Single Restroom'
+    exterior: "Exterior",
+    gym_bleachers: "Gym and Bleachers",
+    classroom: "Classroom",
+    cafeteria: "Cafeteria",
+    utility_storage: "Utility Or Storage",
+    admin_office: "Admin or Office Area",
+    hallway: "Hallway",
+    stairwell: "Stairwell",
+    restroom: "Restroom",
+    staff_single_restroom: "Staff or Single Restroom",
   };
 
   // School options
   const schoolOptions = [
-    { value: 'ASA', label: 'ASA' },
-    { value: 'LCA', label: 'LCA' },
-    { value: 'GWC', label: 'GWC' },
-    { value: 'OA', label: 'OA' },
-    { value: 'CBR', label: 'CBR' },
-    { value: 'WLC', label: 'WLC' }
+    { value: "ASA", label: "ASA" },
+    { value: "LCA", label: "LCA" },
+    { value: "GWC", label: "GWC" },
+    { value: "OA", label: "OA" },
+    { value: "CBR", label: "CBR" },
+    { value: "WLC", label: "WLC" },
   ];
 
   // Track completed inspections
   const [completed, setCompleted] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
-    Object.keys(requirements).forEach(key => {
+    Object.keys(requirements).forEach((key) => {
       initial[key] = 0;
     });
     return initial;
@@ -98,13 +130,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   // Form data for current inspection
   const [formData, setFormData] = useState({
-    inspectorName: '',
-    school: '',
-    date: '',
-    inspectionType: 'whole_building',
-    locationCategory: '',
-    roomNumber: '',
-    locationDescription: '',
+    inspectorName: "",
+    school: "",
+    date: "",
+    inspectionType: "whole_building",
+    locationCategory: "",
+    roomNumber: "",
+    locationDescription: "",
     floors: -1,
     verticalHorizontalSurfaces: -1,
     ceiling: -1,
@@ -116,20 +148,24 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     safetyCompliance: -1,
     equipment: -1,
     monitoring: -1,
-    notes: '',
+    notes: "",
     // Add comments field to formData if it's intended to be used
-    comments: ''
+    comments: "",
   });
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isAllComplete, setIsAllComplete] = useState(false);
-  const [buildingInspectionId, setBuildingInspectionId] = useState<number | null>(null);
+  const [buildingInspectionId, setBuildingInspectionId] = useState<
+    number | null
+  >(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // State for submission
 
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const [currentFormDraftId, setCurrentFormDraftId] = useState<string | null>(null);
+  const [currentFormDraftId, setCurrentFormDraftId] = useState<string | null>(
+    null
+  );
 
   // Check if all categories are complete
   useEffect(() => {
@@ -145,7 +181,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
   useEffect(() => {
     const loadAvailableInspections = async () => {
       try {
-        const response = await fetch('/api/inspections?type=whole_building&incomplete=true');
+        const response = await fetch(
+          "/api/inspections?type=whole_building&incomplete=true"
+        );
         if (response.ok) {
           const inspections = await response.json();
           setAvailableInspections(inspections);
@@ -154,7 +192,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           }
         }
       } catch (error) {
-        console.error('Error loading available inspections:', error);
+        console.error("Error loading available inspections:", error);
       }
     };
 
@@ -164,12 +202,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
     // Log storage stats for monitoring
     const stats = getStorageStats();
-    console.log('Building inspection storage stats:', stats);
+    console.log("Building inspection storage stats:", stats);
   }, []);
 
   // Auto-save current form state
   useEffect(() => {
-    if (buildingInspectionId && selectedCategory && (formData.inspectorName || formData.school || formData.date)) {
+    if (
+      buildingInspectionId &&
+      selectedCategory &&
+      (formData.inspectorName || formData.school || formData.date)
+    ) {
       const timeoutId = setTimeout(() => {
         saveFormDraft();
       }, 2000); // Auto-save after 2 seconds of inactivity
@@ -198,14 +240,19 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         selectedCategory,
         formData: { ...formData },
         lastModified: new Date().toISOString(),
-        title: `${formData.school} - Building - ${categoryLabels[selectedCategory] || selectedCategory}`
+        title: `${formData.school} - Building - ${
+          categoryLabels[selectedCategory] || selectedCategory
+        }`,
       };
 
       // Use optimized storage system
-      saveDraft(`${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${draftId}`, draftData);
+      saveDraft(
+        `${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${draftId}`,
+        draftData
+      );
       setLastSaved(new Date());
     } catch (error) {
-      console.error('Error saving form draft:', error);
+      console.error("Error saving form draft:", error);
     } finally {
       setIsAutoSaving(false);
     }
@@ -213,7 +260,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const loadFormDraft = () => {
     try {
-      const savedDrafts = localStorage.getItem('building_form_drafts');
+      const savedDrafts = localStorage.getItem("building_form_drafts");
       if (savedDrafts) {
         const drafts = JSON.parse(savedDrafts);
         // Clean up old drafts (older than 7 days)
@@ -225,24 +272,36 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         });
 
         if (validDrafts.length !== drafts.length) {
-          localStorage.setItem('building_form_drafts', JSON.stringify(validDrafts));
+          localStorage.setItem(
+            "building_form_drafts",
+            JSON.stringify(validDrafts)
+          );
         }
       }
     } catch (error) {
-      console.error('Error loading form drafts:', error);
+      console.error("Error loading form drafts:", error);
     }
   };
 
   const clearCurrentFormDraft = () => {
     if (currentFormDraftId) {
       // Clear from optimized storage
-      clearDraft(`${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${currentFormDraftId}`);
+      clearDraft(
+        `${STORAGE_KEYS.DRAFT_BUILDING_INSPECTION}_${currentFormDraftId}`
+      );
 
       // Also clean up legacy storage
-      const existingDrafts = JSON.parse(localStorage.getItem('building_form_drafts') || '[]');
-      const updatedDrafts = existingDrafts.filter((d: any) => d.id !== currentFormDraftId);
+      const existingDrafts = JSON.parse(
+        localStorage.getItem("building_form_drafts") || "[]"
+      );
+      const updatedDrafts = existingDrafts.filter(
+        (d: any) => d.id !== currentFormDraftId
+      );
       if (updatedDrafts.length !== existingDrafts.length) {
-        localStorage.setItem('building_form_drafts', JSON.stringify(updatedDrafts));
+        localStorage.setItem(
+          "building_form_drafts",
+          JSON.stringify(updatedDrafts)
+        );
       }
 
       setCurrentFormDraftId(null);
@@ -255,13 +314,13 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     try {
       setBuildingInspectionId(inspection.id);
       const newFormData = {
-        inspectorName: inspection.inspectorName || '',
+        inspectorName: inspection.inspectorName || "",
         school: inspection.school,
         date: inspection.date,
-        inspectionType: 'whole_building',
-        locationCategory: '',
-        roomNumber: '',
-        locationDescription: '',
+        inspectionType: "whole_building",
+        locationCategory: "",
+        roomNumber: "",
+        locationDescription: "",
         floors: -1,
         verticalHorizontalSurfaces: -1,
         ceiling: -1,
@@ -273,25 +332,29 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         safetyCompliance: -1,
         equipment: -1,
         monitoring: -1,
-        notes: '',
-        comments: '' // Ensure comments is reset or handled
+        notes: "",
+        comments: "", // Ensure comments is reset or handled
       };
       setFormData(newFormData);
 
       // Load completed rooms for each category
-      const roomResponse = await fetch(`/api/inspections/${inspection.id}/rooms`);
+      const roomResponse = await fetch(
+        `/api/inspections/${inspection.id}/rooms`
+      );
       if (roomResponse.ok) {
         const rooms = await roomResponse.json();
         const completedCount: Record<string, number> = {};
-        Object.keys(requirements).forEach(key => {
-          completedCount[key] = rooms.filter((room: any) => room.roomType === key).length;
+        Object.keys(requirements).forEach((key) => {
+          completedCount[key] = rooms.filter(
+            (room: any) => room.roomType === key
+          ).length;
         });
         setCompleted(completedCount);
         setIsResuming(true);
         setShowInspectionSelector(false);
       }
     } catch (error) {
-      console.error('Error loading inspection:', error);
+      console.error("Error loading inspection:", error);
     }
   };
 
@@ -302,19 +365,19 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     setBuildingInspectionId(null);
     setCompleted(() => {
       const initial: Record<string, number> = {};
-      Object.keys(requirements).forEach(key => {
+      Object.keys(requirements).forEach((key) => {
         initial[key] = 0;
       });
       return initial;
     });
     setFormData({
-      inspectorName: '',
-      school: '',
-      date: '',
-      inspectionType: 'whole_building',
-      locationCategory: '',
-      roomNumber: '',
-      locationDescription: '',
+      inspectorName: "",
+      school: "",
+      date: "",
+      inspectionType: "whole_building",
+      locationCategory: "",
+      roomNumber: "",
+      locationDescription: "",
       floors: -1,
       verticalHorizontalSurfaces: -1,
       ceiling: -1,
@@ -326,28 +389,30 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       safetyCompliance: -1,
       equipment: -1,
       monitoring: -1,
-      notes: '',
-      comments: ''
+      notes: "",
+      comments: "",
     });
   };
 
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleDateChange = (date: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      date
+      date,
     }));
   };
 
-
-
-  const renderMobileStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
+  const renderMobileStarRating = (
+    category: any,
+    currentRating: number,
+    onRatingChange: (rating: number) => void
+  ) => {
     return (
       <div className="space-y-4">
         <div className="bg-gray-50 rounded-lg p-4 border">
@@ -367,8 +432,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Star
                   className={`w-6 h-6 ${
                     star <= currentRating && currentRating > 0
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-muted-foreground hover:text-yellow-300'
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-muted-foreground hover:text-yellow-300"
                   }`}
                 />
               </button>
@@ -381,8 +446,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               type="button"
               className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors touch-manipulation ${
                 currentRating === -1
-                  ? 'bg-muted border-border text-foreground'
-                  : 'bg-card border-border text-muted-foreground hover:bg-muted'
+                  ? "bg-muted border-border text-foreground"
+                  : "bg-card border-border text-muted-foreground hover:bg-muted"
               }`}
               onClick={() => onRatingChange(-1)}
             >
@@ -410,21 +475,29 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         </div>
 
         {/* Detailed Criteria */}
-        {currentRating > 0 && currentRating !== -1 && category?.criteria && category.criteria[currentRating] && (
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <div className="text-sm font-medium text-blue-900 mb-1">
-              Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
+        {currentRating > 0 &&
+          currentRating !== -1 &&
+          category?.criteria &&
+          category.criteria[currentRating] && (
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <div className="text-sm font-medium text-blue-900 mb-1">
+                Detailed Criteria for {currentRating} Star
+                {currentRating > 1 ? "s" : ""}:
+              </div>
+              <div className="text-sm text-blue-800">
+                {category.criteria[currentRating]}
+              </div>
             </div>
-            <div className="text-sm text-blue-800">
-              {category.criteria[currentRating]}
-            </div>
-          </div>
-        )}
+          )}
       </div>
     );
   };
 
-  const renderStarRating = (category: any, currentRating: number, onRatingChange: (rating: number) => void) => {
+  const renderStarRating = (
+    category: any,
+    currentRating: number,
+    onRatingChange: (rating: number) => void
+  ) => {
     return (
       <div className="space-y-4">
         <div className="flex justify-center gap-2">
@@ -449,8 +522,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <Star
                 className={`w-6 h-6 ${
                   star <= currentRating && currentRating > 0
-                    ? 'fill-yellow-400 text-yellow-400'
-                    : 'text-gray-300'
+                    ? "fill-yellow-400 text-yellow-400"
+                    : "text-gray-300"
                 }`}
               />
             </Button>
@@ -476,27 +549,31 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         </div>
 
         {/* Detailed Criteria */}
-        {currentRating > 0 && currentRating !== -1 && category?.criteria && category.criteria[currentRating] && (
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="text-sm font-medium text-blue-900 mb-2">
-              Detailed Criteria for {currentRating} Star{currentRating > 1 ? 's' : ''}:
+        {currentRating > 0 &&
+          currentRating !== -1 &&
+          category?.criteria &&
+          category.criteria[currentRating] && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="text-sm font-medium text-blue-900 mb-2">
+                Detailed Criteria for {currentRating} Star
+                {currentRating > 1 ? "s" : ""}:
+              </div>
+              <div className="text-sm text-blue-800">
+                {category.criteria[currentRating]}
+              </div>
             </div>
-            <div className="text-sm text-blue-800">
-              {category.criteria[currentRating]}
-            </div>
-          </div>
-        )}
+          )}
       </div>
     );
   };
 
   const resetCurrentForm = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      inspectionType: 'whole_building',
-      locationCategory: selectedCategory || '',
-      roomNumber: '',
-      locationDescription: '',
+      inspectionType: "whole_building",
+      locationCategory: selectedCategory || "",
+      roomNumber: "",
+      locationDescription: "",
       floors: -1,
       verticalHorizontalSurfaces: -1,
       ceiling: -1,
@@ -508,8 +585,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       safetyCompliance: -1,
       equipment: -1,
       monitoring: -1,
-      notes: '',
-      comments: '' // Ensure comments is reset
+      notes: "",
+      comments: "", // Ensure comments is reset
     }));
 
     // Clear form draft state
@@ -526,16 +603,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
     // Prevent automatic scroll to top with multiple methods
     requestAnimationFrame(() => {
-      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+      window.scrollTo({ top: currentScrollY, behavior: "instant" });
     });
 
     // Also set a timeout as backup
     setTimeout(() => {
-      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+      window.scrollTo({ top: currentScrollY, behavior: "instant" });
     }, 10);
 
     setTimeout(() => {
-      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+      window.scrollTo({ top: currentScrollY, behavior: "instant" });
     }, 50);
   };
 
@@ -552,13 +629,15 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
     }
 
     // Validation
-    const requiredFields = ['inspectorName', 'school', 'date'];
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    const requiredFields = ["inspectorName", "school", "date"];
+    const missingFields = requiredFields.filter(
+      (field) => !formData[field as keyof typeof formData]
+    );
 
     if (missingFields.length > 0) {
       toast({
         title: "Missing Required Fields",
-        description: `Please fill in: ${missingFields.join(', ')}`,
+        description: `Please fill in: ${missingFields.join(", ")}`,
         variant: "destructive",
       });
       return;
@@ -572,24 +651,26 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         category: selectedCategory,
         buildingInspectionId,
         timestamp: new Date().toISOString(),
-        type: 'building'
+        type: "building",
       };
 
-      console.log('Submitting building inspection:', submissionData);
+      console.log("Submitting building inspection:", submissionData);
 
-      const response = await fetch('/api/submit-building-inspection', {
-        method: 'POST',
+      const response = await fetch("/api/submit-building-inspection", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(submissionData)
+        body: JSON.stringify(submissionData),
       });
 
       const result = await response.json();
-      console.log('Submission response:', result);
+      console.log("Submission response:", result);
 
       if (!response.ok) {
-        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          result.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       if (result.success) {
@@ -601,15 +682,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         // Clear the current form draft
         clearCurrentFormDraft();
 
-        // Reset form
-        setFormData({
-          inspectorName: '',
-          school: '',
-          date: '',
-          inspectionType: 'whole_building',
-          locationCategory: '',
-          roomNumber: '',
-          locationDescription: '',
+        // Reset only room-specific fields, preserve inspector information
+        setFormData((prev) => ({
+          ...prev, // Preserve inspectorName, school, date, and other building-level info
+          roomNumber: "",
+          locationDescription: "",
+          notes: "",
           floors: -1,
           verticalHorizontalSurfaces: -1,
           ceiling: -1,
@@ -621,29 +699,28 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           safetyCompliance: -1,
           equipment: -1,
           monitoring: -1,
-          notes: '',
-          comments: ''
-        });
+        }));
 
         // Clear selectedCategory to prevent validation warning from showing
         setSelectedCategory(null);
       } else {
-        throw new Error(result.message || 'Submission failed');
+        throw new Error(result.message || "Submission failed");
       }
     } catch (error) {
-      console.error('Building inspection submission error:', error);
+      console.error("Building inspection submission error:", error);
 
       // Provide more specific error messages
-      let errorMessage = "Failed to save inspection. Please check your connection and try again.";
+      let errorMessage =
+        "Failed to save inspection. Please check your connection and try again.";
 
-      if (error instanceof TypeError && error.message.includes('fetch')) {
+      if (error instanceof TypeError && error.message.includes("fetch")) {
         errorMessage = "Network error. Please check your internet connection.";
       } else if (error instanceof Error) {
-        if (error.message.includes('404')) {
+        if (error.message.includes("404")) {
           errorMessage = "Server endpoint not found. Please contact support.";
-        } else if (error.message.includes('500')) {
+        } else if (error.message.includes("500")) {
           errorMessage = "Server error. Please try again later.";
-        } else if (error.message && error.message !== 'Submission failed') {
+        } else if (error.message && error.message !== "Submission failed") {
           errorMessage = error.message;
         }
       }
@@ -660,15 +737,17 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
 
   const handleFinalSubmit = async () => {
     if (!isAllComplete) {
-      console.error('Please complete all required inspections before finalizing.');
+      console.error(
+        "Please complete all required inspections before finalizing."
+      );
       return;
     }
 
     try {
       // Update the building inspection as completed
       const response = await fetch(`/api/inspections/${buildingInspectionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isCompleted: true }),
       });
 
@@ -676,11 +755,12 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         // Show success toast notification
         toast({
           title: "🎉 You Did Your Duty, Thank You! 🎉",
-          description: "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
+          description:
+            "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
           duration: 5000,
         });
 
-        console.log('Whole building inspection completed successfully!');
+        console.log("Whole building inspection completed successfully!");
 
         // Delay navigation to let user see the success message
         setTimeout(() => {
@@ -688,15 +768,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         }, 3000);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to finalize inspection');
+        throw new Error(errorData.error || "Failed to finalize inspection");
       }
     } catch (error) {
-      console.error('Error finalizing inspection:', error);
+      console.error("Error finalizing inspection:", error);
 
       // Show error toast notification
       toast({
         title: "Finalization Failed",
-        description: "Failed to finalize building inspection. Please try again.",
+        description:
+          "Failed to finalize building inspection. Please try again.",
         variant: "destructive",
       });
     }
@@ -707,7 +788,11 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
       <div className="mb-6">
         {onBack && (
           <div className="flex justify-start mb-4">
-            <Button variant="outline" onClick={onBack} className="flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="flex-shrink-0"
+            >
               ← Back
             </Button>
           </div>
@@ -726,24 +811,54 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <CollapsibleContent className="mt-3 p-4 bg-accent/10 rounded-lg border border-accent/30">
               <div className="space-y-3 text-sm text-muted-foreground">
                 <div>
-                  <h4 className="font-semibold text-primary mb-1">Step 1: Getting Started</h4>
-                  <p>Enter your inspector name, select the school, and choose the inspection date. This information will be saved automatically.</p>
+                  <h4 className="font-semibold text-primary mb-1">
+                    Step 1: Getting Started
+                  </h4>
+                  <p>
+                    Enter your inspector name, select the school, and choose the
+                    inspection date. This information will be saved
+                    automatically.
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary mb-1">Step 2: Complete Required Inspections</h4>
-                  <p>Each category below shows how many inspections are required (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any incomplete category to start inspecting that area type.</p>
+                  <h4 className="font-semibold text-primary mb-1">
+                    Step 2: Complete Required Inspections
+                  </h4>
+                  <p>
+                    Each category below shows how many inspections are required
+                    (e.g., 3 Classrooms, 2 Restrooms). Click "Select" on any
+                    incomplete category to start inspecting that area type.
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary mb-1">Step 3: Rate Each Area</h4>
-                  <p>For each room/area, rate the custodial performance using the 1-5 star system you're familiar with. Add room numbers and notes as needed.</p>
+                  <h4 className="font-semibold text-primary mb-1">
+                    Step 3: Rate Each Area
+                  </h4>
+                  <p>
+                    For each room/area, rate the custodial performance using the
+                    1-5 star system you're familiar with. Add room numbers and
+                    notes as needed.
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary mb-1">Step 4: Track Progress</h4>
-                  <p>Your progress is saved automatically. Green checkmarks show completed categories. Return anytime to continue where you left off.</p>
+                  <h4 className="font-semibold text-primary mb-1">
+                    Step 4: Track Progress
+                  </h4>
+                  <p>
+                    Your progress is saved automatically. Green checkmarks show
+                    completed categories. Return anytime to continue where you
+                    left off.
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-primary mb-1">Step 5: Finalize</h4>
-                  <p>Once all required inspections are complete, the "Finalize Building Inspection" button will become available to submit your comprehensive inspection.</p>
+                  <h4 className="font-semibold text-primary mb-1">
+                    Step 5: Finalize
+                  </h4>
+                  <p>
+                    Once all required inspections are complete, the "Finalize
+                    Building Inspection" button will become available to submit
+                    your comprehensive inspection.
+                  </p>
                 </div>
               </div>
             </CollapsibleContent>
@@ -755,12 +870,16 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         <Card>
           <CardHeader>
             <CardTitle>Building Inspection Options</CardTitle>
-            <CardDescription>You can continue a previous inspection or start a new one</CardDescription>
+            <CardDescription>
+              You can continue a previous inspection or start a new one
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Start New Inspection - More Prominent */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900 text-lg">Start New Inspection:</h4>
+              <h4 className="font-medium text-gray-900 text-lg">
+                Start New Inspection:
+              </h4>
               <Button
                 onClick={startNewInspection}
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
@@ -778,10 +897,14 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900">Or Continue Previous Inspection:</h4>
+                  <h4 className="font-medium text-gray-900">
+                    Or Continue Previous Inspection:
+                  </h4>
                   <div className="space-y-2 max-h-60 overflow-y-auto border-2 border-amber-300 rounded-lg p-3 bg-amber-25 shadow-inner">
                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-amber-200">
-                      <span className="text-sm font-medium text-amber-800">Available Inspections</span>
+                      <span className="text-sm font-medium text-amber-800">
+                        Available Inspections
+                      </span>
                       <span className="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
                         {availableInspections.length} found
                       </span>
@@ -796,7 +919,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                             <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-medium">
                               #{index + 1}
                             </span>
-                            <div className="font-medium text-amber-900">{inspection.school}</div>
+                            <div className="font-medium text-amber-900">
+                              {inspection.school}
+                            </div>
                           </div>
                           <div className="text-sm text-amber-700 mt-1">
                             {new Date(inspection.date).toLocaleDateString()}
@@ -826,7 +951,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                     {availableInspections.length > 3 && (
                       <div className="text-center py-2 border-t border-amber-200 mt-2">
                         <span className="text-xs text-amber-600 bg-amber-100 px-3 py-1 rounded-full">
-                          ↕ Scroll to see all {availableInspections.length} inspections
+                          ↕ Scroll to see all {availableInspections.length}{" "}
+                          inspections
                         </span>
                       </div>
                     )}
@@ -845,7 +971,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         <Card>
           <CardHeader>
             <CardTitle>Building Information</CardTitle>
-            <CardDescription>Select the school and date for this inspection</CardDescription>
+            <CardDescription>
+              Select the school and date for this inspection
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -854,7 +982,9 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Input
                   id="inspectorName"
                   value={formData.inspectorName}
-                  onChange={(e) => handleInputChange('inspectorName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("inspectorName", e.target.value)
+                  }
                   placeholder="Enter inspector name"
                   required
                 />
@@ -863,7 +993,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                 <Label htmlFor="school">School</Label>
                 <Select
                   value={formData.school}
-                  onValueChange={(value) => handleInputChange('school', value)}
+                  onValueChange={(value) => handleInputChange("school", value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select school" />
@@ -883,7 +1013,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
                   id="date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
+                  onChange={(e) => handleInputChange("date", e.target.value)}
                   required
                 />
               </div>
@@ -902,7 +1032,7 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-2">
                 <span className="font-medium">Inspector:</span>
-                <span>{formData.inspectorName || 'Not specified'}</span>
+                <span>{formData.inspectorName || "Not specified"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium">School:</span>
@@ -930,459 +1060,598 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
         </Card>
       )}
       {/* Dynamic Checklist */}
-      {!showInspectionSelector && (isMobile ? (
-        <MobileCard title="Inspection Progress" data-inspection-progress>
-          <p className="text-sm text-gray-600 mb-4">
-            Complete the required number of inspections for each category
-            {formData.school && formData.date && (
-              <span className="block text-xs text-gray-500 mt-1">
-                (Progress is automatically saved)
-              </span>
-            )}
-          </p>
-          <div className="space-y-3">
-            {Object.entries(requirements).map(([category, required]) => {
-              const completedCount = completed[category];
-              const isComplete = completedCount >= required;
+      {!showInspectionSelector &&
+        (isMobile ? (
+          <MobileCard title="Inspection Progress" data-inspection-progress>
+            <p className="text-sm text-gray-600 mb-4">
+              Complete the required number of inspections for each category
+              {formData.school && formData.date && (
+                <span className="block text-xs text-gray-500 mt-1">
+                  (Progress is automatically saved)
+                </span>
+              )}
+            </p>
+            <div className="space-y-3">
+              {Object.entries(requirements).map(([category, required]) => {
+                const completedCount = completed[category];
+                const isComplete = completedCount >= required;
 
-              return (
-                <div
-                  key={category}
-                  className={`p-3 rounded-lg border ${
-                    isComplete
-                      ? 'bg-green-50 border-green-200'
-                      : selectedCategory === category
-                        ? 'bg-blue-50 border-blue-300 border-2'
-                        : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
-                      }`}>
-                        {isComplete && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className={`font-medium text-sm block leading-tight ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
-                          {categoryLabels[category]}
-                        </span>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge variant={isComplete ? 'default' : 'secondary'} className="text-xs">
-                            {completedCount}/{required} Done
-                          </Badge>
-                          {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCategorySelect(category)}
-                              className={`text-xs px-3 py-1 h-7 ${selectedCategory === category ? 'border-blue-500 bg-blue-50' : ''}`}
-                            >
-                              Select
-                            </Button>
+                return (
+                  <div
+                    key={category}
+                    className={`p-3 rounded-lg border ${
+                      isComplete
+                        ? "bg-green-50 border-green-200"
+                        : selectedCategory === category
+                        ? "bg-blue-50 border-blue-300 border-2"
+                        : "bg-gray-50 border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div
+                          className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                            isComplete
+                              ? "bg-green-500 border-green-500"
+                              : "border-gray-400"
+                          }`}
+                        >
+                          {isComplete && (
+                            <Check className="w-4 h-4 text-white" />
                           )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span
+                            className={`font-medium text-sm block leading-tight ${
+                              isComplete ? "text-green-800" : "text-gray-700"
+                            }`}
+                          >
+                            {categoryLabels[category]}
+                          </span>
+                          <div className="flex items-center justify-between mt-2">
+                            <Badge
+                              variant={isComplete ? "default" : "secondary"}
+                              className="text-xs"
+                            >
+                              {completedCount}/{required} Done
+                            </Badge>
+                            {!isComplete &&
+                              formData.school &&
+                              formData.date &&
+                              formData.inspectorName.trim() && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCategorySelect(category)}
+                                  className={`text-xs px-3 py-1 h-7 ${
+                                    selectedCategory === category
+                                      ? "border-blue-500 bg-blue-50"
+                                      : ""
+                                  }`}
+                                >
+                                  Select
+                                </Button>
+                              )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </MobileCard>
-      ) : (
-        <Card data-inspection-progress>
-          <CardHeader>
-            <CardTitle>Inspection Progress</CardTitle>
-            <CardDescription>
-              Complete the required number of inspections for each category
-              {formData.school && formData.date && (
-                <span className="text-sm text-gray-500 ml-2">
-                  (Progress is automatically saved)
-                </span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {Object.entries(requirements).map(([category, required]) => {
-              const completedCount = completed[category];
-              const isComplete = completedCount >= required;
-
-              return (
-                <div
-                  key={category}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    isComplete
-                      ? 'bg-green-50 border-green-200'
-                      : selectedCategory === category
-                        ? 'bg-blue-50 border-blue-300 border-2'
-                        : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center ${
-                      isComplete ? 'bg-green-500 border-green-500' : 'border-gray-400'
-                    }`}>
-                      {isComplete && <Check className="w-4 h-4 text-white" />}
-                    </div>
-                    <span className={`font-medium ${isComplete ? 'text-green-800' : 'text-gray-700'}`}>
-                      {categoryLabels[category]}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={isComplete ? 'default' : 'secondary'}>
-                      {completedCount}/{required} Completed
-                    </Badge>
-                    {!isComplete && formData.school && formData.date && formData.inspectorName.trim() && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCategorySelect(category)}
-                        className={selectedCategory === category ? 'border-blue-500' : ''}
-                      >
-                        Select
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      ))}
-      {/* Help message when form is not showing */}
-      {!showInspectionSelector && selectedCategory && !(formData.school && formData.date && formData.inspectorName.trim()) && (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-white text-sm font-bold">!</span>
-              </div>
-              <div>
-                <h4 className="font-medium text-amber-800 mb-1">Complete Required Information</h4>
-                <p className="text-sm text-amber-700">
-                  Please fill in all required fields above before you can start rating this category:
-                </p>
-                <ul className="text-sm text-amber-700 mt-2 space-y-1">
-                  {!formData.inspectorName.trim() && <li>• Inspector Name is required</li>}
-                  {!formData.school && <li>• School selection is required</li>}
-                  {!formData.date && <li>• Inspection date is required</li>}
-                </ul>
-              </div>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </MobileCard>
+        ) : (
+          <Card data-inspection-progress>
+            <CardHeader>
+              <CardTitle>Inspection Progress</CardTitle>
+              <CardDescription>
+                Complete the required number of inspections for each category
+                {formData.school && formData.date && (
+                  <span className="text-sm text-gray-500 ml-2">
+                    (Progress is automatically saved)
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Object.entries(requirements).map(([category, required]) => {
+                const completedCount = completed[category];
+                const isComplete = completedCount >= required;
+
+                return (
+                  <div
+                    key={category}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      isComplete
+                        ? "bg-green-50 border-green-200"
+                        : selectedCategory === category
+                        ? "bg-blue-50 border-blue-300 border-2"
+                        : "bg-gray-50 border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center ${
+                          isComplete
+                            ? "bg-green-500 border-green-500"
+                            : "border-gray-400"
+                        }`}
+                      >
+                        {isComplete && <Check className="w-4 h-4 text-white" />}
+                      </div>
+                      <span
+                        className={`font-medium ${
+                          isComplete ? "text-green-800" : "text-gray-700"
+                        }`}
+                      >
+                        {categoryLabels[category]}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant={isComplete ? "default" : "secondary"}>
+                        {completedCount}/{required} Completed
+                      </Badge>
+                      {!isComplete &&
+                        formData.school &&
+                        formData.date &&
+                        formData.inspectorName.trim() && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCategorySelect(category)}
+                            className={
+                              selectedCategory === category
+                                ? "border-blue-500"
+                                : ""
+                            }
+                          >
+                            Select
+                          </Button>
+                        )}
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        ))}
+      {/* Help message when form is not showing */}
+      {!showInspectionSelector &&
+        selectedCategory &&
+        !(
+          formData.school &&
+          formData.date &&
+          formData.inspectorName.trim()
+        ) && (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-white text-sm font-bold">!</span>
+                </div>
+                <div>
+                  <h4 className="font-medium text-amber-800 mb-1">
+                    Complete Required Information
+                  </h4>
+                  <p className="text-sm text-amber-700">
+                    Please fill in all required fields above before you can
+                    start rating this category:
+                  </p>
+                  <ul className="text-sm text-amber-700 mt-2 space-y-1">
+                    {!formData.inspectorName.trim() && (
+                      <li>• Inspector Name is required</li>
+                    )}
+                    {!formData.school && (
+                      <li>• School selection is required</li>
+                    )}
+                    {!formData.date && <li>• Inspection date is required</li>}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Inspection Form */}
-      {!showInspectionSelector && selectedCategory && formData.school && formData.date && formData.inspectorName.trim() && (
-        <form onSubmit={handleSubmit} className={`space-y-4 ${isMobile ? '' : 'space-y-6'}`}>
-          {isMobile ? (
-            <MobileCard title={`Inspecting: ${categoryLabels[selectedCategory]}`}>
-              {lastSaved && (
-                <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>Auto-saved at {lastSaved.toLocaleTimeString()}</span>
-                </div>
-              )}
-              {isAutoSaving && (
-                <div className="flex items-center gap-2 mb-4 text-sm text-blue-600">
-                  <Save className="w-4 h-4 animate-pulse" />
-                  <span>Saving...</span>
-                </div>
-              )}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="roomNumber" className="text-base font-medium">Room Number</Label>
-                  <Input
-                    id="roomNumber"
-                    className="h-12 text-base"
-                    value={formData.roomNumber}
-                    onChange={(e) => handleInputChange('roomNumber', e.target.value)}
-                    placeholder="Enter room number"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="locationDescription" className="text-base font-medium">Location Description</Label>
-                  <Input
-                    id="locationDescription"
-                    className="h-12 text-base"
-                    value={formData.locationDescription}
-                    onChange={(e) => handleInputChange('locationDescription', e.target.value)}
-                    placeholder="e.g., Main Building, Second Floor"
-                  />
-                </div>
-              </div>
-            </MobileCard>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Inspecting: {categoryLabels[selectedCategory]}</CardTitle>
-                <CardDescription>
-                  Complete the inspection for this category
-                  {lastSaved && (
-                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>Auto-saved at {lastSaved.toLocaleTimeString()}</span>
-                    </div>
-                  )}
-                  {isAutoSaving && (
-                    <div className="flex items-center gap-2 mt-2 text-sm text-blue-600">
-                      <Save className="w-4 h-4 animate-pulse" />
-                      <span>Saving...</span>
-                    </div>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {!showInspectionSelector &&
+        selectedCategory &&
+        formData.school &&
+        formData.date &&
+        formData.inspectorName.trim() && (
+          <form
+            onSubmit={handleSubmit}
+            className={`space-y-4 ${isMobile ? "" : "space-y-6"}`}
+          >
+            {isMobile ? (
+              <MobileCard
+                title={`Inspecting: ${categoryLabels[selectedCategory]}`}
+              >
+                {lastSaved && (
+                  <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>Auto-saved at {lastSaved.toLocaleTimeString()}</span>
+                  </div>
+                )}
+                {isAutoSaving && (
+                  <div className="flex items-center gap-2 mb-4 text-sm text-blue-600">
+                    <Save className="w-4 h-4 animate-pulse" />
+                    <span>Saving...</span>
+                  </div>
+                )}
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="roomNumber">Room Number</Label>
+                    <Label
+                      htmlFor="roomNumber"
+                      className="text-base font-medium"
+                    >
+                      Room Number
+                    </Label>
                     <Input
                       id="roomNumber"
+                      className="h-12 text-base"
                       value={formData.roomNumber}
-                      onChange={(e) => handleInputChange('roomNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("roomNumber", e.target.value)
+                      }
                       placeholder="Enter room number"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="locationDescription">Location Description</Label>
+                    <Label
+                      htmlFor="locationDescription"
+                      className="text-base font-medium"
+                    >
+                      Location Description
+                    </Label>
                     <Input
                       id="locationDescription"
+                      className="h-12 text-base"
                       value={formData.locationDescription}
-                      onChange={(e) => handleInputChange('locationDescription', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("locationDescription", e.target.value)
+                      }
                       placeholder="e.g., Main Building, Second Floor"
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Rating Categories - Collapsible sections */}
-          {isMobile ? (
-            <MobileCard title="Rate Each Category">
-              <div className="space-y-4">
-                {inspectionCategories.map((category, index) => (
-                  <CollapsibleSection
-                    key={category.key}
-                    title={category.label}
-                    defaultCollapsed={true}
-                    className="border border-gray-200"
-                    titleClassName="text-left font-medium"
-                    contentClassName="space-y-3"
-                  >
-                    {renderMobileStarRating(
-                      category,
-                      formData[category.key as keyof typeof formData] as number,
-                      (rating: number) => handleInputChange(category.key as keyof typeof formData, rating)
+              </MobileCard>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Inspecting: {categoryLabels[selectedCategory]}
+                  </CardTitle>
+                  <CardDescription>
+                    Complete the inspection for this category
+                    {lastSaved && (
+                      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          Auto-saved at {lastSaved.toLocaleTimeString()}
+                        </span>
+                      </div>
                     )}
-                  </CollapsibleSection>
-                ))}
+                    {isAutoSaving && (
+                      <div className="flex items-center gap-2 mt-2 text-sm text-blue-600">
+                        <Save className="w-4 h-4 animate-pulse" />
+                        <span>Saving...</span>
+                      </div>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="roomNumber">Room Number</Label>
+                      <Input
+                        id="roomNumber"
+                        value={formData.roomNumber}
+                        onChange={(e) =>
+                          handleInputChange("roomNumber", e.target.value)
+                        }
+                        placeholder="Enter room number"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="locationDescription">
+                        Location Description
+                      </Label>
+                      <Input
+                        id="locationDescription"
+                        value={formData.locationDescription}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "locationDescription",
+                            e.target.value
+                          )
+                        }
+                        placeholder="e.g., Main Building, Second Floor"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Rating Categories - Collapsible sections */}
+            {isMobile ? (
+              <MobileCard title="Rate Each Category">
+                <div className="space-y-4">
+                  {inspectionCategories.map((category, index) => (
+                    <CollapsibleSection
+                      key={category.key}
+                      title={category.label}
+                      defaultCollapsed={true}
+                      className="border border-gray-200"
+                      titleClassName="text-left font-medium"
+                      contentClassName="space-y-3"
+                    >
+                      {renderMobileStarRating(
+                        category,
+                        formData[
+                          category.key as keyof typeof formData
+                        ] as number,
+                        (rating: number) =>
+                          handleInputChange(
+                            category.key as keyof typeof formData,
+                            rating
+                          )
+                      )}
+                    </CollapsibleSection>
+                  ))}
+                </div>
+              </MobileCard>
+            ) : (
+              <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                {inspectionCategories.map((category, index) => {
+                  const key = category.key as keyof typeof formData;
+                  return (
+                    <CollapsibleSection
+                      key={category.key}
+                      title={category.label}
+                      defaultCollapsed={true}
+                      className="border border-gray-200"
+                      titleClassName="text-left font-medium"
+                      contentClassName="space-y-3"
+                    >
+                      {renderStarRating(
+                        category,
+                        formData[key] as number,
+                        (rating) => handleInputChange(key, rating)
+                      )}
+                    </CollapsibleSection>
+                  );
+                })}
               </div>
-            </MobileCard>
-          ) : (
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-              {inspectionCategories.map((category, index) => {
-                const key = category.key as keyof typeof formData;
-                return (
-                  <CollapsibleSection
-                    key={category.key}
-                    title={category.label}
-                    defaultCollapsed={true}
-                    className="border border-gray-200"
-                    titleClassName="text-left font-medium"
-                    contentClassName="space-y-3"
-                  >
-                    {renderStarRating(
-                      category,
-                      formData[key] as number,
-                      (rating) => handleInputChange(key, rating)
-                    )}
-                  </CollapsibleSection>
-                );
-              })}
-            </div>
-          )}
+            )}
 
-          {/* Notes */}
-          {isMobile ? (
-            <MobileCard title="Additional Notes">
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Enter any additional observations..."
-                rows={4}
-                className="text-base min-h-[120px]"
-              />
-            </MobileCard>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Notes */}
+            {isMobile ? (
+              <MobileCard title="Additional Notes">
                 <Textarea
                   value={formData.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  onChange={(e) => handleInputChange("notes", e.target.value)}
                   placeholder="Enter any additional observations..."
                   rows={4}
+                  className="text-base min-h-[120px]"
                 />
-              </CardContent>
-            </Card>
-          )}
+              </MobileCard>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder="Enter any additional observations..."
+                    rows={4}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Image Upload */}
-          {isMobile ? (
-            <MobileCard title="Photo Documentation">
-              <div className="space-y-4">
-                <div className="flex flex-col gap-3">
-                  <Label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                      <Upload className="w-5 h-5" />
-                      <span className="text-base">Upload Images</span>
-                    </div>
-                    <Input
-                      id="image-upload"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          toast({
-                            title: "📸 Photos Uploaded Successfully!",
-                            description: `Added ${e.target.files.length} photo${e.target.files.length > 1 ? 's' : ''} to room inspection documentation.`,
-                            duration: 3000
-                          });
-                          console.log('Files selected:', e.target.files.length, 'files');
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </Label>
+            {/* Image Upload */}
+            {isMobile ? (
+              <MobileCard title="Photo Documentation">
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-3">
+                    <Label htmlFor="image-upload" className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                        <Upload className="w-5 h-5" />
+                        <span className="text-base">Upload Images</span>
+                      </div>
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            toast({
+                              title: "📸 Photos Uploaded Successfully!",
+                              description: `Added ${
+                                e.target.files.length
+                              } photo${
+                                e.target.files.length > 1 ? "s" : ""
+                              } to room inspection documentation.`,
+                              duration: 3000,
+                            });
+                            console.log(
+                              "Files selected:",
+                              e.target.files.length,
+                              "files"
+                            );
+                            e.target.value = ""; // Reset input to allow selecting same files again
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </Label>
 
-                  <Label htmlFor="camera-capture" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                      <Camera className="w-5 h-5" />
-                      <span className="text-base">Take Photo</span>
-                    </div>
-                    <Input
-                      id="camera-capture"
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          toast({
-                            title: "📷 Photo Captured Successfully!",
-                            description: "Camera photo has been added to your inspection documentation.",
-                            duration: 3000
-                          });
-                          console.log('Camera photo taken:', e.target.files[0].name);
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </Label>
+                    <Label htmlFor="camera-capture" className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                        <Camera className="w-5 h-5" />
+                        <span className="text-base">Take Photo</span>
+                      </div>
+                      <Input
+                        id="camera-capture"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            toast({
+                              title: "📷 Photo Captured Successfully!",
+                              description:
+                                "Camera photo has been added to your inspection documentation.",
+                              duration: 3000,
+                            });
+                            console.log(
+                              "Camera photo taken:",
+                              e.target.files[0].name
+                            );
+                            e.target.value = ""; // Reset input to allow selecting same files again
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </Label>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Upload existing images or take new photos to document the
+                    inspection
+                  </p>
                 </div>
-                <p className="text-sm text-gray-500">
-                  Upload existing images or take new photos to document the inspection
-                </p>
-              </div>
-            </MobileCard>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Photo Documentation</CardTitle>
-                <CardDescription>Upload images or take photos to document the inspection</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Label htmlFor="image-upload-desktop" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span>Upload Images</span>
-                    </div>
-                    <Input
-                      id="image-upload-desktop"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          toast({
-                            title: "📸 Photos Uploaded Successfully!",
-                            description: `Added ${e.target.files.length} photo${e.target.files.length > 1 ? 's' : ''} to room inspection documentation.`,
-                            duration: 3000
-                          });
-                          console.log('Files selected:', e.target.files.length, 'files');
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </Label>
+              </MobileCard>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Photo Documentation</CardTitle>
+                  <CardDescription>
+                    Upload images or take photos to document the inspection
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Label
+                      htmlFor="image-upload-desktop"
+                      className="cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Images</span>
+                      </div>
+                      <Input
+                        id="image-upload-desktop"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            toast({
+                              title: "📸 Photos Uploaded Successfully!",
+                              description: `Added ${
+                                e.target.files.length
+                              } photo${
+                                e.target.files.length > 1 ? "s" : ""
+                              } to room inspection documentation.`,
+                              duration: 3000,
+                            });
+                            console.log(
+                              "Files selected:",
+                              e.target.files.length,
+                              "files"
+                            );
+                            e.target.value = ""; // Reset input to allow selecting same files again
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </Label>
 
-                  <Label htmlFor="camera-capture-desktop" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                      <Camera className="w-4 h-4" />
-                      <span>Take Photo</span>
-                    </div>
-                    <Input
-                      id="camera-capture-desktop"
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          toast({
-                            title: "📷 Photo Captured Successfully!",
-                            description: "Camera photo has been added to your inspection documentation.",
-                            duration: 3000
-                          });
-                          console.log('Camera photo taken:', e.target.files[0].name);
-                          e.target.value = ''; // Reset input to allow selecting same files again
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </Label>
-                </div>
-                <p className="text-sm text-gray-500">
-                  Select multiple images from your device or take new photos with your camera
-                </p>
-              </CardContent>
-            </Card>
-          )}
+                    <Label
+                      htmlFor="camera-capture-desktop"
+                      className="cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                        <Camera className="w-4 h-4" />
+                        <span>Take Photo</span>
+                      </div>
+                      <Input
+                        id="camera-capture-desktop"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            toast({
+                              title: "📷 Photo Captured Successfully!",
+                              description:
+                                "Camera photo has been added to your inspection documentation.",
+                              duration: 3000,
+                            });
+                            console.log(
+                              "Camera photo taken:",
+                              e.target.files[0].name
+                            );
+                            e.target.value = ""; // Reset input to allow selecting same files again
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </Label>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Select multiple images from your device or take new photos
+                    with your camera
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-          <Button
-            type="submit"
-            size="lg"
-            className={`w-full bg-blue-600 hover:bg-blue-700 ${isMobile ? 'h-14 text-lg' : ''}`}
-            disabled={isSubmitting} // Disable button while submitting
-          >
-            {isSubmitting ? 'Submitting...' : `Submit ${categoryLabels[selectedCategory]} Inspection`}
-          </Button>
-        </form>
-      )}
+            <Button
+              type="submit"
+              size="lg"
+              className={`w-full bg-blue-600 hover:bg-blue-700 ${
+                isMobile ? "h-14 text-lg" : ""
+              }`}
+              disabled={isSubmitting} // Disable button while submitting
+            >
+              {isSubmitting
+                ? "Submitting..."
+                : `Submit ${categoryLabels[selectedCategory]} Inspection`}
+            </Button>
+          </form>
+        )}
       {/* Final Submit Button */}
       {!showInspectionSelector && (
-        <div className={`border-t ${isMobile ? 'pt-4' : 'pt-6'}`}>
+        <div className={`border-t ${isMobile ? "pt-4" : "pt-6"}`}>
           <Button
             onClick={handleFinalSubmit}
             size="lg"
-            className={`w-full bg-green-600 hover:bg-green-700 ${isMobile ? 'h-14 text-base' : ''}`}
+            className={`w-full bg-green-600 hover:bg-green-700 ${
+              isMobile ? "h-14 text-base" : ""
+            }`}
             disabled={!isAllComplete}
           >
-            {isMobile ? 'Finalize Building Inspection' : 'Finalize Whole Building Inspection'}
+            {isMobile
+              ? "Finalize Building Inspection"
+              : "Finalize Whole Building Inspection"}
           </Button>
           {!isAllComplete && (
-            <p className={`text-center text-gray-500 mt-2 ${isMobile ? 'text-xs px-2' : 'text-sm'}`}>
-              {isMobile ? 'Complete all required inspections first' : 'Complete all required inspections to enable this button'}
+            <p
+              className={`text-center text-gray-500 mt-2 ${
+                isMobile ? "text-xs px-2" : "text-sm"
+              }`}
+            >
+              {isMobile
+                ? "Complete all required inspections first"
+                : "Complete all required inspections to enable this button"}
             </p>
           )}
         </div>
