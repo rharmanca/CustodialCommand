@@ -113,16 +113,31 @@ export async function registerRoutes(app: Express): Promise<void> {
       const inspectionData = {
         inspectorName: inspectorName || null,
         school,
+        date: req.body.date || new Date().toISOString(),
         inspectionType,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isCompleted: false,
-        images: JSON.stringify(imageUrls)
+        locationDescription: req.body.locationDescription || '',
+        roomNumber: req.body.roomNumber || null,
+        locationCategory: req.body.locationCategory || null,
+        floors: req.body.floors || null,
+        verticalHorizontalSurfaces: req.body.verticalHorizontalSurfaces || null,
+        ceiling: req.body.ceiling || null,
+        restrooms: req.body.restrooms || null,
+        customerSatisfaction: req.body.customerSatisfaction || null,
+        trash: req.body.trash || null,
+        projectCleaning: req.body.projectCleaning || null,
+        activitySupport: req.body.activitySupport || null,
+        safetyCompliance: req.body.safetyCompliance || null,
+        equipment: req.body.equipment || null,
+        monitoring: req.body.monitoring || null,
+        notes: req.body.notes || null,
+        images: imageUrls,
+        verifiedRooms: [],
+        isCompleted: false
       };
 
       logger.info('[POST] Creating building inspection', { inspectionData });
 
-      const [newInspection] = await storage.createInspection(inspectionData);
+      const newInspection = await storage.createInspection(inspectionData);
 
       logger.info('[POST] Building inspection created successfully', { id: newInspection.id });
 
@@ -188,15 +203,15 @@ export async function registerRoutes(app: Express): Promise<void> {
     });
 
     try {
-      const { school, date, custodian, adminNotes, location, notes } = req.body;
+      const { school, date, locationDescription, location, notes } = req.body;
       const files = req.files as Express.Multer.File[];
 
       // Validate required fields
-      if (!school || !date || !custodian || !location) {
-        logger.warn('[POST] Missing required fields', { school, date, custodian, location });
+      if (!school || !date || !location) {
+        logger.warn('[POST] Missing required fields', { school, date, location });
         return res.status(400).json({
           message: 'Missing required fields',
-          details: { school: !!school, date: !!date, custodian: !!custodian, location: !!location }
+          details: { school: !!school, date: !!date, location: !!location }
         });
       }
 
@@ -230,11 +245,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       const custodialNote = {
         school,
         date,
-        custodian,
-        adminNotes: adminNotes || '',
         location,
+        locationDescription: locationDescription || '',
         notes: notes || '',
-        images: JSON.stringify(imageUrls)
+        images: imageUrls
       };
 
       logger.info('[POST] Creating custodial note', { custodialNote });
@@ -593,6 +607,135 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       logger.error('[GET] Error serving object:', error);
       res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Admin authentication endpoint
+  app.post('/api/admin/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Username and password are required' 
+        });
+      }
+
+      // Check credentials against environment variables (more secure)
+      const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      
+      if (!adminPassword) {
+        logger.error('ADMIN_PASSWORD environment variable not set');
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Server configuration error' 
+        });
+      }
+
+      if (username === adminUsername && password === adminPassword) {
+        // Generate a simple session token (in production, use JWT)
+        const sessionToken = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Store session (in production, use Redis or database)
+        if (!global.adminSessions) {
+          global.adminSessions = new Map();
+        }
+        global.adminSessions.set(sessionToken, {
+          username,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+        });
+
+        logger.info('Admin login successful', { username });
+        
+        res.json({ 
+          success: true, 
+          message: 'Login successful',
+          sessionToken 
+        });
+      } else {
+        logger.warn('Admin login failed', { username });
+        res.status(401).json({ 
+          success: false, 
+          message: 'Invalid credentials' 
+        });
+      }
+    } catch (error) {
+      logger.error('Admin login error', { error });
+      res.status(500).json({ 
+        success: false, 
+        message: 'Internal server error' 
+      });
+    }
+  });
+
+  // Admin session validation middleware
+  const validateAdminSession = (req: Request, res: Response, next: NextFunction) => {
+    const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!sessionToken) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No session token provided' 
+      });
+    }
+
+    if (!global.adminSessions) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'No active sessions' 
+      });
+    }
+
+    const session = global.adminSessions.get(sessionToken);
+    
+    if (!session) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid session token' 
+      });
+    }
+
+    if (new Date() > session.expiresAt) {
+      global.adminSessions.delete(sessionToken);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Session expired' 
+      });
+    }
+
+    // Add session info to request
+    (req as any).adminSession = session;
+    next();
+  };
+
+  // Protected admin routes
+  app.get('/api/admin/inspections', validateAdminSession, async (req, res) => {
+    try {
+      const inspections = await storage.getInspections();
+      res.json({ success: true, data: inspections });
+    } catch (error) {
+      logger.error('Error fetching admin inspections', { error });
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/admin/inspections/:id', validateAdminSession, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteInspection(id);
+      
+      if (success) {
+        res.json({ success: true, message: 'Inspection deleted successfully' });
+      } else {
+        res.status(404).json({ success: false, message: 'Inspection not found' });
+      }
+    } catch (error) {
+      logger.error('Error deleting admin inspection', { error });
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
 

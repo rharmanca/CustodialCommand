@@ -625,16 +625,8 @@ export default function WholeBuildingInspectionPage({ onBack }: WholeBuildingIns
           comments: ''
         });
 
-        // Navigate to next category or reset selection
-        const categoryOptions = Object.keys(requirements).map(key => ({ value: key, label: categoryLabels[key] }));
-
-        const nextCategoryIndex = categoryOptions.findIndex(cat => cat.value === selectedCategory) + 1;
-        if (nextCategoryIndex < categoryOptions.length) {
-          setSelectedCategory(categoryOptions[nextCategoryIndex].value);
-        } else {
-          // All categories completed, clear selection
-          setSelectedCategory(null);
-        }
+        // Clear selectedCategory to prevent validation warning from showing
+        setSelectedCategory(null);
       } else {
         throw new Error(result.message || 'Submission failed');
       }

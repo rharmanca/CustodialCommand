@@ -71,8 +71,8 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
 
   useEffect(() => {
     // Check if already authenticated
-    const authStatus = localStorage.getItem('admin-authenticated');
-    if (authStatus === 'true') {
+    const sessionToken = localStorage.getItem('admin-session-token');
+    if (sessionToken) {
       setIsAuthenticated(true);
       loadInspections();
     } else {
@@ -80,22 +80,40 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     
-    if (loginForm.username === 'Admin' && loginForm.password === 'cacustodial') {
-      setIsAuthenticated(true);
-      localStorage.setItem('admin-authenticated', 'true');
-      loadInspections();
-    } else {
-      setLoginError('Invalid username or password');
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: loginForm.username,
+          password: loginForm.password
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem('admin-session-token', data.sessionToken);
+        loadInspections();
+      } else {
+        setLoginError(data.message || 'Invalid username or password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginError('Network error. Please try again.');
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('admin-authenticated');
+    localStorage.removeItem('admin-session-token');
     setLoginForm({ username: '', password: '' });
   };
 
@@ -121,10 +139,26 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
 
   const loadInspections = async () => {
     try {
-      const response = await fetch('/api/inspections');
+      const sessionToken = localStorage.getItem('admin-session-token');
+      if (!sessionToken) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      const response = await fetch('/api/admin/inspections', {
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`
+        }
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        setInspections(data);
+        setInspections(data.data || data);
+      } else if (response.status === 401) {
+        // Session expired
+        setIsAuthenticated(false);
+        localStorage.removeItem('admin-session-token');
+        setLoginError('Session expired. Please login again.');
       } else {
         console.error('Failed to fetch inspections');
       }
@@ -137,8 +171,17 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/inspections/${id}`, {
+      const sessionToken = localStorage.getItem('admin-session-token');
+      if (!sessionToken) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      const response = await fetch(`/api/admin/inspections/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`
+        }
       });
       
       if (response.ok) {
@@ -147,6 +190,11 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
           title: "✅ Inspection Deleted",
           description: "Inspection deleted successfully"
         });
+      } else if (response.status === 401) {
+        // Session expired
+        setIsAuthenticated(false);
+        localStorage.removeItem('admin-session-token');
+        setLoginError('Session expired. Please login again.');
       } else {
         toast({
           variant: "destructive",
