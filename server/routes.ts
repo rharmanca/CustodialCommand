@@ -5,38 +5,13 @@ import { storage } from "./storage";
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
 import { z } from "zod";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { logger } from "./logger"; // Assuming logger is configured elsewhere
-import express from 'express'; // Import express to use express.static
+import { logger } from "./logger";
 
-// Assume objectStorageService is imported and configured elsewhere
-// import { objectStorageService } from './objectStorageService'; 
-// For demonstration purposes, let's mock it if not provided
-const objectStorageService = {
-  uploadLargeFile: async (buffer: Buffer, filename: string, mimetype: string) => {
-    console.log(`Mock: Uploading ${filename} (${mimetype}) with size ${buffer.length}`);
-    // In a real scenario, this would upload to Replit Object Storage
-    // and return a success status and potentially a URL.
-    // For now, simulate success.
-    return { success: true, url: `/objects/${filename}` };
-  },
-  getObjectFile: async (filename: string) => {
-    console.log(`Mock: Getting metadata for ${filename}`);
-    // Simulate finding a file
-    return { httpMetadata: { contentType: 'image/jpeg' }, httpEtag: 'mock-etag' };
-  },
-  downloadObject: async (filename: string) => {
-    console.log(`Mock: Downloading ${filename}`);
-    // Simulate downloading file data
-    return { success: true, data: Buffer.from("mock file content") };
-  }
-};
+import { ObjectStorageService } from './objectStorage';
 
-// Add async wrapper for better error handling
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const objectStorageService = new ObjectStorageService();
+
+
 
 // Configure multer for file uploads (5MB limit to match client-side)
 const upload = multer({
@@ -111,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const inspectionData = {
-        inspectorName: inspectorName || null,
+        inspectorName: inspectorName || "",
         school,
         date: req.body.date || new Date().toISOString(),
         inspectionType,
@@ -137,7 +112,10 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       logger.info('[POST] Creating building inspection', { inspectionData });
 
-      const newInspection = await storage.createInspection(inspectionData);
+      // Now validate the data before saving
+      try {
+        const validatedData = insertInspectionSchema.parse(inspectionData);
+        const newInspection = await storage.createInspection(validatedData);
 
       logger.info('[POST] Building inspection created successfully', { id: newInspection.id });
 
@@ -147,6 +125,16 @@ export async function registerRoutes(app: Express): Promise<void> {
         imageCount: imageUrls.length
       });
 
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          logger.warn('[POST] Validation failed', { errors: validationError.errors });
+          return res.status(400).json({
+            message: 'Invalid inspection data',
+            details: validationError.errors
+          });
+        }
+        throw validationError;
+      }
     } catch (error) {
       logger.error('[POST] Error creating building inspection:', error);
       res.status(500).json({ message: 'Internal server error' });

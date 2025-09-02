@@ -103,6 +103,18 @@ export class DatabaseStorage implements IStorage {
     return inspection || undefined;
   }
 
+  async updateRoomInspection(
+    id: number,
+    updates: Partial<RoomInspection>
+  ): Promise<RoomInspection | undefined> {
+    const [room] = await db
+      .update(roomInspections)
+      .set(updates)
+      .where(eq(roomInspections.id, id))
+      .returning();
+    return room || undefined;
+  }
+
   async createRoomInspection(insertRoomInspection: InsertRoomInspection): Promise<RoomInspection> {
     const [roomInspection] = await db
       .insert(roomInspections)
@@ -134,46 +146,3 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
-
-export async function saveInspection(inspectionData: any): Promise<{ id: string }> {
-  try {
-    console.log('Saving inspection:', inspectionData);
-
-    // Validate inspection data
-    if (!inspectionData || typeof inspectionData !== 'object') {
-      throw new Error('Invalid inspection data provided');
-    }
-
-    // Generate a unique ID for the inspection
-    const inspectionId = `inspection_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Add metadata
-    const inspection = {
-      ...inspectionData,
-      id: inspectionId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'submitted'
-    };
-
-    // Ensure we have a valid type
-    if (!inspection.type) {
-      inspection.type = inspectionData.category ? 'building' : 'custodial';
-    }
-
-    // Store in memory (in a real app, this would be a database)
-    if (!global.inspections) {
-      global.inspections = [];
-    }
-
-    global.inspections.push(inspection);
-
-    console.log('Inspection saved with ID:', inspectionId);
-    console.log('Total inspections in storage:', global.inspections.length);
-
-    return { id: inspectionId };
-  } catch (error) {
-    console.error('Error saving inspection:', error);
-    throw new Error(`Failed to save inspection to storage: ${error.message}`);
-  }
-}
