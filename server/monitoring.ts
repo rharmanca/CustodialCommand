@@ -85,7 +85,7 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
       status: dbStatus === 'error' ? 'error' : 'ok',
       timestamp: new Date().toISOString(),
       uptime: Math.floor(process.uptime()),
-      version: process.env.npm_package_version || '1.0.0',
+      version: '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       database: dbStatus,
       memory

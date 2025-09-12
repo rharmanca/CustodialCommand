@@ -2,9 +2,8 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon, neonConfig } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
-import dotenv from 'dotenv';
 
-dotenv.config();
+// Environment variables are loaded by Railway automatically
 
 // Recommended for Node to reuse HTTP connections (now on by default; harmless here)
 neonConfig.fetchConnectionCache = true;

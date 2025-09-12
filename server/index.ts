@@ -1,4 +1,4 @@
-import 'dotenv/config';
+// Environment variables are loaded by Railway automatically
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { randomBytes } from "crypto";
@@ -141,7 +141,7 @@ app.use((req, res, next) => {
     server.listen(PORT, HOST, () => {
       logger.info(`Server running on port ${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
-        version: process.env.npm_package_version || '1.0.0'
+        version: '1.0.0'
       });
     });
 
