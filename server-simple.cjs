@@ -15,6 +15,17 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+// Safety check: Ensure we're using NeonDB, not Railway's PostgreSQL
+if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('neon.tech')) {
+  console.error('⚠️  WARNING: DATABASE_URL does not point to NeonDB!');
+  console.error('Expected: neon.tech domain');
+  console.error('Current:', process.env.DATABASE_URL);
+  console.error('This will cause database driver mismatch errors.');
+  process.exit(1);
+}
+
+console.log('✅ Database configuration verified: Using NeonDB');
+
 const app = express();
 const PORT = parseInt(process.env.PORT || "5000", 10);
 const HOST = "0.0.0.0";
