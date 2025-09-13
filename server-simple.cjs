@@ -156,7 +156,6 @@ const roomInspections = {
   monitoring: 'monitoring',
   notes: 'notes',
   images: 'images',
-  responses: 'responses',
   createdAt: 'created_at'
 };
 
@@ -626,14 +625,14 @@ app.post("/api/room-inspections", async (req, res) => {
         building_inspection_id, room_type, room_identifier, floors,
         vertical_horizontal_surfaces, ceiling, restrooms, customer_satisfaction,
         trash, project_cleaning, activity_support, safety_compliance,
-        equipment, monitoring, notes, images, responses
+        equipment, monitoring, notes, images
       ) VALUES (
         ${buildingInspectionId}, ${roomType}, ${roomIdentifier || null},
         ${floors || null}, ${verticalHorizontalSurfaces || null}, ${ceiling || null},
         ${restrooms || null}, ${customerSatisfaction || null}, ${trash || null},
         ${projectCleaning || null}, ${activitySupport || null}, ${safetyCompliance || null},
         ${equipment || null}, ${monitoring || null}, ${notes || null},
-        ${images || []}, ${responses || null}
+        ${images || []}
       ) RETURNING id
     `;
 
@@ -687,7 +686,6 @@ app.get("/api/room-inspections", async (req, res) => {
       monitoring: row.monitoring,
       notes: row.notes,
       images: row.images || [],
-      responses: row.responses,
       createdAt: row.created_at
     }));
     

@@ -1,0 +1,107 @@
+{
+  "timestamp": "2025-09-13T01:41:50.269Z",
+  "baseUrl": "https://cacustodialcommand.up.railway.app",
+  "summary": {
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "successRate": 100
+  },
+  "details": [
+    {
+      "testName": "Health Check",
+      "passed": true,
+      "details": "Server and database connected"
+    },
+    {
+      "testName": "Basic API Test",
+      "passed": true,
+      "details": "API responding correctly"
+    },
+    {
+      "testName": "GET Inspections",
+      "passed": true,
+      "details": "Retrieved 10 inspections"
+    },
+    {
+      "testName": "GET Custodial Notes",
+      "passed": true,
+      "details": "Retrieved 3 custodial notes"
+    },
+    {
+      "testName": "Create Single Room Inspection",
+      "passed": 11,
+      "details": "Created inspection ID: 11"
+    },
+    {
+      "testName": "Create Whole Building Inspection",
+      "passed": 12,
+      "details": "Created inspection ID: 12"
+    },
+    {
+      "testName": "Create Custodial Note",
+      "passed": 4,
+      "details": "Created note ID: 4"
+    },
+    {
+      "testName": "Create Room Inspection",
+      "passed": 5,
+      "details": "Created room inspection ID: 5"
+    },
+    {
+      "testName": "GET Specific Inspection",
+      "passed": true,
+      "details": "Retrieved inspection 11"
+    },
+    {
+      "testName": "File Serving",
+      "passed": true,
+      "details": "Successfully served image: 090b9f9a-e4e0-4705-9604-004d91d8feef.png"
+    },
+    {
+      "testName": "Admin Login",
+      "passed": true,
+      "details": "Admin login successful"
+    },
+    {
+      "testName": "Frontend Page: Home Page",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Custodial Inspection",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Whole Building Inspection",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Custodial Notes",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Inspection Data",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Admin Inspections",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Rating Criteria",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Database Consistency",
+      "passed": true,
+      "details": "Inspections: 13, Notes: 4"
+    }
+  ]
+}
