@@ -347,7 +347,7 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
 
   if (loading) {
     return (
-      <LoadingState>Loading inspections...</LoadingState>
+      <LoadingState text="Loading inspections..." />
     );
   }
 

@@ -1,7 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 
-export default function NotFound() {
+interface NotFoundProps {
+  onBack?: () => void;
+}
+
+export default function NotFound({ onBack }: NotFoundProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md mx-4">
@@ -12,8 +17,17 @@ export default function NotFound() {
           </div>
 
           <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
+            The page you're looking for doesn't exist.
           </p>
+          
+          {onBack && (
+            <div className="mt-6">
+              <Button onClick={onBack} variant="outline" className="w-full">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go Back
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

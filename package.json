@@ -18,7 +18,9 @@
     "start:clean": "kill -9 $(lsof -ti:5000) 2>/dev/null || true && npm start",
     "test:health": "node comprehensive-test.cjs",
     "test:forms": "node comprehensive-test.cjs",
-    "test:debug": "DEBUG=true node comprehensive-test.cjs"
+    "test:debug": "DEBUG=true node comprehensive-test.cjs",
+    "analyze:bundle": "node scripts/analyze-bundle.cjs",
+    "build:analyze": "npm run build && npm run analyze:bundle"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

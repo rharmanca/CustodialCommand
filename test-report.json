@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-15T15:59:32.032Z",
+  "timestamp": "2025-09-15T18:34:36.635Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 19,
@@ -21,42 +21,42 @@
     {
       "testName": "GET Inspections",
       "passed": true,
-      "details": "Retrieved 15 inspections"
+      "details": "Retrieved 26 inspections"
     },
     {
       "testName": "GET Custodial Notes",
       "passed": true,
-      "details": "Retrieved 6 custodial notes"
+      "details": "Retrieved 11 custodial notes"
     },
     {
       "testName": "Create Single Room Inspection",
-      "passed": 16,
-      "details": "Created inspection ID: 16"
+      "passed": 27,
+      "details": "Created inspection ID: 27"
     },
     {
       "testName": "Create Whole Building Inspection",
-      "passed": 17,
-      "details": "Created inspection ID: 17"
+      "passed": 28,
+      "details": "Created inspection ID: 28"
     },
     {
       "testName": "Create Custodial Note",
-      "passed": 7,
-      "details": "Created note ID: 7"
+      "passed": 12,
+      "details": "Created note ID: 12"
     },
     {
       "testName": "Create Room Inspection",
-      "passed": 7,
-      "details": "Created room inspection ID: 7"
+      "passed": 12,
+      "details": "Created room inspection ID: 12"
     },
     {
       "testName": "GET Specific Inspection",
       "passed": true,
-      "details": "Retrieved inspection 16"
+      "details": "Retrieved inspection 27"
     },
     {
       "testName": "File Serving",
       "passed": true,
-      "details": "Successfully served image: 569b1ac0-9260-4afb-9e76-56cee4de0ec8.png"
+      "details": "Successfully served image: 342357dc-6f33-4065-a94e-6d1aca82d425.png"
     },
     {
       "testName": "Admin Login",
@@ -101,7 +101,7 @@
     {
       "testName": "Database Consistency",
       "passed": true,
-      "details": "Inspections: 18, Notes: 7"
+      "details": "Inspections: 29, Notes: 12"
     }
   ]
 }

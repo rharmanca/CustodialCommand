@@ -194,7 +194,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
   if (loading) {
     return (
-      <LoadingState>Loading inspection data...</LoadingState>
+      <LoadingState text="Loading inspection data..." />
     );
   }
 
