@@ -9,11 +9,16 @@
     "dev:client": "vite",
     "prebuild": "npm run check",
     "build": "vite build",
-    "prestart": "node -e \"if (!process.env.DATABASE_URL) { console.error('DATABASE_URL not set'); process.exit(1); }\"",
+    "prestart": "npm run validate-env",
     "start": "NODE_ENV=production node server-simple.cjs",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate-env": "node -e \"const required = ['DATABASE_URL']; const missing = required.filter(key => !process.env[key]); if (missing.length > 0) { console.error('❌ Missing required environment variables:', missing.join(', ')); console.error('💡 Please set these variables in your .env file'); process.exit(1); } else { console.log('✅ Environment variables validated successfully'); }\"",
+    "start:clean": "kill -9 $(lsof -ti:5000) 2>/dev/null || true && npm start",
+    "test:health": "node comprehensive-test.cjs",
+    "test:forms": "node comprehensive-test.cjs",
+    "test:debug": "DEBUG=true node comprehensive-test.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
