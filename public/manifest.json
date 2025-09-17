@@ -1,13 +1,24 @@
 {
-  "name": "Shared Service Command",
-  "short_name": "SSC",
-  "description": "Shared Service Command application for managing operational inspections across seven divisions",
+  "name": "Custodial Command",
+  "short_name": "Custodial",
+  "description": "Professional custodial inspection and reporting system for educational facilities",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F5DEB3",
-  "theme_color": "#8B4513",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "business"],
+  "categories": ["productivity", "business", "education"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
       "src": "/icon-192x192.svg",
@@ -20,6 +31,67 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile inspection form"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Inspection",
+      "short_name": "Inspect",
+      "description": "Start a new custodial inspection",
+      "url": "/custodial-inspection",
+      "icons": [
+        {
+          "src": "/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Report Issue",
+      "short_name": "Report",
+      "description": "Report a custodial concern",
+      "url": "/custodial-notes",
+      "icons": [
+        {
+          "src": "/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Data",
+      "short_name": "Data",
+      "description": "View inspection data and reports",
+      "url": "/inspection-data",
+      "icons": [
+        {
+          "src": "/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "protocol_handlers": [
+    {
+      "protocol": "web+custodial",
+      "url": "/?action=%s"
     }
   ]
 }

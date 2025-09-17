@@ -19,6 +19,11 @@
     "test:health": "node comprehensive-test.cjs",
     "test:forms": "node comprehensive-test.cjs",
     "test:debug": "DEBUG=true node comprehensive-test.cjs",
+    "test:comprehensive": "node tests/run-all-tests.cjs",
+    "test:e2e": "node tests/e2e-user-journey.test.cjs",
+    "test:performance": "node tests/performance.test.cjs",
+    "test:security": "node tests/security.test.cjs",
+    "test:mobile": "node tests/mobile-pwa.test.cjs",
     "analyze:bundle": "node scripts/analyze-bundle.cjs",
     "build:analyze": "npm run build && npm run analyze:bundle"
   },

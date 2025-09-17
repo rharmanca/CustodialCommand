@@ -1,0 +1,300 @@
+{
+  "timestamp": "2025-09-17T16:45:41.783Z",
+  "baseUrl": "https://cacustodialcommand.up.railway.app",
+  "summary": {
+    "total": 26,
+    "passed": 17,
+    "failed": 9,
+    "successRate": 65.38461538461539
+  },
+  "pwaFeatures": [
+    {
+      "testName": "PWA Manifest - Required Fields",
+      "passed": true,
+      "feature": "manifest"
+    },
+    {
+      "testName": "PWA Manifest - Display Mode",
+      "passed": true,
+      "feature": "manifest"
+    },
+    {
+      "testName": "PWA Manifest - Icons",
+      "passed": true,
+      "feature": "manifest"
+    },
+    {
+      "testName": "PWA Service Worker - File Access",
+      "passed": true,
+      "feature": "service-worker"
+    },
+    {
+      "testName": "PWA Service Worker - Cache Strategy",
+      "passed": true,
+      "feature": "service-worker"
+    },
+    {
+      "testName": "PWA Service Worker - Fetch Handler",
+      "passed": true,
+      "feature": "service-worker"
+    },
+    {
+      "testName": "Mobile Responsiveness - Viewport Meta Tag",
+      "passed": true,
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - Touch-Friendly Design",
+      "passed": true,
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - iPhone",
+      "passed": true,
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - Android",
+      "passed": true,
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - iPad",
+      "passed": true,
+      "feature": "responsive"
+    },
+    {
+      "testName": "PWA Installation - Detection",
+      "passed": true,
+      "feature": "installation"
+    },
+    {
+      "testName": "PWA Installation - Offline Support",
+      "passed": false,
+      "feature": "installation"
+    },
+    {
+      "testName": "Mobile API Performance - /api/inspections",
+      "passed": false,
+      "feature": "performance"
+    },
+    {
+      "testName": "Mobile API Performance - /api/custodial-notes",
+      "passed": false,
+      "feature": "performance"
+    },
+    {
+      "testName": "Mobile API Performance - /health",
+      "passed": true,
+      "feature": "performance"
+    },
+    {
+      "testName": "Mobile Form - Create Inspection",
+      "passed": false,
+      "feature": "forms"
+    },
+    {
+      "testName": "Mobile Form - Create Custodial Note",
+      "passed": false,
+      "feature": "forms"
+    },
+    {
+      "testName": "PWA Security - HTTPS",
+      "passed": true,
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Security - Content Security Policy",
+      "passed": true,
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Security - X-Frame-Options",
+      "passed": true,
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Security - X-Content-Type-Options",
+      "passed": true,
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Accessibility - Alt Text",
+      "passed": false,
+      "feature": "accessibility"
+    },
+    {
+      "testName": "PWA Accessibility - ARIA Labels",
+      "passed": false,
+      "feature": "accessibility"
+    },
+    {
+      "testName": "PWA Accessibility - Semantic HTML",
+      "passed": false,
+      "feature": "accessibility"
+    },
+    {
+      "testName": "PWA Accessibility - Form Labels",
+      "passed": false,
+      "feature": "accessibility"
+    }
+  ],
+  "details": [
+    {
+      "testName": "PWA Manifest - Required Fields",
+      "passed": true,
+      "details": "All required fields present",
+      "feature": "manifest"
+    },
+    {
+      "testName": "PWA Manifest - Display Mode",
+      "passed": true,
+      "details": "Display mode: standalone",
+      "feature": "manifest"
+    },
+    {
+      "testName": "PWA Manifest - Icons",
+      "passed": true,
+      "details": "Found 2 icons with required sizes",
+      "feature": "manifest"
+    },
+    {
+      "testName": "PWA Service Worker - File Access",
+      "passed": true,
+      "details": "Service worker file accessible",
+      "feature": "service-worker"
+    },
+    {
+      "testName": "PWA Service Worker - Cache Strategy",
+      "passed": true,
+      "details": "Cache strategy implemented",
+      "feature": "service-worker"
+    },
+    {
+      "testName": "PWA Service Worker - Fetch Handler",
+      "passed": true,
+      "details": "Fetch handler implemented",
+      "feature": "service-worker"
+    },
+    {
+      "testName": "Mobile Responsiveness - Viewport Meta Tag",
+      "passed": true,
+      "details": "Viewport meta tag present",
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - Touch-Friendly Design",
+      "passed": true,
+      "details": "Touch-friendly design elements found",
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - iPhone",
+      "passed": true,
+      "details": "iPhone page loads successfully",
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - Android",
+      "passed": true,
+      "details": "Android page loads successfully",
+      "feature": "responsive"
+    },
+    {
+      "testName": "Mobile Responsiveness - iPad",
+      "passed": true,
+      "details": "iPad page loads successfully",
+      "feature": "responsive"
+    },
+    {
+      "testName": "PWA Installation - Detection",
+      "passed": true,
+      "details": "PWA installation detection found",
+      "feature": "installation"
+    },
+    {
+      "testName": "PWA Installation - Offline Support",
+      "passed": false,
+      "details": "No offline functionality indicators found",
+      "feature": "installation"
+    },
+    {
+      "testName": "Mobile API Performance - /api/inspections",
+      "passed": false,
+      "details": "Status: 429, Time: 81ms",
+      "feature": "performance"
+    },
+    {
+      "testName": "Mobile API Performance - /api/custodial-notes",
+      "passed": false,
+      "details": "Status: 429, Time: 97ms",
+      "feature": "performance"
+    },
+    {
+      "testName": "Mobile API Performance - /health",
+      "passed": true,
+      "details": "Status: 200, Time: 92ms",
+      "feature": "performance"
+    },
+    {
+      "testName": "Mobile Form - Create Inspection",
+      "passed": false,
+      "details": "Failed: 429",
+      "feature": "forms"
+    },
+    {
+      "testName": "Mobile Form - Create Custodial Note",
+      "passed": false,
+      "details": "Failed: 429",
+      "feature": "forms"
+    },
+    {
+      "testName": "PWA Security - HTTPS",
+      "passed": true,
+      "details": "App served over HTTPS",
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Security - Content Security Policy",
+      "passed": true,
+      "details": "CSP header present",
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Security - X-Frame-Options",
+      "passed": true,
+      "details": "X-Frame-Options header present",
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Security - X-Content-Type-Options",
+      "passed": true,
+      "details": "X-Content-Type-Options header present",
+      "feature": "security"
+    },
+    {
+      "testName": "PWA Accessibility - Alt Text",
+      "passed": false,
+      "details": "No alt text found for images",
+      "feature": "accessibility"
+    },
+    {
+      "testName": "PWA Accessibility - ARIA Labels",
+      "passed": false,
+      "details": "No ARIA labels found",
+      "feature": "accessibility"
+    },
+    {
+      "testName": "PWA Accessibility - Semantic HTML",
+      "passed": false,
+      "details": "No semantic HTML elements found",
+      "feature": "accessibility"
+    },
+    {
+      "testName": "PWA Accessibility - Form Labels",
+      "passed": false,
+      "details": "No form labels found",
+      "feature": "accessibility"
+    }
+  ]
+}

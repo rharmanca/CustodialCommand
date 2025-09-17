@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-09-17T16:48:34.495Z",
+  "baseUrl": "https://cacustodialcommand.up.railway.app",
+  "summary": {
+    "total": 5,
+    "passed": 0,
+    "failed": 5,
+    "successRate": 0
+  },
+  "details": [
+    {
+      "testName": "Single Room Inspection Journey - Create",
+      "passed": false,
+      "details": "Failed to create inspection: 429"
+    },
+    {
+      "testName": "Whole Building Journey - Create",
+      "passed": false,
+      "details": "Failed to create building inspection: 429"
+    },
+    {
+      "testName": "Custodial Notes Journey - Create",
+      "passed": false,
+      "details": "Failed to create note: 429"
+    },
+    {
+      "testName": "Admin Journey - Login",
+      "passed": false,
+      "details": "Failed to login: 429"
+    },
+    {
+      "testName": "Data Consistency Journey - Create Building",
+      "passed": false,
+      "details": "Failed to create building: 429"
+    }
+  ]
+}

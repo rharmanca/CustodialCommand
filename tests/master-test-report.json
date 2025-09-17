@@ -1,0 +1,100 @@
+{
+  "timestamp": "2025-09-17T16:45:41.789Z",
+  "baseUrl": "https://cacustodialcommand.up.railway.app",
+  "duration": 44537,
+  "summary": {
+    "overallSuccess": false,
+    "criticalIssues": 7,
+    "warnings": 1,
+    "recommendations": [
+      "Address failures in Comprehensive API Tests, End-to-End User Journey Tests, Performance Tests, Security Tests, Mobile and PWA Tests",
+      "Optimize application performance - response times or load handling need improvement",
+      "Address security vulnerabilities immediately - input validation or authentication issues detected",
+      "Improve mobile experience and PWA functionality",
+      "Aim for 95%+ overall test success rate for production readiness"
+    ]
+  },
+  "suiteResults": [
+    {
+      "name": "Comprehensive API Tests",
+      "description": "Core API functionality, CRUD operations, and basic connectivity",
+      "startTime": "2025-09-17T16:44:57.253Z",
+      "endTime": "2025-09-17T16:44:59.914Z",
+      "success": false,
+      "totalTests": 0,
+      "passedTests": 0,
+      "failedTests": 0,
+      "successRate": 0,
+      "duration": 2661,
+      "errors": [],
+      "reportFile": null
+    },
+    {
+      "name": "End-to-End User Journey Tests",
+      "description": "Complete user workflows and business processes",
+      "startTime": "2025-09-17T16:44:59.915Z",
+      "endTime": "2025-09-17T16:45:02.098Z",
+      "success": false,
+      "totalTests": 20,
+      "passedTests": 15,
+      "failedTests": 5,
+      "successRate": 75,
+      "duration": 2183,
+      "errors": [],
+      "reportFile": "/Users/rharman/Desktop/AI Accessible/Custodial Command Official/CustodialCommand/tests/journey-test-report.json"
+    },
+    {
+      "name": "Performance Tests",
+      "description": "Response times, load handling, and system performance",
+      "startTime": "2025-09-17T16:45:02.099Z",
+      "endTime": "2025-09-17T16:45:35.248Z",
+      "success": false,
+      "totalTests": 20,
+      "passedTests": 15,
+      "failedTests": 5,
+      "successRate": 75,
+      "duration": 33149,
+      "errors": [],
+      "reportFile": "/Users/rharman/Desktop/AI Accessible/Custodial Command Official/CustodialCommand/tests/journey-test-report.json"
+    },
+    {
+      "name": "Security Tests",
+      "description": "Input validation, authentication, and security vulnerabilities",
+      "startTime": "2025-09-17T16:45:35.248Z",
+      "endTime": "2025-09-17T16:45:40.169Z",
+      "success": false,
+      "totalTests": 0,
+      "passedTests": 0,
+      "failedTests": 0,
+      "successRate": 0,
+      "duration": 4921,
+      "errors": [
+        "Command failed: node \"/Users/rharman/Desktop/AI Accessible/Custodial Command Official/CustodialCommand/tests/security.test.cjs\"\nnode:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19)\nEmitted 'error' event on TLSSocket instance at:\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v24.6.0\n"
+      ],
+      "reportFile": null
+    },
+    {
+      "name": "Mobile and PWA Tests",
+      "description": "Progressive Web App functionality and mobile responsiveness",
+      "startTime": "2025-09-17T16:45:40.169Z",
+      "endTime": "2025-09-17T16:45:41.788Z",
+      "success": false,
+      "totalTests": 20,
+      "passedTests": 15,
+      "failedTests": 5,
+      "successRate": 75,
+      "duration": 1619,
+      "errors": [],
+      "reportFile": "/Users/rharman/Desktop/AI Accessible/Custodial Command Official/CustodialCommand/tests/journey-test-report.json"
+    }
+  ],
+  "overallStats": {
+    "totalSuites": 5,
+    "passedSuites": 0,
+    "failedSuites": 5,
+    "totalTests": 60,
+    "passedTests": 45,
+    "failedTests": 15,
+    "overallSuccessRate": 75
+  }
+}

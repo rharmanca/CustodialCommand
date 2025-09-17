@@ -1,0 +1,164 @@
+{
+  "timestamp": "2025-09-17T16:45:35.240Z",
+  "baseUrl": "https://cacustodialcommand.up.railway.app",
+  "summary": {
+    "total": 12,
+    "passed": 6,
+    "failed": 6,
+    "successRate": 50
+  },
+  "metrics": {
+    "responseTimes": [
+      {
+        "endpoint": "Health Check",
+        "responseTime": 353,
+        "status": 200
+      },
+      {
+        "endpoint": "API Test",
+        "responseTime": 93,
+        "status": 200
+      },
+      {
+        "endpoint": "Get Inspections",
+        "responseTime": 196,
+        "status": 200
+      },
+      {
+        "endpoint": "Get Custodial Notes",
+        "responseTime": 85,
+        "status": 200
+      },
+      {
+        "endpoint": "Home Page",
+        "responseTime": 84,
+        "status": 200
+      }
+    ],
+    "throughput": 22.57336343115124,
+    "errorRate": 0
+  },
+  "details": [
+    {
+      "testName": "Response Time - Health Check",
+      "passed": true,
+      "details": "Status: 200, Time: 353ms (threshold: 5000ms)",
+      "metrics": {
+        "responseTime": 353,
+        "threshold": 5000,
+        "status": 200
+      }
+    },
+    {
+      "testName": "Response Time - API Test",
+      "passed": true,
+      "details": "Status: 200, Time: 93ms (threshold: 2000ms)",
+      "metrics": {
+        "responseTime": 93,
+        "threshold": 2000,
+        "status": 200
+      }
+    },
+    {
+      "testName": "Response Time - Get Inspections",
+      "passed": true,
+      "details": "Status: 200, Time: 196ms (threshold: 2000ms)",
+      "metrics": {
+        "responseTime": 196,
+        "threshold": 2000,
+        "status": 200
+      }
+    },
+    {
+      "testName": "Response Time - Get Custodial Notes",
+      "passed": true,
+      "details": "Status: 200, Time: 85ms (threshold: 2000ms)",
+      "metrics": {
+        "responseTime": 85,
+        "threshold": 2000,
+        "status": 200
+      }
+    },
+    {
+      "testName": "Response Time - Home Page",
+      "passed": true,
+      "details": "Status: 200, Time: 84ms (threshold: 5000ms)",
+      "metrics": {
+        "responseTime": 84,
+        "threshold": 5000,
+        "status": 200
+      }
+    },
+    {
+      "testName": "Concurrent Request Handling",
+      "passed": true,
+      "details": "10/10 successful (100.0%), Avg time: 374ms",
+      "metrics": {
+        "totalRequests": 10,
+        "successfulRequests": 10,
+        "failedRequests": 0,
+        "successRate": 100,
+        "avgResponseTime": 373.6,
+        "totalTime": 443
+      }
+    },
+    {
+      "testName": "Sustained Load Test",
+      "passed": false,
+      "details": "41/296 successful (13.9%), Avg time: 95ms, RPS: 9.5",
+      "metrics": {
+        "requestCount": 296,
+        "successCount": 41,
+        "errorCount": 255,
+        "successRate": 13.85135135135135,
+        "avgResponseTime": 94.74662162162163,
+        "requestsPerSecond": 9.547771111541191,
+        "duration": 31002
+      }
+    },
+    {
+      "testName": "Database Performance - Large Dataset",
+      "passed": false,
+      "details": "Invalid response: 429",
+      "metrics": {}
+    },
+    {
+      "testName": "Database Performance - Create Operation",
+      "passed": false,
+      "details": "Created in 80ms",
+      "metrics": {
+        "responseTime": 80,
+        "status": 429
+      }
+    },
+    {
+      "testName": "Resource Usage - Performance Degradation",
+      "passed": false,
+      "details": "Initial: 85ms, Final: 380ms, Degradation: 347.1%",
+      "metrics": {
+        "initialTime": 85,
+        "finalTime": 380,
+        "performanceDegradation": 347.05882352941177
+      }
+    },
+    {
+      "testName": "Resource Usage - Error Rate Consistency",
+      "passed": false,
+      "details": "50/50 errors (100.0%)",
+      "metrics": {
+        "errorCount": 50,
+        "totalRequests": 50,
+        "errorRate": 100
+      }
+    },
+    {
+      "testName": "File Upload Performance",
+      "passed": false,
+      "details": "Upload completed in 83ms",
+      "metrics": {
+        "responseTime": 83,
+        "status": 429
+      }
+    }
+  ]
+}

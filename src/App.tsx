@@ -9,6 +9,8 @@ import { useIsMobile } from "./hooks/use-mobile";
 import { useCustomNotifications } from "@/hooks/use-custom-notifications";
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationContainer } from "@/components/ui/custom-notification";
+import { OfflineStatus } from "@/components/ui/offline-status";
+import { EnhancedNotifications, useEnhancedNotifications } from "@/components/ui/enhanced-notifications";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "wouter";
 import { queryClient } from "@/lib/queryClient";
@@ -69,6 +71,44 @@ function App() {
 
   // Custom notifications hook
   const { notifications, removeNotification } = useCustomNotifications();
+  
+  // Enhanced notifications hook
+  const { 
+    notifications: enhancedNotifications, 
+    removeNotification: removeEnhancedNotification,
+    showSuccess,
+    showError,
+    showInfo,
+    showOffline
+  } = useEnhancedNotifications();
+
+  // Globally disable native HTML5 validation popups (Safari/iOS) and rely on our JS validation
+  useEffect(() => {
+    const applyGlobalNoValidate = () => {
+      const forms = document.querySelectorAll('form');
+      forms.forEach((form) => {
+        // Disable built-in validation UI
+        (form as HTMLFormElement).noValidate = true;
+        // Soften overly strict inputs if any were authored with pattern attributes
+        form.querySelectorAll('input[pattern]').forEach((el) => {
+          // Keep attribute for semantics but prevent native popup by moving to data-* (optional)
+          const input = el as HTMLInputElement;
+          input.setAttribute('data-pattern', input.getAttribute('pattern') || '');
+          input.removeAttribute('pattern');
+        });
+        // Prevent default invalid UI if any slips through
+        form.addEventListener('invalid', (e) => {
+          e.preventDefault();
+        }, true);
+      });
+    };
+
+    // Run now and after HMR/renders that may add forms
+    applyGlobalNoValidate();
+    const observer = new MutationObserver(applyGlobalNoValidate);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   // Detect PWA installation status
   useEffect(() => {
@@ -86,6 +126,13 @@ function App() {
         setShowInstallSuccess(true);
         localStorage.setItem("pwa-install-shown", "true");
         setTimeout(() => setShowInstallSuccess(false), 5000);
+        
+        // Show enhanced notification
+        showSuccess(
+          "App Installed Successfully!",
+          "You can now access Custodial Command directly from your home screen.",
+          { duration: 5000 }
+        );
       }
     };
 
@@ -97,6 +144,13 @@ function App() {
       setShowInstallSuccess(true);
       localStorage.setItem("pwa-install-shown", "true");
       setTimeout(() => setShowInstallSuccess(false), 5000);
+      
+      // Show enhanced notification
+      showSuccess(
+        "App Installed Successfully!",
+        "You can now access Custodial Command directly from your home screen.",
+        { duration: 5000 }
+      );
     };
 
     window.addEventListener("appinstalled", handleAppInstalled);
@@ -355,6 +409,9 @@ function App() {
                 </div>
               </nav>
 
+              {/* Offline Status */}
+              <OfflineStatus className="mb-4" />
+
               {/* Main content area */}
               <main className="w-full content-area rounded-xl shadow-sm">
                 {renderPageContent()}
@@ -373,6 +430,10 @@ function App() {
             <NotificationContainer
               notifications={notifications}
               onRemove={removeNotification}
+            />
+            <EnhancedNotifications
+              notifications={enhancedNotifications}
+              onRemove={removeEnhancedNotification}
             />
           </div>
         </Router>
