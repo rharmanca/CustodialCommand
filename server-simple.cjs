@@ -8,7 +8,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs').promises;
 const crypto = require('crypto');
-const RailwayPersistentStorage = require('./server/persistent-storage.js');
+const RailwayPersistentStorage = require('./server/persistent-storage.cjs');
 
 // Environment variables are loaded by Railway automatically
 if (!process.env.DATABASE_URL) {
