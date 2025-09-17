@@ -138,6 +138,48 @@ function App() {
 
     checkPWAStatus();
 
+    // Automatic cache invalidation and version check
+    const checkForUpdates = () => {
+      const currentVersion = 'v6';
+      const storedVersion = localStorage.getItem('app-version');
+      
+      // If version changed, clear cache and reload
+      if (storedVersion && storedVersion !== currentVersion) {
+        console.log('App version updated, clearing cache...');
+        
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then((cacheNames) => {
+            cacheNames.forEach((cacheName) => {
+              caches.delete(cacheName);
+            });
+          });
+        }
+        
+        // Clear localStorage except for essential data
+        const essentialKeys = ['app-version', 'pwa-install-shown'];
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && !essentialKeys.includes(key)) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Update version and reload
+        localStorage.setItem('app-version', currentVersion);
+        showInfo('🔄 App updated! Reloading with latest version...');
+        setTimeout(() => window.location.reload(), 2000);
+        return;
+      }
+      
+      // Store current version
+      localStorage.setItem('app-version', currentVersion);
+    };
+
+    checkForUpdates();
+
     // Listen for app install events
     const handleAppInstalled = () => {
       setIsPWAInstalled(true);

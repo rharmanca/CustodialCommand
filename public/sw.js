@@ -1,6 +1,8 @@
-const CACHE_NAME = 'custodial-command-v5';
+const CACHE_NAME = 'custodial-command-v6';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const SYNC_QUEUE_KEY = 'sync-queue';
+const APP_VERSION = 'v6';
+const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const urlsToCache = [
   '/',
@@ -192,18 +194,28 @@ class OfflineFormManager {
 self.addEventListener('install', event => {
   console.log('Service Worker installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Caching app shell and assets');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('App shell cached successfully');
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        console.error('Failed to cache app shell:', error);
-      })
+    // Clear all old caches first
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      // Open new cache
+      return caches.open(CACHE_NAME);
+    }).then(cache => {
+      console.log('Caching app shell and assets');
+      return cache.addAll(urlsToCache);
+    }).then(() => {
+      console.log('App shell cached successfully');
+      return self.skipWaiting();
+    }).catch(error => {
+      console.error('Failed to cache app shell:', error);
+    })
   );
 });
 

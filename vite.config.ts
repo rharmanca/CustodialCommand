@@ -36,6 +36,10 @@ export default defineConfig({
           vendor: ["react", "react-dom"],
           ui: ["@radix-ui/react-dialog", "@radix-ui/react-select"],
         },
+        // Add timestamp to filenames for cache busting
+        entryFileNames: `assets/[name]-[hash]-v6.js`,
+        chunkFileNames: `assets/[name]-[hash]-v6.js`,
+        assetFileNames: `assets/[name]-[hash]-v6.[ext]`,
       },
     },
   },
