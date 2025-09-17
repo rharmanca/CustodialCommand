@@ -1,4 +1,4 @@
-const CACHE_NAME = 'custodial-command-v3';
+const CACHE_NAME = 'custodial-command-v5';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const SYNC_QUEUE_KEY = 'sync-queue';
 
@@ -11,13 +11,51 @@ const urlsToCache = [
   '/src/assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp'
 ];
 
-// Enhanced offline form storage
+// Enhanced offline form storage using IndexedDB with Cache API fallback
 class OfflineFormManager {
+  static dbName = 'CustodialCommandOffline';
+  static dbVersion = 1;
+  static storeName = 'offline-forms';
+  static fallbackCacheName = 'offline-forms-cache';
+
+  static async openDB() {
+    return new Promise((resolve, reject) => {
+      // Check if IndexedDB is available
+      if (!self.indexedDB) {
+        console.warn('IndexedDB not available, falling back to memory storage');
+        reject(new Error('IndexedDB not available'));
+        return;
+      }
+
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+      
+      request.onerror = () => {
+        console.error('IndexedDB error:', request.error);
+        reject(request.error);
+      };
+      
+      request.onsuccess = () => {
+        console.log('IndexedDB opened successfully');
+        resolve(request.result);
+      };
+      
+      request.onupgradeneeded = (event) => {
+        console.log('IndexedDB upgrade needed');
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
+          store.createIndex('status', 'status', { unique: false });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+          console.log('IndexedDB store created');
+        }
+      };
+    });
+  }
+
   static async storeForm(formData, endpoint) {
-    const forms = await this.getStoredForms();
     const formId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    forms[formId] = {
+    const formRecord = {
       id: formId,
       data: formData,
       endpoint: endpoint,
@@ -25,33 +63,128 @@ class OfflineFormManager {
       retryCount: 0,
       status: 'pending'
     };
-    
-    await this.saveForms(forms);
-    return formId;
+
+    try {
+      // Try IndexedDB first
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      await new Promise((resolve, reject) => {
+        const request = store.add(formRecord);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Stored offline form in IndexedDB: ${formId}`);
+      return formId;
+    } catch (error) {
+      console.warn('IndexedDB failed, trying Cache API fallback:', error);
+      
+      try {
+        // Fallback to Cache API
+        const cache = await caches.open(this.fallbackCacheName);
+        const response = new Response(JSON.stringify(formRecord), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        await cache.put(`/offline-form/${formId}`, response);
+        console.log(`Stored offline form in Cache API: ${formId}`);
+        return formId;
+      } catch (fallbackError) {
+        console.error('Both IndexedDB and Cache API failed:', fallbackError);
+        throw fallbackError;
+      }
+    }
   }
   
   static async getStoredForms() {
     try {
-      const forms = await self.registration.sync.get(OFFLINE_FORMS_KEY);
-      return forms || {};
+      // Try IndexedDB first
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+      
+      const forms = await new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const formsArray = request.result;
+          const formsObject = {};
+          formsArray.forEach(form => {
+            formsObject[form.id] = form;
+          });
+          resolve(formsObject);
+        };
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      return forms;
     } catch (error) {
-      console.error('Error getting stored forms:', error);
-      return {};
+      console.warn('IndexedDB failed, trying Cache API fallback:', error);
+      
+      try {
+        // Fallback to Cache API
+        const cache = await caches.open(this.fallbackCacheName);
+        const keys = await cache.keys();
+        const forms = {};
+        
+        for (const request of keys) {
+          if (request.url.includes('/offline-form/')) {
+            const response = await cache.match(request);
+            if (response) {
+              const formData = await response.json();
+              forms[formData.id] = formData;
+            }
+          }
+        }
+        
+        return forms;
+      } catch (fallbackError) {
+        console.error('Both IndexedDB and Cache API failed:', fallbackError);
+        return {};
+      }
     }
   }
   
   static async saveForms(forms) {
     try {
-      await self.registration.sync.set(OFFLINE_FORMS_KEY, forms);
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      
+      // Update each form
+      for (const formId in forms) {
+        const form = forms[formId];
+        await new Promise((resolve, reject) => {
+          const request = store.put(form);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      db.close();
     } catch (error) {
       console.error('Error saving forms:', error);
     }
   }
   
   static async removeForm(formId) {
-    const forms = await this.getStoredForms();
-    delete forms[formId];
-    await this.saveForms(forms);
+    try {
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      
+      await new Promise((resolve, reject) => {
+        const request = store.delete(formId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Removed offline form: ${formId}`);
+    } catch (error) {
+      console.error('Error removing form:', error);
+    }
   }
 }
 
@@ -222,23 +355,23 @@ self.addEventListener('fetch', event => {
         
         // Otherwise fetch from network
         return fetch(event.request)
-          .then(response => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
+      .then(response => {
+        // Check if we received a valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
 
-            // Clone the response for caching
-            const responseToCache = response.clone();
+        // Clone the response for caching
+        const responseToCache = response.clone();
 
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(event.request, responseToCache);
+          });
 
-            return response;
-          })
-          .catch(() => {
+        return response;
+      })
+      .catch(() => {
             // For navigation requests, return the cached index.html
             if (event.request.mode === 'navigate') {
               return caches.match('/');

@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const fs = require('fs').promises;
 const crypto = require('crypto');
+const RailwayPersistentStorage = require('./server/persistent-storage.js');
 
 // Environment variables are loaded by Railway automatically
 if (!process.env.DATABASE_URL) {
@@ -25,6 +26,9 @@ if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('neon.tech'))
 }
 
 console.log('✅ Database configuration verified: Using NeonDB');
+
+// Initialize persistent storage
+const persistentStorage = new RailwayPersistentStorage();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "5000", 10);
@@ -932,22 +936,23 @@ app.post('/api/large-upload/presigned', async (req, res) => {
       });
     }
 
-    // For now, return a direct upload URL to our own server
-    // This can be enhanced later to use S3/R2 presigned URLs
-    const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const uploadURL = `${req.protocol}://${req.get('host')}/api/large-upload/direct/${fileId}`;
+    // Use persistent storage to generate presigned URL
+    const result = await persistentStorage.generatePresignedUrl(fileName, fileType, 'large-uploads');
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
     
     console.log('[POST] Generated presigned URL for large upload', {
       fileName,
       fileType,
-      fileId,
-      uploadURL
+      uploadURL: result.uploadUrl
     });
 
     res.json({
-      uploadURL,
-      fileId,
-      expiresIn: 3600 // 1 hour
+      uploadURL: result.uploadUrl,
+      fileId: result.filename,
+      expiresIn: result.expiresIn
     });
   } catch (error) {
     console.error('Error generating presigned URL:', error);
@@ -956,45 +961,39 @@ app.post('/api/large-upload/presigned', async (req, res) => {
 });
 
 // Direct upload endpoint for large files
-app.post('/api/large-upload/direct/:fileId', upload.single('file'), async (req, res) => {
+app.post('/api/upload/direct/:filename', upload.single('file'), async (req, res) => {
   try {
-    const { fileId } = req.params;
+    const { filename } = req.params;
     const file = req.file;
     
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    console.log('[POST] Large file upload received', {
-      fileId,
+    console.log('[POST] Direct file upload received', {
+      filename,
       fileName: file.originalname,
       fileSize: file.size,
       mimeType: file.mimetype
     });
 
-    // Store the file using the existing file storage service
-    const fileStorage = new FileStorageService();
-    const filename = `large-uploads/${fileId}-${file.originalname}`;
-    const filePath = path.join(fileStorage.uploadDir, filename);
+    // Store the file using persistent storage
+    const result = await persistentStorage.storeFile(file.buffer, file.originalname, 'direct-uploads');
     
-    // Ensure directory exists
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    
-    // Write file
-    await fs.writeFile(filePath, file.buffer);
-    
-    const fileUrl = `/uploads/${filename}`;
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
     
     res.json({
       success: true,
-      fileId,
+      filename: result.filename,
       fileName: file.originalname,
       fileSize: file.size,
-      fileUrl,
+      fileUrl: result.publicUrl,
       message: 'File uploaded successfully'
     });
   } catch (error) {
-    console.error('Error handling large file upload:', error);
+    console.error('Error handling direct file upload:', error);
     res.status(500).json({ error: 'Failed to upload file' });
   }
 });
@@ -1002,23 +1001,24 @@ app.post('/api/large-upload/direct/:fileId', upload.single('file'), async (req, 
 // Serve uploaded files (including large uploads)
 app.get('/uploads/*', async (req, res) => {
   try {
-    const filePath = path.join(process.cwd(), 'uploads', req.params[0]);
+    const filename = req.params[0];
     
-    // Check if file exists
-    try {
-      await fs.access(filePath);
-    } catch (error) {
+    // Get file from persistent storage
+    const result = await persistentStorage.getFile(filename);
+    
+    if (!result.success) {
       return res.status(404).json({ error: 'File not found' });
     }
     
     // Set appropriate headers
-    const ext = path.extname(filePath).toLowerCase();
+    const ext = path.extname(filename).toLowerCase();
     const mimeTypes = {
       '.jpg': 'image/jpeg',
       '.jpeg': 'image/jpeg',
       '.png': 'image/png',
       '.gif': 'image/gif',
       '.webp': 'image/webp',
+      '.svg': 'image/svg+xml',
       '.pdf': 'application/pdf',
       '.doc': 'application/msword',
       '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -1029,14 +1029,36 @@ app.get('/uploads/*', async (req, res) => {
     
     const mimeType = mimeTypes[ext] || 'application/octet-stream';
     res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', result.size);
     
-    // Stream the file
-    const fileStream = require('fs').createReadStream(filePath);
-    fileStream.pipe(res);
+    // Send the file buffer
+    res.send(result.buffer);
     
   } catch (error) {
     console.error('Error serving file:', error);
     res.status(500).json({ error: 'Failed to serve file' });
+  }
+});
+
+// Storage management endpoints
+app.get('/api/storage/stats', async (req, res) => {
+  try {
+    const stats = await persistentStorage.getStorageStats();
+    res.json(stats);
+  } catch (error) {
+    console.error('Error getting storage stats:', error);
+    res.status(500).json({ error: 'Failed to get storage stats' });
+  }
+});
+
+app.get('/api/storage/files', async (req, res) => {
+  try {
+    const { category } = req.query;
+    const result = await persistentStorage.listFiles(category);
+    res.json(result);
+  } catch (error) {
+    console.error('Error listing files:', error);
+    res.status(500).json({ error: 'Failed to list files' });
   }
 });
 
@@ -1045,6 +1067,7 @@ app.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`📊 Health check: http://${HOST}:${PORT}/health`);
   console.log(`🔧 API endpoints: http://${HOST}:${PORT}/api/*`);
+  console.log(`💾 Storage: ${persistentStorage.storagePath}`);
 });
 
 module.exports = app;
