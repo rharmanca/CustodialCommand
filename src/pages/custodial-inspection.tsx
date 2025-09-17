@@ -315,44 +315,37 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     setIsSubmitting(true);
 
     try {
-      // Convert images to base64 strings
-      const imagePromises = selectedImages.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
+      // Use FormData for multipart upload (same as custodial-notes)
+      const formDataToSend = new FormData();
 
-      const imageData = await Promise.all(imagePromises);
+      // Add text fields
+      formDataToSend.append('school', formData.school);
+      formDataToSend.append('date', formData.date);
+      formDataToSend.append('inspectionType', formData.inspectionType);
+      formDataToSend.append('locationDescription', formData.locationDescription);
+      formDataToSend.append('roomNumber', formData.roomNumber || '');
+      formDataToSend.append('locationCategory', formData.locationCategory || '');
+      formDataToSend.append('floors', (formData.floors || '').toString());
+      formDataToSend.append('verticalHorizontalSurfaces', (formData.verticalHorizontalSurfaces || '').toString());
+      formDataToSend.append('ceiling', (formData.ceiling || '').toString());
+      formDataToSend.append('restrooms', (formData.restrooms || '').toString());
+      formDataToSend.append('customerSatisfaction', (formData.customerSatisfaction || '').toString());
+      formDataToSend.append('trash', (formData.trash || '').toString());
+      formDataToSend.append('projectCleaning', (formData.projectCleaning || '').toString());
+      formDataToSend.append('activitySupport', (formData.activitySupport || '').toString());
+      formDataToSend.append('safetyCompliance', (formData.safetyCompliance || '').toString());
+      formDataToSend.append('equipment', (formData.equipment || '').toString());
+      formDataToSend.append('monitoring', (formData.monitoring || '').toString());
+      formDataToSend.append('notes', formData.notes || '');
+
+      // Add images as files (not base64)
+      selectedImages.forEach((image) => {
+        formDataToSend.append('images', image);
+      });
 
       const response = await fetch('/api/inspections', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          school: formData.school,
-          date: formData.date,
-          inspectionType: formData.inspectionType,
-          locationDescription: formData.locationDescription,
-          roomNumber: formData.roomNumber,
-          locationCategory: formData.locationCategory,
-          floors: formData.floors || null,
-          verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces || null,
-          ceiling: formData.ceiling || null,
-          restrooms: formData.restrooms || null,
-          customerSatisfaction: formData.customerSatisfaction || null,
-          trash: formData.trash || null,
-          projectCleaning: formData.projectCleaning || null,
-          activitySupport: formData.activitySupport || null,
-          safetyCompliance: formData.safetyCompliance || null,
-          equipment: formData.equipment || null,
-          monitoring: formData.monitoring || null,
-          notes: formData.notes,
-          images: imageData
-        })
+        body: formDataToSend, // No Content-Type header - let browser set it for multipart
       });
 
       if (response.ok) {
