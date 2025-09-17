@@ -920,6 +920,126 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
+// Large file upload presigned URL endpoint
+app.post('/api/large-upload/presigned', async (req, res) => {
+  try {
+    const { fileName, fileType } = req.body;
+    
+    if (!fileName || !fileType) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        details: { fileName: !!fileName, fileType: !!fileType }
+      });
+    }
+
+    // For now, return a direct upload URL to our own server
+    // This can be enhanced later to use S3/R2 presigned URLs
+    const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const uploadURL = `${req.protocol}://${req.get('host')}/api/large-upload/direct/${fileId}`;
+    
+    console.log('[POST] Generated presigned URL for large upload', {
+      fileName,
+      fileType,
+      fileId,
+      uploadURL
+    });
+
+    res.json({
+      uploadURL,
+      fileId,
+      expiresIn: 3600 // 1 hour
+    });
+  } catch (error) {
+    console.error('Error generating presigned URL:', error);
+    res.status(500).json({ error: 'Failed to generate upload URL' });
+  }
+});
+
+// Direct upload endpoint for large files
+app.post('/api/large-upload/direct/:fileId', upload.single('file'), async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const file = req.file;
+    
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('[POST] Large file upload received', {
+      fileId,
+      fileName: file.originalname,
+      fileSize: file.size,
+      mimeType: file.mimetype
+    });
+
+    // Store the file using the existing file storage service
+    const fileStorage = new FileStorageService();
+    const filename = `large-uploads/${fileId}-${file.originalname}`;
+    const filePath = path.join(fileStorage.uploadDir, filename);
+    
+    // Ensure directory exists
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    
+    // Write file
+    await fs.writeFile(filePath, file.buffer);
+    
+    const fileUrl = `/uploads/${filename}`;
+    
+    res.json({
+      success: true,
+      fileId,
+      fileName: file.originalname,
+      fileSize: file.size,
+      fileUrl,
+      message: 'File uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Error handling large file upload:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Serve uploaded files (including large uploads)
+app.get('/uploads/*', async (req, res) => {
+  try {
+    const filePath = path.join(process.cwd(), 'uploads', req.params[0]);
+    
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Set appropriate headers
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp',
+      '.pdf': 'application/pdf',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.mp4': 'video/mp4',
+      '.avi': 'video/x-msvideo',
+      '.mov': 'video/quicktime'
+    };
+    
+    const mimeType = mimeTypes[ext] || 'application/octet-stream';
+    res.setHeader('Content-Type', mimeType);
+    
+    // Stream the file
+    const fileStream = require('fs').createReadStream(filePath);
+    fileStream.pipe(res);
+    
+  } catch (error) {
+    console.error('Error serving file:', error);
+    res.status(500).json({ error: 'Failed to serve file' });
+  }
+});
+
 // Start server
 app.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on http://${HOST}:${PORT}`);
