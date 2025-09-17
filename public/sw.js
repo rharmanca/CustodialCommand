@@ -1,4 +1,4 @@
-const CACHE_NAME = 'custodial-command-v3';
+const CACHE_NAME = 'custodial-command-v4';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const SYNC_QUEUE_KEY = 'sync-queue';
 
@@ -11,29 +11,82 @@ const urlsToCache = [
   '/src/assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp'
 ];
 
-// Enhanced offline form storage
+// Enhanced offline form storage using IndexedDB
 class OfflineFormManager {
+  static dbName = 'CustodialCommandOffline';
+  static dbVersion = 1;
+  static storeName = 'offline-forms';
+
+  static async openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
+          store.createIndex('status', 'status', { unique: false });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+        }
+      };
+    });
+  }
+
   static async storeForm(formData, endpoint) {
-    const forms = await this.getStoredForms();
-    const formId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    forms[formId] = {
-      id: formId,
-      data: formData,
-      endpoint: endpoint,
-      timestamp: new Date().toISOString(),
-      retryCount: 0,
-      status: 'pending'
-    };
-    
-    await this.saveForms(forms);
-    return formId;
+    try {
+      const db = await this.openDB();
+      const formId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const formRecord = {
+        id: formId,
+        data: formData,
+        endpoint: endpoint,
+        timestamp: new Date().toISOString(),
+        retryCount: 0,
+        status: 'pending'
+      };
+
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      await new Promise((resolve, reject) => {
+        const request = store.add(formRecord);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Stored offline form: ${formId}`);
+      return formId;
+    } catch (error) {
+      console.error('Error storing form offline:', error);
+      throw error;
+    }
   }
   
   static async getStoredForms() {
     try {
-      const forms = await self.registration.sync.get(OFFLINE_FORMS_KEY);
-      return forms || {};
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+      
+      const forms = await new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const formsArray = request.result;
+          const formsObject = {};
+          formsArray.forEach(form => {
+            formsObject[form.id] = form;
+          });
+          resolve(formsObject);
+        };
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      return forms;
     } catch (error) {
       console.error('Error getting stored forms:', error);
       return {};
@@ -42,16 +95,43 @@ class OfflineFormManager {
   
   static async saveForms(forms) {
     try {
-      await self.registration.sync.set(OFFLINE_FORMS_KEY, forms);
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      
+      // Update each form
+      for (const formId in forms) {
+        const form = forms[formId];
+        await new Promise((resolve, reject) => {
+          const request = store.put(form);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      db.close();
     } catch (error) {
       console.error('Error saving forms:', error);
     }
   }
   
   static async removeForm(formId) {
-    const forms = await this.getStoredForms();
-    delete forms[formId];
-    await this.saveForms(forms);
+    try {
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+      
+      await new Promise((resolve, reject) => {
+        const request = store.delete(formId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Removed offline form: ${formId}`);
+    } catch (error) {
+      console.error('Error removing form:', error);
+    }
   }
 }
 
