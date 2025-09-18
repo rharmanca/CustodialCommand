@@ -1,4 +1,6 @@
 import type { Express } from "express";
+import * as express from "express";
+import * as path from "path";
 import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";

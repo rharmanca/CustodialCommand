@@ -169,7 +169,7 @@ function App() {
         
         // Update version and reload
         localStorage.setItem('app-version', currentVersion);
-        showInfo('🔄 App updated! Reloading with latest version...');
+        showInfo('App Updated', '🔄 App updated! Reloading with latest version...');
         setTimeout(() => window.location.reload(), 2000);
         return;
       }
