@@ -1,14 +1,14 @@
-const CACHE_NAME = 'custodial-command-v5';
+const CACHE_NAME = 'custodial-command-v6';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const SYNC_QUEUE_KEY = 'sync-queue';
+const APP_VERSION = 'v6';
+const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/icon-192x192.svg',
-  '/icon-512x512.svg',
-  '/src/assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp',
-  '/src/assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp'
+  '/icon-512x512.svg'
 ];
 
 // Enhanced offline form storage using IndexedDB with Cache API fallback
@@ -192,18 +192,28 @@ class OfflineFormManager {
 self.addEventListener('install', event => {
   console.log('Service Worker installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Caching app shell and assets');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('App shell cached successfully');
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        console.error('Failed to cache app shell:', error);
-      })
+    // Clear all old caches first
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      // Open new cache
+      return caches.open(CACHE_NAME);
+    }).then(cache => {
+      console.log('Caching app shell and assets');
+      return cache.addAll(urlsToCache);
+    }).then(() => {
+      console.log('App shell cached successfully');
+      return self.skipWaiting();
+    }).catch(error => {
+      console.error('Failed to cache app shell:', error);
+    })
   );
 });
 

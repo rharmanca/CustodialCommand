@@ -1,67 +1,67 @@
 {
-  "timestamp": "2025-09-17T17:20:41.392Z",
-  "baseUrl": "https://cacustodialcommand.up.railway.app",
+  "timestamp": "2025-09-18T01:41:30.600Z",
+  "baseUrl": "http://localhost:5000",
   "summary": {
     "total": 19,
-    "passed": 19,
-    "failed": 0,
-    "successRate": 100
+    "passed": 7,
+    "failed": 12,
+    "successRate": 36.84210526315789
   },
   "details": [
     {
       "testName": "Health Check",
-      "passed": true,
-      "details": "Server and database connected"
+      "passed": false,
+      "details": "Status: 503, Data: {\"status\":\"error\",\"timestamp\":\"2025-09-18T01:41:29.876Z\",\"uptime\":48,\"version\":\"1.0.0\",\"environment\":\"development\",\"database\":\"error\",\"memory\":{\"used\":18,\"total\":20,\"percentage\":89}}"
     },
     {
       "testName": "Basic API Test",
-      "passed": true,
-      "details": "API responding correctly"
+      "passed": false,
+      "details": "Status: 404, Data: {\"error\":\"API endpoint not found\",\"path\":\"/\",\"method\":\"GET\",\"timestamp\":\"2025-09-18T01:41:29.878Z\",\"availableEndpoints\":[\"POST /api/inspections\",\"GET /api/inspections\",\"POST /api/submit-building-inspection\",\"POST /api/custodial-notes\",\"POST /api/room-inspections\"]}"
     },
     {
       "testName": "GET Inspections",
-      "passed": true,
-      "details": "Retrieved 44 inspections"
+      "passed": false,
+      "details": "Status: 500"
     },
     {
       "testName": "GET Custodial Notes",
-      "passed": true,
-      "details": "Retrieved 18 custodial notes"
+      "passed": false,
+      "details": "Status: 500"
     },
     {
       "testName": "Create Single Room Inspection",
-      "passed": 45,
-      "details": "Created inspection ID: 45"
+      "passed": false,
+      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
     },
     {
       "testName": "Create Whole Building Inspection",
-      "passed": 46,
-      "details": "Created inspection ID: 46"
+      "passed": false,
+      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
     },
     {
       "testName": "Create Custodial Note",
-      "passed": 19,
-      "details": "Created note ID: 19"
+      "passed": false,
+      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
     },
     {
       "testName": "Create Room Inspection",
-      "passed": 21,
-      "details": "Created room inspection ID: 21"
+      "passed": false,
+      "details": "No building inspection ID provided"
     },
     {
       "testName": "GET Specific Inspection",
-      "passed": true,
-      "details": "Retrieved inspection 45"
+      "passed": false,
+      "details": "No inspection ID provided"
     },
     {
       "testName": "File Serving",
-      "passed": true,
-      "details": "Successfully served image: 326945d7-3648-45f2-b21d-7e42249e1687.png"
+      "passed": false,
+      "details": "Upload failed with status 400: {\"message\":\"Invalid inspection data\",\"details\":[{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"floors\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"verticalHorizontalSurfaces\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"ceiling\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"restrooms\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"customerSatisfaction\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"trash\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"projectCleaning\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"activitySupport\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"safetyCompliance\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"equipment\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"monitoring\"],\"message\":\"Expected number, received string\"}]}"
     },
     {
       "testName": "Admin Login",
-      "passed": true,
-      "details": "Admin login successful"
+      "passed": false,
+      "details": "Status: 401, Data: {\"success\":false,\"message\":\"Invalid credentials\"}"
     },
     {
       "testName": "Frontend Page: Home Page",
@@ -100,8 +100,8 @@
     },
     {
       "testName": "Database Consistency",
-      "passed": true,
-      "details": "Inspections: 47, Notes: 19"
+      "passed": false,
+      "details": ""
     }
   ]
 }

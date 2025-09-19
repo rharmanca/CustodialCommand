@@ -8,9 +8,7 @@ const urlsToCache = [
   '/',
   '/manifest.json',
   '/icon-192x192.svg',
-  '/icon-512x512.svg',
-  '/src/assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp',
-  '/src/assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp'
+  '/icon-512x512.svg'
 ];
 
 // Enhanced offline form storage using IndexedDB with Cache API fallback

@@ -121,6 +121,29 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     e.preventDefault();
     
     if (isSubmitting) return; // Prevent multiple submissions
+
+    // Validate required fields
+    if (!formData.inspectorName.trim() || !formData.school || !formData.date) {
+      toast({
+        variant: "destructive",
+        title: "Missing Required Fields",
+        description: "Please fill in Inspector Name, School, and Date before submitting.",
+        duration: 6000
+      });
+      return;
+    }
+
+    // Require location to match server-side expectations
+    if (!formData.location.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Location Required",
+        description: "Please provide the location of the custodial concern.",
+        duration: 6000
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -212,7 +235,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="inspectorName">Inspector Name</Label>
+              <Label htmlFor="inspectorName">Inspector Name <span className="text-red-500">*</span></Label>
               <Input
                 id="inspectorName"
                 value={formData.inspectorName}
@@ -222,7 +245,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="school">School</Label>
+              <Label htmlFor="school">School <span className="text-red-500">*</span></Label>
               <Input
                 id="school"
                 value={formData.school}
@@ -232,7 +255,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
               <Input
                 id="date"
                 type="date"
@@ -258,7 +281,6 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 value={formData.locationDescription}
                 onChange={(e) => handleInputChange('locationDescription', e.target.value)}
                 placeholder="e.g., Main Building, East Wing, 2nd Floor"
-                required
               />
             </div>
           </CardContent>
@@ -277,7 +299,6 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
               placeholder="Describe the issue, maintenance need, or observation...&#10;&#10;Examples:&#10;• Broken equipment or fixtures&#10;• Cleaning supply needs&#10;• Safety concerns&#10;• Maintenance requests&#10;• General observations&#10;• Follow-up needed"
               rows={10}
               className="min-h-[250px]"
-              required
             />
           </CardContent>
         </Card>
