@@ -744,32 +744,40 @@ export default function WholeBuildingInspectionPage({
     }
 
     try {
-      // Update the building inspection as completed
-      const response = await fetch(`/api/inspections/${buildingInspectionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isCompleted: true }),
+      // Try finalize endpoint first
+      const finalizeResp = await fetch(`/api/inspections/${buildingInspectionId}/finalize`, {
+        method: 'POST'
       });
 
-      if (response.ok) {
-        // Show success toast notification
-        toast({
-          title: "🎉 You Did Your Duty, Thank You! 🎉",
-          description:
-            "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
-          duration: 5000,
+      let ok = finalizeResp.ok;
+      if (!ok) {
+        // Fallback to PATCH if finalize route is unavailable
+        const patchResp = await fetch(`/api/inspections/${buildingInspectionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isCompleted: true }),
         });
-
-        console.log("Whole building inspection completed successfully!");
-
-        // Delay navigation to let user see the success message
-        setTimeout(() => {
-          if (onBack) onBack();
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to finalize inspection");
+        ok = patchResp.ok;
+        if (!ok) {
+          const errData = await patchResp.json().catch(() => ({}));
+          throw new Error(errData.error || 'Failed to finalize inspection');
+        }
       }
+
+      // Show success toast notification
+      toast({
+        title: "🎉 You Did Your Duty, Thank You! 🎉",
+        description:
+          "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
+        duration: 5000,
+      });
+
+      console.log("Whole building inspection completed successfully!");
+
+      // Delay navigation to let user see the success message
+      setTimeout(() => {
+        if (onBack) onBack();
+      }, 3000);
     } catch (error) {
       console.error("Error finalizing inspection:", error);
 
