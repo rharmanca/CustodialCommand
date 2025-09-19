@@ -562,6 +562,25 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Finalize building inspection
+  app.post("/api/inspections/:id/finalize", async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
+
+      const inspection = await storage.updateInspection(id, { isCompleted: true });
+      if (!inspection) {
+        return res.status(404).json({ error: "Inspection not found" });
+      }
+      res.json(inspection);
+    } catch (error) {
+      console.error("Error finalizing inspection:", error);
+      res.status(500).json({ error: "Failed to finalize inspection" });
+    }
+  });
+
   // Static file serving for uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

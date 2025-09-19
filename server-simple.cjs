@@ -564,6 +564,61 @@ app.patch('/api/inspections/:id', async (req, res) => {
   }
 });
 
+app.post('/api/inspections/:id/finalize', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid inspection ID' });
+    }
+
+    const result = await sql`
+      UPDATE inspections
+      SET is_completed = true
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Inspection not found' });
+    }
+
+    const row = result[0];
+    const updated = {
+      id: row.id,
+      inspectorName: row.inspector_name,
+      school: row.school,
+      date: row.date,
+      inspectionType: row.inspection_type,
+      locationDescription: row.location_description,
+      roomNumber: row.room_number,
+      locationCategory: row.location_category,
+      buildingName: row.building_name,
+      buildingInspectionId: row.building_inspection_id,
+      floors: row.floors,
+      verticalHorizontalSurfaces: row.vertical_horizontal_surfaces,
+      ceiling: row.ceiling,
+      restrooms: row.restrooms,
+      customerSatisfaction: row.customer_satisfaction,
+      trash: row.trash,
+      projectCleaning: row.project_cleaning,
+      activitySupport: row.activity_support,
+      safetyCompliance: row.safety_compliance,
+      equipment: row.equipment,
+      monitoring: row.monitoring,
+      notes: row.notes,
+      images: row.images || [],
+      verifiedRooms: row.verified_rooms || [],
+      isCompleted: row.is_completed,
+      createdAt: row.created_at
+    };
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error finalizing inspection:', error);
+    res.status(500).json({ error: 'Failed to finalize inspection' });
+  }
+});
+
 // Custodial Notes routes
 app.post("/api/custodial-notes", upload.array('images'), async (req, res) => {
   console.log('[POST] Custodial Notes submission started', {
