@@ -127,6 +127,7 @@ export default function WholeBuildingInspectionPage({
   const [showInspectionSelector, setShowInspectionSelector] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const [savedInspections, setSavedInspections] = useState<any[]>([]);
+  const [finalized, setFinalized] = useState(false);
 
   // Form data for current inspection
   const [formData, setFormData] = useState({
@@ -764,6 +765,9 @@ export default function WholeBuildingInspectionPage({
         }
       }
 
+      // Mark as finalized to display banner
+      setFinalized(true);
+
       // Show success toast notification
       toast({
         title: "🎉 You Did Your Duty, Thank You! 🎉",
@@ -774,7 +778,7 @@ export default function WholeBuildingInspectionPage({
 
       console.log("Whole building inspection completed successfully!");
 
-      // Delay navigation to let user see the success message
+      // Optional: navigate back after a short delay if onBack is provided
       setTimeout(() => {
         if (onBack) onBack();
       }, 3000);
@@ -793,6 +797,25 @@ export default function WholeBuildingInspectionPage({
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
+      {finalized && (
+        <Card className="border-green-300 bg-green-50">
+          <CardContent className="py-4 flex items-center justify-between gap-4">
+            <div>
+              <div className="font-semibold text-green-800">Building Inspection Finalized</div>
+              <div className="text-sm text-green-700">Your comprehensive inspection has been submitted successfully.</div>
+            </div>
+            <Button
+              onClick={() => {
+                setFinalized(false);
+                startNewInspection();
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Start New Building Inspection
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       <div className="mb-6">
         {onBack && (
           <div className="flex justify-start mb-4">
