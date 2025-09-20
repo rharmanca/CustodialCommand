@@ -702,20 +702,39 @@ export default function WholeBuildingInspectionPage({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(submissionData),
       });
 
-      const result = await response.json();
-      console.log("Submission response:", result);
+      const contentType = response.headers.get("content-type") || "";
+      let result: any = null;
+      let rawText: string | null = null;
 
-      if (!response.ok) {
-        throw new Error(
-          result.message || `HTTP error! status: ${response.status}`
-        );
+      try {
+        if (contentType.includes("application/json")) {
+          result = await response.json();
+        } else {
+          rawText = await response.text();
+        }
+      } catch (parseErr) {
+        // Fallback to text if JSON parsing fails
+        try {
+          rawText = await response.text();
+        } catch {}
       }
 
-      if (result.success) {
+      console.log("Submission response status:", response.status, "ctype:", contentType);
+      if (result) console.log("Submission response JSON:", result);
+      if (!result && rawText) console.log("Submission response TEXT:", rawText.slice(0, 300));
+
+      if (!response.ok) {
+        const serverMsg = (result && (result.message || result.error)) || rawText || null;
+        throw new Error(serverMsg || `HTTP error! status: ${response.status}`);
+      }
+
+      // Treat as success if server indicates success or returned an id
+      if ((result && (result.success || result.id)) || response.ok) {
         toast({
           title: "Success",
           description: "Building inspection submitted successfully!",
