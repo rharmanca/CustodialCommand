@@ -362,6 +362,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
     try {
       console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
+      console.log(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
 
       // Ensure we have a body
       if (!req.body) {
@@ -378,7 +379,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       const result = await storage.createInspection(validatedData);
 
       logger.info('Building inspection created successfully', { requestId, inspectionId: result.id });
-      return res.status(201).json({ success: true, id: result.id, ...result });
+      const responsePayload = { success: true, id: result.id, ...result };
+      console.log(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(201).json(responsePayload);
     } catch (err) {
       console.error(`[${requestId}] Failed to create building inspection:`, err);
       logger.error('Failed to create building inspection', { requestId, error: err });
@@ -393,11 +397,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       // Ensure we always return JSON, never HTML
-      return res.status(500).json({ 
+      const errorPayload = {
         error: 'Failed to create building inspection',
         message: 'An internal server error occurred. Please try again.',
         requestId
-      });
+      };
+      console.log(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(500).json(errorPayload);
     }
   });
 

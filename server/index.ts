@@ -41,6 +41,34 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 // Apply rate limiting to API routes
 app.use('/api', apiRateLimit);
 
+// Debug: Log API requests with headers and body (after parsers)
+app.use('/api', (req: any, res: any, next: any) => {
+  try {
+    const contentType = req.headers['content-type'];
+    const accept = req.headers['accept'];
+    const contentLength = req.headers['content-length'];
+    const path = req.path;
+    const method = req.method;
+
+    // Shallow clone body to avoid huge logs
+    const bodyPreview = req.body ? JSON.parse(JSON.stringify(req.body)) : undefined;
+    // Truncate long strings
+    const truncate = (val: any) => {
+      if (typeof val === 'string' && val.length > 500) return val.slice(0, 497) + '…';
+      return val;
+    };
+    if (bodyPreview && typeof bodyPreview === 'object') {
+      for (const k of Object.keys(bodyPreview)) {
+        // Avoid logging massive fields
+        bodyPreview[k] = truncate(bodyPreview[k]);
+      }
+    }
+
+    log(`API REQ ${method} ${path} ct=${contentType || 'n/a'} accept=${accept || 'n/a'} len=${contentLength || 'n/a'} :: ${JSON.stringify(bodyPreview || {})}`);
+  } catch {}
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
