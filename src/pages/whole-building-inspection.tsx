@@ -740,6 +740,12 @@ export default function WholeBuildingInspectionPage({
           description: "Building inspection submitted successfully!",
         });
 
+        // Set buildingInspectionId from the first successful submission for finalization
+        if (result && result.id && !buildingInspectionId) {
+          console.log("Setting buildingInspectionId from first submission:", result.id);
+          setBuildingInspectionId(result.id);
+        }
+
         // Update completed count for this category
         if (selectedCategory) {
           setCompleted((prev) => ({
@@ -812,24 +818,71 @@ export default function WholeBuildingInspectionPage({
       return;
     }
 
+    console.log("Attempting to finalize building inspection:", { buildingInspectionId, isAllComplete });
+
+    if (!buildingInspectionId) {
+      console.error("No building inspection ID available for finalization");
+      toast({
+        title: "Finalization Failed",
+        description: "No building inspection ID found. Please start a new inspection.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Try finalize endpoint first
+      console.log(`Calling finalize endpoint: /api/inspections/${buildingInspectionId}/finalize`);
       const finalizeResp = await fetch(`/api/inspections/${buildingInspectionId}/finalize`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
 
+      console.log("Finalize response status:", finalizeResp.status);
+      
       let ok = finalizeResp.ok;
+      let errorMessage = null;
+
       if (!ok) {
+        // Get error from finalize attempt
+        try {
+          const finalizeError = await finalizeResp.json();
+          errorMessage = finalizeError.error || finalizeError.message;
+          console.log("Finalize endpoint error:", finalizeError);
+        } catch (e) {
+          const finalizeText = await finalizeResp.text();
+          console.log("Finalize endpoint error (text):", finalizeText.slice(0, 200));
+          errorMessage = finalizeText;
+        }
+
         // Fallback to PATCH if finalize route is unavailable
+        console.log(`Trying PATCH fallback: /api/inspections/${buildingInspectionId}`);
         const patchResp = await fetch(`/api/inspections/${buildingInspectionId}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
           body: JSON.stringify({ isCompleted: true }),
         });
+        
+        console.log("PATCH response status:", patchResp.status);
         ok = patchResp.ok;
+        
         if (!ok) {
-          const errData = await patchResp.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to finalize inspection');
+          try {
+            const errData = await patchResp.json();
+            errorMessage = errData.error || errData.message || 'Failed to finalize inspection';
+            console.log("PATCH endpoint error:", errData);
+          } catch (e) {
+            const patchText = await patchResp.text();
+            console.log("PATCH endpoint error (text):", patchText.slice(0, 200));
+            errorMessage = patchText || 'Failed to finalize inspection';
+          }
+          throw new Error(errorMessage);
         }
       }
 

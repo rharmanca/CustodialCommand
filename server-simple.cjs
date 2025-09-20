@@ -598,13 +598,29 @@ app.get("/api/inspections/:id", async (req, res) => {
 app.patch('/api/inspections/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    console.log(`[PATCH] Attempting to update inspection ID: ${id} with body:`, req.body);
+    
     if (isNaN(id)) {
+      console.log(`[PATCH] Invalid inspection ID: ${req.params.id}`);
       return res.status(400).json({ error: 'Invalid inspection ID' });
     }
 
     const { isCompleted } = req.body || {};
     if (typeof isCompleted !== 'boolean') {
+      console.log(`[PATCH] Invalid isCompleted value:`, isCompleted);
       return res.status(400).json({ error: 'isCompleted must be boolean' });
+    }
+
+    // Check if inspection exists first
+    const existsResult = await sql`
+      SELECT id, school, inspection_type, is_completed FROM inspections WHERE id = ${id}
+    `;
+    
+    console.log(`[PATCH] Inspection lookup result:`, existsResult);
+    
+    if (existsResult.length === 0) {
+      console.log(`[PATCH] Inspection ${id} not found`);
+      return res.status(404).json({ error: 'Inspection not found' });
     }
 
     const result = await sql`
@@ -615,8 +631,11 @@ app.patch('/api/inspections/:id', async (req, res) => {
     `;
 
     if (result.length === 0) {
+      console.log(`[PATCH] Update failed for inspection ${id}`);
       return res.status(404).json({ error: 'Inspection not found' });
     }
+
+    console.log(`[PATCH] Successfully updated inspection ${id} to completed: ${isCompleted}`);
 
     const row = result[0];
     const updated = {
@@ -658,9 +677,27 @@ app.patch('/api/inspections/:id', async (req, res) => {
 app.post('/api/inspections/:id/finalize', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    console.log(`[FINALIZE] Attempting to finalize inspection ID: ${id}`);
+    
     if (isNaN(id)) {
+      console.log(`[FINALIZE] Invalid inspection ID: ${req.params.id}`);
       return res.status(400).json({ error: 'Invalid inspection ID' });
     }
+
+    // First check if inspection exists
+    const existsResult = await sql`
+      SELECT id, school, inspection_type, is_completed FROM inspections WHERE id = ${id}
+    `;
+    
+    console.log(`[FINALIZE] Inspection lookup result:`, existsResult);
+    
+    if (existsResult.length === 0) {
+      console.log(`[FINALIZE] Inspection ${id} not found`);
+      return res.status(404).json({ error: 'Inspection not found' });
+    }
+
+    const existing = existsResult[0];
+    console.log(`[FINALIZE] Found inspection: ${existing.id}, school: ${existing.school}, completed: ${existing.is_completed}`);
 
     const result = await sql`
       UPDATE inspections
@@ -670,8 +707,12 @@ app.post('/api/inspections/:id/finalize', async (req, res) => {
     `;
 
     if (result.length === 0) {
+      console.log(`[FINALIZE] Update failed for inspection ${id}`);
       return res.status(404).json({ error: 'Inspection not found' });
     }
+
+    console.log(`[FINALIZE] Successfully finalized inspection ${id}`);
+  
 
     const row = result[0];
     const updated = {
