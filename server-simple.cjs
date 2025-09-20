@@ -393,6 +393,97 @@ app.post('/api/inspections', upload.array('images'), async (req, res) => {
   }
 });
 
+// Alias endpoint used by clients expecting JSON-only submit path
+app.post('/api/submit-building-inspection', async (req, res) => {
+  console.log('[POST] (alias) Building inspection submission started', {
+    body: req.body,
+  });
+
+  try {
+    const { inspectorName, school, inspectionType } = req.body;
+
+    // Validate required fields
+    if (!school || !inspectionType) {
+      console.warn('[POST] Missing required fields', { school, inspectionType });
+      return res.status(400).json({
+        message: 'Missing required fields',
+        details: { school: !!school, inspectionType: !!inspectionType }
+      });
+    }
+
+    // No image uploads here; accept optional images array if provided
+    const imageUrls = Array.isArray(req.body.images) ? req.body.images : [];
+
+    const inspectionData = {
+      inspectorName: inspectorName || "",
+      school,
+      date: req.body.date || new Date().toISOString(),
+      inspectionType,
+      locationDescription: req.body.locationDescription || '',
+      roomNumber: req.body.roomNumber || null,
+      locationCategory: req.body.locationCategory || null,
+      floors: req.body.floors || null,
+      verticalHorizontalSurfaces: req.body.verticalHorizontalSurfaces || null,
+      ceiling: req.body.ceiling || null,
+      restrooms: req.body.restrooms || null,
+      customerSatisfaction: req.body.customerSatisfaction || null,
+      trash: req.body.trash || null,
+      projectCleaning: req.body.projectCleaning || null,
+      activitySupport: req.body.activitySupport || null,
+      safetyCompliance: req.body.safetyCompliance || null,
+      equipment: req.body.equipment || null,
+      monitoring: req.body.monitoring || null,
+      notes: req.body.notes || null,
+      images: imageUrls,
+      verifiedRooms: Array.isArray(req.body.verifiedRooms) ? req.body.verifiedRooms : [],
+      isCompleted: !!req.body.isCompleted
+    };
+
+    console.log('[POST] (alias) Creating building inspection', { inspectionData });
+
+    try {
+      const result = await sql`
+        INSERT INTO inspections (
+          inspector_name, school, date, inspection_type, location_description,
+          room_number, location_category, floors, vertical_horizontal_surfaces,
+          ceiling, restrooms, customer_satisfaction, trash, project_cleaning,
+          activity_support, safety_compliance, equipment, monitoring, notes,
+          images, verified_rooms, is_completed
+        ) VALUES (
+          ${inspectionData.inspectorName}, ${inspectionData.school}, ${inspectionData.date},
+          ${inspectionData.inspectionType}, ${inspectionData.locationDescription},
+          ${inspectionData.roomNumber}, ${inspectionData.locationCategory},
+          ${inspectionData.floors}, ${inspectionData.verticalHorizontalSurfaces},
+          ${inspectionData.ceiling}, ${inspectionData.restrooms},
+          ${inspectionData.customerSatisfaction}, ${inspectionData.trash},
+          ${inspectionData.projectCleaning}, ${inspectionData.activitySupport},
+          ${inspectionData.safetyCompliance}, ${inspectionData.equipment},
+          ${inspectionData.monitoring}, ${inspectionData.notes},
+          ${inspectionData.images}, ${inspectionData.verifiedRooms},
+          ${inspectionData.isCompleted}
+        ) RETURNING id
+      `;
+
+      const newId = result[0].id;
+      console.log('[POST] (alias) Building inspection created successfully', { id: newId });
+
+      res.status(201).json({
+        success: true,
+        message: 'Building inspection created successfully',
+        id: newId,
+        imageCount: imageUrls.length
+      });
+    } catch (dbError) {
+      console.error('[POST] (alias) Database error creating inspection:', dbError);
+      res.status(500).json({ message: 'Database error creating inspection' });
+    }
+
+  } catch (error) {
+    console.error('[POST] (alias) Error creating building inspection:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.get("/api/inspections", async (req, res) => {
   try {
     const { type, incomplete } = req.query;
@@ -1033,6 +1124,16 @@ app.get('*', (req, res) => {
   
   // Serve the React app for all other routes
   res.sendFile(path.join(process.cwd(), 'dist/public/index.html'));
+});
+
+// Ensure non-GET unknown API routes return JSON not HTML
+app.all('/api/*', (req, res) => {
+  return res.status(404).json({
+    error: 'API endpoint not found',
+    path: req.path,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling
