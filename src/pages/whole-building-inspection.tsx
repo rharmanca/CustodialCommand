@@ -602,6 +602,27 @@ export default function WholeBuildingInspectionPage({
     setSelectedCategory(category);
     setShowInspectionSelector(false);
 
+    // Clear room-specific fields when switching categories to prevent data persistence
+    setFormData((prev) => ({
+      ...prev,
+      roomNumber: "",
+      locationDescription: "",
+      locationCategory: category,
+      floors: -1,
+      verticalHorizontalSurfaces: -1,
+      ceiling: -1,
+      restrooms: -1,
+      customerSatisfaction: -1,
+      trash: -1,
+      projectCleaning: -1,
+      activitySupport: -1,
+      safetyCompliance: -1,
+      equipment: -1,
+      monitoring: -1,
+      notes: "",
+      comments: "",
+    }));
+
     // Prevent automatic scroll to top with multiple methods
     requestAnimationFrame(() => {
       window.scrollTo({ top: currentScrollY, behavior: "instant" });
@@ -647,12 +668,32 @@ export default function WholeBuildingInspectionPage({
     setIsSubmitting(true);
 
     try {
+      // Prepare submission data that matches the database schema
       const submissionData = {
-        ...formData,
-        category: selectedCategory,
-        buildingInspectionId,
-        timestamp: new Date().toISOString(),
-        type: "building",
+        inspectorName: formData.inspectorName,
+        school: formData.school,
+        date: formData.date,
+        inspectionType: "whole_building",
+        locationDescription: formData.locationDescription || `Building inspection for ${selectedCategory}`,
+        roomNumber: formData.roomNumber || null,
+        locationCategory: selectedCategory,
+        buildingName: null, // Building name is not currently captured in the form
+        buildingInspectionId: buildingInspectionId || null,
+        floors: formData.floors >= 0 ? formData.floors : null,
+        verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces >= 0 ? formData.verticalHorizontalSurfaces : null,
+        ceiling: formData.ceiling >= 0 ? formData.ceiling : null,
+        restrooms: formData.restrooms >= 0 ? formData.restrooms : null,
+        customerSatisfaction: formData.customerSatisfaction >= 0 ? formData.customerSatisfaction : null,
+        trash: formData.trash >= 0 ? formData.trash : null,
+        projectCleaning: formData.projectCleaning >= 0 ? formData.projectCleaning : null,
+        activitySupport: formData.activitySupport >= 0 ? formData.activitySupport : null,
+        safetyCompliance: formData.safetyCompliance >= 0 ? formData.safetyCompliance : null,
+        equipment: formData.equipment >= 0 ? formData.equipment : null,
+        monitoring: formData.monitoring >= 0 ? formData.monitoring : null,
+        notes: formData.notes || null,
+        images: [], // No images for building-level submissions
+        verifiedRooms: [], // Will be populated when individual rooms are submitted
+        isCompleted: false // Will be set to true when all categories are complete
       };
 
       console.log("Submitting building inspection:", submissionData);
@@ -679,6 +720,14 @@ export default function WholeBuildingInspectionPage({
           title: "Success",
           description: "Building inspection submitted successfully!",
         });
+
+        // Update completed count for this category
+        if (selectedCategory) {
+          setCompleted((prev) => ({
+            ...prev,
+            [selectedCategory]: (prev[selectedCategory] || 0) + 1
+          }));
+        }
 
         // Clear the current form draft
         clearCurrentFormDraft();

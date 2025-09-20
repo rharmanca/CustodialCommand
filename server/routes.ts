@@ -363,6 +363,15 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
 
+      // Ensure we have a body
+      if (!req.body) {
+        logger.warn(`[${requestId}] No request body received`);
+        return res.status(400).json({
+          error: 'No request body received',
+          message: 'Please ensure the request contains valid JSON data'
+        });
+      }
+
       const validatedData = insertInspectionSchema.parse(req.body);
       console.log(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
 
@@ -383,7 +392,12 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
 
-      res.status(500).json({ error: 'Failed to create building inspection' });
+      // Ensure we always return JSON, never HTML
+      return res.status(500).json({ 
+        error: 'Failed to create building inspection',
+        message: 'An internal server error occurred. Please try again.',
+        requestId
+      });
     }
   });
 
