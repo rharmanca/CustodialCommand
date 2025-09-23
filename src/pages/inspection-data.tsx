@@ -69,8 +69,13 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     }
   };
 
-  const calculateAverageRating = (inspection: Inspection) => {
-    const ratings = categories.map(cat => inspection[cat.key as keyof Inspection] as number);
+  const calculateAverageRating = (inspection: Inspection): number | null => {
+    const ratings = categories
+      .map(cat => inspection[cat.key as keyof Inspection] as number | null | undefined)
+      .filter((rating): rating is number => typeof rating === 'number');
+
+    if (ratings.length === 0) return null;
+
     const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
     return Math.round(average * 10) / 10;
   };
@@ -107,8 +112,12 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
     return Object.entries(schoolGroups).map(([school, schoolInspections]) => {
       const totalInspections = schoolInspections.length;
-      const averageRating = schoolInspections.reduce((sum, inspection) => 
-        sum + calculateAverageRating(inspection), 0) / totalInspections;
+      const perInspectionAverages = schoolInspections
+        .map(inspection => calculateAverageRating(inspection))
+        .filter((avg): avg is number => avg !== null);
+      const averageRating = perInspectionAverages.length > 0
+        ? perInspectionAverages.reduce((sum, avg) => sum + avg, 0) / perInspectionAverages.length
+        : 0;
       
       const singleRoomCount = schoolInspections.filter(i => i.inspectionType === 'single_room').length;
       const wholeBuildingCount = schoolInspections.filter(i => i.inspectionType === 'whole_building').length;
@@ -150,8 +159,12 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     return Object.entries(roomGroups).map(([key, roomInspections]) => {
       const [school, roomNumber] = key.split('-');
       const totalInspections = roomInspections.length;
-      const averageRating = roomInspections.reduce((sum, inspection) => 
-        sum + calculateAverageRating(inspection), 0) / totalInspections;
+      const perInspectionAverages = roomInspections
+        .map(inspection => calculateAverageRating(inspection))
+        .filter((avg): avg is number => avg !== null);
+      const averageRating = perInspectionAverages.length > 0
+        ? perInspectionAverages.reduce((sum, avg) => sum + avg, 0) / perInspectionAverages.length
+        : 0;
       
       const latestInspection = roomInspections.sort((a, b) => 
         new Date(b.date).getTime() - new Date(a.date).getTime())[0];
@@ -588,7 +601,10 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                         {inspection.school}
                       </div>
                       <Badge variant="secondary">
-                        Avg: {calculateAverageRating(inspection)}/5
+                        {(() => {
+                          const avg = calculateAverageRating(inspection);
+                          return `Avg: ${avg !== null ? avg : 'N/A'}/5`;
+                        })()}
                       </Badge>
                     </CardTitle>
                     <CardDescription className="flex items-center gap-4">
@@ -616,7 +632,10 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1">
-                        {renderStars(Math.round(calculateAverageRating(inspection)))}
+                        {(() => {
+                          const avg = calculateAverageRating(inspection);
+                          return avg !== null ? renderStars(Math.round(avg)) : <span className="text-xs text-gray-500">N/A</span>;
+                        })()}
                       </div>
                     </div>
                   </CardContent>
