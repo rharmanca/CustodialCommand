@@ -95,6 +95,17 @@ export const storage = {
     }
   },
 
+  async deleteCustodialNote(id: number) {
+    try {
+      await db.delete(custodialNotes).where(eq(custodialNotes.id, id));
+      logger.info('Deleted custodial note:', { id });
+      return true;
+    } catch (error) {
+      logger.error('Error deleting custodial note:', error);
+      return false;
+    }
+  },
+
   // Room Inspections methods
   async createRoomInspection(data: InsertRoomInspection) {
     try {

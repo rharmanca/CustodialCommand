@@ -769,6 +769,26 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  app.delete('/api/admin/custodial-notes/:id', validateAdminSession, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid custodial note ID' });
+      }
+      
+      const success = await storage.deleteCustodialNote(id);
+      
+      if (success) {
+        res.json({ success: true, message: 'Custodial note deleted successfully' });
+      } else {
+        res.status(404).json({ success: false, message: 'Custodial note not found' });
+      }
+    } catch (error) {
+      logger.error('Error deleting custodial note', { error });
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
   // Catch-all handler for unknown API routes (must be at the end)
   app.use('/api/*', (req: any, res: any) => {
     res.status(404).json({
