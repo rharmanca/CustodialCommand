@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp, Download } from 'lucide-react';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { LoadingState } from '@/components/ui/loading-spinner';
 
@@ -19,6 +20,13 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   const [loading, setLoading] = useState(true);
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [summaryView, setSummaryView] = useState<'school' | 'room' | 'category'>('school');
+
+  // Filters and sorting
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [schoolFilter, setSchoolFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('default');
 
   const ratingLabels = {
     1: "Unacceptable",
@@ -100,9 +108,42 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     );
   };
 
+  // Determine unique schools for filter dropdown
+  const schools = useMemo(() => {
+    const set = new Set(inspections.map(i => i.school).filter(Boolean));
+    return Array.from(set).sort();
+  }, [inspections]);
+
+  // Apply filters consistently
+  const filteredInspections = useMemo(() => {
+    const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
+    const toTs = dateTo ? new Date(dateTo).getTime() : null;
+    const q = search.trim().toLowerCase();
+    return inspections.filter(i => {
+      const ts = new Date(i.date).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
+      if (schoolFilter !== 'all' && i.school !== schoolFilter) return false;
+      if (q) {
+        const hay = [
+          i.school,
+          i.roomNumber?.toString(),
+          i.locationDescription,
+          i.buildingName,
+          i.notes
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [inspections, dateFrom, dateTo, schoolFilter, search]);
+
   // Summary calculations
   const getSchoolSummary = () => {
-    const schoolGroups = inspections.reduce((acc, inspection) => {
+    const schoolGroups = filteredInspections.reduce((acc, inspection) => {
       if (!acc[inspection.school]) {
         acc[inspection.school] = [];
       }
@@ -145,7 +186,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   };
 
   const getRoomSummary = () => {
-    const roomGroups = inspections
+    const roomGroups = filteredInspections
       .filter(inspection => inspection.roomNumber)
       .reduce((acc, inspection) => {
         const key = `${inspection.school}-${inspection.roomNumber}`;
@@ -182,7 +223,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
   const getCategorySummary = () => {
     return categories.map(category => {
-      const categoryRatings = inspections
+      const categoryRatings = filteredInspections
         .map(inspection => inspection[category.key as keyof Inspection] as number)
         .filter(rating => rating !== null && rating !== undefined);
       
@@ -203,6 +244,44 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         distribution
       };
     }).sort((a, b) => b.average - a.average);
+  };
+
+  // CSV export based on current summary view
+  const exportCSV = () => {
+    let rows: string[] = [];
+    if (summaryView === 'school') {
+      rows = [
+        ['School', 'Avg Rating', 'Total Inspections', 'Single Room', 'Whole Building'].join(',')
+      ].concat(
+        getSchoolSummary().map(s =>
+          [s.school, s.averageRating, s.totalInspections, s.singleRoomCount, s.wholeBuildingCount].join(',')
+        )
+      );
+    } else if (summaryView === 'room') {
+      rows = [
+        ['School', 'Room', 'Avg Rating', 'Total Inspections', 'Last Inspected'].join(',')
+      ].concat(
+        getRoomSummary().map(s =>
+          [s.school, s.roomNumber, s.averageRating, s.totalInspections, new Date(s.latestInspection.date).toLocaleDateString()].join(',')
+        )
+      );
+    } else {
+      rows = [
+        ['Category', 'Avg Rating', 'Total Ratings'].join(',')
+      ].concat(
+        getCategorySummary().map(s =>
+          [s.category, s.average, s.totalRatings].join(',')
+        )
+      );
+    }
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report-${summaryView}-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -256,6 +335,73 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
               <Badge variant={selectedInspection.inspectionType === 'single_room' ? 'default' : 'secondary'}>
                 {selectedInspection.inspectionType === 'single_room' ? 'Single Room' : 'Whole Building'}
               </Badge>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-5 mt-2">
+              <div className="md:col-span-2">
+                <Input
+                  type="text"
+                  placeholder="Search school, room, location..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div>
+                <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by school" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All schools</SelectItem>
+                    {schools.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-3">
+              <div className="flex items-center gap-2">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-56">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {summaryView === 'school' && (
+                      <>
+                        <SelectItem value="default">Sort: Inspections (desc)</SelectItem>
+                        <SelectItem value="avg-desc">Sort: Avg Rating (desc)</SelectItem>
+                        <SelectItem value="avg-asc">Sort: Avg Rating (asc)</SelectItem>
+                        <SelectItem value="name-asc">Sort: School (A→Z)</SelectItem>
+                      </>
+                    )}
+                    {summaryView === 'room' && (
+                      <>
+                        <SelectItem value="default">Sort: Inspections (desc)</SelectItem>
+                        <SelectItem value="avg-desc">Sort: Avg Rating (desc)</SelectItem>
+                        <SelectItem value="avg-asc">Sort: Avg Rating (asc)</SelectItem>
+                        <SelectItem value="date-desc">Sort: Last Inspected (newest)</SelectItem>
+                      </>
+                    )}
+                    {summaryView === 'category' && (
+                      <>
+                        <SelectItem value="default">Sort: Avg Rating (desc)</SelectItem>
+                        <SelectItem value="avg-asc">Sort: Avg Rating (asc)</SelectItem>
+                        <SelectItem value="name-asc">Sort: Category (A→Z)</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={() => { setSearch(''); setSchoolFilter('all'); setDateFrom(''); setDateTo(''); }}>
+                  Clear
+                </Button>
+              </div>
+              <Button onClick={exportCSV} className="flex items-center gap-2">
+                <Download className="w-4 h-4" /> Export CSV
+              </Button>
             </div>
 
             {/* Show verified rooms for whole building inspections */}
@@ -393,7 +539,14 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   </Card>
                 ) : (
                   <div className="grid gap-4">
-                    {getSchoolSummary().map((summary) => (
+                    {getSchoolSummary()
+                      .sort((a, b) => {
+                        if (sortBy === 'avg-desc') return b.averageRating - a.averageRating;
+                        if (sortBy === 'avg-asc') return a.averageRating - b.averageRating;
+                        if (sortBy === 'name-asc') return a.school.localeCompare(b.school);
+                        return b.totalInspections - a.totalInspections;
+                      })
+                      .map((summary) => (
                       <Card key={summary.school} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
@@ -469,7 +622,14 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   </Card>
                 ) : (
                   <div className="grid gap-4">
-                    {getRoomSummary().map((summary) => (
+                    {getRoomSummary()
+                      .sort((a, b) => {
+                        if (sortBy === 'avg-desc') return b.averageRating - a.averageRating;
+                        if (sortBy === 'avg-asc') return a.averageRating - b.averageRating;
+                        if (sortBy === 'date-desc') return new Date(b.latestInspection.date).getTime() - new Date(a.latestInspection.date).getTime();
+                        return b.totalInspections - a.totalInspections;
+                      })
+                      .map((summary) => (
                       <Card key={`${summary.school}-${summary.roomNumber}`} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
@@ -526,7 +686,13 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   </Card>
                 ) : (
                   <div className="grid gap-4">
-                    {getCategorySummary().map((summary) => (
+                    {getCategorySummary()
+                      .sort((a, b) => {
+                        if (sortBy === 'avg-asc') return a.average - b.average;
+                        if (sortBy === 'name-asc') return a.category.localeCompare(b.category);
+                        return b.average - a.average;
+                      })
+                      .map((summary) => (
                       <Card key={summary.key} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
@@ -592,7 +758,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
             </Card>
           ) : (
             <div className="grid gap-6">
-              {inspections.map((inspection) => (
+              {filteredInspections.map((inspection) => (
                 <Card key={inspection.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedInspection(inspection)}>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -656,7 +822,21 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
             </Card>
           ) : (
             <div className="grid gap-6">
-              {custodialNotes.map((note) => (
+              {custodialNotes
+                .filter(n => {
+                  const ts = new Date(n.date).getTime();
+                  const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
+                  const toTs = dateTo ? new Date(dateTo).getTime() : null;
+                  if (fromTs !== null && ts < fromTs) return false;
+                  if (toTs !== null && ts > toTs) return false;
+                  if (schoolFilter !== 'all' && n.school !== schoolFilter) return false;
+                  if (search.trim()) {
+                    const hay = [n.school, n.location, n.locationDescription, n.notes].filter(Boolean).join(' ').toLowerCase();
+                    if (!hay.includes(search.trim().toLowerCase())) return false;
+                  }
+                  return true;
+                })
+                .map((note) => (
                 <Card key={note.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
