@@ -1,7 +1,7 @@
-const CACHE_NAME = 'custodial-command-v6';
+const CACHE_NAME = 'custodial-command-v7';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const SYNC_QUEUE_KEY = 'sync-queue';
-const APP_VERSION = 'v6';
+const APP_VERSION = 'v7';
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const urlsToCache = [
