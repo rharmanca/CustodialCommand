@@ -74,7 +74,6 @@ export const custodialNotes = pgTable("custodial_notes", {
   location: text("location").notNull(),
   locationDescription: text("location_description").notNull(),
   notes: text("notes").notNull(),
-  images: text("images").array().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -134,8 +133,6 @@ export const insertRoomInspectionSchema = createInsertSchema(roomInspections).om
 export const insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
   id: true,
   createdAt: true,
-}).extend({
-  images: z.array(z.string()).optional().default([]),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

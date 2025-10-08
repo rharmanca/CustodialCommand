@@ -280,6 +280,34 @@ input[type="number"], input[type="tel"], textarea {
 
     /* Memory optimization for low-end devices */
     will-change: auto;
+    
+    /* Browser cursor and display fixes */
+    cursor: default;
+    
+    /* Fix cursor disappearing issues */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    /* Re-enable text selection for input fields */
+    input, textarea {
+      -webkit-user-select: auto;
+      -moz-user-select: auto;
+      -ms-user-select: auto;
+      user-select: auto;
+    }
+    
+    /* Fix hardware acceleration issues */
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    
+    /* Prevent cursor from disappearing during animations */
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 }
 
@@ -289,6 +317,100 @@ input[type="number"], input[type="tel"], textarea {
 .font-inter-medium { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 500; }
 .font-inter-semibold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 600; }
 .font-inter-bold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 700; }
+
+/* Browser Cursor and Display Fixes */
+/* Fix cursor disappearing issues in various browsers */
+* {
+  /* Ensure cursor is always visible */
+  cursor: default;
+}
+
+/* Fix cursor issues on interactive elements */
+button, 
+input, 
+select, 
+textarea, 
+a, 
+[role="button"], 
+[tabindex] {
+  cursor: pointer;
+}
+
+/* Fix cursor disappearing while typing */
+input:focus, 
+textarea:focus {
+  cursor: text;
+}
+
+/* Prevent cursor from disappearing on hover */
+button:hover, 
+a:hover, 
+[role="button"]:hover {
+  cursor: pointer;
+}
+
+/* Fix cursor issues in Firefox */
+@-moz-document url-prefix() {
+  * {
+    cursor: default !important;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea, 
+  a, 
+  [role="button"] {
+    cursor: pointer !important;
+  }
+  
+  input:focus, 
+  textarea:focus {
+    cursor: text !important;
+  }
+}
+
+/* Fix cursor issues in Safari */
+@supports (-webkit-appearance: none) {
+  * {
+    cursor: default;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea, 
+  a, 
+  [role="button"] {
+    cursor: pointer;
+  }
+  
+  input:focus, 
+  textarea:focus {
+    cursor: text;
+  }
+}
+
+/* Fix cursor issues in Chrome/Edge */
+@supports (display: grid) {
+  * {
+    cursor: default;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea, 
+  a, 
+  [role="button"] {
+    cursor: pointer;
+  }
+  
+  input:focus, 
+  textarea:focus {
+    cursor: text;
+  }
+}
 
 /* Modern Clean Design - Mobile-First Responsive */
 
