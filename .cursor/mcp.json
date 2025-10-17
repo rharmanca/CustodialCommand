@@ -3,6 +3,15 @@
     "Neon": {
       "command": "npx",
       "args": ["-y", "mcp-remote@latest", "https://mcp.neon.tech/mcp"]
+    },
+    "anchorbrowser": {
+      "command": "node",
+      "args": [
+        "/Users/rharman/mcp-servers/anchorbrowser-mcp/cli.js"
+      ],
+      "env": {
+        "ANCHOR_API_KEY": "sk-7a5280135c19499e2215d726f5cf3a75"
+      }
     }
   }
 }

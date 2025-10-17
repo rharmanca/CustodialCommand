@@ -100,24 +100,24 @@ button, input, select, textarea, a {
 
 @layer base {
   :root {
-    /* Retro propaganda poster color palette - matching your image */
+    /* Retro propaganda poster color palette - ENHANCED for mobile readability */
     --background: 46 45% 88%;        /* Cream/beige background like the poster */
-    --foreground: 14 15% 25%;        /* Dark charcoal for text */
-    --card: 46 45% 92%;             /* Slightly lighter cream for cards */
-    --card-foreground: 14 15% 25%;   /* Dark charcoal for card text */
-    --popover: 46 45% 92%;          /* Light cream for popovers */
-    --popover-foreground: 14 15% 25%; /* Dark charcoal for popover text */
+    --foreground: 14 20% 18%;        /* DARKER charcoal for better text contrast (was 14 15% 25%) */
+    --card: 46 45% 95%;             /* Slightly LIGHTER cream for better card contrast (was 92%) */
+    --card-foreground: 14 20% 18%;   /* DARKER charcoal for card text (was 14 15% 25%) */
+    --popover: 46 45% 95%;          /* Lighter cream for popovers (was 92%) */
+    --popover-foreground: 14 20% 18%; /* DARKER charcoal for popover text (was 14 15% 25%) */
     --primary: 8 76% 45%;           /* Bold red from the poster */
     --primary-foreground: 46 45% 88%; /* Cream text on red backgrounds */
     --secondary: 14 15% 35%;        /* Dark gray/charcoal like the robot */
     --secondary-foreground: 46 45% 88%; /* Cream text on dark backgrounds */
     --muted: 46 25% 80%;            /* Muted cream for subtle elements */
-    --muted-foreground: 14 15% 45%; /* Medium gray for muted text */
+    --muted-foreground: 14 20% 32%; /* DARKER gray for better muted text contrast (was 14 15% 45%) */
     --accent: 8 65% 55%;            /* Lighter red for accents */
     --accent-foreground: 46 45% 88%; /* Cream text on accent backgrounds */
     --destructive: 8 85% 50%;       /* Bright red for destructive actions */
     --destructive-foreground: 46 45% 88%; /* Cream text on destructive backgrounds */
-    --border: 46 25% 75%;           /* Subtle cream border */
+    --border: 46 25% 68%;           /* DARKER border for better visibility (was 46 25% 75%) */
     --input: 46 35% 85%;            /* Light cream for inputs */
     --ring: 8 76% 45%;              /* Red focus ring */
     --chart-1: 8 76% 45%;           /* Red for charts */
@@ -250,7 +250,7 @@ input[type="number"], input[type="tel"], textarea {
     text-size-adjust: 100%;
 
     /* Prevent zoom on mobile when focusing inputs */
-    font-size: 16px; /* Base font size to prevent zoom */
+    font-size: 17px; /* ENHANCED base font size for better mobile readability (was 16px) */
 
     /* Improve scroll performance */
     -webkit-overflow-scrolling: touch;
@@ -432,13 +432,14 @@ a:hover,
   }
 }
 
-/* Header container */
+/* Header container - ENHANCED for better visual impact */
 .header-container {
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
   position: relative;
-  border-bottom: 1px solid hsl(var(--border));
-  padding: 1rem;
-  margin-bottom: 1rem;
+  border-bottom: 3px solid hsl(var(--primary) / 0.8); /* ENHANCED border (was 1px) */
+  padding: 1.5rem; /* ENHANCED padding (was 1rem) */
+  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Add shadow for depth */
 }
 
 @media (min-width: 768px) {
@@ -453,9 +454,10 @@ a:hover,
   font-weight: 700;
   color: hsl(var(--primary-foreground));
   letter-spacing: -0.02em;
-  font-size: 1.75rem;
+  font-size: 2rem; /* ENHANCED mobile size (was 1.75rem) */
   line-height: 1.2;
   text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
 }
 
 @media (min-width: 480px) {
@@ -476,13 +478,14 @@ a:hover,
   }
 }
 
-/* Navigation container - responsive flex layout */
+/* Navigation container - ENHANCED for better visual separation */
 .nav-container {
   background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  border: 2px solid hsl(var(--border)); /* ENHANCED border width (was 1px) */
   border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 1.25rem; /* ENHANCED padding (was 1rem) */
+  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Add subtle shadow */
 }
 
 @media (min-width: 768px) {
@@ -529,11 +532,14 @@ a:hover,
   padding: 0 1rem;
 }
 
-/* Content area */
+/* Content area - ENHANCED for better visual separation */
 .content-area {
   background: hsl(var(--background));
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 1.5rem; /* ENHANCED padding for better mobile spacing (was 1rem) */
+  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
+  border: 1px solid hsl(var(--border)); /* Add subtle border for separation */
+  border-radius: var(--radius); /* Add border radius for consistency */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Add subtle shadow */
 }
 
 @media (min-width: 768px) {
@@ -543,18 +549,18 @@ a:hover,
   }
 }
 
-/* Modern buttons - mobile-first responsive */
+/* Modern buttons - mobile-first responsive - ENHANCED */
 .modern-button {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 500;
+  font-weight: 600; /* ENHANCED from 500 to 600 for better readability */
   font-size: 0.875rem;
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.25rem; /* ENHANCED padding for better touch targets (was 0.875rem 1rem) */
   letter-spacing: 0.01em;
-  border: 1px solid hsl(var(--border));
+  border: 3px solid hsl(var(--border)); /* ENHANCED from 1px to 3px for stronger borders */
   border-radius: var(--radius);
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1); /* ENHANCED shadows with inset */
   transition: all 0.15s ease;
   text-decoration: none;
   display: inline-flex;
@@ -567,6 +573,7 @@ a:hover,
   min-height: 48px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add text shadow for better contrast */
 }
 
 /* When used in responsive-grid, maintain consistent width */
@@ -601,8 +608,9 @@ a:hover,
 
 .modern-button:hover {
   background: hsl(var(--primary) / 0.9);
-  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.15);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 16px 0 rgb(0 0 0 / 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15); /* ENHANCED hover shadow */
+  transform: translateY(-2px); /* ENHANCED hover lift (was -1px) */
+  border-color: hsl(var(--primary) / 0.8); /* ENHANCED border color on hover */
 }
 
 .modern-button:active {
@@ -701,19 +709,20 @@ a:hover,
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
-/* Modern star rating buttons */
+/* Modern star rating buttons - ENHANCED for mobile */
 .star-button {
   background: none;
-  border: none;
-  color: hsl(45 93% 47%);
-  font-size: 1.5rem;
+  border: 2px solid transparent; /* Add border for better definition */
+  color: hsl(45 100% 50%); /* ENHANCED more saturated yellow (was 45 93% 47%) */
+  font-size: 1.75rem; /* ENHANCED size for better mobile visibility (was 1.5rem) */
   cursor: pointer;
   transition: all 0.15s ease;
-  padding: 0.5rem;
+  padding: 0.75rem; /* ENHANCED padding (was 0.5rem) */
   border-radius: 0.5rem;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 48px; /* ENHANCED touch target (was 44px) */
+  min-width: 48px; /* ENHANCED touch target (was 44px) */
   touch-action: manipulation;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
 }
 
 @media (min-width: 640px) {
@@ -724,28 +733,34 @@ a:hover,
 }
 
 .star-button:hover {
-  background: hsl(45 93% 47% / 0.1);
-  transform: scale(1.05);
+  background: hsl(45 100% 50% / 0.15); /* ENHANCED hover background with more saturated color */
+  transform: scale(1.1); /* ENHANCED scale (was 1.05) */
+  border-color: hsl(45 100% 50% / 0.3); /* Add border color on hover */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* ENHANCED hover shadow */
 }
 
 .star-button.filled {
-  color: hsl(45 93% 47%);
+  color: hsl(45 100% 50%); /* ENHANCED more saturated yellow */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add shadow to filled stars */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow to filled stars */
 }
 
 .star-button.empty {
   color: hsl(var(--muted-foreground));
 }
 
-/* Mobile-First Form elements styling - let Tailwind handle responsive behavior */
+/* Mobile-First Form elements styling - ENHANCED for better visibility */
 .responsive-form input, .responsive-form textarea, .responsive-form select {
   font-family: 'Inter', sans-serif;
-  border: 2px solid #d1d5db;
+  border: 3px solid #9ca3af; /* ENHANCED darker border (was 2px solid #d1d5db) */
   border-radius: 8px;
   padding: 1rem 0.75rem;
   transition: border-color 0.2s ease;
-  font-size: 16px; /* Prevents zoom on iOS */
+  font-size: 17px; /* ENHANCED base font size (was 16px) */
   min-height: 48px;
   width: 100%;
+  background-color: hsl(var(--card)); /* Add background color for better contrast */
+  font-weight: 500; /* ENHANCED font weight for better readability */
 }
 
 @media (min-width: 640px) {
@@ -757,16 +772,17 @@ a:hover,
 
 .responsive-form input:focus, .responsive-form textarea:focus, .responsive-form select:focus {
   outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-color: hsl(var(--primary)); /* ENHANCED use primary color for focus */
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2); /* ENHANCED wider, more prominent focus ring */
+  background-color: hsl(var(--background)); /* ENHANCED background on focus */
 }
 
-/* Cards */
+/* Cards - ENHANCED for better visual separation */
 .card {
-  background: white;
+  background: hsl(var(--card)); /* Use CSS variable for consistency */
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08); /* ENHANCED shadows */
+  border: 2px solid hsl(var(--border)); /* ENHANCED border width and color (was 1px solid #e5e7eb) */
   overflow: hidden;
   margin-bottom: 1rem;
 }
@@ -887,6 +903,101 @@ a:hover,
   font-size: 1rem !important;
   pointer-events: auto !important;
   width: 100% !important;
+}
+
+/* ENHANCED Data Tables & Lists for better mobile readability */
+.table-enhanced {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border: 2px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.table-enhanced th {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid hsl(var(--border));
+  font-size: 0.9rem;
+}
+
+.table-enhanced td {
+  padding: 1rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.table-enhanced tbody tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.table-enhanced tbody tr:hover {
+  background: hsl(var(--accent) / 0.1);
+  transition: background-color 0.2s ease;
+}
+
+/* ENHANCED List items for better visual separation */
+.list-enhanced {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-enhanced li {
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.list-enhanced li:hover {
+  background: hsl(var(--accent) / 0.05);
+  border-color: hsl(var(--accent) / 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ENHANCED Badge styling for better visibility */
+.badge-enhanced {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border: 2px solid transparent;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-enhanced.badge-critical {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.2);
+}
+
+.badge-enhanced.badge-warning {
+  background: hsl(45 100% 50% / 0.1);
+  color: hsl(45 100% 40%);
+  border-color: hsl(45 100% 50% / 0.2);
+}
+
+.badge-enhanced.badge-success {
+  background: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
+  border-color: hsl(142 76% 36% / 0.2);
 }
 
 /* Success toast styling */
