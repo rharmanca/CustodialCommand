@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp, Download, Clock, Target, Users } from 'lucide-react';
+import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp, Download, Clock, Target, Users, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { LoadingState } from '@/components/ui/loading-spinner';
 
@@ -21,6 +21,16 @@ import RoomHeatmap from '@/components/charts/RoomHeatmap';
 import SchoolGroupView from '@/components/data/SchoolGroupView';
 import DateGroupView from '@/components/data/DateGroupView';
 import InspectorGroupView from '@/components/data/InspectorGroupView';
+
+// Import Problem Areas component
+import ProblemAreasView from '@/components/reports/ProblemAreasView';
+
+// Import filter components
+import AdvancedFilters, { type FilterState } from '@/components/filters/AdvancedFilters';
+import FilterPresets from '@/components/filters/FilterPresets';
+
+// Import export components
+import ExportDialog from '@/components/reports/ExportDialog';
 
 interface InspectionDataPageProps {
   onBack?: () => void;
@@ -39,6 +49,21 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   const [dateTo, setDateTo] = useState<string>('');
   const [schoolFilter, setSchoolFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
+  
+  // Advanced filter state
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    dateRange: { from: null, to: null },
+    schools: [],
+    severityLevels: [],
+    categories: [],
+    inspectors: [],
+    ratingThreshold: 0,
+    inspectionType: 'all',
+    showProblemsOnly: false,
+    hasCustodialNotes: false
+  });
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const ratingLabels = {
     1: "Unacceptable",
@@ -127,32 +152,155 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     return Array.from(set).sort();
   }, [inspections]);
 
-  // Apply filters consistently
+  // Advanced filtering logic
   const filteredInspections = useMemo(() => {
-    const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
-    const toTs = dateTo ? new Date(dateTo).getTime() : null;
-    const q = search.trim().toLowerCase();
-    return inspections.filter(i => {
-      const ts = new Date(i.date).getTime();
-      if (fromTs !== null && ts < fromTs) return false;
-      if (toTs !== null && ts > toTs) return false;
-      if (schoolFilter !== 'all' && i.school !== schoolFilter) return false;
-      if (q) {
-        const hay = [
-          i.school,
-          i.roomNumber?.toString(),
-          i.locationDescription,
-          i.buildingName,
-          i.notes
+    return inspections.filter(inspection => {
+      // Search filter
+      if (filters.search) {
+        const searchText = [
+          inspection.school,
+          inspection.roomNumber?.toString(),
+          inspection.locationDescription,
+          inspection.buildingName,
+          inspection.notes
         ]
           .filter(Boolean)
           .join(' ')
           .toLowerCase();
-        if (!hay.includes(q)) return false;
+        if (!searchText.includes(filters.search.toLowerCase())) return false;
       }
+
+      // Date range filter
+      if (filters.dateRange.from || filters.dateRange.to) {
+        const inspectionDate = new Date(inspection.date);
+        if (filters.dateRange.from && inspectionDate < filters.dateRange.from) return false;
+        if (filters.dateRange.to && inspectionDate > filters.dateRange.to) return false;
+      }
+
+      // School filter
+      if (filters.schools.length > 0 && !filters.schools.includes(inspection.school)) return false;
+
+      // Inspector filter
+      if (filters.inspectors.length > 0 && inspection.inspectorName && !filters.inspectors.includes(inspection.inspectorName)) return false;
+
+      // Inspection type filter
+      if (filters.inspectionType !== 'all') {
+        if (filters.inspectionType === 'single_room' && inspection.inspectionType !== 'single_room') return false;
+        if (filters.inspectionType === 'whole_building' && inspection.inspectionType !== 'whole_building') return false;
+      }
+
+      // Rating threshold filter
+      if (filters.ratingThreshold > 0) {
+        const avgRating = calculateAverageRating(inspection);
+        if (avgRating === null || avgRating < filters.ratingThreshold) return false;
+      }
+
+      // Severity level filter
+      if (filters.severityLevels.length > 0) {
+        const avgRating = calculateAverageRating(inspection);
+        if (avgRating === null) return false;
+        
+        const severity = avgRating < 2.0 ? 'critical' : avgRating < 3.0 ? 'needs-attention' : 'acceptable';
+        if (!filters.severityLevels.includes(severity)) return false;
+      }
+
+      // Problems only filter
+      if (filters.showProblemsOnly) {
+        const avgRating = calculateAverageRating(inspection);
+        if (avgRating === null || avgRating >= 3.0) return false;
+      }
+
+      // Has custodial notes filter
+      if (filters.hasCustodialNotes) {
+        const hasNotes = custodialNotes.some(note => note.inspectionId === inspection.id);
+        if (!hasNotes) return false;
+      }
+
       return true;
     });
-  }, [inspections, dateFrom, dateTo, schoolFilter, search]);
+  }, [inspections, custodialNotes, filters]);
+
+  // Helper function to calculate average rating
+  const calculateAverageRating = (inspection: Inspection): number | null => {
+    const categories = [
+      'floors', 'verticalHorizontalSurfaces', 'ceiling', 'restrooms',
+      'customerSatisfaction', 'trash', 'projectCleaning', 'activitySupport',
+      'safetyCompliance', 'equipment', 'monitoring'
+    ];
+
+    const ratings = categories
+      .map(cat => inspection[cat as keyof Inspection] as number | null | undefined)
+      .filter((rating): rating is number => typeof rating === 'number');
+
+    if (ratings.length === 0) return null;
+
+    const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+    return Math.round(average * 10) / 10;
+  };
+
+  // Calculate trends for KPI cards
+  const calculateTrends = () => {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, now.getDate());
+    
+    // Current month data
+    const currentMonthData = filteredInspections.filter(i => {
+      const inspectionDate = new Date(i.date);
+      return inspectionDate >= new Date(now.getFullYear(), now.getMonth(), 1);
+    });
+    
+    // Last month data
+    const lastMonthData = filteredInspections.filter(i => {
+      const inspectionDate = new Date(i.date);
+      return inspectionDate >= new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1) && 
+             inspectionDate < new Date(now.getFullYear(), now.getMonth(), 1);
+    });
+    
+    // Calculate trends
+    const inspectionTrend = lastMonthData.length > 0 
+      ? ((currentMonthData.length - lastMonthData.length) / lastMonthData.length) * 100
+      : 0;
+    
+    const currentAvgRating = currentMonthData.length > 0
+      ? currentMonthData.reduce((sum, inspection) => {
+          const rating = calculateAverageRating(inspection);
+          return sum + (rating || 0);
+        }, 0) / currentMonthData.length
+      : 0;
+    
+    const lastAvgRating = lastMonthData.length > 0
+      ? lastMonthData.reduce((sum, inspection) => {
+          const rating = calculateAverageRating(inspection);
+          return sum + (rating || 0);
+        }, 0) / lastMonthData.length
+      : 0;
+    
+    const ratingTrend = lastAvgRating > 0 
+      ? ((currentAvgRating - lastAvgRating) / lastAvgRating) * 100
+      : 0;
+    
+    return {
+      inspectionTrend: Math.round(inspectionTrend * 10) / 10,
+      ratingTrend: Math.round(ratingTrend * 10) / 10
+    };
+  };
+
+  const trends = calculateTrends();
+
+  // Helper function to get severity information
+  const getSeverityInfo = (inspection: Inspection) => {
+    const avgRating = calculateAverageRating(inspection);
+    if (avgRating === null) return null;
+    
+    if (avgRating < 2.0) {
+      return { level: 'critical', color: '#EF4444', icon: AlertTriangle, label: 'Critical' };
+    } else if (avgRating < 3.0) {
+      return { level: 'needs-attention', color: '#F59E0B', icon: AlertCircle, label: 'Needs Attention' };
+    } else {
+      return { level: 'acceptable', color: '#10B981', icon: CheckCircle, label: 'Acceptable' };
+    }
+  };
 
   // Enhanced data processing functions for charts
   const getPerformanceTrendData = () => {
@@ -291,7 +439,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
             <CardDescription>
               {selectedInspection.inspectionType === 'single_room' 
                 ? `Room ${selectedInspection.roomNumber} at ${selectedInspection.school}`
-                : `Building: ${selectedInspection.buildingName} at ${selectedInspection.school}`
+                : `Building: ${selectedInspection.buildingName || selectedInspection.locationDescription || 'Whole Building'} at ${selectedInspection.school}`
               }
             </CardDescription>
           </CardHeader>
@@ -306,6 +454,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                     <p><strong>Type:</strong> {selectedInspection.inspectionType === 'single_room' ? 'Single Room' : 'Whole Building'}</p>
                     {selectedInspection.roomNumber && <p><strong>Room:</strong> {selectedInspection.roomNumber}</p>}
                     {selectedInspection.buildingName && <p><strong>Building:</strong> {selectedInspection.buildingName}</p>}
+                    {!selectedInspection.buildingName && selectedInspection.inspectionType === 'whole_building' && <p><strong>Building:</strong> {selectedInspection.locationDescription || 'Whole Building'}</p>}
                     {selectedInspection.locationDescription && <p><strong>Location:</strong> {selectedInspection.locationDescription}</p>}
                     {selectedInspection.inspectorName && <p><strong>Inspector:</strong> {selectedInspection.inspectorName}</p>}
               </div>
@@ -395,9 +544,43 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
           </div>
       </div>
 
+      {/* Filter Presets */}
+      <div className="mb-6">
+        <FilterPresets
+          filters={filters}
+          onApplyPreset={setFilters}
+          schools={schools}
+        />
+      </div>
+
+      {/* Advanced Filters */}
+      <div className="mb-6">
+        <AdvancedFilters
+          inspections={inspections}
+          custodialNotes={custodialNotes}
+          filters={filters}
+          onFiltersChange={setFilters}
+          onClearFilters={() => setFilters({
+            search: '',
+            dateRange: { from: null, to: null },
+            schools: [],
+            severityLevels: [],
+            categories: [],
+            inspectors: [],
+            ratingThreshold: 0,
+            inspectionType: 'all',
+            showProblemsOnly: false,
+            hasCustodialNotes: false
+          })}
+          isOpen={filtersOpen}
+          onToggle={() => setFiltersOpen(!filtersOpen)}
+        />
+      </div>
+
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="problems">Problem Areas</TabsTrigger>
             <TabsTrigger value="charts">Charts</TabsTrigger>
             <TabsTrigger value="school">By School</TabsTrigger>
             <TabsTrigger value="date">By Date</TabsTrigger>
@@ -407,6 +590,23 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         
           <TabsContent value="overview" className="mt-6">
           <div className="space-y-6">
+              {/* Overview Header with Export */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">Overview</h2>
+                  <p className="text-muted-foreground">Key performance indicators and recent inspections</p>
+                </div>
+                <ExportDialog
+                  inspections={filteredInspections}
+                  custodialNotes={custodialNotes}
+                  trigger={
+                    <Button variant="outline">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export Overview
+                    </Button>
+                  }
+                />
+              </div>
               {/* KPI Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard
@@ -415,6 +615,10 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   description="All time inspections"
                   icon={FileText}
                   color="primary"
+                  trend={trends.inspectionTrend !== 0 ? {
+                    value: trends.inspectionTrend,
+                    period: "vs last month"
+                  } : undefined}
                 />
                 <KPICard
                   title="Average Rating"
@@ -422,6 +626,10 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   description="Overall performance"
                   icon={Star}
                   color="success"
+                  trend={trends.ratingTrend !== 0 ? {
+                    value: trends.ratingTrend,
+                    period: "vs last month"
+                  } : undefined}
                 />
                 <KPICard
                   title="Schools"
@@ -449,35 +657,60 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-4">
-                    {filteredInspections.slice(0, 5).map((inspection) => (
-                      <div key={inspection.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Building className="w-4 h-4 text-muted-foreground" />
+                    {filteredInspections.slice(0, 5).map((inspection) => {
+                      const severityInfo = getSeverityInfo(inspection);
+                      return (
+                        <div key={inspection.id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <Building className="w-4 h-4 text-muted-foreground" />
                             <div>
-                            <p className="font-medium text-foreground">{inspection.school}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {inspection.inspectionType === 'single_room' 
-                                ? `Room ${inspection.roomNumber}` 
-                                : `Building: ${inspection.buildingName}`
-                              }
-                            </p>
-                          </div>
-              </div>
-                            <div className="flex items-center gap-2">
-                          {(() => {
-                            const avg = calculateAverageRating(inspection);
-                            return avg !== null ? renderStars(Math.round(avg)) : <span className="text-xs text-muted-foreground">N/A</span>;
-                          })()}
-                              <Badge variant="outline">
-                            {new Date(inspection.date).toLocaleDateString()}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-foreground">{inspection.school}</p>
+                                {severityInfo && severityInfo.level !== 'acceptable' && (
+                                  <Badge 
+                                    variant={severityInfo.level === 'critical' ? 'destructive' : 'secondary'}
+                                    className="text-xs"
+                                  >
+                                    <severityInfo.icon className="w-3 h-3 mr-1" />
+                                    {severityInfo.label}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {inspection.inspectionType === 'single_room' 
+                                  ? `Room ${inspection.roomNumber}` 
+                                  : `Building: ${inspection.buildingName || inspection.locationDescription || 'Whole Building'}`
+                                }
+                              </p>
                             </div>
                           </div>
-                    ))}
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const avg = calculateAverageRating(inspection);
+                              return avg !== null ? renderStars(Math.round(avg)) : <span className="text-xs text-muted-foreground">N/A</span>;
+                            })()}
+                            <Badge variant="outline">
+                              {new Date(inspection.date).toLocaleDateString()}
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="problems" className="mt-6">
+            <ProblemAreasView 
+              inspections={filteredInspections}
+              custodialNotes={custodialNotes}
+              onInspectionClick={setSelectedInspection}
+              onExportReport={() => {
+                // Export will be handled by the ExportDialog in ProblemAreasView
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="charts" className="mt-6">

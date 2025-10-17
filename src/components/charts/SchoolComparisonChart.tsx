@@ -1,7 +1,7 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, TrendingUp } from 'lucide-react';
+import { Building, TrendingUp, AlertTriangle, AlertCircle } from 'lucide-react';
 
 interface SchoolComparisonChartProps {
   data: Array<{
@@ -13,12 +13,14 @@ interface SchoolComparisonChartProps {
   }>;
   title?: string;
   description?: string;
+  showThresholds?: boolean;
 }
 
 const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({ 
   data, 
   title = "School Performance Comparison", 
-  description = "Average ratings and inspection counts by school" 
+  description = "Average ratings and inspection counts by school",
+  showThresholds = true
 }) => {
   // Custom tooltip matching your theme
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -80,6 +82,24 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
+              {showThresholds && (
+                <>
+                  <ReferenceLine 
+                    y={3.0} 
+                    stroke="#10B981" 
+                    strokeDasharray="5 5" 
+                    strokeWidth={2}
+                    label={{ value: "Acceptable (3.0)", position: "topRight" }}
+                  />
+                  <ReferenceLine 
+                    y={2.0} 
+                    stroke="#EF4444" 
+                    strokeDasharray="5 5" 
+                    strokeWidth={2}
+                    label={{ value: "Critical (2.0)", position: "topRight" }}
+                  />
+                </>
+              )}
               <Bar 
                 dataKey="averageRating" 
                 fill="hsl(var(--chart-1))" 
@@ -95,6 +115,18 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
             </BarChart>
           </ResponsiveContainer>
         </div>
+        {showThresholds && (
+          <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-green-500 border-dashed border-t-2"></div>
+              <span>Acceptable Threshold (3.0)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-0.5 bg-red-500 border-dashed border-t-2"></div>
+              <span>Critical Threshold (2.0)</span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

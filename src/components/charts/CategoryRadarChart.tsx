@@ -1,7 +1,7 @@
 import React from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, PolarAngleAxisTick } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Target, Star } from 'lucide-react';
+import { Target, Star, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface CategoryRadarChartProps {
   data: Array<{
@@ -11,13 +11,54 @@ interface CategoryRadarChartProps {
   }>;
   title?: string;
   description?: string;
+  showProblemHighlighting?: boolean;
 }
 
 const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({ 
   data, 
   title = "Category Performance Analysis", 
-  description = "Performance ratings across all inspection categories" 
+  description = "Performance ratings across all inspection categories",
+  showProblemHighlighting = true
 }) => {
+  // Determine performance level and color for each category
+  const getPerformanceLevel = (rating: number) => {
+    if (rating < 2.0) return { level: 'critical', color: '#EF4444', icon: AlertTriangle };
+    if (rating < 3.0) return { level: 'needs-attention', color: '#F59E0B', icon: AlertCircle };
+    return { level: 'acceptable', color: '#10B981', icon: CheckCircle };
+  };
+
+  // Custom tick component with problem highlighting
+  const CustomTick = (props: any) => {
+    const { payload, x, y, textAnchor } = props;
+    const categoryData = data.find(d => d.category === payload.value);
+    const performance = categoryData ? getPerformanceLevel(categoryData.rating) : null;
+    const Icon = performance?.icon || Star;
+    
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text 
+          x={0} 
+          y={0} 
+          dy={16} 
+          textAnchor={textAnchor} 
+          fontSize={12} 
+          fill={performance?.color || 'hsl(var(--muted-foreground))'}
+          fontWeight={showProblemHighlighting && performance?.level !== 'acceptable' ? 'bold' : 'normal'}
+        >
+          {payload.value}
+        </text>
+        {showProblemHighlighting && performance?.level !== 'acceptable' && (
+          <Icon 
+            x={-8} 
+            y={-8} 
+            size={12} 
+            fill={performance.color}
+            color={performance.color}
+          />
+        )}
+      </g>
+    );
+  };
   return (
     <Card className="w-full">
       <CardHeader>
@@ -39,7 +80,7 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
               />
               <PolarAngleAxis 
                 dataKey="category" 
-                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                tick={<CustomTick />}
               />
               <PolarRadiusAxis 
                 domain={[0, 5]} 
@@ -57,6 +98,41 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
             </RadarChart>
           </ResponsiveContainer>
         </div>
+        {showProblemHighlighting && (
+          <div className="mt-4 space-y-3">
+            {/* Problem Categories Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+              {data.map((item) => {
+                const performance = getPerformanceLevel(item.rating);
+                if (performance.level === 'acceptable') return null;
+                
+                return (
+                  <div key={item.category} className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
+                    <performance.icon className="w-4 h-4" style={{ color: performance.color }} />
+                    <span className="font-medium">{item.category}</span>
+                    <span className="text-muted-foreground">({item.rating.toFixed(1)})</span>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Legend */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span>Critical (&lt; 2.0)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-orange-500" />
+                <span>Needs Attention (2.0-3.0)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Acceptable (&gt; 3.0)</span>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
