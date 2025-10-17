@@ -4,6 +4,16 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, AlertCircle, Calendar, School, TrendingDown } from 'lucide-react';
 import type { FilterState } from './AdvancedFilters';
 
+// Helper to ensure boolean values are never null
+const ensureBoolean = (value: boolean | null | undefined): boolean => value ?? false;
+
+// Helper to ensure all boolean fields are properly typed
+const ensureFilterState = (filters: FilterState): FilterState => ({
+  ...filters,
+  showProblemsOnly: Boolean(filters.showProblemsOnly),
+  hasCustodialNotes: Boolean(filters.hasCustodialNotes)
+});
+
 interface FilterPreset {
   id: string;
   label: string;
@@ -39,7 +49,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
       isActive: (current) => 
         current.severityLevels.length === 1 && 
         current.severityLevels.includes('critical') &&
-        current.showProblemsOnly
+        ensureBoolean(current.showProblemsOnly)
     },
     {
       id: 'asa-issues',
@@ -55,7 +65,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
       isActive: (current) => 
         current.schools.length === 1 && 
         current.schools.includes('ASA School') &&
-        current.showProblemsOnly
+        ensureBoolean(current.showProblemsOnly)
     },
     {
       id: 'gwc-issues',
@@ -71,7 +81,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
       isActive: (current) => 
         current.schools.length === 1 && 
         current.schools.includes('GWC School') &&
-        current.showProblemsOnly
+        ensureBoolean(current.showProblemsOnly)
     },
     {
       id: 'recent-problems',
@@ -87,12 +97,14 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
         severityLevels: ['critical', 'needs-attention'],
         showProblemsOnly: true
       }),
-      isActive: (current) => 
-        current.showProblemsOnly &&
-        current.severityLevels.includes('critical') &&
-        current.severityLevels.includes('needs-attention') &&
-        current.dateRange.from &&
-        Math.abs(current.dateRange.from.getTime() - (Date.now() - 30 * 24 * 60 * 60 * 1000)) < 24 * 60 * 60 * 1000
+      isActive: (current) => {
+        const safe = ensureFilterState(current);
+        return safe.showProblemsOnly === true &&
+          current.severityLevels.includes('critical') &&
+          current.severityLevels.includes('needs-attention') &&
+          Boolean(current.dateRange.from) &&
+          Math.abs(current.dateRange.from!.getTime() - (Date.now() - 30 * 24 * 60 * 60 * 1000)) < 24 * 60 * 60 * 1000;
+      }
     },
     {
       id: 'urgent-notes',
@@ -106,8 +118,8 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
         showProblemsOnly: true
       }),
       isActive: (current) => 
-        current.hasCustodialNotes &&
-        current.showProblemsOnly &&
+        ensureBoolean(current.hasCustodialNotes) === true &&
+        ensureBoolean(current.showProblemsOnly) === true &&
         current.severityLevels.includes('critical')
     },
     {
@@ -123,7 +135,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
       }),
       isActive: (current) => 
         current.ratingThreshold === 0 &&
-        current.showProblemsOnly &&
+        ensureBoolean(current.showProblemsOnly) &&
         current.severityLevels.includes('critical') &&
         current.severityLevels.includes('needs-attention')
     },
@@ -142,11 +154,13 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
         severityLevels: [],
         showProblemsOnly: false
       }),
-      isActive: (current) => 
-        current.dateRange.from &&
-        current.dateRange.from.getMonth() === new Date().getMonth() &&
-        current.dateRange.from.getFullYear() === new Date().getFullYear() &&
-        !current.showProblemsOnly
+      isActive: (current) => {
+        const safe = ensureFilterState(current);
+        return Boolean(current.dateRange.from) &&
+          current.dateRange.from!.getMonth() === new Date().getMonth() &&
+          current.dateRange.from!.getFullYear() === new Date().getFullYear() &&
+          safe.showProblemsOnly === false;
+      }
     },
     {
       id: 'all-schools',
@@ -161,7 +175,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
       }),
       isActive: (current) => 
         current.schools.length === schools.length &&
-        current.showProblemsOnly &&
+        ensureBoolean(current.showProblemsOnly) &&
         current.severityLevels.includes('critical') &&
         current.severityLevels.includes('needs-attention')
     }

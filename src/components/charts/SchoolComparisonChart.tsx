@@ -89,14 +89,14 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
                     stroke="#10B981" 
                     strokeDasharray="5 5" 
                     strokeWidth={2}
-                    label={{ value: "Acceptable (3.0)", position: "topRight" }}
+                    label={{ value: "Acceptable (3.0)", position: "top" }}
                   />
                   <ReferenceLine 
                     y={2.0} 
                     stroke="#EF4444" 
                     strokeDasharray="5 5" 
                     strokeWidth={2}
-                    label={{ value: "Critical (2.0)", position: "topRight" }}
+                    label={{ value: "Critical (2.0)", position: "top" }}
                   />
                 </>
               )}

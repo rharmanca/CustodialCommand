@@ -215,7 +215,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
         new Date(note.date).toLocaleDateString(),
         note.location,
         note.notes,
-        note.inspectorName || 'N/A'
+        'N/A'
       ]);
       
       (doc as any).autoTable({

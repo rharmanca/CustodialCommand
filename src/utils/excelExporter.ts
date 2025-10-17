@@ -272,7 +272,7 @@ function createCustodialNotesSheet(notes: CustodialNote[]): XLSX.WorkSheet {
       new Date(note.date).toLocaleDateString(),
       note.notes,
       urgentNote.keywords.join(', '),
-      note.inspectorName || ''
+      ''
     ];
   });
   

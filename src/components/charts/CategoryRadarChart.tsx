@@ -1,5 +1,5 @@
 import React from 'react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, PolarAngleAxisTick } from 'recharts';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target, Star, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -48,12 +48,11 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
           {payload.value}
         </text>
         {showProblemHighlighting && performance?.level !== 'acceptable' && (
-          <Icon 
-            x={-8} 
-            y={-8} 
-            size={12} 
-            fill={performance.color}
-            color={performance.color}
+          <circle 
+            cx={-20} 
+            cy={0} 
+            r={4} 
+            fill={performance?.color || '#EF4444'}
           />
         )}
       </g>

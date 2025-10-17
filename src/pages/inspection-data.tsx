@@ -44,11 +44,6 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   const [summaryView, setSummaryView] = useState<'school' | 'room' | 'category'>('school');
 
   // Filters and sorting
-  const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
-  const [schoolFilter, setSchoolFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('default');
   
   // Advanced filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -212,7 +207,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
       // Has custodial notes filter
       if (filters.hasCustodialNotes) {
-        const hasNotes = custodialNotes.some(note => note.inspectionId === inspection.id);
+        const hasNotes = custodialNotes.some(note => note.school === inspection.school);
         if (!hasNotes) return false;
       }
 
@@ -220,23 +215,6 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     });
   }, [inspections, custodialNotes, filters]);
 
-  // Helper function to calculate average rating
-  const calculateAverageRating = (inspection: Inspection): number | null => {
-    const categories = [
-      'floors', 'verticalHorizontalSurfaces', 'ceiling', 'restrooms',
-      'customerSatisfaction', 'trash', 'projectCleaning', 'activitySupport',
-      'safetyCompliance', 'equipment', 'monitoring'
-    ];
-
-    const ratings = categories
-      .map(cat => inspection[cat as keyof Inspection] as number | null | undefined)
-      .filter((rating): rating is number => typeof rating === 'number');
-
-    if (ratings.length === 0) return null;
-
-    const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-    return Math.round(average * 10) / 10;
-  };
 
   // Calculate trends for KPI cards
   const calculateTrends = () => {

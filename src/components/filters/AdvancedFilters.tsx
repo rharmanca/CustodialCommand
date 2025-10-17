@@ -123,7 +123,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       onClearFilters();
                     }}
@@ -341,7 +341,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Checkbox
                     id="problemsOnly"
                     checked={filters.showProblemsOnly}
-                    onCheckedChange={(checked) => updateFilter('showProblemsOnly', checked)}
+                    onCheckedChange={(checked) => updateFilter('showProblemsOnly', !!checked)}
                   />
                   <Label htmlFor="problemsOnly">Problems Only</Label>
                 </div>
@@ -349,7 +349,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Checkbox
                     id="hasNotes"
                     checked={filters.hasCustodialNotes}
-                    onCheckedChange={(checked) => updateFilter('hasCustodialNotes', checked)}
+                    onCheckedChange={(checked) => updateFilter('hasCustodialNotes', !!checked)}
                   />
                   <Label htmlFor="hasNotes">Has Custodial Notes</Label>
                 </div>

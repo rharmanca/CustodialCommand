@@ -351,12 +351,12 @@ export function formatRating(rating: number): { text: string; color: string } {
 /**
  * Compress image data for PDF
  */
-export function compressImageData(imageData: string, quality: number = 0.8): string {
+export async function compressImageData(imageData: string, quality: number = 0.8): Promise<string> {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   const img = new Image();
   
-  return new Promise((resolve) => {
+  return new Promise<string>((resolve) => {
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
