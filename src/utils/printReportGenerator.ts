@@ -4,6 +4,16 @@ import type { Inspection, CustodialNote } from '../../shared/schema';
 import { PRINT_THEME, PRINT_FONTS, MARGINS } from './reportHelpers';
 import { calculateAverageRating } from './problemAnalysis';
 
+// Extend jsPDF type to include autoTable method
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
+
 export interface IssueForReport {
   date: string;
   school: string;
@@ -191,14 +201,16 @@ function addSummaryStats(doc: jsPDF, issues: IssueForReport[], yPosition: number
     ['Schools Affected:', schools.toString()]
   ];
   
-  (doc as any).autoTable({
+  doc.autoTable({
     startY: yPosition,
     body: stats,
     theme: 'plain',
     styles: {
       fontSize: PRINT_FONTS.body,
       textColor: PRINT_THEME.text,
-      cellPadding: 2
+      cellPadding: 2,
+      lineWidth: 0.5,
+      lineColor: PRINT_THEME.tableBorder
     },
     columnStyles: {
       0: { fontStyle: 'bold', cellWidth: 40 },
@@ -206,7 +218,7 @@ function addSummaryStats(doc: jsPDF, issues: IssueForReport[], yPosition: number
     }
   });
   
-  return (doc as any).lastAutoTable.finalY + 10;
+  return doc.lastAutoTable.finalY + 10;
 }
 
 /**
@@ -236,7 +248,7 @@ function addIssuesTable(doc: jsPDF, issues: IssueForReport[], yPosition: number)
     issue.category
   ]);
   
-  (doc as any).autoTable({
+  doc.autoTable({
     startY: yPosition,
     head: [['Date', 'School', 'Location', 'Priority', 'Description', 'Type']],
     body: tableData,
@@ -269,7 +281,7 @@ function addIssuesTable(doc: jsPDF, issues: IssueForReport[], yPosition: number)
     }
   });
   
-  return (doc as any).lastAutoTable.finalY;
+  return doc.lastAutoTable.finalY;
 }
 
 /**
