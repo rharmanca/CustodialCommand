@@ -1,13 +1,12 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { PRINT_THEME, PRINT_FONTS, MARGINS } from './reportHelpers';
 import { calculateAverageRating } from './problemAnalysis';
 
-// Extend jsPDF type to include autoTable method
+// Extend jsPDF type to include autoTable properties
 declare module 'jspdf' {
   interface jsPDF {
-    autoTable: (options: any) => jsPDF;
     lastAutoTable: {
       finalY: number;
     };
@@ -201,7 +200,7 @@ function addSummaryStats(doc: jsPDF, issues: IssueForReport[], yPosition: number
     ['Schools Affected:', schools.toString()]
   ];
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPosition,
     body: stats,
     theme: 'plain',
@@ -248,7 +247,7 @@ function addIssuesTable(doc: jsPDF, issues: IssueForReport[], yPosition: number)
     issue.category
   ]);
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPosition,
     head: [['Date', 'School', 'Location', 'Priority', 'Description', 'Type']],
     body: tableData,

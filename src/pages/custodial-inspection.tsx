@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, processImageForStorage, getStorageStats } from '@/utils/storage';
+import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -246,7 +247,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const newImages = Array.from(files);
@@ -254,12 +255,41 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       const availableSlots = 5 - currentCount;
       const imagesToAdd = newImages.slice(0, availableSlots);
       
-      setSelectedImages(prev => [...prev, ...imagesToAdd]);
+      // Compress images that need it
+      const compressedImages: File[] = [];
+      let totalOriginalSize = 0;
+      let totalCompressedSize = 0;
       
-      if (imagesToAdd.length > 0) {
+      for (const image of imagesToAdd) {
+        totalOriginalSize += image.size;
+        
+        if (needsCompression(image, 500)) {
+          try {
+            const result = await compressImage(image, { maxSizeKB: 500 });
+            compressedImages.push(result.compressedFile);
+            totalCompressedSize += result.compressedSize;
+            
+            console.log(`Compressed ${image.name}: ${formatFileSize(image.size)} → ${formatFileSize(result.compressedSize)}`);
+          } catch (error) {
+            console.error('Failed to compress image:', error);
+            compressedImages.push(image); // Use original if compression fails
+            totalCompressedSize += image.size;
+          }
+        } else {
+          compressedImages.push(image);
+          totalCompressedSize += image.size;
+        }
+      }
+      
+      setSelectedImages(prev => [...prev, ...compressedImages]);
+      
+      if (compressedImages.length > 0) {
+        const compressionSaved = totalOriginalSize - totalCompressedSize;
+        const compressionRatio = (compressionSaved / totalOriginalSize * 100).toFixed(1);
+        
         toast({
           title: "📸 Photos Uploaded Successfully!",
-          description: `Added ${imagesToAdd.length} photo${imagesToAdd.length > 1 ? 's' : ''} to inspection documentation.`,
+          description: `Added ${compressedImages.length} photo${compressedImages.length > 1 ? 's' : ''} to inspection documentation.${compressionSaved > 0 ? ` Saved ${formatFileSize(compressionSaved)} (${compressionRatio}% compression).` : ''}`,
           duration: 3000
         });
       }
@@ -273,7 +303,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         });
       }
       
-      console.log('Files selected:', imagesToAdd.length, 'files');
+      console.log('Files selected:', compressedImages.length, 'files');
     }
   };
 
@@ -709,7 +739,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   value={formData.date}
                   onChange={(e) => handleInputChange('date', e.target.value)}
                   required
+                  aria-describedby="date-help"
                 />
+                <p id="date-help" className="text-sm text-muted-foreground mt-1">
+                  Select the date when this inspection was conducted
+                </p>
               </div>
 
               <div>
@@ -812,7 +846,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 placeholder="Enter detailed notes about this inspection...&#10;&#10;Examples:&#10;• Specific areas that need attention&#10;• Safety concerns observed&#10;• Maintenance recommendations&#10;• Follow-up actions required&#10;• Staff performance observations&#10;• Equipment issues noted"
                 rows={8}
                 className="min-h-[200px]"
+                aria-describedby="notes-help"
               />
+              <p id="notes-help" className="text-sm text-muted-foreground mt-2">
+                Provide detailed observations, specific issues, recommendations, or additional context for this inspection
+              </p>
               </CardContent>
           </Card>
 
@@ -869,11 +907,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                           src={URL.createObjectURL(image)}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg border"
+                          loading="lazy"
                         />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label={`Remove image ${index + 1}`}
                         >
                           <X className="w-4 h-4" />
                         </button>

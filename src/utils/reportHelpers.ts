@@ -1,8 +1,17 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { analyzeProblemAreas, identifyUrgentCustodialNotes, calculateAverageRating } from './problemAnalysis';
+
+// Extend jsPDF type to include autoTable properties
+declare module 'jspdf' {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
 
 // Theme colors matching retro propaganda poster aesthetic
 export const THEME_COLORS = {
@@ -214,7 +223,7 @@ export function addProblemAreasTable(doc: jsPDF, inspections: Inspection[], yPos
   ]);
   
   // Create table
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: yPosition,
     head: [headers],
     body: tableData,

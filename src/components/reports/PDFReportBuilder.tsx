@@ -17,6 +17,8 @@ import {
   FONT_SIZES,
   MARGINS
 } from '../../utils/reportHelpers';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { analyzeProblemAreas, identifyUrgentCustodialNotes, calculateAverageRating } from '../../utils/problemAnalysis';
 
 interface PDFReportBuilderProps {
@@ -53,8 +55,9 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
   };
 
   const generateExecutiveSummary = async (): Promise<Blob> => {
-    const doc = initializePDF('Executive Problem Summary');
-    let currentY = MARGINS.top;
+    try {
+      const doc = initializePDF('Executive Problem Summary');
+      let currentY = MARGINS.top;
     
     // Header
     addPDFHeader(doc, 'EXECUTIVE PROBLEM SUMMARY', 'Critical Issues and Performance Analysis');
@@ -92,7 +95,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
       ['Most Problematic School', problemAnalysis.summary.mostProblematicSchool || 'N/A']
     ];
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: currentY,
       head: [['Metric', 'Value']],
       body: summaryData,
@@ -111,6 +114,10 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
     addPDFFooter(doc, 1);
     
     return doc.output('blob');
+    } catch (error) {
+      console.error('Executive summary generation failed:', error);
+      throw new Error(`Failed to generate executive summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const generateSchoolPerformance = async (): Promise<Blob> => {
@@ -156,7 +163,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
       });
     
     if (roomData.length > 0) {
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: currentY,
         head: [['Room', 'Date', 'Rating', 'Inspector', 'Notes']],
         body: roomData,
@@ -218,7 +225,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
         'N/A'
       ]);
       
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: currentY,
         head: [['Date', 'Location', 'Notes', 'Inspector']],
         body: schoolNotesData,
@@ -290,7 +297,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
       ])
       .sort((a, b) => parseFloat(b[1]) - parseFloat(a[1]));
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: currentY,
       head: [['School', 'Average Rating', 'Inspections']],
       body: performanceData,

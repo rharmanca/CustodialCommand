@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp, Download, Clock, Target, Users, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { LoadingState } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Import new chart components
 import PerformanceTrendChart from '@/components/charts/PerformanceTrendChart';
@@ -456,7 +457,30 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
   if (loading) {
     return (
-      <LoadingState text="Loading inspection data..." />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+        
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      </div>
     );
   }
 

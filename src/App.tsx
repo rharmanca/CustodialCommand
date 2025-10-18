@@ -1,10 +1,4 @@
-import React, { useState, useEffect } from "react";
-import CustodialInspectionPage from "./pages/custodial-inspection";
-import InspectionDataPage from "./pages/inspection-data";
-import CustodialNotesPage from "./pages/custodial-notes";
-import WholeBuildingInspectionPage from "./pages/whole-building-inspection";
-import RatingCriteriaPage from "./pages/rating-criteria";
-import AdminInspectionsPage from "./pages/admin-inspections";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useIsMobile } from "./hooks/use-mobile";
 import { useCustomNotifications } from "@/hooks/use-custom-notifications";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,6 +10,25 @@ import { Router } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import custodialDutyImage from "./assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp";
 import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp";
+
+// Lazy load route components
+const CustodialInspectionPage = lazy(() => import("./pages/custodial-inspection"));
+const InspectionDataPage = lazy(() => import("./pages/inspection-data"));
+const CustodialNotesPage = lazy(() => import("./pages/custodial-notes"));
+const WholeBuildingInspectionPage = lazy(() => import("./pages/whole-building-inspection"));
+const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
+const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
+
+// Loading skeleton component
+const PageLoadingSkeleton = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="text-center max-w-md mx-auto">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <h2 className="text-xl font-semibold text-foreground mb-2">Loading...</h2>
+      <p className="text-muted-foreground">Please wait while we load the page.</p>
+    </div>
+  </div>
+);
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -354,31 +367,43 @@ function App() {
           );
         case "Custodial Inspection":
           return (
-            <CustodialInspectionPage
-              onBack={() => setCurrentPage("Custodial")}
-            />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <CustodialInspectionPage
+                onBack={() => setCurrentPage("Custodial")}
+              />
+            </Suspense>
           );
         case "Inspection Data":
           return (
-            <InspectionDataPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <InspectionDataPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         case "Custodial Notes":
           return (
-            <CustodialNotesPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <CustodialNotesPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         case "Whole Building Inspection":
           return (
-            <WholeBuildingInspectionPage
-              onBack={() => setCurrentPage("Custodial")}
-            />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <WholeBuildingInspectionPage
+                onBack={() => setCurrentPage("Custodial")}
+              />
+            </Suspense>
           );
         case "Rating Criteria":
           return (
-            <RatingCriteriaPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <RatingCriteriaPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         case "admin-inspections":
           return (
-            <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         default:
           return (
@@ -454,8 +479,16 @@ function App() {
               {/* Offline Status */}
               <OfflineStatus className="mb-4" />
 
+              {/* Skip to content link for accessibility */}
+              <a 
+                href="#main-content" 
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
+              >
+                Skip to main content
+              </a>
+
               {/* Main content area */}
-              <main className="w-full content-area rounded-xl shadow-sm">
+              <main id="main-content" className="w-full content-area rounded-xl shadow-sm">
                 {renderPageContent()}
               </main>
             </div>
@@ -469,14 +502,16 @@ function App() {
             </footer>
 
             <Toaster />
-            <NotificationContainer
-              notifications={notifications}
-              onRemove={removeNotification}
-            />
-            <EnhancedNotifications
-              notifications={enhancedNotifications}
-              onRemove={removeEnhancedNotification}
-            />
+            <div aria-live="polite" aria-label="Notifications">
+              <NotificationContainer
+                notifications={notifications}
+                onRemove={removeNotification}
+              />
+              <EnhancedNotifications
+                notifications={enhancedNotifications}
+                onRemove={removeEnhancedNotification}
+              />
+            </div>
           </div>
         </Router>
       </QueryClientProvider>
