@@ -31,12 +31,15 @@ import FilterPresets from '@/components/filters/FilterPresets';
 
 // Import export components
 import ExportDialog from '@/components/reports/ExportDialog';
+import { generateIssuesReport, type IssuesReportData } from '@/utils/printReportGenerator';
+import { useToast } from '@/hooks/use-toast';
 
 interface InspectionDataPageProps {
   onBack?: () => void;
 }
 
 export default function InspectionDataPage({ onBack }: InspectionDataPageProps) {
+  const { toast } = useToast();
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [custodialNotes, setCustodialNotes] = useState<CustodialNote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -393,6 +396,64 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     };
   }, [filteredInspections, custodialNotes]);
 
+  // Handle PDF export for issues
+  const handleExportIssuesPDF = () => {
+    try {
+      // Gather current filter state
+      const reportData: IssuesReportData = {
+        inspections: filteredInspections, // Already filtered by current filters
+        custodialNotes: custodialNotes,
+        startDate: filters.dateRange?.from || undefined,
+        endDate: filters.dateRange?.to || undefined,
+        schoolFilter: filters.schools.length === 1 ? filters.schools[0] : undefined,
+        activeFilters: getActiveFilterLabels() // Get names of active quick filters
+      };
+      
+      // Generate PDF
+      const pdfBlob = generateIssuesReport(reportData);
+      
+      // Download
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Create meaningful filename
+      const startDate = filters.dateRange?.from ? filters.dateRange.from.toISOString().slice(0, 10) : 'All';
+      const endDate = filters.dateRange?.to ? filters.dateRange.to.toISOString().slice(0, 10) : 'All';
+      const schoolName = filters.schools.length === 1 ? filters.schools[0] : 'All';
+      link.download = `issues_${startDate}_${endDate}_${schoolName}.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      // Show success toast
+      toast({
+        title: "Issues report generated successfully",
+        description: "PDF has been downloaded to your device.",
+      });
+    } catch (error) {
+      console.error('Failed to generate issues report:', error);
+      toast({
+        title: "Failed to generate issues report",
+        description: "Please try again or contact support if the problem persists.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Helper function to get active filter labels
+  const getActiveFilterLabels = (): string[] => {
+    const activeFilters: string[] = [];
+    
+    // Check quick filters (these would need to be tracked in state)
+    // For now, we'll return empty array as the quick filters aren't tracked in state
+    // This could be enhanced later to track which quick filters are active
+    
+    return activeFilters;
+  };
+
   if (loading) {
     return (
       <LoadingState text="Loading inspection data..." />
@@ -574,16 +635,26 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   <h2 className="text-2xl font-bold">Overview</h2>
                   <p className="text-muted-foreground">Key performance indicators and recent inspections</p>
                 </div>
-                <ExportDialog
-                  inspections={filteredInspections}
-                  custodialNotes={custodialNotes}
-                  trigger={
-                    <Button variant="outline">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export Overview
-                    </Button>
-                  }
-                />
+                <div className="flex gap-2">
+                  <ExportDialog
+                    inspections={filteredInspections}
+                    custodialNotes={custodialNotes}
+                    trigger={
+                      <Button variant="outline">
+                        <Download className="w-4 h-4 mr-2" />
+                        Export Overview
+                      </Button>
+                    }
+                  />
+                  <Button 
+                    onClick={handleExportIssuesPDF}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Export Issues (PDF)
+                  </Button>
+                </div>
               </div>
               {/* KPI Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

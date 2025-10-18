@@ -33,6 +33,28 @@ export const MARGINS = {
   right: 20
 };
 
+// Clean print theme for white paper - NO COLORS
+export const PRINT_THEME = {
+  background: '#FFFFFF',      // Pure white
+  primary: '#000000',         // Black text only
+  secondary: '#333333',       // Dark gray for secondary text
+  border: '#CCCCCC',          // Light gray borders (1px)
+  critical: '#000000',        // Black text (no red ink)
+  warning: '#000000',         // Black text (no orange ink)
+  success: '#000000',         // Black text (no green ink)
+  headerBg: '#F5F5F5',        // Very light gray header background
+  text: '#212121',            // Near black text
+  tableBorder: '#CCCCCC',     // Light gray table borders
+  tableHeader: '#F0F0F0'      // Very light gray table headers
+};
+
+export const PRINT_FONTS = {
+  title: 16,
+  heading: 12,
+  body: 10,
+  small: 8
+};
+
 /**
  * Initialize PDF with theme colors and settings
  */
