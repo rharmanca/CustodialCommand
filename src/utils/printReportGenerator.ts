@@ -533,7 +533,7 @@ export function generateCustomReportPDF(data: ReportData, config: ExportConfig):
     const notesData = filteredData.custodialNotes.slice(0, 10).map(note => [
       note.school,
       note.date,
-      note.note.substring(0, 50) + (note.note.length > 50 ? '...' : '')
+      note.notes.substring(0, 50) + (note.notes.length > 50 ? '...' : '')
     ]);
     
     autoTable(doc, {

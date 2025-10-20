@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, X, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, X, CheckCircle, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Inspection, CustodialNote } from '../../../shared/schema';
 import ReportTypeSelector from './ReportTypeSelector';

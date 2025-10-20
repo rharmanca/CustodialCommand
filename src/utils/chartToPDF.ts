@@ -35,7 +35,7 @@ export async function captureChartAsCanvas(
     logging: false,
     onclone: (clonedDoc) => {
       // Ensure charts are fully rendered in the cloned document
-      const clonedElement = clonedDoc.querySelector(`[data-chart-id="${chartElement.dataset.chartId}"]`);
+      const clonedElement = clonedDoc.querySelector(`[data-chart-id="${chartElement.dataset.chartId}"]`) as HTMLElement | null;
       if (clonedElement) {
         // Force chart re-render if needed
         clonedElement.style.visibility = 'visible';
