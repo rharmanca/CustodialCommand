@@ -11,6 +11,7 @@
     "build": "vite build",
     "prestart": "npm run validate-env",
     "start": "NODE_ENV=production node server-simple.cjs",
+    "railway:start": "npm run db:push && npm start",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push",
     "preview": "vite preview",
