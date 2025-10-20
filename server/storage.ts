@@ -1,7 +1,7 @@
 import { db } from './db';
-import { inspections, custodialNotes, roomInspections } from '../shared/schema';
-import type { InsertInspection, InsertCustodialNote, InsertRoomInspection } from '../shared/schema';
-import { eq } from 'drizzle-orm';
+import { inspections, custodialNotes, roomInspections, monthlyFeedback } from '../shared/schema';
+import type { InsertInspection, InsertCustodialNote, InsertRoomInspection, InsertMonthlyFeedback } from '../shared/schema';
+import { eq, desc } from 'drizzle-orm';
 import { logger } from './logger';
 
 export const storage = {
@@ -136,6 +136,66 @@ export const storage = {
       return result;
     } catch (error) {
       logger.error('Error getting room inspection:', error);
+      throw error;
+    }
+  },
+
+  // Monthly Feedback methods
+  async createMonthlyFeedback(data: InsertMonthlyFeedback) {
+    try {
+      const [result] = await db.insert(monthlyFeedback).values(data).returning();
+      logger.info('Created monthly feedback:', { id: result.id, school: result.school });
+      return result;
+    } catch (error) {
+      logger.error('Error creating monthly feedback:', error);
+      throw error;
+    }
+  },
+
+  async getMonthlyFeedback() {
+    try {
+      const result = await db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
+      logger.info(`Retrieved ${result.length} monthly feedback documents`);
+      return result;
+    } catch (error) {
+      logger.error('Error getting monthly feedback:', error);
+      throw error;
+    }
+  },
+
+  async getMonthlyFeedbackById(id: number) {
+    try {
+      const [result] = await db.select().from(monthlyFeedback)
+        .where(eq(monthlyFeedback.id, id));
+      logger.info('Retrieved monthly feedback:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error getting monthly feedback by id:', error);
+      throw error;
+    }
+  },
+
+  async deleteMonthlyFeedback(id: number) {
+    try {
+      await db.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
+      logger.info('Deleted monthly feedback:', { id });
+      return true;
+    } catch (error) {
+      logger.error('Error deleting monthly feedback:', error);
+      return false;
+    }
+  },
+
+  async updateMonthlyFeedbackNotes(id: number, notes: string) {
+    try {
+      const [result] = await db.update(monthlyFeedback)
+        .set({ notes })
+        .where(eq(monthlyFeedback.id, id))
+        .returning();
+      logger.info('Updated monthly feedback notes:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error updating monthly feedback notes:', error);
       throw error;
     }
   }

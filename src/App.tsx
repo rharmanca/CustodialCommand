@@ -18,6 +18,7 @@ const CustodialNotesPage = lazy(() => import("./pages/custodial-notes"));
 const WholeBuildingInspectionPage = lazy(() => import("./pages/whole-building-inspection"));
 const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
 const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
+const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
 
 // Loading skeleton component
 const PageLoadingSkeleton = () => (
@@ -77,6 +78,7 @@ function App() {
     | "Whole Building Inspection"
     | "Rating Criteria"
     | "admin-inspections"
+    | "Monthly Feedback"
   >("Custodial");
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
@@ -347,6 +349,12 @@ function App() {
                 >
                   Rating Criteria Guide
                 </button>
+                <button
+                  onClick={() => setCurrentPage("Monthly Feedback")}
+                  className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white"
+                >
+                  📄 Monthly Feedback Reports
+                </button>
                 <div className="flex flex-col items-center space-y-3 w-full max-w-400px">
                   <p className="text-sm text-muted-foreground font-medium text-center">
                     Note: Best viewed on desktop
@@ -403,6 +411,12 @@ function App() {
           return (
             <Suspense fallback={<PageLoadingSkeleton />}>
               <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
+          );
+        case "Monthly Feedback":
+          return (
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <MonthlyFeedbackPage onBack={() => setCurrentPage("Custodial")} />
             </Suspense>
           );
         default:
