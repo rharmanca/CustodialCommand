@@ -82,3 +82,6 @@ temp/
 # Temporary files
 *.tmp
 *.temp
+uploads/
+test-feedback.txt
+comprehensive-test-wizard.js
