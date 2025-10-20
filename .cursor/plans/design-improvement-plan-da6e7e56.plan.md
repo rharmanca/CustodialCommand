@@ -4,12 +4,14 @@
 ## Code Review Findings:
 
 ### ✅ Already Implemented Well:
+
 - **Touch Targets:** Buttons already have `min-h-[48px]` (exceeds WCAG 2.2 requirement)
 - **Focus Indicators:** `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2` already in place
 - **PDF Imports:** Correct imports already in place (`import jsPDF from 'jspdf'` and `import 'jspdf-autotable'`)
 - **Theme Consistency:** Brown/rust theme well implemented with CSS variables
 
 ### ❌ Critical Issues Found:
+
 1. **PDF Export Bug:** Using `doc.autoTable()` prototype method instead of `autoTable(doc, {})` function API
 2. **Type Casting:** Using `(doc as any).autoTable()` bypassing TypeScript safety
 3. **No Error Handling:** PDF generation has no try/catch or user feedback
@@ -19,9 +21,11 @@
 ### Sprint 1: Critical Bug Fixes (Days 1-3)
 
 #### Day 1: Fix PDF Export
+
 **Files:** `src/utils/printReportGenerator.ts` (line 204, 251), `src/utils/reportHelpers.ts` (line 217), `src/components/reports/PDFReportBuilder.tsx`
 
 **Current (Broken):**
+
 ```typescript
 doc.autoTable({
   head: [['School', 'Date', 'Rating']],
@@ -30,6 +34,7 @@ doc.autoTable({
 ```
 
 **Fix To:**
+
 ```typescript
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -51,6 +56,7 @@ try {
 **Remove type declarations:** Delete lines 7-15 in `printReportGenerator.ts` (no longer needed with function API)
 
 #### Day 2: Add Export Progress & Error Handling
+
 **Files:** Export button components
 
 - Add loading spinner during PDF generation
@@ -59,6 +65,7 @@ try {
 - Success confirmation with download link
 
 #### Day 3: Test PDF Exports
+
 - Test all export buttons: Overview, Issues (PDF), Charts
 - Verify downloads work in Chrome, Firefox, Safari, Edge
 - Test mobile Safari (iOS) with fallback
@@ -67,6 +74,7 @@ try {
 ### Sprint 2: Accessibility Refinements (Days 4-6)
 
 #### Day 4: Keyboard Navigation Audit
+
 **Files:** Modal dialogs, form components
 
 - Ensure tab order is logical
@@ -75,6 +83,7 @@ try {
 - Add skip-to-content link
 
 #### Day 5: Screen Reader Enhancement
+
 **Files:** All icon-only buttons, data visualizations
 
 - Add `aria-label` to icon buttons
@@ -83,6 +92,7 @@ try {
 - Test with VoiceOver (macOS) and NVDA (Windows)
 
 #### Day 6: Color Contrast Audit
+
 **Files:** `src/index.css` (CSS variables)
 
 - Run axe DevTools on all pages
@@ -93,6 +103,7 @@ try {
 ### Sprint 3: Performance Optimization (Days 7-9)
 
 #### Day 7: Code Splitting
+
 **Files:** `src/App.tsx`, route components
 
 ```typescript
@@ -113,6 +124,7 @@ const AdminInspectionsPage = lazy(() => import('./pages/admin-inspections'))
 - Test bundle size reduction (target 30%+ reduction)
 
 #### Day 8: Image Optimization
+
 **Files:** Image components, photo upload
 
 - Add `loading="lazy"` to images
@@ -121,6 +133,7 @@ const AdminInspectionsPage = lazy(() => import('./pages/admin-inspections'))
 - Use WebP format where supported
 
 #### Day 9: Loading States
+
 **Files:** Data tables, forms
 
 - Add skeleton screens for:
@@ -133,6 +146,7 @@ const AdminInspectionsPage = lazy(() => import('./pages/admin-inspections'))
 ### Sprint 4: Mobile & UX Polish (Days 10-12)
 
 #### Day 10: Mobile Form Optimization
+
 **Files:** `src/pages/custodial-inspection.tsx`, `src/pages/whole-building-inspection.tsx`
 
 - Add collapsible sections for long forms
@@ -141,6 +155,7 @@ const AdminInspectionsPage = lazy(() => import('./pages/admin-inspections'))
 - Test thumb-friendly tap targets
 
 #### Day 11: Auto-save Implementation
+
 **Files:** All inspection forms
 
 ```typescript
@@ -170,6 +185,7 @@ useEffect(() => {
 ```
 
 #### Day 12: PWA Enhancement
+
 **Files:** Service worker, manifest
 
 - Improve install prompt with benefits
@@ -180,6 +196,7 @@ useEffect(() => {
 ## Validation Checklist:
 
 ### PDF Export:
+
 - [ ] All exports use `autoTable(doc, {})` function API
 - [ ] No `(doc as any)` type casting
 - [ ] Try/catch error handling on all PDF generation
@@ -189,6 +206,7 @@ useEffect(() => {
 - [ ] iOS Safari fallback tested
 
 ### Accessibility:
+
 - [ ] Lighthouse accessibility score > 95
 - [ ] axe DevTools reports 0 violations
 - [ ] Keyboard navigation works throughout
@@ -197,6 +215,7 @@ useEffect(() => {
 - [ ] Focus indicators visible and meet 3:1 contrast
 
 ### Performance:
+
 - [ ] Lighthouse performance score > 90
 - [ ] Bundle size reduced by 30%+
 - [ ] Code splitting implemented for routes
@@ -204,6 +223,7 @@ useEffect(() => {
 - [ ] Loading skeletons in place
 
 ### Mobile:
+
 - [ ] All touch targets ≥ 48px (already done!)
 - [ ] Forms work smoothly on mobile
 - [ ] Auto-save prevents data loss
@@ -212,6 +232,7 @@ useEffect(() => {
 ## Technical Notes:
 
 ### PDF Function API Pattern (per jsPDF AutoTable docs):
+
 ```typescript
 // Recommended import pattern
 import { jsPDF } from 'jspdf'
@@ -229,10 +250,13 @@ autoTable(doc, {
 ```
 
 ### Error Boundaries (already exists in App.tsx):
+
 The app already has an ErrorBoundary component - just need to wrap lazy-loaded routes.
 
 ### Touch Targets (already compliant):
+
 Current button sizes:
+
 - Default: `min-h-[48px]` ✅
 - Small: `min-h-[44px]` ✅
 - Large: `min-h-[56px]` ✅
