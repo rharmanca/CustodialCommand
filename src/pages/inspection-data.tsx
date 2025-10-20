@@ -32,6 +32,7 @@ import FilterPresets from '@/components/filters/FilterPresets';
 
 // Import export components
 import ExportDialog from '@/components/reports/ExportDialog';
+import PDFExportWizard from '@/components/reports/PDFExportWizard';
 import { generateIssuesReport, type IssuesReportData } from '@/utils/printReportGenerator';
 import { useToast } from '@/hooks/use-toast';
 
@@ -670,14 +671,24 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                       </Button>
                     }
                   />
-                  <Button 
-                    onClick={handleExportIssuesPDF}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Export Issues (PDF)
-                  </Button>
+                  <PDFExportWizard
+                    inspections={filteredInspections}
+                    custodialNotes={custodialNotes}
+                    availableSchools={schools}
+                    availableCategories={categories}
+                    trigger={
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Export PDF Report
+                      </Button>
+                    }
+                    onExportComplete={() => {
+                      toast({
+                        title: "Export Complete",
+                        description: "Your PDF report has been generated successfully.",
+                      });
+                    }}
+                  />
                 </div>
               </div>
               {/* KPI Cards */}

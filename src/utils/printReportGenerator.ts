@@ -3,6 +3,8 @@ import autoTable from 'jspdf-autotable';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { PRINT_THEME, PRINT_FONTS, MARGINS } from './reportHelpers';
 import { calculateAverageRating } from './problemAnalysis';
+import type { ExportConfig } from '../components/reports/PDFExportWizard';
+import { filterDataByConfig } from './exportHelpers';
 
 // Extend jsPDF type to include autoTable properties
 declare module 'jspdf' {
@@ -30,6 +32,11 @@ export interface IssuesReportData {
   endDate?: Date;
   schoolFilter?: string;
   activeFilters?: string[]; // e.g., ["Critical Only", "ASA Issues"]
+}
+
+export interface ReportData {
+  inspections: Inspection[];
+  custodialNotes: CustodialNote[];
 }
 
 /**
@@ -308,4 +315,236 @@ function addPrintFooter(doc: jsPDF): void {
       pageHeight - 10
     );
   }
+}
+
+/**
+ * Generate Executive Summary PDF
+ */
+export function generateExecutiveSummaryPDF(data: ReportData, config: ExportConfig): Blob {
+  const filteredData = filterDataByConfig(data, config);
+  const doc = new jsPDF('p', 'mm', 'letter');
+  let currentY = 20;
+  
+  // Header
+  doc.setFontSize(PRINT_FONTS.title);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('EXECUTIVE SUMMARY', MARGINS.left, currentY);
+  currentY += 15;
+  
+  // Date range
+  if (config.filters.dateRange.from || config.filters.dateRange.to) {
+    doc.setFontSize(PRINT_FONTS.body);
+    doc.setTextColor(PRINT_THEME.secondary);
+    const from = config.filters.dateRange.from?.toLocaleDateString() || 'Start';
+    const to = config.filters.dateRange.to?.toLocaleDateString() || 'End';
+    doc.text(`Report Period: ${from} - ${to}`, MARGINS.left, currentY);
+    currentY += 10;
+  }
+  
+  // KPI Summary
+  const totalInspections = filteredData.inspections.length;
+  const totalNotes = filteredData.custodialNotes.length;
+  const avgRating = totalInspections > 0 
+    ? filteredData.inspections
+        .map(calculateAverageRating)
+        .filter((rating): rating is number => rating !== null)
+        .reduce((sum, rating) => sum + rating, 0) / totalInspections
+    : 0;
+  
+  const kpiData = [
+    ['Total Inspections', totalInspections.toString()],
+    ['Custodial Notes', totalNotes.toString()],
+    ['Average Rating', avgRating.toFixed(1) + ' stars'],
+    ['Schools Covered', filteredData.schools.length.toString()]
+  ];
+  
+  autoTable(doc, {
+    startY: currentY,
+    head: [['Metric', 'Value']],
+    body: kpiData,
+    theme: 'grid',
+    headStyles: { fillColor: PRINT_THEME.tableHeader },
+    styles: { fontSize: PRINT_FONTS.body }
+  });
+  
+  currentY = (doc as any).lastAutoTable.finalY + 10;
+  
+  // Summary text
+  doc.setFontSize(PRINT_FONTS.body);
+  doc.setTextColor(PRINT_THEME.text);
+  doc.text('This executive summary provides a high-level overview of custodial performance', MARGINS.left, currentY);
+  currentY += 6;
+  doc.text(`across ${filteredData.schools.length} schools with ${totalInspections} inspections conducted.`, MARGINS.left, currentY);
+  
+  return doc.output('blob');
+}
+
+/**
+ * Generate School Performance PDF
+ */
+export function generateSchoolPerformancePDF(data: ReportData, config: ExportConfig): Blob {
+  const filteredData = filterDataByConfig(data, config);
+  const doc = new jsPDF('p', 'mm', 'letter');
+  let currentY = 20;
+  
+  // Header
+  doc.setFontSize(PRINT_FONTS.title);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SCHOOL PERFORMANCE REPORT', MARGINS.left, currentY);
+  currentY += 15;
+  
+  // School comparison data
+  const schoolData = filteredData.inspections.reduce((acc, inspection) => {
+    if (!acc[inspection.school]) {
+      acc[inspection.school] = {
+        school: inspection.school,
+        inspections: 0,
+        ratings: []
+      };
+    }
+    acc[inspection.school].inspections++;
+    const rating = calculateAverageRating(inspection);
+    if (rating !== null) {
+      acc[inspection.school].ratings.push(rating);
+    }
+    return acc;
+  }, {} as Record<string, { school: string; inspections: number; ratings: number[] }>);
+  
+  const schoolTableData = Object.values(schoolData).map(school => [
+    school.school,
+    school.inspections.toString(),
+    school.ratings.length > 0 
+      ? (school.ratings.reduce((sum, r) => sum + r, 0) / school.ratings.length).toFixed(1)
+      : 'N/A'
+  ]);
+  
+  autoTable(doc, {
+    startY: currentY,
+    head: [['School', 'Inspections', 'Avg Rating']],
+    body: schoolTableData,
+    theme: 'grid',
+    headStyles: { fillColor: PRINT_THEME.tableHeader },
+    styles: { fontSize: PRINT_FONTS.body }
+  });
+  
+  return doc.output('blob');
+}
+
+/**
+ * Generate Category Analysis PDF
+ */
+export function generateCategoryAnalysisPDF(data: ReportData, config: ExportConfig): Blob {
+  const filteredData = filterDataByConfig(data, config);
+  const doc = new jsPDF('p', 'mm', 'letter');
+  let currentY = 20;
+  
+  // Header
+  doc.setFontSize(PRINT_FONTS.title);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CATEGORY ANALYSIS REPORT', MARGINS.left, currentY);
+  currentY += 15;
+  
+  // Category analysis
+  const categories = [
+    { key: 'floors', label: 'Floors' },
+    { key: 'verticalHorizontalSurfaces', label: 'Vertical and Horizontal Surfaces' },
+    { key: 'ceiling', label: 'Ceiling' },
+    { key: 'restrooms', label: 'Restrooms' },
+    { key: 'customerSatisfaction', label: 'Customer Satisfaction' }
+  ];
+  
+  const categoryData = categories.map(category => {
+    const ratings = filteredData.inspections
+      .map(inspection => inspection[category.key as keyof Inspection] as number)
+      .filter((rating): rating is number => typeof rating === 'number');
+    
+    return [
+      category.label,
+      ratings.length.toString(),
+      ratings.length > 0 
+        ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)
+        : 'N/A'
+    ];
+  });
+  
+  autoTable(doc, {
+    startY: currentY,
+    head: [['Category', 'Inspections', 'Avg Rating']],
+    body: categoryData,
+    theme: 'grid',
+    headStyles: { fillColor: PRINT_THEME.tableHeader },
+    styles: { fontSize: PRINT_FONTS.body }
+  });
+  
+  return doc.output('blob');
+}
+
+/**
+ * Generate Custom Report PDF
+ */
+export function generateCustomReportPDF(data: ReportData, config: ExportConfig): Blob {
+  const filteredData = filterDataByConfig(data, config);
+  const doc = new jsPDF('p', 'mm', 'letter');
+  let currentY = 20;
+  
+  // Header
+  doc.setFontSize(PRINT_FONTS.title);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CUSTOM REPORT', MARGINS.left, currentY);
+  currentY += 15;
+  
+  // Custom report content based on selected data types
+  if (config.dataTypes.inspections) {
+    doc.setFontSize(PRINT_FONTS.heading);
+    doc.setTextColor(PRINT_THEME.primary);
+    doc.text('INSPECTIONS', MARGINS.left, currentY);
+    currentY += 10;
+    
+    // Inspection summary
+    const inspectionData = filteredData.inspections.slice(0, 10).map(inspection => [
+      inspection.school,
+      inspection.date,
+      calculateAverageRating(inspection)?.toFixed(1) || 'N/A'
+    ]);
+    
+    autoTable(doc, {
+      startY: currentY,
+      head: [['School', 'Date', 'Rating']],
+      body: inspectionData,
+      theme: 'grid',
+      headStyles: { fillColor: PRINT_THEME.tableHeader },
+      styles: { fontSize: PRINT_FONTS.body }
+    });
+    
+    currentY = (doc as any).lastAutoTable.finalY + 10;
+  }
+  
+  if (config.dataTypes.custodialNotes) {
+    doc.setFontSize(PRINT_FONTS.heading);
+    doc.setTextColor(PRINT_THEME.primary);
+    doc.text('CUSTODIAL NOTES', MARGINS.left, currentY);
+    currentY += 10;
+    
+    // Notes summary
+    const notesData = filteredData.custodialNotes.slice(0, 10).map(note => [
+      note.school,
+      note.date,
+      note.note.substring(0, 50) + (note.note.length > 50 ? '...' : '')
+    ]);
+    
+    autoTable(doc, {
+      startY: currentY,
+      head: [['School', 'Date', 'Note']],
+      body: notesData,
+      theme: 'grid',
+      headStyles: { fillColor: PRINT_THEME.tableHeader },
+      styles: { fontSize: PRINT_FONTS.body }
+    });
+  }
+  
+  return doc.output('blob');
 }

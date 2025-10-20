@@ -1,298 +1,250 @@
-<!-- da6e7e56-3783-4e73-abc5-bf2522350c8a 0131d1a9-0222-4dae-8215-51480143cdca -->
-# Custodial Command - Consolidated Implementation Plan
+<!-- da6e7e56-3783-4e73-abc5-bf2522350c8a 48b1b700-76f2-4199-b7df-37017127e99b -->
+# PDF Export Wizard Implementation Plan
 
-## Code Review Findings:
+## Overview
 
-### ✅ Already Implemented Well:
+Create a multi-step wizard that makes PDF exporting intuitive and flexible, allowing users to choose from multiple report types and easily control what data is included.
 
-- **Touch Targets:** Buttons already have `min-h-[48px]` (exceeds WCAG 2.2 requirement)
-- **Focus Indicators:** `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2` already in place
-- **PDF Imports:** Correct imports already in place (`import jsPDF from 'jspdf'` and `import 'jspdf-autotable'`)
-- **Theme Consistency:** Brown/rust theme well implemented with CSS variables
+## Step 1: Create PDF Export Wizard Component
 
-### ❌ Critical Issues Found:
+**File: `src/components/reports/PDFExportWizard.tsx`** (new file)
 
-1. **PDF Export Bug:** Using `doc.autoTable()` prototype method instead of `autoTable(doc, {})` function API
-2. **Type Casting:** Using `(doc as any).autoTable()` bypassing TypeScript safety
-3. **No Error Handling:** PDF generation has no try/catch or user feedback
+Create a multi-step wizard with 4 steps using Dialog and internal state management:
 
-## Implementation Plan (12 Days)
+1. **Choose Report Type** - Select from Executive Summary, School Performance, Category Analysis, Issues Report, Custom Report
+2. **Select Data** - Choose data types (inspections, custodial notes, images) with visual counts
+3. **Apply Filters** - Date range, schools, severity levels, categories, rating threshold
+4. **Review & Export** - Preview selections and export
 
-### Sprint 1: Critical Bug Fixes (Days 1-3)
+Key features:
 
-#### Day 1: Fix PDF Export
-
-**Files:** `src/utils/printReportGenerator.ts` (line 204, 251), `src/utils/reportHelpers.ts` (line 217), `src/components/reports/PDFReportBuilder.tsx`
-
-**Current (Broken):**
-
+- Use Dialog with max-w-4xl for larger content area
+- Custom step navigation (not Tabs - better UX for wizard flow)
+- Visual progress indicator with step numbers and checkmarks
+- "Back" and "Next" buttons for navigation, "Cancel" always visible
+- Preview card showing what will be exported (record counts, date range, file size estimate)
+- Simple checkbox/radio controls throughout
+- Keyboard accessible (Escape to cancel, Enter to proceed)
+- Loading state during PDF generation with Progress component
 ```typescript
-doc.autoTable({
-  head: [['School', 'Date', 'Rating']],
-  body: tableData,
-})
-```
+interface WizardStep {
+  id: number;
+  title: string;
+  description: string;
+  isComplete: boolean;
+}
 
-**Fix To:**
+export interface ExportConfig {
+  reportType: 'executive' | 'school-performance' | 'category-analysis' | 'issues' | 'custom';
+  dataTypes: {
+    inspections: boolean;
+    custodialNotes: boolean;
+    images: boolean;
+  };
+  filters: {
+    dateRange: { from: Date | null; to: Date | null };
+    schools: string[];
+    severityLevels: string[];
+    categories: string[];
+    ratingThreshold: number;
+  };
+  includeCharts: boolean;
+  includeDetails: boolean;
+}
 
-```typescript
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
-
-try {
-  const doc = new jsPDF()
-  autoTable(doc, {
-    head: [['School', 'Date', 'Rating']],
-    body: tableData,
-  })
-  doc.save('report.pdf')
-  showSuccessToast('PDF generated successfully')
-} catch (error) {
-  console.error('PDF generation failed:', error)
-  showErrorToast('Failed to generate PDF. Please try again.')
+interface PDFExportWizardProps {
+  inspections: Inspection[];
+  custodialNotes: CustodialNote[];
+  availableSchools: string[];
+  availableCategories: Array<{ key: string; label: string }>;
+  trigger?: React.ReactNode;
+  onExportComplete?: () => void;
 }
 ```
 
-**Remove type declarations:** Delete lines 7-15 in `printReportGenerator.ts` (no longer needed with function API)
 
-#### Day 2: Add Export Progress & Error Handling
+## Step 2: Enhance Report Generator Functions
 
-**Files:** Export button components
+**File: `src/utils/printReportGenerator.ts`**
 
-- Add loading spinner during PDF generation
-- Show progress toast: "Generating PDF..."
-- Error recovery: retry button on failure
-- Success confirmation with download link
-
-#### Day 3: Test PDF Exports
-
-- Test all export buttons: Overview, Issues (PDF), Charts
-- Verify downloads work in Chrome, Firefox, Safari, Edge
-- Test mobile Safari (iOS) with fallback
-- Test large datasets (100+ inspections)
-
-### Sprint 2: Accessibility Refinements (Days 4-6)
-
-#### Day 4: Keyboard Navigation Audit
-
-**Files:** Modal dialogs, form components
-
-- Ensure tab order is logical
-- Add focus trapping to modals (already has dialogs)
-- Test keyboard-only navigation through entire app
-- Add skip-to-content link
-
-#### Day 5: Screen Reader Enhancement
-
-**Files:** All icon-only buttons, data visualizations
-
-- Add `aria-label` to icon buttons
-- Add `aria-live="polite"` to notification areas
-- Add `aria-describedby` to form fields with help text
-- Test with VoiceOver (macOS) and NVDA (Windows)
-
-#### Day 6: Color Contrast Audit
-
-**Files:** `src/index.css` (CSS variables)
-
-- Run axe DevTools on all pages
-- Fix any contrast issues (target 4.5:1 for text, 3:1 for UI components)
-- Test with color blindness simulators
-- Verify focus indicators have 3:1 contrast
-
-### Sprint 3: Performance Optimization (Days 7-9)
-
-#### Day 7: Code Splitting
-
-**Files:** `src/App.tsx`, route components
+Add new report generation functions:
 
 ```typescript
-import { lazy, Suspense } from 'react'
-
-const InspectionDataPage = lazy(() => import('./pages/inspection-data'))
-const WholeBuildingInspectionPage = lazy(() => import('./pages/whole-building-inspection'))
-const AdminInspectionsPage = lazy(() => import('./pages/admin-inspections'))
-
-// In render:
-<Suspense fallback={<PageLoadingSkeleton />}>
-  <InspectionDataPage />
-</Suspense>
+// Add new functions
+export function generateExecutiveSummaryPDF(data: ReportData, config: ExportConfig): Blob
+export function generateSchoolPerformancePDF(data: ReportData, config: ExportConfig): Blob
+export function generateCategoryAnalysisPDF(data: ReportData, config: ExportConfig): Blob
+export function generateCustomReportPDF(data: ReportData, config: ExportConfig): Blob
 ```
 
-- Split heavy dependencies: charts (recharts), PDF (jspdf)
-- Add loading skeletons for all lazy routes
-- Test bundle size reduction (target 30%+ reduction)
+Update existing `generateIssuesReport` to accept `ExportConfig` parameter for better filtering.
 
-#### Day 8: Image Optimization
+## Step 3: Create Report Type Selection Component
 
-**Files:** Image components, photo upload
+**File: `src/components/reports/ReportTypeSelector.tsx`** (new file)
 
-- Add `loading="lazy"` to images
-- Implement blur-up placeholder for uploads
-- Compress photos client-side before upload (target < 500KB)
-- Use WebP format where supported
+Create a visual card-based selector for report types:
 
-#### Day 9: Loading States
+- Large clickable cards with icons and descriptions
+- "Executive Summary" - High-level overview with KPIs
+- "School Performance" - Compare schools and trends
+- "Category Analysis" - Deep dive into specific categories
+- "Issues Report" - List of problems (existing functionality)
+- "Custom Report" - Build your own with flexible sections
 
-**Files:** Data tables, forms
+Each card shows:
 
-- Add skeleton screens for:
-  - Inspection data tables
-  - Report visualizations
-  - Building inspection lists
-- Add spinners for form submissions
-- Implement optimistic UI for quick actions
+- Icon representing the report type
+- Title and description
+- Example preview badge ("Best for monthly reports", etc.)
 
-### Sprint 4: Mobile & UX Polish (Days 10-12)
+## Step 4: Create Data Selection Component
 
-#### Day 10: Mobile Form Optimization
+**File: `src/components/reports/DataSelector.tsx`** (new file)
 
-**Files:** `src/pages/custodial-inspection.tsx`, `src/pages/whole-building-inspection.tsx`
+Simple checkboxes with visual feedback:
 
-- Add collapsible sections for long forms
-- Implement step-by-step progress indicator
-- Increase spacing between form fields (16px minimum)
-- Test thumb-friendly tap targets
+- "Include Inspections" (shows count: e.g., "142 inspections")
+- "Include Custodial Notes" (shows count: e.g., "23 notes")
+- "Include Images" (shows count and size: e.g., "45 images, ~2.3 MB")
+- "Include Charts & Visualizations" (checkbox)
+- "Include Individual Details" (checkbox - shows full inspection details vs summary only)
 
-#### Day 11: Auto-save Implementation
+Add helpful text under each option explaining what will be included.
 
-**Files:** All inspection forms
+## Step 5: Create Filter Selection Component
+
+**File: `src/components/reports/ExportFilters.tsx`** (new file)
+
+Reuse existing filter components but in a simplified, wizard-friendly layout:
+
+- Date range picker (with presets: Last 7 days, Last 30 days, This month, All time)
+- School multi-select dropdown
+- Severity level chips (Critical, Needs Attention, All)
+- Category multi-select
+- Rating threshold slider (1-5 stars)
+
+Show active filter count badge and "Clear all filters" button.
+
+## Step 6: Create Export Preview Component
+
+**File: `src/components/reports/ExportPreview.tsx`** (new file)
+
+Summary card showing:
+
+- Report type selected
+- Data included (with counts)
+- Active filters summary
+- Estimated file size
+- Estimated page count
+- Export button (primary action)
+
+Visual preview with icons and color-coded badges.
+
+## Step 7: Integrate Wizard into Inspection Data Page
+
+**File: `src/pages/inspection-data.tsx`**
+
+Replace the simple "Export Issues (PDF)" button with:
 
 ```typescript
-// Auto-save draft every 30 seconds
-useEffect(() => {
-  const interval = setInterval(() => {
-    const formData = getValues()
-    localStorage.setItem(`draft-${formId}`, JSON.stringify({
-      data: formData,
-      timestamp: Date.now()
-    }))
-    showInfoToast('Draft saved')
-  }, 30000)
-  return () => clearInterval(interval)
-}, [])
-
-// Restore draft on mount
-useEffect(() => {
-  const draft = localStorage.getItem(`draft-${formId}`)
-  if (draft) {
-    const { data, timestamp } = JSON.parse(draft)
-    if (confirm('Restore unsaved draft?')) {
-      reset(data)
-    }
+<PDFExportWizard
+  inspections={filteredInspections}
+  custodialNotes={custodialNotes}
+  availableSchools={schools}
+  availableCategories={categories}
+  trigger={
+    <Button variant="outline" className="flex items-center gap-2">
+      <FileText className="w-4 h-4" />
+      Export PDF Report
+    </Button>
   }
-}, [])
+/>
 ```
 
-#### Day 12: PWA Enhancement
+Keep the existing Excel export dialog separate and functional.
 
-**Files:** Service worker, manifest
+## Step 8: Add Chart Export Utilities
 
-- Improve install prompt with benefits
-- Add app shortcuts to manifest
-- Test offline functionality
-- Add update notification when new version available
+**File: `src/utils/chartToPDF.ts`** (new file)
 
-## Validation Checklist:
+Create utilities to convert chart components to PDF:
 
-### PDF Export:
-
-- [ ] All exports use `autoTable(doc, {})` function API
-- [ ] No `(doc as any)` type casting
-- [ ] Try/catch error handling on all PDF generation
-- [ ] Loading states during generation
-- [ ] Success/error toasts
-- [ ] Works in all browsers (Chrome, Firefox, Safari, Edge)
-- [ ] iOS Safari fallback tested
-
-### Accessibility:
-
-- [ ] Lighthouse accessibility score > 95
-- [ ] axe DevTools reports 0 violations
-- [ ] Keyboard navigation works throughout
-- [ ] Screen reader announces all actions
-- [ ] All colors meet 4.5:1 contrast ratio
-- [ ] Focus indicators visible and meet 3:1 contrast
-
-### Performance:
-
-- [ ] Lighthouse performance score > 90
-- [ ] Bundle size reduced by 30%+
-- [ ] Code splitting implemented for routes
-- [ ] Images lazy loaded
-- [ ] Loading skeletons in place
-
-### Mobile:
-
-- [ ] All touch targets ≥ 48px (already done!)
-- [ ] Forms work smoothly on mobile
-- [ ] Auto-save prevents data loss
-- [ ] PWA install prompt works
-
-## Technical Notes:
-
-### PDF Function API Pattern (per jsPDF AutoTable docs):
-
+- Use `html2canvas` to capture chart visualizations
+- Convert canvas to PDF images with proper sizing
+- Handle multiple charts per page with smart pagination
 ```typescript
-// Recommended import pattern
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
-
-// Correct usage
-const doc = new jsPDF()
-autoTable(doc, {
-  head: [['Column 1', 'Column 2']],
-  body: [['Row 1', 'Data 1']],
-  // Options...
-})
-
-// Access last table: doc.lastAutoTable.finalY
+export async function addChartToPDF(
+  doc: jsPDF,
+  chartElement: HTMLElement,
+  yPosition: number,
+  options?: ChartExportOptions
+): Promise<number>
 ```
 
-### Error Boundaries (already exists in App.tsx):
 
-The app already has an ErrorBoundary component - just need to wrap lazy-loaded routes.
+## Step 9: Enhanced Error Handling & User Feedback
 
-### Touch Targets (already compliant):
+Add throughout wizard:
 
-Current button sizes:
+- Toast notifications for successful exports
+- Error handling with helpful messages
+- Loading states during PDF generation (can take time with images/charts)
+- Progress indicator for multi-page reports
+- Success dialog with "Open PDF" and "Export Another" options
 
-- Default: `min-h-[48px]` ✅
-- Small: `min-h-[44px]` ✅
-- Large: `min-h-[56px]` ✅
-- Icon: `min-h-[48px] min-w-[48px]` ✅
+## Step 10: Add Export Utilities & Helpers
 
-No changes needed for touch targets!
+**File: `src/utils/exportHelpers.ts`** (new file)
 
-## Files to Modify (Priority Order):
+Helper functions:
 
-1. **src/utils/printReportGenerator.ts** - Lines 204, 251 (PDF fix)
-2. **src/utils/reportHelpers.ts** - Line 217 (PDF fix)
-3. **src/components/reports/PDFReportBuilder.tsx** - All `autoTable` calls (PDF fix)
-4. **src/App.tsx** - Add lazy loading for routes
-5. **All form pages** - Add auto-save functionality
-6. **Icon buttons** - Add aria-labels
-7. **Data tables** - Add loading skeletons
+- `estimateFileSize(config: ExportConfig): string` - Calculate size estimate
+- `estimatePageCount(config: ExportConfig): number` - Calculate pages
+- `validateExportConfig(config: ExportConfig): boolean` - Ensure valid selections
+- `filterDataByConfig(data: ReportData, config: ExportConfig): FilteredData` - Apply filters
 
-## Success Metrics:
+## Implementation Notes
 
-- **PDF Export Success Rate:** 100% (currently failing)
-- **Lighthouse Scores:** All > 90
-- **Bundle Size:** Reduce by 30%
-- **User Feedback:** No PDF export errors reported
-- **Accessibility:** WCAG 2.2 AA compliant
+- Keep the wizard simple with clear visual hierarchy
+- Use existing UI components (Dialog, Card, Button, Checkbox, Select) for consistency
+- Maintain the brown/cream theme throughout
+- All steps should be accessible via keyboard navigation
+- Add helpful tooltips for complex options
+- Ensure mobile responsiveness (wizard works on tablets)
+- Add "Save preferences" option for power users who export regularly
+
+## Files to Create
+
+1. `src/components/reports/PDFExportWizard.tsx`
+2. `src/components/reports/ReportTypeSelector.tsx`
+3. `src/components/reports/DataSelector.tsx`
+4. `src/components/reports/ExportFilters.tsx`
+5. `src/components/reports/ExportPreview.tsx`
+6. `src/utils/chartToPDF.ts`
+7. `src/utils/exportHelpers.ts`
+
+## Files to Modify
+
+1. `src/pages/inspection-data.tsx` - Integrate wizard
+2. `src/utils/printReportGenerator.ts` - Add new report types
+3. `src/components/reports/PDFReportBuilder.tsx` - Enhance with config support
+
+## Dependencies to Add
+
+- `html2canvas` - For chart capture (if not already installed)
+- No other new dependencies needed
 
 ### To-dos
 
-- [ ] Replace doc.autoTable() with autoTable(doc, {}) in all 4 files
-- [ ] Add try/catch and user feedback to all PDF exports
-- [ ] Test PDF exports in Chrome, Firefox, Safari, Edge (desktop + mobile)
-- [ ] Test and fix keyboard navigation throughout entire app
-- [ ] Add aria-labels to all icon buttons and data visualizations
-- [ ] Run axe DevTools and fix any contrast issues
-- [ ] Add lazy loading for route components with Suspense
-- [ ] Create and add skeleton screens for data tables and reports
-- [ ] Add auto-save with localStorage for all inspection forms
-- [ ] Add lazy loading and compression for all images
-- [ ] Improve install prompt and add app shortcuts
-- [ ] Run full test suite: accessibility, performance, cross-browser
+- [ ] Create PDFExportWizard component with 4-step navigation
+- [ ] Create ReportTypeSelector with card-based UI for report types
+- [ ] Create DataSelector with checkboxes and visual counts
+- [ ] Create ExportFilters component with simplified filter controls
+- [ ] Create ExportPreview summary card with estimates
+- [ ] Add Executive Summary, School Performance, Category Analysis, and Custom report generators
+- [ ] Create chartToPDF utilities for exporting visualizations
+- [ ] Create exportHelpers for size estimates and validation
+- [ ] Integrate PDFExportWizard into inspection-data page
+- [ ] Add comprehensive error handling and user feedback throughout wizard
+- [ ] Test all report types with various filter combinations
