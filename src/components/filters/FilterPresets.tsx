@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, AlertCircle, Calendar, School, TrendingDown } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Calendar, School, TrendingDown, X } from 'lucide-react';
 import type { FilterState } from './AdvancedFilters';
 
 // Helper to ensure boolean values are never null
@@ -186,6 +186,23 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
     onApplyPreset(newFilters);
   };
 
+  const handleDeselectPreset = (preset: FilterPreset, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Reset to default filters when deselecting
+    onApplyPreset({
+      search: '',
+      dateRange: { from: null, to: null },
+      schools: [],
+      severityLevels: [],
+      categories: [],
+      inspectors: [],
+      ratingThreshold: 0,
+      inspectionType: 'all',
+      showProblemsOnly: false,
+      hasCustodialNotes: false
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -203,16 +220,24 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
             <Button
               key={preset.id}
               variant={isActive ? "default" : "outline"}
-              className="h-auto p-4 flex flex-col items-start gap-2 text-left"
+              className={`h-auto p-4 flex flex-col items-start gap-2 text-left relative ${
+                isActive 
+                  ? 'bg-primary text-primary-foreground border-2 border-primary shadow-lg' 
+                  : 'hover:bg-muted/50'
+              }`}
               onClick={() => handlePresetClick(preset)}
             >
               <div className="flex items-center gap-2 w-full">
                 {preset.icon}
                 <span className="font-medium text-sm">{preset.label}</span>
                 {isActive && (
-                  <Badge variant="secondary" className="ml-auto text-xs">
-                    Active
-                  </Badge>
+                  <button
+                    onClick={(e) => handleDeselectPreset(preset, e)}
+                    className="ml-auto p-1 rounded-full hover:bg-primary-foreground/20 transition-colors"
+                    aria-label={`Remove ${preset.label} filter`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 )}
               </div>
               <p className="text-xs text-muted-foreground text-left">

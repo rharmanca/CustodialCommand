@@ -101,6 +101,11 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     return count;
   };
 
+  const getInspectorFullName = (initials: string) => {
+    // Keep initials as-is for now, could be expanded with full names if available
+    return initials;
+  };
+
   const activeFilterCount = getActiveFilterCount();
 
   return (
@@ -281,39 +286,54 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               </div>
             </div>
 
-            {/* Categories */}
-            <div className="space-y-2">
-              <Label>Categories</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {INSPECTION_CATEGORIES.map(category => (
-                  <div key={category.key} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={category.key}
-                      checked={filters.categories.includes(category.key)}
-                      onCheckedChange={() => toggleArrayFilter('categories', category.key)}
-                    />
-                    <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Categories - Collapsible */}
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                  <Label className="text-base font-medium">Categories</Label>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2 mt-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {INSPECTION_CATEGORIES.map(category => (
+                    <div key={category.key} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={category.key}
+                        checked={filters.categories.includes(category.key)}
+                        onCheckedChange={() => toggleArrayFilter('categories', category.key)}
+                      />
+                      <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Inspectors */}
-            <div className="space-y-2">
-              <Label>Inspectors</Label>
-              <div className="flex flex-wrap gap-2">
-                {inspectors.map(inspector => (
-                  <Button
-                    key={inspector}
-                    variant={filters.inspectors.includes(inspector) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleArrayFilter('inspectors', inspector)}
-                  >
-                    {inspector}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            {/* Inspectors - Collapsible */}
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                  <Label className="text-base font-medium">Inspectors</Label>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2 mt-2">
+                <div className="flex flex-wrap gap-2">
+                  {inspectors.map(inspector => (
+                    <Button
+                      key={inspector}
+                      variant={filters.inspectors.includes(inspector) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => toggleArrayFilter('inspectors', inspector)}
+                      title={getInspectorFullName(inspector)}
+                    >
+                      {inspector}
+                    </Button>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Inspection Type */}
             <div className="space-y-2">
@@ -354,6 +374,24 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Label htmlFor="hasNotes">Has Custodial Notes</Label>
                 </div>
               </div>
+            </div>
+
+            {/* Apply and Reset Buttons */}
+            <div className="flex justify-between pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={onClearFilters}
+                className="flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Reset Filters
+              </Button>
+              <Button
+                onClick={() => onToggle()}
+                className="flex items-center gap-2"
+              >
+                Apply Filters
+              </Button>
             </div>
           </CardContent>
         </CollapsibleContent>

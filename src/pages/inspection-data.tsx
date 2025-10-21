@@ -642,15 +642,17 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
       </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="problems">Problem Areas</TabsTrigger>
-            <TabsTrigger value="charts">Charts</TabsTrigger>
-            <TabsTrigger value="school">By School</TabsTrigger>
-            <TabsTrigger value="date">By Date</TabsTrigger>
-            <TabsTrigger value="inspector">By Inspector</TabsTrigger>
-            <TabsTrigger value="notes">Custodial Notes</TabsTrigger>
-        </TabsList>
+          <div className="sticky top-0 z-10 bg-background border-b">
+            <TabsList className="grid w-full grid-cols-7">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="problems">Problem Areas</TabsTrigger>
+              <TabsTrigger value="charts">Charts</TabsTrigger>
+              <TabsTrigger value="school">By School</TabsTrigger>
+              <TabsTrigger value="date">By Date</TabsTrigger>
+              <TabsTrigger value="inspector">By Inspector</TabsTrigger>
+              <TabsTrigger value="notes">Custodial Notes</TabsTrigger>
+            </TabsList>
+          </div>
         
           <TabsContent value="overview" className="mt-6">
           <div className="space-y-6">
