@@ -19,17 +19,9 @@ export function MonthlyFeedbackCard({ feedback, onView, onDownload }: MonthlyFee
     return text.length > 200 ? text.substring(0, 200) + '...' : text;
   };
 
-  // Get full school name for tooltips
+  // Get school name for tooltips (keeping abbreviations as-is)
   const getSchoolFullName = (code: string) => {
-    const schoolNames: Record<string, string> = {
-      'ASA': 'Academy of Science and Agriculture',
-      'LCA': 'Leadership and Community Academy',
-      'GWC': 'Global Works and Citizenship',
-      'OA': 'Outdoor Academy',
-      'CBR': 'Community and Business Relations',
-      'WLC': 'World Languages and Cultures'
-    };
-    return schoolNames[code] || code;
+    return code; // Keep abbreviations as they are
   };
 
   return (

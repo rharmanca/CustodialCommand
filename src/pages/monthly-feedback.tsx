@@ -117,17 +117,9 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
     setFilterMonth('all');
   };
 
-  // Get full school name for tooltips
+  // Get school name for tooltips (keeping abbreviations as-is)
   const getSchoolFullName = (code: string) => {
-    const schoolNames: Record<string, string> = {
-      'ASA': 'Academy of Science and Agriculture',
-      'LCA': 'Leadership and Community Academy', 
-      'GWC': 'Gracewood College',
-      'OA': 'Outdoor Academy',
-      'CBR': 'Community and Business Relations',
-      'WLC': 'World Languages and Cultures'
-    };
-    return schoolNames[code] || code;
+    return code; // Keep abbreviations as they are
   };
 
   // Get unique years from feedback
