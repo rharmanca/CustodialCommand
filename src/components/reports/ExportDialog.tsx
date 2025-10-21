@@ -125,7 +125,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
+          {/* Separate scrollable content area from header/footer to avoid overlap with page filters */}
+          <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 bg-background">
           {/* Format Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Export Format</Label>
@@ -240,7 +241,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 p-6 border-t">
+          <div className="flex justify-end gap-3 p-6 border-t bg-background">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>

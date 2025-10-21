@@ -35,23 +35,58 @@ export function MonthlyFeedbackViewer({
   const { toast } = useToast();
   const [notes, setNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [loadedFeedback, setLoadedFeedback] = useState<MonthlyFeedback | null>(feedback);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Attempt to fetch full details by ID when opening the viewer to ensure we have the latest data
+  useEffect(() => {
+    setLoadedFeedback(feedback);
+    setLoadError(null);
+    if (!isOpen) return;
+    if (!feedback?.id) return;
+    let cancelled = false;
+    const fetchDetail = async () => {
+      try {
+        setIsLoadingDetail(true);
+        const resp = await fetch(`/api/monthly-feedback/${feedback.id}`);
+        if (!resp.ok) throw new Error(`Failed to load details (${resp.status})`);
+        const data = (await resp.json()) as MonthlyFeedback;
+        if (!cancelled) {
+          setLoadedFeedback(data);
+        }
+      } catch (err) {
+        console.error('Failed to load feedback details:', err);
+        if (!cancelled) {
+          setLoadError('We could not load this report right now.');
+        }
+      } finally {
+        if (!cancelled) setIsLoadingDetail(false);
+      }
+    };
+    fetchDetail();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, feedback?.id]);
 
   if (!feedback) return null;
 
   // Safe data access with null checks
+  const source = loadedFeedback ?? feedback;
   const safeFeedback = {
-    id: feedback.id || 0,
-    school: feedback.school || 'Unknown School',
-    month: feedback.month || 'Unknown Month',
-    year: feedback.year || new Date().getFullYear(),
-    pdfUrl: feedback.pdfUrl || '',
-    pdfFileName: feedback.pdfFileName || 'document.pdf',
-    extractedText: feedback.extractedText || null,
-    notes: feedback.notes || null,
-    uploadedBy: feedback.uploadedBy || null,
-    fileSize: feedback.fileSize || null,
-    createdAt: feedback.createdAt || new Date().toISOString()
+    id: source.id || 0,
+    school: source.school || 'Unknown School',
+    month: source.month || 'Unknown Month',
+    year: source.year || new Date().getFullYear(),
+    pdfUrl: source.pdfUrl || '',
+    pdfFileName: source.pdfFileName || 'document.pdf',
+    extractedText: source.extractedText || null,
+    notes: source.notes || null,
+    uploadedBy: source.uploadedBy || null,
+    fileSize: source.fileSize || null,
+    createdAt: source.createdAt || new Date().toISOString()
   };
 
   // Focus trap and keyboard handling
@@ -79,8 +114,8 @@ export function MonthlyFeedbackViewer({
 
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = feedback.pdfUrl;
-    link.download = feedback.pdfFileName || `feedback-${feedback.month}-${feedback.year}.pdf`;
+    link.href = safeFeedback.pdfUrl;
+    link.download = safeFeedback.pdfFileName || `feedback-${safeFeedback.month}-${safeFeedback.year}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -158,6 +193,26 @@ export function MonthlyFeedbackViewer({
         <Separator />
 
         <div className="flex-1 overflow-hidden">
+          {isLoadingDetail && (
+            <div className="p-6 text-sm text-muted-foreground">Loading details…</div>
+          )}
+          {!isLoadingDetail && loadError && (
+            <div className="p-6">
+              <div className="border rounded-md p-4 bg-muted/50">
+                <p className="text-sm text-destructive">{loadError}</p>
+                <p className="text-sm text-muted-foreground mt-2">You can try again later or download the original PDF if available.</p>
+                <div className="mt-4 flex gap-2">
+                  <Button onClick={onClose} variant="outline">Back to Feedback Reports</Button>
+                  {safeFeedback.pdfUrl && (
+                    <Button onClick={handleDownload}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download PDF
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <Tabs defaultValue="content" className="w-full h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
               <TabsTrigger value="content">Extracted Content</TabsTrigger>

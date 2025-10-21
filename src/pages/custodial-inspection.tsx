@@ -539,8 +539,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const renderStarRating = (categoryObj: any, currentRating: number) => {
     return (
-      <div className="space-y-4">
-        <div className="flex justify-center gap-2">
+      <div className="space-y-5">
+        <div className="flex flex-wrap justify-center gap-2">
           <Button
             type="button"
             variant={currentRating === 0 ? "default" : "outline"}
@@ -571,13 +571,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         </div>
 
         {/* Current Rating Status */}
-        <div className="text-center">
+        <div className="text-center px-3">
           {currentRating > 0 ? (
             <div className="space-y-2">
               <Badge variant="secondary" className="text-sm px-3 py-1">
                 {ratingDescriptions[currentRating - 1]?.label}
               </Badge>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-gray-600 leading-relaxed">
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
@@ -591,7 +591,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         {/* Detailed Criteria */}
         {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
           <Card className="bg-accent/10 border-accent/30">
-            <CardContent className="p-3">
+            <CardContent className="p-4">
               <div className="text-xs text-accent-foreground">
                 <strong className="text-sm">Rating {currentRating} Criteria:</strong>
                 <p className="mt-1 leading-relaxed">{categoryObj.criteria[currentRating]}</p>

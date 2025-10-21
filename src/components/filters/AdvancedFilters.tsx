@@ -65,6 +65,14 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   isOpen,
   onToggle
 }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // Auto-scroll into view when expanding so users see the content
+  React.useEffect(() => {
+    if (isOpen && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [isOpen]);
   // Draft state to avoid auto-applying until user confirms
   const [draft, setDraft] = useState<FilterState>(filters);
 
@@ -137,7 +145,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" ref={containerRef}>
       <Collapsible open={isOpen} onOpenChange={onToggle}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
