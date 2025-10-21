@@ -42,32 +42,41 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Clear previous file error
+      setErrors(prev => ({ ...prev, pdfFile: '' }));
+      
       // Validate file type
       if (file.type !== 'application/pdf') {
+        const errorMsg = "Only PDF files are allowed. Please select a valid PDF file.";
+        setErrors(prev => ({ ...prev, pdfFile: errorMsg }));
         toast({
           variant: "destructive",
           title: "Invalid File Type",
-          description: "Only PDF files are allowed."
+          description: errorMsg
         });
         e.target.value = '';
+        setPdfFile(null);
         return;
       }
 
       // Validate file size (10MB)
       if (file.size > 10 * 1024 * 1024) {
+        const errorMsg = "PDF file must be less than 10MB. Please choose a smaller file.";
+        setErrors(prev => ({ ...prev, pdfFile: errorMsg }));
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "PDF file must be less than 10MB."
+          description: errorMsg
         });
         e.target.value = '';
+        setPdfFile(null);
         return;
       }
 
       setPdfFile(file);
       toast({
-        title: "PDF Selected",
-        description: `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
+        title: "✅ PDF Selected",
+        description: `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB) - Ready to upload`
       });
     }
   };

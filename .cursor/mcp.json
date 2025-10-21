@@ -12,6 +12,10 @@
       "env": {
         "ANCHOR_API_KEY": "sk-7a5280135c19499e2215d726f5cf3a75"
       }
+    },
+    "ref-tools": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://server.smithery.ai/@ref-tools/ref-tools-mcp/mcp"]
     }
   }
 }
