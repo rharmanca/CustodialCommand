@@ -109,6 +109,27 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
     });
   }, [feedbackList, filterSchool, filterYear, filterMonth, searchText]);
 
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchText('');
+    setFilterSchool('all');
+    setFilterYear('all');
+    setFilterMonth('all');
+  };
+
+  // Get full school name for tooltips
+  const getSchoolFullName = (code: string) => {
+    const schoolNames: Record<string, string> = {
+      'ASA': 'Academy of Science and Agriculture',
+      'LCA': 'Leadership and Community Academy',
+      'GWC': 'Global Works and Citizenship',
+      'OA': 'Outdoor Academy',
+      'CBR': 'Community and Business Relations',
+      'WLC': 'World Languages and Cultures'
+    };
+    return schoolNames[code] || code;
+  };
+
   // Get unique years from feedback
   const availableYears = useMemo(() => {
     if (!Array.isArray(feedbackList)) return [];
@@ -190,30 +211,32 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
 
         <TabsContent value="browse" className="space-y-6">
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Input
-                placeholder="Search..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="w-full"
-              />
-            </div>
+          <div className="space-y-4" role="search">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Input
+                  placeholder="Search by school, month, or notes…"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  className="w-full"
+                  aria-label="Search feedback by school, month, or notes"
+                />
+              </div>
 
             <Select value={filterSchool} onValueChange={setFilterSchool}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Filter by school">
                 <SelectValue placeholder="All Schools" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Schools</SelectItem>
                 {schoolOptions.map(school => (
-                  <SelectItem key={school} value={school}>{school}</SelectItem>
+                  <SelectItem key={school} value={school} title={getSchoolFullName(school)}>{school}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={filterYear} onValueChange={setFilterYear}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Filter by year">
                 <SelectValue placeholder="All Years" />
               </SelectTrigger>
               <SelectContent>
@@ -225,7 +248,7 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
             </Select>
 
             <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger>
+              <SelectTrigger aria-label="Filter by month">
                 <SelectValue placeholder="All Months" />
               </SelectTrigger>
               <SelectContent>
@@ -235,6 +258,20 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
                 ))}
               </SelectContent>
             </Select>
+            </div>
+            
+            {/* Clear Filters Button */}
+            <div className="flex justify-end">
+              <Button 
+                onClick={clearFilters} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                Clear Filters
+              </Button>
+            </div>
           </div>
 
           {/* Results */}

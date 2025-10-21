@@ -37,6 +37,7 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
   });
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,27 +72,36 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
     }
   };
 
+  // Client-side validation
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.school) {
+      newErrors.school = 'School is required';
+    }
+    if (!formData.month) {
+      newErrors.month = 'Month is required';
+    }
+    if (!formData.year) {
+      newErrors.year = 'Year is required';
+    } else {
+      const yearNum = parseInt(formData.year);
+      if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
+        newErrors.year = 'Please enter a valid year between 2020 and 2100';
+      }
+    }
+    if (!pdfFile) {
+      newErrors.pdfFile = 'PDF file is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
-    if (!formData.school || !formData.month || !formData.year || !pdfFile) {
-      toast({
-        variant: "destructive",
-        title: "Missing Required Fields",
-        description: "Please fill in School, Month, Year, and select a PDF file."
-      });
-      return;
-    }
-
-    // Validate year
-    const yearNum = parseInt(formData.year);
-    if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Year",
-        description: "Please enter a valid year between 2020 and 2100."
-      });
+    if (!validateForm()) {
       return;
     }
 
@@ -128,6 +138,7 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
           uploadedBy: ''
         });
         setPdfFile(null);
+        setErrors({});
         const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
 
@@ -160,11 +171,13 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
           <CardDescription>Upload a monthly custodial feedback email PDF</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Toast/result region for screen readers */}
+          <div aria-live="polite" className="sr-only" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="school">School <span className="text-red-500">*</span></Label>
               <Select value={formData.school} onValueChange={(value) => setFormData(prev => ({ ...prev, school: value }))}>
-                <SelectTrigger>
+                <SelectTrigger className={errors.school ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select school" />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,12 +188,13 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
                   ))}
                 </SelectContent>
               </Select>
+              {errors.school && <p className="text-sm text-red-500">{errors.school}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="month">Month <span className="text-red-500">*</span></Label>
               <Select value={formData.month} onValueChange={(value) => setFormData(prev => ({ ...prev, month: value }))}>
-                <SelectTrigger>
+                <SelectTrigger className={errors.month ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
@@ -191,6 +205,7 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
                   ))}
                 </SelectContent>
               </Select>
+              {errors.month && <p className="text-sm text-red-500">{errors.month}</p>}
             </div>
 
             <div className="space-y-2">
@@ -202,8 +217,10 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
                 max="2100"
                 value={formData.year}
                 onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
+                className={errors.year ? 'border-red-500' : ''}
                 required
               />
+              {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
             </div>
           </div>
 
@@ -214,8 +231,10 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
               type="file"
               accept=".pdf,application/pdf"
               onChange={handleFileChange}
+              className={errors.pdfFile ? 'border-red-500' : ''}
               required
             />
+            {errors.pdfFile && <p className="text-sm text-red-500">{errors.pdfFile}</p>}
             {pdfFile && (
               <p className="text-sm text-muted-foreground flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />

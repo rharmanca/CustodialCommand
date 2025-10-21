@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -35,8 +35,32 @@ export function MonthlyFeedbackViewer({
   const { toast } = useToast();
   const [notes, setNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   if (!feedback) return null;
+
+  // Focus trap and keyboard handling
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    // Focus the first focusable element when modal opens
+    const focusableElements = modalRef.current?.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements?.[0] as HTMLElement;
+    if (firstElement) {
+      firstElement.focus();
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleDownload = () => {
     const link = document.createElement('a');
@@ -88,9 +112,9 @@ export function MonthlyFeedbackViewer({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+      <DialogContent ref={modalRef} className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center justify-between text-xl">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
               {feedback.month} {feedback.year} - {feedback.school}
@@ -118,46 +142,48 @@ export function MonthlyFeedbackViewer({
 
         <Separator />
 
-        <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="content">Extracted Content</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-          </TabsList>
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="content" className="w-full h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
+              <TabsTrigger value="content">Extracted Content</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="content" className="space-y-4">
-            <div className="border rounded-lg p-4 max-h-96 overflow-y-auto bg-muted/50">
-              {feedback.extractedText ? (
-                <div className="prose prose-sm max-w-none">
-                  <ReactMarkdown>{feedback.extractedText}</ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  No text content available. Download the PDF to view the full document.
-                </p>
-              )}
-            </div>
-          </TabsContent>
+            <TabsContent value="content" className="flex-1 overflow-y-auto space-y-4">
+              <div className="border rounded-lg p-4 bg-muted/50">
+                {feedback.extractedText ? (
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown>{feedback.extractedText}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No text content available. Download the PDF to view the full document.
+                  </p>
+                )}
+              </div>
+            </TabsContent>
 
-          <TabsContent value="notes" className="space-y-4">
-            <Textarea
-              value={notes || feedback.notes || ''}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add notes about this feedback..."
-              rows={10}
-              maxLength={5000}
-            />
-            <Button onClick={handleSaveNotes} disabled={isSavingNotes}>
-              {isSavingNotes ? (
-                <>Saving...</>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Notes
-                </>
-              )}
-            </Button>
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="notes" className="flex-1 overflow-y-auto space-y-4">
+              <Textarea
+                value={notes || feedback.notes || ''}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add notes about this feedback..."
+                rows={10}
+                maxLength={5000}
+              />
+              <Button onClick={handleSaveNotes} disabled={isSavingNotes}>
+                {isSavingNotes ? (
+                  <>Saving...</>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Notes
+                  </>
+                )}
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </div>
 
         <DialogFooter className="flex justify-between">
           <div className="flex gap-2">

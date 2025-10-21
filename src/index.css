@@ -905,6 +905,29 @@ a:hover,
   width: 100% !important;
 }
 
+/* Enhanced focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2);
+}
+
+/* Ensure focus states are visible on all interactive elements */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[role="button"]:focus,
+[tabindex]:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
 /* ENHANCED Data Tables & Lists for better mobile readability */
 .table-enhanced {
   border-collapse: separate;
