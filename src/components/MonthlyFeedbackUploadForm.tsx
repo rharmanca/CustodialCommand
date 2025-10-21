@@ -210,16 +210,18 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
 
             <div className="space-y-2">
               <Label htmlFor="year">Year <span className="text-red-500">*</span></Label>
-              <Input
-                id="year"
-                type="number"
-                min="2020"
-                max="2100"
-                value={formData.year}
-                onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
-                className={errors.year ? 'border-red-500' : ''}
-                required
-              />
+              <Select value={formData.year} onValueChange={(value) => setFormData(prev => ({ ...prev, year: value }))}>
+                <SelectTrigger className={errors.year ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
             </div>
           </div>

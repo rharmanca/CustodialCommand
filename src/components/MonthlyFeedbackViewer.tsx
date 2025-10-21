@@ -112,7 +112,7 @@ export function MonthlyFeedbackViewer({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent ref={modalRef} className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent ref={modalRef} className="w-[70vw] h-[70vh] max-w-6xl overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center justify-between text-xl">
             <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export function MonthlyFeedbackViewer({
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">
-                    No text content available. Download the PDF to view the full document.
+                    Text could not be extracted – download the PDF to view.
                   </p>
                 )}
               </div>
@@ -186,11 +186,17 @@ export function MonthlyFeedbackViewer({
         </div>
 
         <DialogFooter className="flex justify-between">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <Button onClick={handleDownload} variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
+            {feedback.fileSize && (
+              <p className="text-xs text-muted-foreground">
+                Download original PDF – {(feedback.fileSize / 1024 / 1024).toFixed(2)} MB
+              </p>
+            )}
+          </div>
             {isAdmin && onDelete && (
               <Button onClick={handleDelete} variant="destructive">
                 <Trash2 className="w-4 h-4 mr-2" />

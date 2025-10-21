@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Eye, Calendar } from 'lucide-react';
+import { FileText, Download, Eye, Calendar, User, File } from 'lucide-react';
 import type { MonthlyFeedback } from '../../shared/schema';
 
 interface MonthlyFeedbackCardProps {
@@ -49,6 +49,22 @@ export function MonthlyFeedbackCard({ feedback, onView, onDownload }: MonthlyFee
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-4">
+          {/* Uploader and file size info */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            {feedback.uploadedBy && (
+              <div className="flex items-center gap-1">
+                <User className="w-3 h-3" />
+                <span>{feedback.uploadedBy}</span>
+              </div>
+            )}
+            {feedback.fileSize && (
+              <div className="flex items-center gap-1">
+                <File className="w-3 h-3" />
+                <span>{(feedback.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+              </div>
+            )}
+          </div>
+          
           <p className="text-sm text-muted-foreground line-clamp-3">
             {getExcerpt()}
           </p>

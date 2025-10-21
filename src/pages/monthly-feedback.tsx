@@ -121,8 +121,8 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
   const getSchoolFullName = (code: string) => {
     const schoolNames: Record<string, string> = {
       'ASA': 'Academy of Science and Agriculture',
-      'LCA': 'Leadership and Community Academy',
-      'GWC': 'Global Works and Citizenship',
+      'LCA': 'Leadership and Community Academy', 
+      'GWC': 'Gracewood College',
       'OA': 'Outdoor Academy',
       'CBR': 'Community and Business Relations',
       'WLC': 'World Languages and Cultures'
@@ -215,11 +215,11 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Input
-                  placeholder="Search by school, month, or notes…"
+                  placeholder="Search by title, uploader, notes or month…"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   className="w-full"
-                  aria-label="Search feedback by school, month, or notes"
+                  aria-label="Search feedback by title, uploader, notes or month"
                 />
               </div>
 
