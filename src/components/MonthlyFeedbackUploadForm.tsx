@@ -121,7 +121,9 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
       formDataToSend.append('school', formData.school);
       formDataToSend.append('month', formData.month);
       formDataToSend.append('year', formData.year);
-      formDataToSend.append('pdf', pdfFile);
+      if (pdfFile) {
+        formDataToSend.append('pdf', pdfFile);
+      }
       if (formData.notes) formDataToSend.append('notes', formData.notes);
       if (formData.uploadedBy) formDataToSend.append('uploadedBy', formData.uploadedBy);
 

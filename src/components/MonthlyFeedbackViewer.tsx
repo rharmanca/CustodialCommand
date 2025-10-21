@@ -197,14 +197,15 @@ export function MonthlyFeedbackViewer({
               </p>
             )}
           </div>
+          <div className="flex items-center gap-2">
             {isAdmin && onDelete && (
               <Button onClick={handleDelete} variant="destructive">
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
             )}
+            <Button onClick={onClose}>Close</Button>
           </div>
-          <Button onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
