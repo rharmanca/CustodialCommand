@@ -182,7 +182,7 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {onBack && (
-        <Button onClick={onBack} variant="outline" className="mb-4">
+        <Button onClick={onBack} variant="outline" className="mb-4 back-button">
           ← Back to Home
         </Button>
       )}

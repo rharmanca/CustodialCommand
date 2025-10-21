@@ -65,12 +65,19 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   isOpen,
   onToggle
 }) => {
+  // Draft state to avoid auto-applying until user confirms
+  const [draft, setDraft] = useState<FilterState>(filters);
+
+  // Keep draft in sync when external filters reset (e.g., Clear All outside)
+  React.useEffect(() => {
+    setDraft(filters);
+  }, [filters, isOpen]);
   // Get unique schools and inspectors
   const schools = Array.from(new Set(inspections.map(i => i.school).filter(Boolean))).sort();
   const inspectors = Array.from(new Set(inspections.map(i => i.inspectorName).filter(Boolean))).sort();
 
   const updateFilter = (key: keyof FilterState, value: any) => {
-    onFiltersChange({ ...filters, [key]: value });
+    setDraft(prev => ({ ...prev, [key]: value }));
   };
 
   const applyDatePreset = (preset: keyof typeof FILTER_PRESETS) => {
@@ -79,7 +86,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   };
 
   const toggleArrayFilter = (key: 'schools' | 'severityLevels' | 'categories' | 'inspectors', value: string) => {
-    const currentArray = filters[key] as string[];
+    const currentArray = (draft[key] as string[]) || [];
     const newArray = currentArray.includes(value)
       ? currentArray.filter(item => item !== value)
       : [...currentArray, value];
@@ -88,16 +95,16 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   const getActiveFilterCount = () => {
     let count = 0;
-    if (filters.search) count++;
-    if (filters.dateRange.from || filters.dateRange.to) count++;
-    if (filters.schools.length > 0) count++;
-    if (filters.severityLevels.length > 0) count++;
-    if (filters.categories.length > 0) count++;
-    if (filters.inspectors.length > 0) count++;
-    if (filters.ratingThreshold > 0) count++;
-    if (filters.inspectionType !== 'all') count++;
-    if (filters.showProblemsOnly) count++;
-    if (filters.hasCustodialNotes) count++;
+    if (draft.search) count++;
+    if (draft.dateRange.from || draft.dateRange.to) count++;
+    if (draft.schools.length > 0) count++;
+    if (draft.severityLevels.length > 0) count++;
+    if (draft.categories.length > 0) count++;
+    if (draft.inspectors.length > 0) count++;
+    if (draft.ratingThreshold > 0) count++;
+    if (draft.inspectionType !== 'all') count++;
+    if (draft.showProblemsOnly) count++;
+    if (draft.hasCustodialNotes) count++;
     return count;
   };
 
@@ -107,6 +114,27 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   };
 
   const activeFilterCount = getActiveFilterCount();
+
+  const applyDraft = () => {
+    onFiltersChange(draft);
+    onToggle();
+  };
+
+  const resetDraft = () => {
+    onClearFilters();
+    setDraft({
+      search: '',
+      dateRange: { from: null, to: null },
+      schools: [],
+      severityLevels: [],
+      categories: [],
+      inspectors: [],
+      ratingThreshold: 0,
+      inspectionType: 'all',
+      showProblemsOnly: false,
+      hasCustodialNotes: false
+    });
+  };
 
   return (
     <Card className="w-full">
@@ -154,7 +182,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <Input
                 id="search"
                 placeholder="Search by school, room, location, or notes..."
-                value={filters.search}
+                value={draft.search}
                 onChange={(e) => updateFilter('search', e.target.value)}
               />
             </div>
@@ -164,28 +192,28 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <Label>Date Range</Label>
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  variant={filters.dateRange.from?.getTime() === FILTER_PRESETS.last7Days.from.getTime() ? "default" : "outline"}
+                  variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.last7Days.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('last7Days')}
                 >
                   Last 7 Days
                 </Button>
                 <Button
-                  variant={filters.dateRange.from?.getTime() === FILTER_PRESETS.last30Days.from.getTime() ? "default" : "outline"}
+                  variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.last30Days.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('last30Days')}
                 >
                   Last 30 Days
                 </Button>
                 <Button
-                  variant={filters.dateRange.from?.getTime() === FILTER_PRESETS.thisMonth.from.getTime() ? "default" : "outline"}
+                  variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.thisMonth.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('thisMonth')}
                 >
                   This Month
                 </Button>
                 <Button
-                  variant={filters.dateRange.from?.getTime() === FILTER_PRESETS.thisQuarter.from.getTime() ? "default" : "outline"}
+                  variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.thisQuarter.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('thisQuarter')}
                 >
@@ -198,9 +226,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Input
                     id="dateFrom"
                     type="date"
-                    value={filters.dateRange.from ? format(filters.dateRange.from, 'yyyy-MM-dd') : ''}
+                  value={draft.dateRange.from ? format(draft.dateRange.from, 'yyyy-MM-dd') : ''}
                     onChange={(e) => updateFilter('dateRange', {
-                      ...filters.dateRange,
+                      ...draft.dateRange,
                       from: e.target.value ? new Date(e.target.value) : null
                     })}
                   />
@@ -210,9 +238,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Input
                     id="dateTo"
                     type="date"
-                    value={filters.dateRange.to ? format(filters.dateRange.to, 'yyyy-MM-dd') : ''}
+                  value={draft.dateRange.to ? format(draft.dateRange.to, 'yyyy-MM-dd') : ''}
                     onChange={(e) => updateFilter('dateRange', {
-                      ...filters.dateRange,
+                      ...draft.dateRange,
                       to: e.target.value ? new Date(e.target.value) : null
                     })}
                   />
@@ -227,7 +255,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 {schools.map(school => (
                   <Button
                     key={school}
-                    variant={filters.schools.includes(school) ? "default" : "outline"}
+                    variant={draft.schools.includes(school) ? "default" : "outline"}
                     size="sm"
                     onClick={() => toggleArrayFilter('schools', school)}
                   >
@@ -244,7 +272,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="critical"
-                    checked={filters.severityLevels.includes('critical')}
+                    checked={draft.severityLevels.includes('critical')}
                     onCheckedChange={() => toggleArrayFilter('severityLevels', 'critical')}
                   />
                   <Label htmlFor="critical" className="text-red-600">Critical (&lt; 2.0)</Label>
@@ -252,7 +280,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="needs-attention"
-                    checked={filters.severityLevels.includes('needs-attention')}
+                    checked={draft.severityLevels.includes('needs-attention')}
                     onCheckedChange={() => toggleArrayFilter('severityLevels', 'needs-attention')}
                   />
                   <Label htmlFor="needs-attention" className="text-orange-600">Needs Attention (2.0-3.0)</Label>
@@ -260,7 +288,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="acceptable"
-                    checked={filters.severityLevels.includes('acceptable')}
+                    checked={draft.severityLevels.includes('acceptable')}
                     onCheckedChange={() => toggleArrayFilter('severityLevels', 'acceptable')}
                   />
                   <Label htmlFor="acceptable" className="text-green-600">Acceptable (&gt; 3.0)</Label>
@@ -270,9 +298,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
             {/* Rating Threshold */}
             <div className="space-y-2">
-              <Label>Minimum Rating: {filters.ratingThreshold.toFixed(1)}</Label>
+              <Label>Minimum Rating: {draft.ratingThreshold.toFixed(1)}</Label>
               <Slider
-                value={[filters.ratingThreshold]}
+                value={[draft.ratingThreshold]}
                 onValueChange={([value]) => updateFilter('ratingThreshold', value)}
                 max={5}
                 min={0}
@@ -300,7 +328,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <div key={category.key} className="flex items-center space-x-2">
                       <Checkbox
                         id={category.key}
-                        checked={filters.categories.includes(category.key)}
+                    checked={draft.categories.includes(category.key)}
                         onCheckedChange={() => toggleArrayFilter('categories', category.key)}
                       />
                       <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
@@ -323,7 +351,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   {inspectors.map(inspector => (
                     <Button
                       key={inspector}
-                      variant={filters.inspectors.includes(inspector) ? "default" : "outline"}
+                    variant={draft.inspectors.includes(inspector) ? "default" : "outline"}
                       size="sm"
                       onClick={() => toggleArrayFilter('inspectors', inspector)}
                       title={getInspectorFullName(inspector)}
@@ -339,7 +367,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             <div className="space-y-2">
               <Label>Inspection Type</Label>
               <Select
-                value={filters.inspectionType}
+                value={draft.inspectionType}
                 onValueChange={(value: 'all' | 'single_room' | 'whole_building') => updateFilter('inspectionType', value)}
               >
                 <SelectTrigger>
@@ -360,7 +388,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="problemsOnly"
-                    checked={filters.showProblemsOnly}
+                    checked={draft.showProblemsOnly}
                     onCheckedChange={(checked) => updateFilter('showProblemsOnly', !!checked)}
                   />
                   <Label htmlFor="problemsOnly">Problems Only</Label>
@@ -368,7 +396,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="hasNotes"
-                    checked={filters.hasCustodialNotes}
+                    checked={draft.hasCustodialNotes}
                     onCheckedChange={(checked) => updateFilter('hasCustodialNotes', !!checked)}
                   />
                   <Label htmlFor="hasNotes">Has Custodial Notes</Label>
@@ -380,14 +408,14 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             <div className="flex justify-between pt-4 border-t">
               <Button
                 variant="outline"
-                onClick={onClearFilters}
+                onClick={resetDraft}
                 className="flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
                 Reset Filters
               </Button>
               <Button
-                onClick={() => onToggle()}
+                onClick={applyDraft}
                 className="flex items-center gap-2"
               >
                 Apply Filters

@@ -918,6 +918,23 @@ export default function WholeBuildingInspectionPage({
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
+      {/* Primary call-to-action placed above progress table */}
+      {!showInspectionSelector && (
+        <Card className="border-primary/30">
+          <CardContent className="py-4 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="font-semibold">Start New Building Inspection</div>
+              <div className="text-sm text-muted-foreground">Guided, step-by-step workflow to complete all required areas</div>
+            </div>
+            <Button
+              onClick={startNewInspection}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              🏢 Start New Building Inspection
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       {finalized && (
         <Card className="border-green-300 bg-green-50">
           <CardContent className="py-4 flex items-center justify-between gap-4">
@@ -943,7 +960,7 @@ export default function WholeBuildingInspectionPage({
             <Button
               variant="outline"
               onClick={onBack}
-              className="flex-shrink-0"
+              className="flex-shrink-0 back-button"
             >
               ← Back
             </Button>

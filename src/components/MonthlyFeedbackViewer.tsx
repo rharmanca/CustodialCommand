@@ -39,6 +39,21 @@ export function MonthlyFeedbackViewer({
 
   if (!feedback) return null;
 
+  // Safe data access with null checks
+  const safeFeedback = {
+    id: feedback.id || 0,
+    school: feedback.school || 'Unknown School',
+    month: feedback.month || 'Unknown Month',
+    year: feedback.year || new Date().getFullYear(),
+    pdfUrl: feedback.pdfUrl || '',
+    pdfFileName: feedback.pdfFileName || 'document.pdf',
+    extractedText: feedback.extractedText || null,
+    notes: feedback.notes || null,
+    uploadedBy: feedback.uploadedBy || null,
+    fileSize: feedback.fileSize || null,
+    createdAt: feedback.createdAt || new Date().toISOString()
+  };
+
   // Focus trap and keyboard handling
   useEffect(() => {
     if (!isOpen) return;
@@ -79,7 +94,7 @@ export function MonthlyFeedbackViewer({
   const handleSaveNotes = async () => {
     setIsSavingNotes(true);
     try {
-      const response = await fetch(`/api/monthly-feedback/${feedback.id}/notes`, {
+      const response = await fetch(`/api/monthly-feedback/${safeFeedback.id}/notes`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
@@ -105,8 +120,8 @@ export function MonthlyFeedbackViewer({
   };
 
   const handleDelete = () => {
-    if (onDelete && confirm(`Are you sure you want to delete feedback for ${feedback.month} ${feedback.year}?`)) {
-      onDelete(feedback.id);
+    if (onDelete && confirm(`Are you sure you want to delete feedback for ${safeFeedback.month} ${safeFeedback.year}?`)) {
+      onDelete(safeFeedback.id);
     }
   };
 
@@ -117,24 +132,24 @@ export function MonthlyFeedbackViewer({
           <DialogTitle className="flex items-center justify-between text-xl">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              {feedback.month} {feedback.year} - {feedback.school}
+              {safeFeedback.month} {safeFeedback.year} - {safeFeedback.school}
             </div>
-            <Badge>{feedback.school}</Badge>
+            <Badge>{safeFeedback.school}</Badge>
           </DialogTitle>
           <DialogDescription>
             <div className="flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {new Date(feedback.createdAt).toLocaleDateString()}
+                {new Date(safeFeedback.createdAt).toLocaleDateString()}
               </span>
-              {feedback.uploadedBy && (
+              {safeFeedback.uploadedBy && (
                 <span className="flex items-center gap-1">
                   <User className="w-4 h-4" />
-                  {feedback.uploadedBy}
+                  {safeFeedback.uploadedBy}
                 </span>
               )}
-              {feedback.fileSize && (
-                <span>Size: {(feedback.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+              {safeFeedback.fileSize && (
+                <span>Size: {(safeFeedback.fileSize / 1024 / 1024).toFixed(2)} MB</span>
               )}
             </div>
           </DialogDescription>
@@ -151,9 +166,9 @@ export function MonthlyFeedbackViewer({
 
             <TabsContent value="content" className="flex-1 overflow-y-auto space-y-4">
               <div className="border rounded-lg p-4 bg-muted/50">
-                {feedback.extractedText ? (
+                {safeFeedback.extractedText ? (
                   <div className="prose prose-sm max-w-none">
-                    <ReactMarkdown>{feedback.extractedText}</ReactMarkdown>
+                    <ReactMarkdown>{safeFeedback.extractedText}</ReactMarkdown>
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">
@@ -165,7 +180,7 @@ export function MonthlyFeedbackViewer({
 
             <TabsContent value="notes" className="flex-1 overflow-y-auto space-y-4">
               <Textarea
-                value={notes || feedback.notes || ''}
+                value={notes || safeFeedback.notes || ''}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes about this feedback..."
                 rows={10}
@@ -191,9 +206,9 @@ export function MonthlyFeedbackViewer({
               <Download className="w-4 h-4 mr-2" />
               Download PDF
             </Button>
-            {feedback.fileSize && (
+            {safeFeedback.fileSize && (
               <p className="text-xs text-muted-foreground">
-                Download original PDF – {(feedback.fileSize / 1024 / 1024).toFixed(2)} MB
+                Download original PDF – {(safeFeedback.fileSize / 1024 / 1024).toFixed(2)} MB
               </p>
             )}
           </div>

@@ -116,15 +116,16 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Export Data</DialogTitle>
-          <DialogDescription>
-            Choose format and options for exporting inspection data and reports
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+        <div className="flex flex-col h-full">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle>Export Data</DialogTitle>
+            <DialogDescription>
+              Choose format and options for exporting inspection data and reports
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 pt-4 space-y-6">
           {/* Format Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Export Format</Label>
@@ -236,9 +237,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
               )}
             </CardContent>
           </Card>
+          </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 p-6 border-t">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>

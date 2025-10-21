@@ -210,8 +210,8 @@ const GroupedInspectionCard: React.FC<GroupedInspectionCardProps> = ({
                           <MapPin className="w-3 h-3 text-muted-foreground" />
                           <span className="text-sm font-medium text-foreground">
                             {inspection.inspectionType === 'single_room' 
-                              ? `Room ${inspection.roomNumber}` 
-                              : `Building: ${inspection.buildingName}`
+                              ? `Room ${inspection.roomNumber ?? 'Not specified'}` 
+                              : `Building: ${inspection.buildingName || inspection.locationDescription || 'Whole Building'}`
                             }
                           </span>
                         </div>

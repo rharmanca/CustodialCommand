@@ -764,7 +764,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 {inspection.inspectionType === 'single_room' 
-                                  ? `Room ${inspection.roomNumber}` 
+                                  ? `Room ${inspection.roomNumber ?? 'Not specified'}` 
                                   : `Building: ${inspection.buildingName || inspection.locationDescription || 'Whole Building'}`
                                 }
                               </p>

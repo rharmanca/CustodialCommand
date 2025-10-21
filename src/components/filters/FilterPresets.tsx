@@ -224,7 +224,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
                 isActive 
                   ? 'bg-primary text-primary-foreground border-2 border-primary shadow-lg' 
                   : 'hover:bg-muted/50'
-              }`}
+              } ${isActive ? 'outline outline-2 outline-primary' : ''}`}
               onClick={() => handlePresetClick(preset)}
             >
               <div className="flex items-center gap-2 w-full">
