@@ -219,6 +219,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
           return (
             <Button
               key={preset.id}
+              type="button"
               variant={isActive ? "default" : "outline"}
               className={`h-auto p-4 flex flex-col items-start gap-2 text-left relative ${
                 isActive 
@@ -232,6 +233,7 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
                 <span className="font-medium text-sm">{preset.label}</span>
                 {isActive && (
                   <button
+                    type="button"
                     onClick={(e) => handleDeselectPreset(preset, e)}
                     className="ml-auto p-1 rounded-full hover:bg-primary-foreground/20 transition-colors"
                     aria-label={`Remove ${preset.label} filter`}

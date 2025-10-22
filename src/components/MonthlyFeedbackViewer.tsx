@@ -38,6 +38,7 @@ export function MonthlyFeedbackViewer({
   const [loadedFeedback, setLoadedFeedback] = useState<MonthlyFeedback | null>(feedback);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Attempt to fetch full details by ID when opening the viewer to ensure we have the latest data
@@ -51,7 +52,15 @@ export function MonthlyFeedbackViewer({
       try {
         setIsLoadingDetail(true);
         const resp = await fetch(`/api/monthly-feedback/${feedback.id}`);
-        if (!resp.ok) throw new Error(`Failed to load details (${resp.status})`);
+        if (!resp.ok) {
+          if (resp.status === 404) {
+            throw new Error('This feedback report was not found. It may have been deleted.');
+          } else if (resp.status === 500) {
+            throw new Error('Server error occurred while loading the report.');
+          } else {
+            throw new Error(`Unable to load report (Error ${resp.status})`);
+          }
+        }
         const data = (await resp.json()) as MonthlyFeedback;
         if (!cancelled) {
           setLoadedFeedback(data);
@@ -59,7 +68,7 @@ export function MonthlyFeedbackViewer({
       } catch (err) {
         console.error('Failed to load feedback details:', err);
         if (!cancelled) {
-          setLoadError('We could not load this report right now.');
+          setLoadError(err instanceof Error ? err.message : 'We could not load this report right now.');
         }
       } finally {
         if (!cancelled) setIsLoadingDetail(false);
@@ -69,7 +78,7 @@ export function MonthlyFeedbackViewer({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, feedback?.id]);
+  }, [isOpen, feedback?.id, retryTrigger]);
 
   if (!feedback) return null;
 
@@ -200,9 +209,22 @@ export function MonthlyFeedbackViewer({
             <div className="p-6">
               <div className="border rounded-md p-4 bg-muted/50">
                 <p className="text-sm text-destructive">{loadError}</p>
-                <p className="text-sm text-muted-foreground mt-2">You can try again later or download the original PDF if available.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  You can try again or download the original PDF if available.
+                </p>
                 <div className="mt-4 flex gap-2">
-                  <Button onClick={onClose} variant="outline">Back to Feedback Reports</Button>
+                  <Button 
+                    onClick={() => {
+                      setLoadError(null);
+                      setRetryTrigger(prev => prev + 1);
+                    }} 
+                    variant="outline"
+                  >
+                    Retry
+                  </Button>
+                  <Button onClick={onClose} variant="outline">
+                    Back to Feedback Reports
+                  </Button>
                   {safeFeedback.pdfUrl && (
                     <Button onClick={handleDownload}>
                       <Download className="w-4 h-4 mr-2" />

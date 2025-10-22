@@ -162,6 +162,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <div className="flex items-center gap-2">
                 {activeFilterCount > 0 && (
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={(e: React.MouseEvent) => {
@@ -200,6 +201,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <Label>Date Range</Label>
               <div className="flex gap-2 flex-wrap">
                 <Button
+                  type="button"
                   variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.last7Days.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('last7Days')}
@@ -207,6 +209,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   Last 7 Days
                 </Button>
                 <Button
+                  type="button"
                   variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.last30Days.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('last30Days')}
@@ -214,6 +217,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   Last 30 Days
                 </Button>
                 <Button
+                  type="button"
                   variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.thisMonth.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('thisMonth')}
@@ -221,6 +225,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   This Month
                 </Button>
                 <Button
+                  type="button"
                   variant={draft.dateRange.from?.getTime() === FILTER_PRESETS.thisQuarter.from.getTime() ? "default" : "outline"}
                   size="sm"
                   onClick={() => applyDatePreset('thisQuarter')}
@@ -263,6 +268,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 {schools.map(school => (
                   <Button
                     key={school}
+                    type="button"
                     variant={draft.schools.includes(school) ? "default" : "outline"}
                     size="sm"
                     onClick={() => toggleArrayFilter('schools', school)}
@@ -325,7 +331,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             {/* Categories - Collapsible */}
             <Collapsible>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                <Button type="button" variant="ghost" className="w-full justify-between p-0 h-auto">
                   <Label className="text-base font-medium">Categories</Label>
                   <ChevronDown className="w-4 h-4" />
                 </Button>
@@ -349,7 +355,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             {/* Inspectors - Collapsible */}
             <Collapsible>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between p-0 h-auto">
+                <Button type="button" variant="ghost" className="w-full justify-between p-0 h-auto">
                   <Label className="text-base font-medium">Inspectors</Label>
                   <ChevronDown className="w-4 h-4" />
                 </Button>
@@ -359,7 +365,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   {inspectors.map(inspector => (
                     <Button
                       key={inspector}
-                    variant={draft.inspectors.includes(inspector) ? "default" : "outline"}
+                      type="button"
+                      variant={draft.inspectors.includes(inspector) ? "default" : "outline"}
                       size="sm"
                       onClick={() => toggleArrayFilter('inspectors', inspector)}
                       title={getInspectorFullName(inspector)}
@@ -415,6 +422,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             {/* Apply and Reset Buttons */}
             <div className="flex justify-between pt-4 border-t">
               <Button
+                type="button"
                 variant="outline"
                 onClick={resetDraft}
                 className="flex items-center gap-2"
@@ -423,6 +431,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 Reset Filters
               </Button>
               <Button
+                type="button"
                 onClick={applyDraft}
                 className="flex items-center gap-2"
               >

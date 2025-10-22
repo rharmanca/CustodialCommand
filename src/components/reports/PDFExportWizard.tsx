@@ -265,7 +265,13 @@ const PDFExportWizard: React.FC<PDFExportWizardProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && (
-        <div onClick={() => setOpen(true)}>
+        <div 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setOpen(true);
+          }}
+        >
           {trigger}
         </div>
       )}

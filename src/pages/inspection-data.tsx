@@ -596,7 +596,11 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <Button 
-            onClick={onBack} 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onBack) onBack();
+            }}
             variant="outline" 
             className="mb-4 back-button"
           >
@@ -679,7 +683,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                     availableSchools={schools}
                     availableCategories={categories}
                     trigger={
-                      <Button variant="outline" className="flex items-center gap-2">
+                      <Button type="button" variant="outline" className="flex items-center gap-2">
                         <FileText className="w-4 h-4" />
                         Export PDF Report
                       </Button>
