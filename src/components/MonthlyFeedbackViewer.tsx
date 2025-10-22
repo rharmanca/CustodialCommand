@@ -213,7 +213,8 @@ export function MonthlyFeedbackViewer({
               </div>
             </div>
           )}
-          <Tabs defaultValue="content" className="w-full h-full flex flex-col">
+          {!isLoadingDetail && !loadError && (
+            <Tabs defaultValue="content" className="w-full h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
               <TabsTrigger value="content">Extracted Content</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
@@ -253,6 +254,7 @@ export function MonthlyFeedbackViewer({
               </Button>
             </TabsContent>
           </Tabs>
+          )}
         </div>
 
         <DialogFooter className="flex justify-between">
