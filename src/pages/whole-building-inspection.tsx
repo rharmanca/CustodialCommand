@@ -361,6 +361,7 @@ export default function WholeBuildingInspectionPage({
 
   // Function to start a new inspection
   const startNewInspection = () => {
+    // Do not clear building-level fields; preserve inspectorName, school, and date
     setShowInspectionSelector(false);
     setIsResuming(false);
     setBuildingInspectionId(null);
@@ -371,10 +372,8 @@ export default function WholeBuildingInspectionPage({
       });
       return initial;
     });
-    setFormData({
-      inspectorName: "",
-      school: "",
-      date: "",
+    setFormData((prev) => ({
+      ...prev,
       inspectionType: "whole_building",
       locationCategory: "",
       roomNumber: "",
@@ -392,7 +391,7 @@ export default function WholeBuildingInspectionPage({
       monitoring: -1,
       notes: "",
       comments: "",
-    });
+    }));
   };
 
   const handleInputChange = (field: string, value: string | number) => {
