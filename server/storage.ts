@@ -1,148 +1,203 @@
-import {
-  users,
-  inspections,
-  custodialNotes,
-  roomInspections,
-  type User,
-  type InsertUser,
-  type Inspection,
-  type InsertInspection,
-  type CustodialNote,
-  type InsertCustodialNote,
-  type RoomInspection,
-  type InsertRoomInspection,
-} from "../shared/schema";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { db } from './db';
+import { inspections, custodialNotes, roomInspections, monthlyFeedback } from '../shared/schema';
+import type { InsertInspection, InsertCustodialNote, InsertRoomInspection, InsertMonthlyFeedback } from '../shared/schema';
+import { eq, desc } from 'drizzle-orm';
+import { logger } from './logger';
 
-// modify the interface with any CRUD methods
-// you might need
-
-export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  createInspection(inspection: InsertInspection): Promise<Inspection>;
-  getInspections(): Promise<Inspection[]>;
-  getInspection(id: number): Promise<Inspection | undefined>;
-  updateInspection(id: number, updates: Partial<Inspection>): Promise<Inspection | undefined>;
-  deleteInspection(id: number): Promise<boolean>;
-  createCustodialNote(custodialNote: InsertCustodialNote): Promise<CustodialNote>;
-  getCustodialNotes(): Promise<CustodialNote[]>;
-  getCustodialNote(id: number): Promise<CustodialNote | undefined>;
-  createRoomInspection(roomInspection: InsertRoomInspection): Promise<RoomInspection>;
-  getRoomInspections(): Promise<RoomInspection[]>;
-  getRoomInspection(id: number): Promise<RoomInspection | undefined>;
-  getRoomInspectionsByBuildingId(buildingInspectionId: number): Promise<RoomInspection[]>;
-}
-
-export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values([insertUser])
-      .returning();
-    return user;
-  }
-
-  async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
-    console.log('Creating inspection with data:', JSON.stringify(insertInspection, null, 2));
-
+export const storage = {
+  // Inspection methods
+  async createInspection(data: InsertInspection) {
     try {
-      const [inspection] = await db.insert(inspections).values([insertInspection]).returning();
-      console.log('Successfully created inspection:', inspection);
-      return inspection;
+      const [result] = await db.insert(inspections).values(data).returning();
+      logger.info('Created inspection:', { id: result.id });
+      return result;
     } catch (error) {
-      console.error('Database error creating inspection:', error);
+      logger.error('Error creating inspection:', error);
+      throw error;
+    }
+  },
+
+  async getInspections() {
+    try {
+      const result = await db.select().from(inspections);
+      logger.info(`Retrieved ${result.length} inspections`);
+      return result;
+    } catch (error) {
+      logger.error('Error getting inspections:', error);
+      throw error;
+    }
+  },
+
+  async getInspection(id: number) {
+    try {
+      const [result] = await db.select().from(inspections).where(eq(inspections.id, id));
+      logger.info('Retrieved inspection:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error getting inspection:', error);
+      throw error;
+    }
+  },
+
+  async updateInspection(id: number, data: Partial<InsertInspection>) {
+    try {
+      const [result] = await db.update(inspections).set(data).where(eq(inspections.id, id)).returning();
+      logger.info('Updated inspection:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error updating inspection:', error);
+      throw error;
+    }
+  },
+
+  async deleteInspection(id: number) {
+    try {
+      await db.delete(inspections).where(eq(inspections.id, id));
+      logger.info('Deleted inspection:', { id });
+      return true;
+    } catch (error) {
+      logger.error('Error deleting inspection:', error);
+      return false;
+    }
+  },
+
+  // Custodial Notes methods
+  async createCustodialNote(data: InsertCustodialNote) {
+    try {
+      const [result] = await db.insert(custodialNotes).values(data).returning();
+      logger.info('Created custodial note:', { id: result.id });
+      return result;
+    } catch (error) {
+      logger.error('Error creating custodial note:', error);
+      throw error;
+    }
+  },
+
+  async getCustodialNotes() {
+    try {
+      const result = await db.select().from(custodialNotes);
+      logger.info(`Retrieved ${result.length} custodial notes`);
+      return result;
+    } catch (error) {
+      logger.error('Error getting custodial notes:', error);
+      throw error;
+    }
+  },
+
+  async getCustodialNote(id: number) {
+    try {
+      const [result] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
+      logger.info('Retrieved custodial note:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error getting custodial note:', error);
+      throw error;
+    }
+  },
+
+  async deleteCustodialNote(id: number) {
+    try {
+      await db.delete(custodialNotes).where(eq(custodialNotes.id, id));
+      logger.info('Deleted custodial note:', { id });
+      return true;
+    } catch (error) {
+      logger.error('Error deleting custodial note:', error);
+      return false;
+    }
+  },
+
+  // Room Inspections methods
+  async createRoomInspection(data: InsertRoomInspection) {
+    try {
+      const [result] = await db.insert(roomInspections).values(data).returning();
+      logger.info('Created room inspection:', { id: result.id });
+      return result;
+    } catch (error) {
+      logger.error('Error creating room inspection:', error);
+      throw error;
+    }
+  },
+
+  async getRoomInspections() {
+    try {
+      const result = await db.select().from(roomInspections);
+      logger.info(`Retrieved ${result.length} room inspections`);
+      return result;
+    } catch (error) {
+      logger.error('Error getting room inspections:', error);
+      throw error;
+    }
+  },
+
+  async getRoomInspection(id: number) {
+    try {
+      const [result] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
+      logger.info('Retrieved room inspection:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error getting room inspection:', error);
+      throw error;
+    }
+  },
+
+  // Monthly Feedback methods
+  async createMonthlyFeedback(data: InsertMonthlyFeedback) {
+    try {
+      const [result] = await db.insert(monthlyFeedback).values(data).returning();
+      logger.info('Created monthly feedback:', { id: result.id, school: result.school });
+      return result;
+    } catch (error) {
+      logger.error('Error creating monthly feedback:', error);
+      throw error;
+    }
+  },
+
+  async getMonthlyFeedback() {
+    try {
+      const result = await db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
+      logger.info(`Retrieved ${result.length} monthly feedback documents`);
+      return result;
+    } catch (error) {
+      logger.error('Error getting monthly feedback:', error);
+      throw error;
+    }
+  },
+
+  async getMonthlyFeedbackById(id: number) {
+    try {
+      const [result] = await db.select().from(monthlyFeedback)
+        .where(eq(monthlyFeedback.id, id));
+      logger.info('Retrieved monthly feedback:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error getting monthly feedback by id:', error);
+      throw error;
+    }
+  },
+
+  async deleteMonthlyFeedback(id: number) {
+    try {
+      await db.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
+      logger.info('Deleted monthly feedback:', { id });
+      return true;
+    } catch (error) {
+      logger.error('Error deleting monthly feedback:', error);
+      return false;
+    }
+  },
+
+  async updateMonthlyFeedbackNotes(id: number, notes: string) {
+    try {
+      const [result] = await db.update(monthlyFeedback)
+        .set({ notes })
+        .where(eq(monthlyFeedback.id, id))
+        .returning();
+      logger.info('Updated monthly feedback notes:', { id });
+      return result;
+    } catch (error) {
+      logger.error('Error updating monthly feedback notes:', error);
       throw error;
     }
   }
+};
 
-  async getInspections(): Promise<Inspection[]> {
-    return await db.select().from(inspections);
-  }
-
-  async getInspection(id: number): Promise<Inspection | undefined> {
-    const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
-    return inspection || undefined;
-  }
-
-  async createCustodialNote(insertCustodialNote: InsertCustodialNote): Promise<CustodialNote> {
-    const [custodialNote] = await db
-      .insert(custodialNotes)
-      .values([insertCustodialNote])
-      .returning();
-    return custodialNote;
-  }
-
-  async getCustodialNotes(): Promise<CustodialNote[]> {
-    return await db.select().from(custodialNotes);
-  }
-
-  async getCustodialNote(id: number): Promise<CustodialNote | undefined> {
-    const [custodialNote] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
-    return custodialNote || undefined;
-  }
-
-  async updateInspection(id: number, updates: Partial<Inspection>): Promise<Inspection | undefined> {
-    const [inspection] = await db
-      .update(inspections)
-      .set(updates)
-      .where(eq(inspections.id, id))
-      .returning();
-    return inspection || undefined;
-  }
-
-  async updateRoomInspection(
-    id: number,
-    updates: Partial<RoomInspection>
-  ): Promise<RoomInspection | undefined> {
-    const [room] = await db
-      .update(roomInspections)
-      .set(updates)
-      .where(eq(roomInspections.id, id))
-      .returning();
-    return room || undefined;
-  }
-
-  async createRoomInspection(insertRoomInspection: InsertRoomInspection): Promise<RoomInspection> {
-    const [roomInspection] = await db
-      .insert(roomInspections)
-      .values([insertRoomInspection])
-      .returning();
-    return roomInspection;
-  }
-
-  async getRoomInspections(): Promise<RoomInspection[]> {
-    return await db.select().from(roomInspections);
-  }
-
-  async getRoomInspection(id: number): Promise<RoomInspection | undefined> {
-    const [roomInspection] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
-    return roomInspection || undefined;
-  }
-
-  async getRoomInspectionsByBuildingId(buildingInspectionId: number): Promise<RoomInspection[]> {
-    return await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
-  }
-
-  async deleteInspection(id: number): Promise<boolean> {
-    const result = await db
-      .delete(inspections)
-      .where(eq(inspections.id, id))
-      .returning();
-    return result.length > 0;
-  }
-}
-
-export const storage = new DatabaseStorage();

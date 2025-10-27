@@ -2,6 +2,12 @@ import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Coerce number-like strings to numbers; treat empty string/undefined as null
+const coerceNullableNumber = z.preprocess(
+  (value) => (value === '' || value === undefined ? null : value),
+  z.coerce.number().nullable()
+);
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -68,7 +74,20 @@ export const custodialNotes = pgTable("custodial_notes", {
   location: text("location").notNull(),
   locationDescription: text("location_description").notNull(),
   notes: text("notes").notNull(),
-  images: text("images").array().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const monthlyFeedback = pgTable("monthly_feedback", {
+  id: serial("id").primaryKey(),
+  school: text("school").notNull(),
+  month: text("month").notNull(),
+  year: integer("year").notNull(),
+  pdfUrl: text("pdf_url").notNull(),
+  pdfFileName: text("pdf_file_name").notNull(),
+  extractedText: text("extracted_text"),
+  notes: text("notes"),
+  uploadedBy: text("uploaded_by"),
+  fileSize: integer("file_size"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -91,17 +110,17 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   inspectorName: z.string().min(1, "Inspector name is required"),
   date: z.string().min(1, "Date is required"),
   // Make these fields nullable for building inspections
-  floors: z.number().nullable().optional(),
-  verticalHorizontalSurfaces: z.number().nullable().optional(),
-  ceiling: z.number().nullable().optional(),
-  restrooms: z.number().nullable().optional(),
-  customerSatisfaction: z.number().nullable().optional(),
-  trash: z.number().nullable().optional(),
-  projectCleaning: z.number().nullable().optional(),
-  activitySupport: z.number().nullable().optional(),
-  safetyCompliance: z.number().nullable().optional(),
-  equipment: z.number().nullable().optional(),
-  monitoring: z.number().nullable().optional(),
+  floors: coerceNullableNumber.optional(),
+  verticalHorizontalSurfaces: coerceNullableNumber.optional(),
+  ceiling: coerceNullableNumber.optional(),
+  restrooms: coerceNullableNumber.optional(),
+  customerSatisfaction: coerceNullableNumber.optional(),
+  trash: coerceNullableNumber.optional(),
+  projectCleaning: coerceNullableNumber.optional(),
+  activitySupport: coerceNullableNumber.optional(),
+  safetyCompliance: coerceNullableNumber.optional(),
+  equipment: coerceNullableNumber.optional(),
+  monitoring: coerceNullableNumber.optional(),
   notes: z.string().nullable().optional(),
 });
 
@@ -110,17 +129,17 @@ export const insertRoomInspectionSchema = createInsertSchema(roomInspections).om
   createdAt: true,
 }).extend({
   images: z.array(z.string()).optional().default([]),
-  floors: z.number().nullable().optional(),
-  verticalHorizontalSurfaces: z.number().nullable().optional(),
-  ceiling: z.number().nullable().optional(),
-  restrooms: z.number().nullable().optional(),
-  customerSatisfaction: z.number().nullable().optional(),
-  trash: z.number().nullable().optional(),
-  projectCleaning: z.number().nullable().optional(),
-  activitySupport: z.number().nullable().optional(),
-  safetyCompliance: z.number().nullable().optional(),
-  equipment: z.number().nullable().optional(),
-  monitoring: z.number().nullable().optional(),
+  floors: coerceNullableNumber.optional(),
+  verticalHorizontalSurfaces: coerceNullableNumber.optional(),
+  ceiling: coerceNullableNumber.optional(),
+  restrooms: coerceNullableNumber.optional(),
+  customerSatisfaction: coerceNullableNumber.optional(),
+  trash: coerceNullableNumber.optional(),
+  projectCleaning: coerceNullableNumber.optional(),
+  activitySupport: coerceNullableNumber.optional(),
+  safetyCompliance: coerceNullableNumber.optional(),
+  equipment: coerceNullableNumber.optional(),
+  monitoring: coerceNullableNumber.optional(),
   notes: z.string().nullable().optional(),
   roomIdentifier: z.string().nullable().optional()
 });
@@ -128,9 +147,21 @@ export const insertRoomInspectionSchema = createInsertSchema(roomInspections).om
 export const insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
   id: true,
   createdAt: true,
-}).extend({
-  images: z.array(z.string()).optional().default([]),
 });
+
+export const insertMonthlyFeedbackSchema = createInsertSchema(monthlyFeedback)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    school: z.string().min(1, "School is required").max(100),
+    month: z.string().min(1, "Month is required").max(20),
+    year: z.number().int().min(2020).max(2100, "Invalid year"),
+    pdfUrl: z.string().min(1, "PDF URL is required").max(500),
+    pdfFileName: z.string().min(1).max(255),
+    extractedText: z.string().nullable().optional(),
+    notes: z.string().max(5000).nullable().optional(),
+    uploadedBy: z.string().max(255).nullable().optional(),
+    fileSize: z.number().int().positive().nullable().optional(),
+  });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -140,3 +171,5 @@ export type InsertRoomInspection = z.infer<typeof insertRoomInspectionSchema>;
 export type RoomInspection = typeof roomInspections.$inferSelect;
 export type InsertCustodialNote = z.infer<typeof insertCustodialNoteSchema>;
 export type CustodialNote = typeof custodialNotes.$inferSelect;
+export type InsertMonthlyFeedback = z.infer<typeof insertMonthlyFeedbackSchema>;
+export type MonthlyFeedback = typeof monthlyFeedback.$inferSelect;

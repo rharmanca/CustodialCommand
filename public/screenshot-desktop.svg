@@ -1,0 +1,105 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <!-- Desktop screenshot placeholder -->
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="1280" height="80" fill="#2563eb"/>
+  <text x="640" y="45" text-anchor="middle" fill="white" font-family="system-ui" font-size="24" font-weight="600">Custodial Command - Professional Inspection System</text>
+  
+  <!-- Navigation Sidebar -->
+  <rect x="0" y="80" width="250" height="640" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="20" y="110" fill="#111827" font-family="system-ui" font-size="18" font-weight="600">Navigation</text>
+  
+  <!-- Menu Items -->
+  <rect x="20" y="130" width="210" height="40" fill="#f3f4f6" rx="4"/>
+  <text x="30" y="155" fill="#374151" font-family="system-ui" font-size="14">🏠 Dashboard</text>
+  
+  <rect x="20" y="180" width="210" height="40" fill="#dbeafe" rx="4"/>
+  <text x="30" y="205" fill="#1d4ed8" font-family="system-ui" font-size="14">📋 New Inspection</text>
+  
+  <rect x="20" y="230" width="210" height="40" fill="#f3f4f6" rx="4"/>
+  <text x="30" y="255" fill="#374151" font-family="system-ui" font-size="14">📊 View Reports</text>
+  
+  <rect x="20" y="280" width="210" height="40" fill="#f3f4f6" rx="4"/>
+  <text x="30" y="305" fill="#374151" font-family="system-ui" font-size="14">📝 Custodial Notes</text>
+  
+  <rect x="20" y="330" width="210" height="40" fill="#f3f4f6" rx="4"/>
+  <text x="30" y="355" fill="#374151" font-family="system-ui" font-size="14">⚙️ Settings</text>
+  
+  <!-- Main Content Area -->
+  <rect x="270" y="100" width="990" height="600" fill="white" stroke="#e2e8f0" stroke-width="1" rx="8"/>
+  
+  <!-- Page Title -->
+  <text x="290" y="130" fill="#111827" font-family="system-ui" font-size="20" font-weight="600">Building Inspection Dashboard</text>
+  
+  <!-- Stats Cards -->
+  <rect x="290" y="150" width="200" height="100" fill="#f0f9ff" stroke="#0ea5e9" stroke-width="1" rx="8"/>
+  <text x="390" y="175" text-anchor="middle" fill="#0c4a6e" font-family="system-ui" font-size="14" font-weight="600">Total Inspections</text>
+  <text x="390" y="200" text-anchor="middle" fill="#0c4a6e" font-family="system-ui" font-size="28" font-weight="700">247</text>
+  <text x="390" y="220" text-anchor="middle" fill="#0c4a6e" font-family="system-ui" font-size="12">+12 this week</text>
+  
+  <rect x="510" y="150" width="200" height="100" fill="#f0fdf4" stroke="#22c55e" stroke-width="1" rx="8"/>
+  <text x="610" y="175" text-anchor="middle" fill="#14532d" font-family="system-ui" font-size="14" font-weight="600">Completed</text>
+  <text x="610" y="200" text-anchor="middle" fill="#14532d" font-family="system-ui" font-size="28" font-weight="700">198</text>
+  <text x="610" y="220" text-anchor="middle" fill="#14532d" font-family="system-ui" font-size="12">80% completion rate</text>
+  
+  <rect x="730" y="150" width="200" height="100" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" rx="8"/>
+  <text x="830" y="175" text-anchor="middle" fill="#92400e" font-family="system-ui" font-size="14" font-weight="600">Pending</text>
+  <text x="830" y="200" text-anchor="middle" fill="#92400e" font-family="system-ui" font-size="28" font-weight="700">49</text>
+  <text x="830" y="220" text-anchor="middle" fill="#92400e" font-family="system-ui" font-size="12">Due this week</text>
+  
+  <!-- Recent Inspections Table -->
+  <text x="290" y="280" fill="#111827" font-family="system-ui" font-size="18" font-weight="600">Recent Inspections</text>
+  
+  <!-- Table Header -->
+  <rect x="290" y="290" width="950" height="35" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="310" y="310" fill="#374151" font-family="system-ui" font-size="12" font-weight="600">Date</text>
+  <text x="450" y="310" fill="#374151" font-family="system-ui" font-size="12" font-weight="600">School</text>
+  <text x="600" y="310" fill="#374151" font-family="system-ui" font-size="12" font-weight="600">Location</text>
+  <text x="800" y="310" fill="#374151" font-family="system-ui" font-size="12" font-weight="600">Status</text>
+  <text x="950" y="310" fill="#374151" font-family="system-ui" font-size="12" font-weight="600">Rating</text>
+  
+  <!-- Table Rows -->
+  <rect x="290" y="325" width="950" height="30" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="310" y="345" fill="#374151" font-family="system-ui" font-size="12">2025-09-17</text>
+  <text x="450" y="345" fill="#374151" font-family="system-ui" font-size="12">ASA</text>
+  <text x="600" y="345" fill="#374151" font-family="system-ui" font-size="12">Main Dining Hall</text>
+  <text x="800" y="345" fill="#22c55e" font-family="system-ui" font-size="12">✅ Completed</text>
+  <text x="950" y="345" fill="#374151" font-family="system-ui" font-size="12">⭐⭐⭐⭐⭐</text>
+  
+  <rect x="290" y="355" width="950" height="30" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="310" y="375" fill="#374151" font-family="system-ui" font-size="12">2025-09-16</text>
+  <text x="450" y="375" fill="#374151" font-family="system-ui" font-size="12">ASA</text>
+  <text x="600" y="375" fill="#374151" font-family="system-ui" font-size="12">Gymnasium</text>
+  <text x="800" y="375" fill="#f59e0b" font-family="system-ui" font-size="12">⏳ In Progress</text>
+  <text x="950" y="375" fill="#374151" font-family="system-ui" font-size="12">⭐⭐⭐⭐☆</text>
+  
+  <rect x="290" y="385" width="950" height="30" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="310" y="405" fill="#374151" font-family="system-ui" font-size="12">2025-09-15</text>
+  <text x="450" y="405" fill="#374151" font-family="system-ui" font-size="12">ASA</text>
+  <text x="600" y="405" fill="#374151" font-family="system-ui" font-size="12">Library</text>
+  <text x="800" y="405" fill="#22c55e" font-family="system-ui" font-size="12">✅ Completed</text>
+  <text x="950" y="405" fill="#374151" font-family="system-ui" font-size="12">⭐⭐⭐⭐⭐</text>
+  
+  <!-- Quick Actions -->
+  <text x="290" y="450" fill="#111827" font-family="system-ui" font-size="18" font-weight="600">Quick Actions</text>
+  
+  <rect x="290" y="460" width="200" height="80" fill="#dbeafe" stroke="#3b82f6" stroke-width="1" rx="8"/>
+  <text x="390" y="485" text-anchor="middle" fill="#1e40af" font-family="system-ui" font-size="14" font-weight="600">📋 New Inspection</text>
+  <text x="390" y="505" text-anchor="middle" fill="#1e40af" font-family="system-ui" font-size="12">Start a new building inspection</text>
+  <text x="390" y="520" text-anchor="middle" fill="#1e40af" font-family="system-ui" font-size="12">and quality assessment</text>
+  
+  <rect x="510" y="460" width="200" height="80" fill="#f0fdf4" stroke="#22c55e" stroke-width="1" rx="8"/>
+  <text x="610" y="485" text-anchor="middle" fill="#14532d" font-family="system-ui" font-size="14" font-weight="600">📊 View Reports</text>
+  <text x="610" y="505" text-anchor="middle" fill="#14532d" font-family="system-ui" font-size="12">Generate inspection reports</text>
+  <text x="610" y="520" text-anchor="middle" fill="#14532d" font-family="system-ui" font-size="12">and analytics</text>
+  
+  <rect x="730" y="460" width="200" height="80" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" rx="8"/>
+  <text x="830" y="485" text-anchor="middle" fill="#92400e" font-family="system-ui" font-size="14" font-weight="600">📝 Add Notes</text>
+  <text x="830" y="505" text-anchor="middle" fill="#92400e" font-family="system-ui" font-size="12">Report custodial concerns</text>
+  <text x="830" y="520" text-anchor="middle" fill="#92400e" font-family="system-ui" font-size="12">and maintenance issues</text>
+  
+  <!-- Footer -->
+  <rect x="0" y="680" width="1280" height="40" fill="#f3f4f6"/>
+  <text x="640" y="705" text-anchor="middle" fill="#6b7280" font-family="system-ui" font-size="12">Custodial Command - Professional Inspection System for Educational Facilities</text>
+</svg>

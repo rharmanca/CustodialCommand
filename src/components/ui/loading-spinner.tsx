@@ -1,11 +1,18 @@
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  text?: string;
 }
 
-export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
+  className,
+  text = 'Loading...'
+}) => {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
@@ -13,32 +20,16 @@ export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) 
   };
 
   return (
-    <div
-      className={cn(
-        'animate-spin rounded-full border-2 border-current border-t-transparent',
-        sizeClasses[size],
-        className
+    <div className={cn('flex flex-col items-center justify-center p-8', className)}>
+      <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
+      {text && (
+        <p className="mt-2 text-sm text-muted-foreground">{text}</p>
       )}
-      role="status"
-      aria-label="Loading"
-    >
-      <span className="sr-only">Loading...</span>
     </div>
   );
-}
+};
 
-interface LoadingStateProps {
-  children: React.ReactNode;
-  className?: string;
-}
+// Export LoadingState for backward compatibility
+export const LoadingState = LoadingSpinner;
 
-export function LoadingState({ children, className }: LoadingStateProps) {
-  return (
-    <div className={cn('flex items-center justify-center p-8', className)}>
-      <div className="flex flex-col items-center gap-3">
-        <LoadingSpinner size="lg" />
-        <div className="text-muted-foreground">{children}</div>
-      </div>
-    </div>
-  );
-}
+export default LoadingSpinner;

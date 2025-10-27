@@ -1,11 +1,14 @@
 import type { Express } from "express";
+import * as express from "express";
+import * as path from "path";
 import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
-import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema } from "../shared/schema";
+import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema, insertMonthlyFeedbackSchema } from "../shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import { logger } from "./logger";
+import { doclingService } from './doclingService';
 
 import { ObjectStorageService } from './objectStorage';
 
@@ -360,6 +363,16 @@ export async function registerRoutes(app: Express): Promise<void> {
 
     try {
       console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
+      console.log(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
+
+      // Ensure we have a body
+      if (!req.body) {
+        logger.warn(`[${requestId}] No request body received`);
+        return res.status(400).json({
+          error: 'No request body received',
+          message: 'Please ensure the request contains valid JSON data'
+        });
+      }
 
       const validatedData = insertInspectionSchema.parse(req.body);
       console.log(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
@@ -367,7 +380,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       const result = await storage.createInspection(validatedData);
 
       logger.info('Building inspection created successfully', { requestId, inspectionId: result.id });
-      return res.status(201).json({ success: true, id: result.id, ...result });
+      const responsePayload = { success: true, id: result.id, ...result };
+      console.log(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(201).json(responsePayload);
     } catch (err) {
       console.error(`[${requestId}] Failed to create building inspection:`, err);
       logger.error('Failed to create building inspection', { requestId, error: err });
@@ -381,7 +397,15 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
 
-      res.status(500).json({ error: 'Failed to create building inspection' });
+      // Ensure we always return JSON, never HTML
+      const errorPayload = {
+        error: 'Failed to create building inspection',
+        message: 'An internal server error occurred. Please try again.',
+        requestId
+      };
+      console.log(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(500).json(errorPayload);
     }
   });
 
@@ -560,6 +584,25 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Finalize building inspection
+  app.post("/api/inspections/:id/finalize", async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
+
+      const inspection = await storage.updateInspection(id, { isCompleted: true });
+      if (!inspection) {
+        return res.status(404).json({ error: "Inspection not found" });
+      }
+      res.json(inspection);
+    } catch (error) {
+      console.error("Error finalizing inspection:", error);
+      res.status(500).json({ error: "Failed to finalize inspection" });
+    }
+  });
+
   // Static file serving for uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
@@ -724,6 +767,228 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       logger.error('Error deleting admin inspection', { error });
       res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/admin/custodial-notes/:id', validateAdminSession, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid custodial note ID' });
+      }
+      
+      const success = await storage.deleteCustodialNote(id);
+      
+      if (success) {
+        res.json({ success: true, message: 'Custodial note deleted successfully' });
+      } else {
+        res.status(404).json({ success: false, message: 'Custodial note not found' });
+      }
+    } catch (error) {
+      logger.error('Error deleting custodial note', { error });
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // PDF upload configuration for monthly feedback
+  const pdfUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { 
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+      files: 1 // Only one PDF at a time
+    },
+    fileFilter: (req, file, cb) => {
+      // Strict PDF validation
+      if (file.mimetype === 'application/pdf' && file.originalname.toLowerCase().endsWith('.pdf')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only PDF files are allowed'));
+      }
+    }
+  });
+
+  // Monthly Feedback routes
+  app.post('/api/monthly-feedback', pdfUpload.single('pdf'), async (req, res) => {
+    logger.info('[POST] Monthly feedback upload started', {
+      body: req.body,
+      file: req.file ? req.file.originalname : 'none'
+    });
+
+    try {
+      const { school, month, year, notes, uploadedBy } = req.body;
+      const file = req.file as Express.Multer.File;
+
+      // Validate required fields
+      if (!school || !month || !year || !file) {
+        logger.warn('[POST] Missing required fields');
+        return res.status(400).json({
+          message: 'Missing required fields',
+          details: { school: !!school, month: !!month, year: !!year, file: !!file }
+        });
+      }
+
+      // Validate year is a number
+      const yearNum = parseInt(year);
+      if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
+        return res.status(400).json({ message: 'Invalid year' });
+      }
+
+      // Upload PDF to storage
+      const filename = `monthly-feedback/${Date.now()}-${Math.round(Math.random() * 1E9)}-${file.originalname}`;
+      const uploadResult = await objectStorageService.uploadLargeFile(
+        file.buffer,
+        filename,
+        file.mimetype
+      );
+
+      if (!uploadResult.success) {
+        logger.error('[POST] Failed to upload PDF', { error: uploadResult.error });
+        return res.status(500).json({ message: 'Failed to upload PDF file' });
+      }
+
+      const pdfUrl = `/objects/${filename}`;
+      logger.info('[POST] PDF uploaded successfully', { filename, url: pdfUrl });
+
+      // Extract text using Docling
+      let extractedText: string | null = null;
+      try {
+        extractedText = await doclingService.extractTextFromPDF(file.buffer, file.originalname);
+        if (!extractedText) {
+          logger.warn('[POST] Docling returned empty content, continuing without text');
+        }
+      } catch (extractError) {
+        logger.error('[POST] Docling extraction failed, continuing without text:', extractError);
+        // Continue without extracted text rather than failing the upload
+      }
+
+      // Create database record
+      const feedbackData = {
+        school,
+        month,
+        year: yearNum,
+        pdfUrl,
+        pdfFileName: file.originalname,
+        extractedText,
+        notes: notes || null,
+        uploadedBy: uploadedBy || null,
+        fileSize: file.size,
+      };
+
+      // Validate with Zod
+      const validatedData = insertMonthlyFeedbackSchema.parse(feedbackData);
+      const newFeedback = await storage.createMonthlyFeedback(validatedData);
+
+      logger.info('[POST] Monthly feedback created successfully', { id: newFeedback.id });
+
+      res.status(201).json({
+        message: 'Monthly feedback uploaded successfully',
+        id: newFeedback.id,
+        hasExtractedText: !!extractedText
+      });
+
+    } catch (error) {
+      logger.error('[POST] Error creating monthly feedback:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: 'Invalid data',
+          details: error.errors
+        });
+      }
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/monthly-feedback', async (req, res) => {
+    try {
+      const { school, year, month } = req.query;
+      let feedback = await storage.getMonthlyFeedback();
+
+      // Apply filters
+      if (school) {
+        feedback = feedback.filter(f => f.school === school);
+      }
+      if (year) {
+        const yearNum = parseInt(year as string);
+        if (!isNaN(yearNum)) {
+          feedback = feedback.filter(f => f.year === yearNum);
+        }
+      }
+      if (month) {
+        feedback = feedback.filter(f => f.month === month);
+      }
+
+      logger.info('[GET] Retrieved filtered monthly feedback', { 
+        total: feedback.length,
+        filters: { school, year, month }
+      });
+
+      res.json(feedback);
+    } catch (error) {
+      logger.error('[GET] Error fetching monthly feedback:', error);
+      res.status(500).json({ message: 'Failed to fetch monthly feedback' });
+    }
+  });
+
+  app.get('/api/monthly-feedback/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid feedback ID' });
+      }
+
+      const feedback = await storage.getMonthlyFeedbackById(id);
+      if (!feedback) {
+        return res.status(404).json({ message: 'Feedback not found' });
+      }
+
+      res.json(feedback);
+    } catch (error) {
+      logger.error('[GET] Error fetching feedback by ID:', error);
+      res.status(500).json({ message: 'Failed to fetch feedback' });
+    }
+  });
+
+  app.delete('/api/monthly-feedback/:id', validateAdminSession, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid feedback ID' });
+      }
+
+      const success = await storage.deleteMonthlyFeedback(id);
+      if (success) {
+        res.json({ message: 'Monthly feedback deleted successfully' });
+      } else {
+        res.status(404).json({ message: 'Feedback not found' });
+      }
+    } catch (error) {
+      logger.error('[DELETE] Error deleting monthly feedback:', error);
+      res.status(500).json({ message: 'Failed to delete feedback' });
+    }
+  });
+
+  app.patch('/api/monthly-feedback/:id/notes', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { notes } = req.body;
+
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid feedback ID' });
+      }
+
+      if (typeof notes !== 'string') {
+        return res.status(400).json({ message: 'Notes must be a string' });
+      }
+
+      const updated = await storage.updateMonthlyFeedbackNotes(id, notes);
+      if (!updated) {
+        return res.status(404).json({ message: 'Feedback not found' });
+      }
+
+      res.json({ message: 'Notes updated successfully', feedback: updated });
+    } catch (error) {
+      logger.error('[PATCH] Error updating notes:', error);
+      res.status(500).json({ message: 'Failed to update notes' });
     }
   });
 

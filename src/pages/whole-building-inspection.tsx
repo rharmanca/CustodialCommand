@@ -127,6 +127,7 @@ export default function WholeBuildingInspectionPage({
   const [showInspectionSelector, setShowInspectionSelector] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const [savedInspections, setSavedInspections] = useState<any[]>([]);
+  const [finalized, setFinalized] = useState(false);
 
   // Form data for current inspection
   const [formData, setFormData] = useState({
@@ -360,6 +361,7 @@ export default function WholeBuildingInspectionPage({
 
   // Function to start a new inspection
   const startNewInspection = () => {
+    // Do not clear building-level fields; preserve inspectorName, school, and date
     setShowInspectionSelector(false);
     setIsResuming(false);
     setBuildingInspectionId(null);
@@ -370,10 +372,8 @@ export default function WholeBuildingInspectionPage({
       });
       return initial;
     });
-    setFormData({
-      inspectorName: "",
-      school: "",
-      date: "",
+    setFormData((prev) => ({
+      ...prev,
       inspectionType: "whole_building",
       locationCategory: "",
       roomNumber: "",
@@ -391,7 +391,7 @@ export default function WholeBuildingInspectionPage({
       monitoring: -1,
       notes: "",
       comments: "",
-    });
+    }));
   };
 
   const handleInputChange = (field: string, value: string | number) => {
@@ -601,6 +601,27 @@ export default function WholeBuildingInspectionPage({
     setSelectedCategory(category);
     setShowInspectionSelector(false);
 
+    // Clear room-specific fields when switching categories to prevent data persistence
+    setFormData((prev) => ({
+      ...prev,
+      roomNumber: "",
+      locationDescription: "",
+      locationCategory: category,
+      floors: -1,
+      verticalHorizontalSurfaces: -1,
+      ceiling: -1,
+      restrooms: -1,
+      customerSatisfaction: -1,
+      trash: -1,
+      projectCleaning: -1,
+      activitySupport: -1,
+      safetyCompliance: -1,
+      equipment: -1,
+      monitoring: -1,
+      notes: "",
+      comments: "",
+    }));
+
     // Prevent automatic scroll to top with multiple methods
     requestAnimationFrame(() => {
       window.scrollTo({ top: currentScrollY, behavior: "instant" });
@@ -646,12 +667,32 @@ export default function WholeBuildingInspectionPage({
     setIsSubmitting(true);
 
     try {
+      // Prepare submission data that matches the database schema
       const submissionData = {
-        ...formData,
-        category: selectedCategory,
-        buildingInspectionId,
-        timestamp: new Date().toISOString(),
-        type: "building",
+        inspectorName: formData.inspectorName,
+        school: formData.school,
+        date: formData.date,
+        inspectionType: "whole_building",
+        locationDescription: formData.locationDescription || `Building inspection for ${selectedCategory}`,
+        roomNumber: formData.roomNumber || null,
+        locationCategory: selectedCategory,
+        buildingName: null, // Building name is not currently captured in the form
+        buildingInspectionId: buildingInspectionId || null,
+        floors: formData.floors >= 0 ? formData.floors : null,
+        verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces >= 0 ? formData.verticalHorizontalSurfaces : null,
+        ceiling: formData.ceiling >= 0 ? formData.ceiling : null,
+        restrooms: formData.restrooms >= 0 ? formData.restrooms : null,
+        customerSatisfaction: formData.customerSatisfaction >= 0 ? formData.customerSatisfaction : null,
+        trash: formData.trash >= 0 ? formData.trash : null,
+        projectCleaning: formData.projectCleaning >= 0 ? formData.projectCleaning : null,
+        activitySupport: formData.activitySupport >= 0 ? formData.activitySupport : null,
+        safetyCompliance: formData.safetyCompliance >= 0 ? formData.safetyCompliance : null,
+        equipment: formData.equipment >= 0 ? formData.equipment : null,
+        monitoring: formData.monitoring >= 0 ? formData.monitoring : null,
+        notes: formData.notes || null,
+        images: [], // No images for building-level submissions
+        verifiedRooms: [], // Will be populated when individual rooms are submitted
+        isCompleted: false // Will be set to true when all categories are complete
       };
 
       console.log("Submitting building inspection:", submissionData);
@@ -660,24 +701,57 @@ export default function WholeBuildingInspectionPage({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(submissionData),
       });
 
-      const result = await response.json();
-      console.log("Submission response:", result);
+      const contentType = response.headers.get("content-type") || "";
+      let result: any = null;
+      let rawText: string | null = null;
 
-      if (!response.ok) {
-        throw new Error(
-          result.message || `HTTP error! status: ${response.status}`
-        );
+      try {
+        if (contentType.includes("application/json")) {
+          result = await response.json();
+        } else {
+          rawText = await response.text();
+        }
+      } catch (parseErr) {
+        // Fallback to text if JSON parsing fails
+        try {
+          rawText = await response.text();
+        } catch {}
       }
 
-      if (result.success) {
+      console.log("Submission response status:", response.status, "ctype:", contentType);
+      if (result) console.log("Submission response JSON:", result);
+      if (!result && rawText) console.log("Submission response TEXT:", rawText.slice(0, 300));
+
+      if (!response.ok) {
+        const serverMsg = (result && (result.message || result.error)) || rawText || null;
+        throw new Error(serverMsg || `HTTP error! status: ${response.status}`);
+      }
+
+      // Treat as success if server indicates success or returned an id
+      if ((result && (result.success || result.id)) || response.ok) {
         toast({
           title: "Success",
           description: "Building inspection submitted successfully!",
         });
+
+        // Set buildingInspectionId from the first successful submission for finalization
+        if (result && result.id && !buildingInspectionId) {
+          console.log("Setting buildingInspectionId from first submission:", result.id);
+          setBuildingInspectionId(result.id);
+        }
+
+        // Update completed count for this category
+        if (selectedCategory) {
+          setCompleted((prev) => ({
+            ...prev,
+            [selectedCategory]: (prev[selectedCategory] || 0) + 1
+          }));
+        }
 
         // Clear the current form draft
         clearCurrentFormDraft();
@@ -743,33 +817,91 @@ export default function WholeBuildingInspectionPage({
       return;
     }
 
+    console.log("Attempting to finalize building inspection:", { buildingInspectionId, isAllComplete });
+
+    if (!buildingInspectionId) {
+      console.error("No building inspection ID available for finalization");
+      toast({
+        title: "Finalization Failed",
+        description: "No building inspection ID found. Please start a new inspection.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Update the building inspection as completed
-      const response = await fetch(`/api/inspections/${buildingInspectionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isCompleted: true }),
+      // Try finalize endpoint first
+      console.log(`Calling finalize endpoint: /api/inspections/${buildingInspectionId}/finalize`);
+      const finalizeResp = await fetch(`/api/inspections/${buildingInspectionId}/finalize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
 
-      if (response.ok) {
-        // Show success toast notification
-        toast({
-          title: "🎉 You Did Your Duty, Thank You! 🎉",
-          description:
-            "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
-          duration: 5000,
+      console.log("Finalize response status:", finalizeResp.status);
+      
+      let ok = finalizeResp.ok;
+      let errorMessage = null;
+
+      if (!ok) {
+        // Get error from finalize attempt
+        try {
+          const finalizeError = await finalizeResp.json();
+          errorMessage = finalizeError.error || finalizeError.message;
+          console.log("Finalize endpoint error:", finalizeError);
+        } catch (e) {
+          const finalizeText = await finalizeResp.text();
+          console.log("Finalize endpoint error (text):", finalizeText.slice(0, 200));
+          errorMessage = finalizeText;
+        }
+
+        // Fallback to PATCH if finalize route is unavailable
+        console.log(`Trying PATCH fallback: /api/inspections/${buildingInspectionId}`);
+        const patchResp = await fetch(`/api/inspections/${buildingInspectionId}`, {
+          method: "PATCH",
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({ isCompleted: true }),
         });
-
-        console.log("Whole building inspection completed successfully!");
-
-        // Delay navigation to let user see the success message
-        setTimeout(() => {
-          if (onBack) onBack();
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to finalize inspection");
+        
+        console.log("PATCH response status:", patchResp.status);
+        ok = patchResp.ok;
+        
+        if (!ok) {
+          try {
+            const errData = await patchResp.json();
+            errorMessage = errData.error || errData.message || 'Failed to finalize inspection';
+            console.log("PATCH endpoint error:", errData);
+          } catch (e) {
+            const patchText = await patchResp.text();
+            console.log("PATCH endpoint error (text):", patchText.slice(0, 200));
+            errorMessage = patchText || 'Failed to finalize inspection';
+          }
+          throw new Error(errorMessage);
+        }
       }
+
+      // Mark as finalized to display banner
+      setFinalized(true);
+
+      // Show success toast notification
+      toast({
+        title: "🎉 You Did Your Duty, Thank You! 🎉",
+        description:
+          "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
+        duration: 5000,
+      });
+
+      console.log("Whole building inspection completed successfully!");
+
+      // Optional: navigate back after a short delay if onBack is provided
+      setTimeout(() => {
+        if (onBack) onBack();
+      }, 3000);
     } catch (error) {
       console.error("Error finalizing inspection:", error);
 
@@ -785,13 +917,49 @@ export default function WholeBuildingInspectionPage({
 
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
+      {/* Primary call-to-action placed above progress table */}
+      {!showInspectionSelector && (
+        <Card className="border-primary/30">
+          <CardContent className="py-4 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="font-semibold">Start New Building Inspection</div>
+              <div className="text-sm text-muted-foreground">Guided, step-by-step workflow to complete all required areas</div>
+            </div>
+            <Button
+              onClick={startNewInspection}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              🏢 Start New Building Inspection
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      {finalized && (
+        <Card className="border-green-300 bg-green-50">
+          <CardContent className="py-4 flex items-center justify-between gap-4">
+            <div>
+              <div className="font-semibold text-green-800">Building Inspection Finalized</div>
+              <div className="text-sm text-green-700">Your comprehensive inspection has been submitted successfully.</div>
+            </div>
+            <Button
+              onClick={() => {
+                setFinalized(false);
+                startNewInspection();
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Start New Building Inspection
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       <div className="mb-6">
         {onBack && (
           <div className="flex justify-start mb-4">
             <Button
               variant="outline"
               onClick={onBack}
-              className="flex-shrink-0"
+              className="flex-shrink-0 back-button"
             >
               ← Back
             </Button>

@@ -1,44 +1,43 @@
-import express from "express";
-import { createServer as createViteServer, createLogger } from "vite";
-import { nanoid } from "nanoid";
-import { readFile } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
+import * as express from 'express';
+import { Express } from 'express';
+import * as path from 'path';
+import { logger } from './logger';
 
-export const log = console.log;
-
-export async function setupVite(app: express.Application, server: any) {
-  // Create Vite server in middleware mode
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: 'spa'
-  });
-
-  // Use vite's connect instance as middleware
-  app.use(vite.ssrFixStacktrace);
-  app.use(vite.middlewares);
+export function setupVite(app: Express) {
+  // In production, we serve static files
+  // In development, this could be extended to integrate with Vite dev server
+  logger.info('Vite setup completed');
 }
 
-export function serveStatic(app: express.Application) {
-  const distPath = path.join(process.cwd(), "dist/public");
-
-  if (!existsSync(distPath)) {
-    log.error('Build directory not found. Run "npm run build" first.');
-    app.get("*", (req, res) => {
-      if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
-        return res.status(500).json({ error: "Application not built" });
-      }
-      res.status(500).send('<h1>Run "npm run build" first</h1>');
-    });
-    return;
-  }
-
-  app.use(express.static(distPath));
-
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api") || req.path === "/health" || req.path === "/metrics") {
+export function serveStatic(app: Express) {
+  // Serve uploaded files from uploads directory
+  const uploadsPath = path.join(process.cwd(), 'uploads');
+  app.use('/uploads', express.static(uploadsPath));
+  logger.info(`Serving uploads from: ${uploadsPath}`);
+  
+  // Serve built static files from dist/public
+  const staticPath = path.join(process.cwd(), 'dist', 'public');
+  app.use(express.static(staticPath));
+  
+  // Serve index.html for all non-API routes (SPA routing)
+  app.get('*', (req, res, next) => {
+    // Skip API routes and uploads
+    if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/uploads')) {
       return next();
     }
-    res.sendFile(path.join(distPath, "index.html"));
+    
+    const indexPath = path.join(staticPath, 'index.html');
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        logger.error('Error serving index.html:', err);
+        res.status(500).send('Server Error');
+      }
+    });
   });
+  
+  logger.info(`Serving static files from: ${staticPath}`);
+}
+
+export function log(message: string, type: 'info' | 'error' | 'warn' = 'info') {
+  logger[type](message);
 }

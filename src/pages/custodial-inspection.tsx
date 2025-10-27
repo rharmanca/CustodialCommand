@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, processImageForStorage, getStorageStats } from '@/utils/storage';
+import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -246,7 +247,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const newImages = Array.from(files);
@@ -254,12 +255,41 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       const availableSlots = 5 - currentCount;
       const imagesToAdd = newImages.slice(0, availableSlots);
       
-      setSelectedImages(prev => [...prev, ...imagesToAdd]);
+      // Compress images that need it
+      const compressedImages: File[] = [];
+      let totalOriginalSize = 0;
+      let totalCompressedSize = 0;
       
-      if (imagesToAdd.length > 0) {
+      for (const image of imagesToAdd) {
+        totalOriginalSize += image.size;
+        
+        if (needsCompression(image, 500)) {
+          try {
+            const result = await compressImage(image, { maxSizeKB: 500 });
+            compressedImages.push(result.compressedFile);
+            totalCompressedSize += result.compressedSize;
+            
+            console.log(`Compressed ${image.name}: ${formatFileSize(image.size)} → ${formatFileSize(result.compressedSize)}`);
+          } catch (error) {
+            console.error('Failed to compress image:', error);
+            compressedImages.push(image); // Use original if compression fails
+            totalCompressedSize += image.size;
+          }
+        } else {
+          compressedImages.push(image);
+          totalCompressedSize += image.size;
+        }
+      }
+      
+      setSelectedImages(prev => [...prev, ...compressedImages]);
+      
+      if (compressedImages.length > 0) {
+        const compressionSaved = totalOriginalSize - totalCompressedSize;
+        const compressionRatio = (compressionSaved / totalOriginalSize * 100).toFixed(1);
+        
         toast({
           title: "📸 Photos Uploaded Successfully!",
-          description: `Added ${imagesToAdd.length} photo${imagesToAdd.length > 1 ? 's' : ''} to inspection documentation.`,
+          description: `Added ${compressedImages.length} photo${compressedImages.length > 1 ? 's' : ''} to inspection documentation.${compressionSaved > 0 ? ` Saved ${formatFileSize(compressionSaved)} (${compressionRatio}% compression).` : ''}`,
           duration: 3000
         });
       }
@@ -273,7 +303,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         });
       }
       
-      console.log('Files selected:', imagesToAdd.length, 'files');
+      console.log('Files selected:', compressedImages.length, 'files');
     }
   };
 
@@ -315,44 +345,37 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     setIsSubmitting(true);
 
     try {
-      // Convert images to base64 strings
-      const imagePromises = selectedImages.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
+      // Use FormData for multipart upload (same as custodial-notes)
+      const formDataToSend = new FormData();
 
-      const imageData = await Promise.all(imagePromises);
+      // Add text fields
+      formDataToSend.append('school', formData.school);
+      formDataToSend.append('date', formData.date);
+      formDataToSend.append('inspectionType', formData.inspectionType);
+      formDataToSend.append('locationDescription', formData.locationDescription);
+      formDataToSend.append('roomNumber', formData.roomNumber || '');
+      formDataToSend.append('locationCategory', formData.locationCategory || '');
+      formDataToSend.append('floors', (formData.floors || '').toString());
+      formDataToSend.append('verticalHorizontalSurfaces', (formData.verticalHorizontalSurfaces || '').toString());
+      formDataToSend.append('ceiling', (formData.ceiling || '').toString());
+      formDataToSend.append('restrooms', (formData.restrooms || '').toString());
+      formDataToSend.append('customerSatisfaction', (formData.customerSatisfaction || '').toString());
+      formDataToSend.append('trash', (formData.trash || '').toString());
+      formDataToSend.append('projectCleaning', (formData.projectCleaning || '').toString());
+      formDataToSend.append('activitySupport', (formData.activitySupport || '').toString());
+      formDataToSend.append('safetyCompliance', (formData.safetyCompliance || '').toString());
+      formDataToSend.append('equipment', (formData.equipment || '').toString());
+      formDataToSend.append('monitoring', (formData.monitoring || '').toString());
+      formDataToSend.append('notes', formData.notes || '');
+
+      // Add images as files (not base64)
+      selectedImages.forEach((image) => {
+        formDataToSend.append('images', image);
+      });
 
       const response = await fetch('/api/inspections', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          school: formData.school,
-          date: formData.date,
-          inspectionType: formData.inspectionType,
-          locationDescription: formData.locationDescription,
-          roomNumber: formData.roomNumber,
-          locationCategory: formData.locationCategory,
-          floors: formData.floors || null,
-          verticalHorizontalSurfaces: formData.verticalHorizontalSurfaces || null,
-          ceiling: formData.ceiling || null,
-          restrooms: formData.restrooms || null,
-          customerSatisfaction: formData.customerSatisfaction || null,
-          trash: formData.trash || null,
-          projectCleaning: formData.projectCleaning || null,
-          activitySupport: formData.activitySupport || null,
-          safetyCompliance: formData.safetyCompliance || null,
-          equipment: formData.equipment || null,
-          monitoring: formData.monitoring || null,
-          notes: formData.notes,
-          images: imageData
-        })
+        body: formDataToSend, // No Content-Type header - let browser set it for multipart
       });
 
       if (response.ok) {
@@ -516,8 +539,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const renderStarRating = (categoryObj: any, currentRating: number) => {
     return (
-      <div className="space-y-4">
-        <div className="flex justify-center gap-2">
+      <div className="space-y-5">
+        <div className="flex flex-wrap justify-center gap-2">
           <Button
             type="button"
             variant={currentRating === 0 ? "default" : "outline"}
@@ -548,13 +571,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         </div>
 
         {/* Current Rating Status */}
-        <div className="text-center">
+        <div className="text-center px-3">
           {currentRating > 0 ? (
             <div className="space-y-2">
               <Badge variant="secondary" className="text-sm px-3 py-1">
                 {ratingDescriptions[currentRating - 1]?.label}
               </Badge>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-gray-600 leading-relaxed">
                 {ratingDescriptions[currentRating - 1]?.description}
               </div>
             </div>
@@ -568,7 +591,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         {/* Detailed Criteria */}
         {currentRating > 0 && categoryObj.criteria && categoryObj.criteria[currentRating] && (
           <Card className="bg-accent/10 border-accent/30">
-            <CardContent className="p-3">
+            <CardContent className="p-4">
               <div className="text-xs text-accent-foreground">
                 <strong className="text-sm">Rating {currentRating} Criteria:</strong>
                 <p className="mt-1 leading-relaxed">{categoryObj.criteria[currentRating]}</p>
@@ -716,7 +739,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   value={formData.date}
                   onChange={(e) => handleInputChange('date', e.target.value)}
                   required
+                  aria-describedby="date-help"
                 />
+                <p id="date-help" className="text-sm text-muted-foreground mt-1">
+                  Select the date when this inspection was conducted
+                </p>
               </div>
 
               <div>
@@ -819,7 +846,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 placeholder="Enter detailed notes about this inspection...&#10;&#10;Examples:&#10;• Specific areas that need attention&#10;• Safety concerns observed&#10;• Maintenance recommendations&#10;• Follow-up actions required&#10;• Staff performance observations&#10;• Equipment issues noted"
                 rows={8}
                 className="min-h-[200px]"
+                aria-describedby="notes-help"
               />
+              <p id="notes-help" className="text-sm text-muted-foreground mt-2">
+                Provide detailed observations, specific issues, recommendations, or additional context for this inspection
+              </p>
               </CardContent>
           </Card>
 
@@ -876,11 +907,13 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                           src={URL.createObjectURL(image)}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg border"
+                          loading="lazy"
                         />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label={`Remove image ${index + 1}`}
                         >
                           <X className="w-4 h-4" />
                         </button>

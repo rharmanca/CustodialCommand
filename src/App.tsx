@@ -1,19 +1,35 @@
-import React, { useState, useEffect } from "react";
-import CustodialInspectionPage from "./pages/custodial-inspection";
-import InspectionDataPage from "./pages/inspection-data";
-import CustodialNotesPage from "./pages/custodial-notes";
-import WholeBuildingInspectionPage from "./pages/whole-building-inspection";
-import RatingCriteriaPage from "./pages/rating-criteria";
-import AdminInspectionsPage from "./pages/admin-inspections";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useIsMobile } from "./hooks/use-mobile";
 import { useCustomNotifications } from "@/hooks/use-custom-notifications";
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationContainer } from "@/components/ui/custom-notification";
+import { OfflineStatus } from "@/components/ui/offline-status";
+import { EnhancedNotifications, useEnhancedNotifications } from "@/components/ui/enhanced-notifications";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import custodialDutyImage from "./assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp";
 import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp";
+
+// Lazy load route components
+const CustodialInspectionPage = lazy(() => import("./pages/custodial-inspection"));
+const InspectionDataPage = lazy(() => import("./pages/inspection-data"));
+const CustodialNotesPage = lazy(() => import("./pages/custodial-notes"));
+const WholeBuildingInspectionPage = lazy(() => import("./pages/whole-building-inspection"));
+const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
+const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
+const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
+
+// Loading skeleton component
+const PageLoadingSkeleton = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="text-center max-w-md mx-auto">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <h2 className="text-xl font-semibold text-foreground mb-2">Loading...</h2>
+      <p className="text-muted-foreground">Please wait while we load the page.</p>
+    </div>
+  </div>
+);
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -62,6 +78,7 @@ function App() {
     | "Whole Building Inspection"
     | "Rating Criteria"
     | "admin-inspections"
+    | "Monthly Feedback"
   >("Custodial");
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
@@ -69,6 +86,44 @@ function App() {
 
   // Custom notifications hook
   const { notifications, removeNotification } = useCustomNotifications();
+  
+  // Enhanced notifications hook
+  const { 
+    notifications: enhancedNotifications, 
+    removeNotification: removeEnhancedNotification,
+    showSuccess,
+    showError,
+    showInfo,
+    showOffline
+  } = useEnhancedNotifications();
+
+  // Globally disable native HTML5 validation popups (Safari/iOS) and rely on our JS validation
+  useEffect(() => {
+    const applyGlobalNoValidate = () => {
+      const forms = document.querySelectorAll('form');
+      forms.forEach((form) => {
+        // Disable built-in validation UI
+        (form as HTMLFormElement).noValidate = true;
+        // Soften overly strict inputs if any were authored with pattern attributes
+        form.querySelectorAll('input[pattern]').forEach((el) => {
+          // Keep attribute for semantics but prevent native popup by moving to data-* (optional)
+          const input = el as HTMLInputElement;
+          input.setAttribute('data-pattern', input.getAttribute('pattern') || '');
+          input.removeAttribute('pattern');
+        });
+        // Prevent default invalid UI if any slips through
+        form.addEventListener('invalid', (e) => {
+          e.preventDefault();
+        }, true);
+      });
+    };
+
+    // Run now and after HMR/renders that may add forms
+    applyGlobalNoValidate();
+    const observer = new MutationObserver(applyGlobalNoValidate);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   // Detect PWA installation status
   useEffect(() => {
@@ -86,10 +141,59 @@ function App() {
         setShowInstallSuccess(true);
         localStorage.setItem("pwa-install-shown", "true");
         setTimeout(() => setShowInstallSuccess(false), 5000);
+        
+        // Show enhanced notification
+        showSuccess(
+          "App Installed Successfully!",
+          "You can now access Custodial Command directly from your home screen.",
+          { duration: 5000 }
+        );
       }
     };
 
     checkPWAStatus();
+
+    // Automatic cache invalidation and version check
+    const checkForUpdates = () => {
+      const currentVersion = 'v6';
+      const storedVersion = localStorage.getItem('app-version');
+      
+      // If version changed, clear cache and reload
+      if (storedVersion && storedVersion !== currentVersion) {
+        console.log('App version updated, clearing cache...');
+        
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then((cacheNames) => {
+            cacheNames.forEach((cacheName) => {
+              caches.delete(cacheName);
+            });
+          });
+        }
+        
+        // Clear localStorage except for essential data
+        const essentialKeys = ['app-version', 'pwa-install-shown'];
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && !essentialKeys.includes(key)) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Update version and reload
+        localStorage.setItem('app-version', currentVersion);
+        showInfo('App Updated', '🔄 App updated! Reloading with latest version...');
+        setTimeout(() => window.location.reload(), 2000);
+        return;
+      }
+      
+      // Store current version
+      localStorage.setItem('app-version', currentVersion);
+    };
+
+    checkForUpdates();
 
     // Listen for app install events
     const handleAppInstalled = () => {
@@ -97,6 +201,13 @@ function App() {
       setShowInstallSuccess(true);
       localStorage.setItem("pwa-install-shown", "true");
       setTimeout(() => setShowInstallSuccess(false), 5000);
+      
+      // Show enhanced notification
+      showSuccess(
+        "App Installed Successfully!",
+        "You can now access Custodial Command directly from your home screen.",
+        { duration: 5000 }
+      );
     };
 
     window.addEventListener("appinstalled", handleAppInstalled);
@@ -238,6 +349,12 @@ function App() {
                 >
                   Rating Criteria Guide
                 </button>
+                <button
+                  onClick={() => setCurrentPage("Monthly Feedback")}
+                  className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white"
+                >
+                  📄 Monthly Feedback Reports
+                </button>
                 <div className="flex flex-col items-center space-y-3 w-full max-w-400px">
                   <p className="text-sm text-muted-foreground font-medium text-center">
                     Note: Best viewed on desktop
@@ -258,31 +375,49 @@ function App() {
           );
         case "Custodial Inspection":
           return (
-            <CustodialInspectionPage
-              onBack={() => setCurrentPage("Custodial")}
-            />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <CustodialInspectionPage
+                onBack={() => setCurrentPage("Custodial")}
+              />
+            </Suspense>
           );
         case "Inspection Data":
           return (
-            <InspectionDataPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <InspectionDataPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         case "Custodial Notes":
           return (
-            <CustodialNotesPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <CustodialNotesPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         case "Whole Building Inspection":
           return (
-            <WholeBuildingInspectionPage
-              onBack={() => setCurrentPage("Custodial")}
-            />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <WholeBuildingInspectionPage
+                onBack={() => setCurrentPage("Custodial")}
+              />
+            </Suspense>
           );
         case "Rating Criteria":
           return (
-            <RatingCriteriaPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <RatingCriteriaPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         case "admin-inspections":
           return (
-            <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
+          );
+        case "Monthly Feedback":
+          return (
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <MonthlyFeedbackPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
         default:
           return (
@@ -355,8 +490,19 @@ function App() {
                 </div>
               </nav>
 
+              {/* Offline Status */}
+              <OfflineStatus className="mb-4" />
+
+              {/* Skip to content link for accessibility */}
+              <a 
+                href="#main-content" 
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
+              >
+                Skip to main content
+              </a>
+
               {/* Main content area */}
-              <main className="w-full content-area rounded-xl shadow-sm">
+              <main id="main-content" className="w-full content-area rounded-xl shadow-sm">
                 {renderPageContent()}
               </main>
             </div>
@@ -370,10 +516,16 @@ function App() {
             </footer>
 
             <Toaster />
-            <NotificationContainer
-              notifications={notifications}
-              onRemove={removeNotification}
-            />
+            <div aria-live="polite" aria-label="Notifications">
+              <NotificationContainer
+                notifications={notifications}
+                onRemove={removeNotification}
+              />
+              <EnhancedNotifications
+                notifications={enhancedNotifications}
+                onRemove={removeEnhancedNotification}
+              />
+            </div>
           </div>
         </Router>
       </QueryClientProvider>

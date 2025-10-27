@@ -1,0 +1,107 @@
+{
+  "timestamp": "2025-09-18T01:41:30.600Z",
+  "baseUrl": "http://localhost:5000",
+  "summary": {
+    "total": 19,
+    "passed": 7,
+    "failed": 12,
+    "successRate": 36.84210526315789
+  },
+  "details": [
+    {
+      "testName": "Health Check",
+      "passed": false,
+      "details": "Status: 503, Data: {\"status\":\"error\",\"timestamp\":\"2025-09-18T01:41:29.876Z\",\"uptime\":48,\"version\":\"1.0.0\",\"environment\":\"development\",\"database\":\"error\",\"memory\":{\"used\":18,\"total\":20,\"percentage\":89}}"
+    },
+    {
+      "testName": "Basic API Test",
+      "passed": false,
+      "details": "Status: 404, Data: {\"error\":\"API endpoint not found\",\"path\":\"/\",\"method\":\"GET\",\"timestamp\":\"2025-09-18T01:41:29.878Z\",\"availableEndpoints\":[\"POST /api/inspections\",\"GET /api/inspections\",\"POST /api/submit-building-inspection\",\"POST /api/custodial-notes\",\"POST /api/room-inspections\"]}"
+    },
+    {
+      "testName": "GET Inspections",
+      "passed": false,
+      "details": "Status: 500"
+    },
+    {
+      "testName": "GET Custodial Notes",
+      "passed": false,
+      "details": "Status: 500"
+    },
+    {
+      "testName": "Create Single Room Inspection",
+      "passed": false,
+      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
+    },
+    {
+      "testName": "Create Whole Building Inspection",
+      "passed": false,
+      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
+    },
+    {
+      "testName": "Create Custodial Note",
+      "passed": false,
+      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
+    },
+    {
+      "testName": "Create Room Inspection",
+      "passed": false,
+      "details": "No building inspection ID provided"
+    },
+    {
+      "testName": "GET Specific Inspection",
+      "passed": false,
+      "details": "No inspection ID provided"
+    },
+    {
+      "testName": "File Serving",
+      "passed": false,
+      "details": "Upload failed with status 400: {\"message\":\"Invalid inspection data\",\"details\":[{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"floors\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"verticalHorizontalSurfaces\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"ceiling\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"restrooms\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"customerSatisfaction\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"trash\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"projectCleaning\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"activitySupport\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"safetyCompliance\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"equipment\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"monitoring\"],\"message\":\"Expected number, received string\"}]}"
+    },
+    {
+      "testName": "Admin Login",
+      "passed": false,
+      "details": "Status: 401, Data: {\"success\":false,\"message\":\"Invalid credentials\"}"
+    },
+    {
+      "testName": "Frontend Page: Home Page",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Custodial Inspection",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Whole Building Inspection",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Custodial Notes",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Inspection Data",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Admin Inspections",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Frontend Page: Rating Criteria",
+      "passed": true,
+      "details": "Page loads successfully"
+    },
+    {
+      "testName": "Database Consistency",
+      "passed": false,
+      "details": ""
+    }
+  ]
+}
