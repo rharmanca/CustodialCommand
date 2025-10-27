@@ -596,7 +596,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
           <Button 
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
               e.stopPropagation();
               if (onBack) onBack();

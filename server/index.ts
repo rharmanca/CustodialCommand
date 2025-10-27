@@ -6,10 +6,10 @@ import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, validateRequest, apiRateLimit, sanitizeInput, cacheControl, authRateLimit, uploadRateLimit } from "./security";
-import { logger, requestIdMiddleware, requestTimingMiddleware } from "./logger";
+import { securityHeaders, validateRequest, apiRateLimit, sanitizeInput } from "./security";
+import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
-import { centralizedErrorHandler } from "./errorHandler";
+
 
 
 const app = express();
@@ -196,8 +196,7 @@ app.use((req, res, next) => {
     const server = createServer(app);
     logger.info("HTTP server created");
 
-    // Use centralized error handling for all routes
-    app.use(centralizedErrorHandler);
+
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.

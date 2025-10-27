@@ -33,7 +33,11 @@ export async function captureChartAsCanvas(
     useCORS: true,
     allowTaint: true,
     logging: false,
-    onclone: (clonedDoc) => {
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: width,
+    windowHeight: height,
+    onclone: (clonedDoc: Document) => {
       // Ensure charts are fully rendered in the cloned document
       const clonedElement = clonedDoc.querySelector(`[data-chart-id="${chartElement.dataset.chartId}"]`) as HTMLElement | null;
       if (clonedElement) {
@@ -41,7 +45,7 @@ export async function captureChartAsCanvas(
         clonedElement.style.visibility = 'visible';
       }
     }
-  });
+  } as any);
 
   return canvas;
 }

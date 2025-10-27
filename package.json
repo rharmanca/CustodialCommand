@@ -8,9 +8,9 @@
     "dev:server": "NODE_ENV=development tsx server/index.ts",
     "dev:client": "vite",
     "prebuild": "npm run check",
-    "build": "vite build",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --external:fs --external:path --external:crypto --external:http --external:https --external:url --external:os --external:stream --external:util --external:events --external:querystring --external:zlib --outdir=dist",
     "prestart": "npm run validate-env",
-    "start": "npm run db:push && NODE_ENV=production tsx server/index.ts",
+    "start": "npm run db:push && NODE_ENV=production node dist/index.js",
     "railway:start": "npm run db:push && npm start",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push",
@@ -119,13 +119,14 @@
     "@types/dom-clipboard-api": "^1.0.2",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.2",
-    "@types/node": "^20.19.11",
+    "@types/node": "^20.19.23",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
-    "@types/react": "^18.3.24",
+    "@types/react": "^18.3.26",
     "@types/react-dom": "^18.3.7",
+    "@types/vite__client": "npm:@vitejs/plugin-react@^5.1.0",
     "@types/ws": "^8.18.1",
-    "@vitejs/plugin-react": "^4.3.2",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
     "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.4",
@@ -134,7 +135,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
-    "vite": "^6.3.5"
+    "vite": "^6.4.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

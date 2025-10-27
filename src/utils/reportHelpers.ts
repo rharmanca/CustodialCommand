@@ -329,8 +329,12 @@ export async function captureChartAsImage(chartElementId: string): Promise<strin
     backgroundColor: THEME_COLORS.background,
     scale: 2,
     useCORS: true,
-    allowTaint: true
-  });
+    allowTaint: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: element.scrollWidth,
+    windowHeight: element.scrollHeight
+  } as any);
   
   return canvas.toDataURL('image/png');
 }
