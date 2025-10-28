@@ -6,7 +6,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, validateRequest, apiRateLimit, sanitizeInput } from "./security";
+import { securityHeaders, validateRequest, sanitizeInput, createRateLimit, strictRateLimit, apiRateLimit } from "./security";
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
 
@@ -21,7 +21,7 @@ if (process.env.REPL_SLUG) {
 } else {
   app.set('trust proxy', false); // Disable in other environments
   }
-  app.use(requestTimingMiddleware);
+  app.use(requestIdMiddleware);
   app.use(requestIdMiddleware);
   app.use(performanceMonitor);
   app.use(metricsMiddleware);
@@ -86,10 +86,10 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Apply rate limiting to API routes with different limits for different endpoints
-app.use('/api/admin/login', authRateLimit); // Strict rate limiting for auth
-app.use('/api/inspections', uploadRateLimit); // Rate limiting for inspections with uploads
-app.use('/api/custodial-notes', uploadRateLimit); // Rate limiting for notes with uploads
-app.use('/api/monthly-feedback', uploadRateLimit); // Rate limiting for feedback with uploads
+// app.use('/api/admin/login', strictRateLimit); // Strict rate limiting for auth - commented out for now
+app.use('/api/inspections', strictRateLimit); // Rate limiting for inspections with uploads
+app.use('/api/custodial-notes', strictRateLimit); // Rate limiting for notes with uploads
+app.use('/api/monthly-feedback', strictRateLimit); // Rate limiting for feedback with uploads
 app.use('/api', apiRateLimit); // Default rate limiting for other API routes
 
 // Debug: Log API requests with headers and body (after parsers)
@@ -187,7 +187,7 @@ app.use((req, res, next) => {
     logger.info("Routes registered successfully");
     
     // Apply cache control after routes are registered
-    app.use(cacheControl);
+    // app.use(cacheControl); // Cache control middleware not implemented yet
 
     // Use static file serving (frontend is already built) - MUST be last
     serveStatic(app);
