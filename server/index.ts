@@ -6,7 +6,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, validateRequest, apiRateLimit, sanitizeInput } from "./security";
+import { securityHeaders, validateRequest, apiRateLimit, strictRateLimit, sanitizeInput } from "./security";
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
 
@@ -21,7 +21,8 @@ if (process.env.REPL_SLUG) {
 } else {
   app.set('trust proxy', false); // Disable in other environments
   }
-  app.use(requestTimingMiddleware);
+  // TODO: requestTimingMiddleware is not defined - need to create or remove
+  // app.use(requestTimingMiddleware);
   app.use(requestIdMiddleware);
   app.use(performanceMonitor);
   app.use(metricsMiddleware);
@@ -86,10 +87,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Apply rate limiting to API routes with different limits for different endpoints
-app.use('/api/admin/login', authRateLimit); // Strict rate limiting for auth
-app.use('/api/inspections', uploadRateLimit); // Rate limiting for inspections with uploads
-app.use('/api/custodial-notes', uploadRateLimit); // Rate limiting for notes with uploads
-app.use('/api/monthly-feedback', uploadRateLimit); // Rate limiting for feedback with uploads
+// TODO: authRateLimit and uploadRateLimit not defined - using strictRateLimit and apiRateLimit for now
+app.use('/api/admin/login', strictRateLimit); // Strict rate limiting for auth
+app.use('/api/inspections', apiRateLimit); // Rate limiting for inspections with uploads
+app.use('/api/custodial-notes', apiRateLimit); // Rate limiting for notes with uploads
+app.use('/api/monthly-feedback', apiRateLimit); // Rate limiting for feedback with uploads
 app.use('/api', apiRateLimit); // Default rate limiting for other API routes
 
 // Debug: Log API requests with headers and body (after parsers)
@@ -213,7 +215,8 @@ if (process.env.REPL_SLUG) {
     logger.info("Routes registered successfully");
     
     // Apply cache control after routes are registered
-    app.use(cacheControl);
+    // TODO: cacheControl middleware not defined - need to create or remove
+    // app.use(cacheControl);
 
     // Use static file serving (frontend is already built) - MUST be last
     serveStatic(app);
