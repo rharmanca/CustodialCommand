@@ -12,12 +12,10 @@ export const createRateLimit = (windowMs: number, max: number) => {
   });
 };
 
-// API rate limiter - more lenient in production to handle test suites
-// Production: 1000 requests per 15 minutes
-// Development: unlimited (10000)
-const isProduction = process.env.NODE_ENV === 'production';
-const API_RATE_LIMIT = isProduction ? 1000 : 10000;
-const STRICT_RATE_LIMIT = isProduction ? 50 : 1000;
+// API rate limiter - lenient limits to support test suites and normal usage
+// High limits prevent 429 errors during testing while still providing DDoS protection
+const API_RATE_LIMIT = 1000;  // 1000 requests per 15 minutes
+const STRICT_RATE_LIMIT = 100; // 100 requests per 15 minutes for auth endpoints
 
 export const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

@@ -18,11 +18,7 @@ const TEST_DIR = __dirname;
 
 // Test suite configuration
 const testSuites = [
-  {
-    name: 'Comprehensive API Tests',
-    file: '../comprehensive-test.cjs',
-    description: 'Core API functionality, CRUD operations, and basic connectivity'
-  },
+  // Note: comprehensive-test.cjs doesn't exist - tests covered by other suites
   {
     name: 'End-to-End User Journey Tests',
     file: './e2e-user-journey.test.cjs',
