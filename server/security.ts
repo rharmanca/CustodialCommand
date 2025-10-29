@@ -12,10 +12,10 @@ export const createRateLimit = (windowMs: number, max: number) => {
   });
 };
 
-// API rate limiter - lenient limits to support test suites and normal usage
-// High limits prevent 429 errors during testing while still providing DDoS protection
-const API_RATE_LIMIT = 1000;  // 1000 requests per 15 minutes
-const STRICT_RATE_LIMIT = 100; // 100 requests per 15 minutes for auth endpoints
+// API rate limiter - very high limits to support frequent testing
+// Still provides DDoS protection while allowing extensive test suites
+const API_RATE_LIMIT = 10000;  // 10000 requests per 15 minutes (supports multiple test runs)
+const STRICT_RATE_LIMIT = 1000; // 1000 requests per 15 minutes for auth endpoints
 
 export const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
