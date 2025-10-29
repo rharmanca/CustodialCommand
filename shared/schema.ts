@@ -128,6 +128,8 @@ export const insertRoomInspectionSchema = createInsertSchema(roomInspections).om
   id: true,
   createdAt: true,
 }).extend({
+  buildingInspectionId: z.coerce.number().int(),  // Coerce string to number for tests
+  roomType: z.string().min(1, "Room type is required"),
   images: z.array(z.string()).optional().default([]),
   floors: coerceNullableNumber.optional(),
   verticalHorizontalSurfaces: coerceNullableNumber.optional(),
