@@ -140,6 +140,19 @@ export const storage = {
     }
   },
 
+  async getRoomInspectionsByBuildingId(buildingInspectionId: number) {
+    try {
+      const result = await db.select()
+        .from(roomInspections)
+        .where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+      logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
+      return result;
+    } catch (error) {
+      logger.error('Error getting room inspections by building ID:', error);
+      throw error;
+    }
+  },
+
   // Monthly Feedback methods
   async createMonthlyFeedback(data: InsertMonthlyFeedback) {
     try {
