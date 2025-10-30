@@ -104,7 +104,7 @@ const GroupedInspectionCard: React.FC<GroupedInspectionCardProps> = ({
   };
 
   return (
-    <Card className="w-full hover:shadow-lg transition-shadow">
+    <Card className="w-full">
       <CardHeader 
         className="cursor-pointer" 
         onClick={() => setIsExpanded(!isExpanded)}

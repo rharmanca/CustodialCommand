@@ -49,7 +49,6 @@ export const InspectionCategoryCard: React.FC<InspectionCategoryCardProps> = mem
 
   return (
     <Card className={cn(
-      'transition-all duration-200 hover:shadow-md',
       isCompleted ? 'ring-2 ring-green-200' : '',
       disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
       className
