@@ -549,31 +549,50 @@ a:hover,
   }
 }
 
-/* Modern buttons - mobile-first responsive - ENHANCED */
-.modern-button {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 600; /* ENHANCED from 500 to 600 for better readability */
-  font-size: 0.875rem;
-  padding: 1rem 1.25rem; /* ENHANCED padding for better touch targets (was 0.875rem 1rem) */
-  letter-spacing: 0.01em;
-  border: 3px solid hsl(var(--border)); /* ENHANCED from 1px to 3px for stronger borders */
-  border-radius: var(--radius);
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1); /* ENHANCED shadows with inset */
-  transition: all 0.15s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  width: 100%;
-  max-width: 100%;
-  /* Touch optimization */
-  min-height: 48px;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add text shadow for better contrast */
+/* Modern buttons - mobile-first responsive - PHASE 1 ENHANCED */
+@layer components {
+  .modern-button {
+    /* Typography */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    
+    /* Layout */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.25rem;
+    min-height: 48px;
+    width: 100%;
+    max-width: 100%;
+    
+    /* Styling */
+    border-radius: var(--radius);
+    border: 3px solid hsl(var(--border));
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    text-decoration: none;
+    cursor: pointer;
+    
+    /* PHASE 1: Enhanced 4-Layer Shadow System */
+    box-shadow: 
+      /* Layer 1: Outer shadow for depth */
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1),
+      /* Layer 2: Inner highlight for dimension */
+      inset 0 2px 0 rgba(255, 255, 255, 0.15),
+      /* Layer 3: Subtle bottom edge for separation */
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    
+    /* PHASE 1: Enhanced Transitions (200ms ease-out) */
+    transition: all 0.2s ease-out;
+    
+    /* Touch Optimization */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* When used in responsive-grid, maintain consistent width */
@@ -606,16 +625,53 @@ a:hover,
   }
 }
 
-.modern-button:hover {
-  background: hsl(var(--primary) / 0.9);
-  box-shadow: 0 6px 16px 0 rgb(0 0 0 / 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15); /* ENHANCED hover shadow */
-  transform: translateY(-2px); /* ENHANCED hover lift (was -1px) */
-  border-color: hsl(var(--primary) / 0.8); /* ENHANCED border color on hover */
-}
-
-.modern-button:active {
-  transform: translateY(0.5px);
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+@layer components {
+  /* PHASE 1: Hover state with enhanced depth */
+  @media (hover: hover) and (pointer: fine) {
+    .modern-button:hover {
+      background: hsl(var(--primary) / 0.9);
+      border-color: hsl(var(--primary) / 0.85);
+      
+      /* Enhanced Hover Shadow - deeper and more prominent */
+      box-shadow:
+        /* Deeper outer shadow */
+        0 10px 15px -3px rgb(0 0 0 / 0.15),
+        0 4px 6px -4px rgb(0 0 0 / 0.1),
+        /* Brighter inner highlight */
+        inset 0 2px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+      
+      /* Subtle lift effect */
+      transform: translateY(-2px);
+    }
+  }
+  
+  /* PHASE 1: Active state with immediate feedback */
+  .modern-button:active {
+    /* Press down effect */
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    
+    /* Faster transition for immediate tactile feedback */
+    transition-duration: 0.1s;
+    
+    /* Slightly dimmer on press */
+    background: hsl(var(--primary) / 0.95);
+  }
+  
+  /* PHASE 1: Focus state for accessibility */
+  .modern-button:focus-visible {
+    outline: none;
+    /* 4px focus ring with sufficient contrast */
+    box-shadow:
+      /* Original shadows */
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1),
+      inset 0 2px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+      /* Focus ring */
+      0 0 0 4px hsl(var(--primary) / 0.3);
+  }
 }
 
 .retro-button::before {
