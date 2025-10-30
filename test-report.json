@@ -1,67 +1,67 @@
 {
-  "timestamp": "2025-09-18T01:41:30.600Z",
-  "baseUrl": "http://localhost:5000",
+  "timestamp": "2025-10-27T19:09:52.405Z",
+  "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 19,
-    "passed": 7,
-    "failed": 12,
-    "successRate": 36.84210526315789
+    "passed": 15,
+    "failed": 4,
+    "successRate": 78.94736842105263
   },
   "details": [
     {
       "testName": "Health Check",
       "passed": false,
-      "details": "Status: 503, Data: {\"status\":\"error\",\"timestamp\":\"2025-09-18T01:41:29.876Z\",\"uptime\":48,\"version\":\"1.0.0\",\"environment\":\"development\",\"database\":\"error\",\"memory\":{\"used\":18,\"total\":20,\"percentage\":89}}"
+      "details": "Status: 503, Data: {\"status\":\"error\",\"timestamp\":\"2025-10-27T19:09:50.591Z\",\"uptime\":491477,\"version\":\"1.0.0\",\"environment\":\"production\",\"database\":\"error\",\"memory\":{\"used\":30,\"total\":34,\"percentage\":88}}"
     },
     {
       "testName": "Basic API Test",
       "passed": false,
-      "details": "Status: 404, Data: {\"error\":\"API endpoint not found\",\"path\":\"/\",\"method\":\"GET\",\"timestamp\":\"2025-09-18T01:41:29.878Z\",\"availableEndpoints\":[\"POST /api/inspections\",\"GET /api/inspections\",\"POST /api/submit-building-inspection\",\"POST /api/custodial-notes\",\"POST /api/room-inspections\"]}"
+      "details": "Status: 404, Data: {\"error\":\"API endpoint not found\",\"path\":\"/\",\"method\":\"GET\",\"timestamp\":\"2025-10-27T19:09:50.649Z\",\"availableEndpoints\":[\"POST /api/inspections\",\"GET /api/inspections\",\"POST /api/submit-building-inspection\",\"POST /api/custodial-notes\",\"POST /api/room-inspections\"]}"
     },
     {
       "testName": "GET Inspections",
-      "passed": false,
-      "details": "Status: 500"
+      "passed": true,
+      "details": "Retrieved 128 inspections"
     },
     {
       "testName": "GET Custodial Notes",
-      "passed": false,
-      "details": "Status: 500"
+      "passed": true,
+      "details": "Retrieved 16 custodial notes"
     },
     {
       "testName": "Create Single Room Inspection",
-      "passed": false,
-      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
+      "passed": 226,
+      "details": "Created inspection ID: 226"
     },
     {
       "testName": "Create Whole Building Inspection",
-      "passed": false,
-      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
+      "passed": 227,
+      "details": "Created inspection ID: 227"
     },
     {
       "testName": "Create Custodial Note",
-      "passed": false,
-      "details": "Status: 500, Data: {\"message\":\"Internal server error\"}"
+      "passed": 50,
+      "details": "Created note ID: 50"
     },
     {
       "testName": "Create Room Inspection",
       "passed": false,
-      "details": "No building inspection ID provided"
+      "details": "Status: 400, Data: {\"error\":\"Invalid room inspection data\",\"details\":[{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"buildingInspectionId\"],\"message\":\"Expected number, received string\"}],\"message\":\"Please check that all required fields are properly filled.\"}"
     },
     {
       "testName": "GET Specific Inspection",
-      "passed": false,
-      "details": "No inspection ID provided"
+      "passed": true,
+      "details": "Retrieved inspection 226"
     },
     {
       "testName": "File Serving",
       "passed": false,
-      "details": "Upload failed with status 400: {\"message\":\"Invalid inspection data\",\"details\":[{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"floors\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"verticalHorizontalSurfaces\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"ceiling\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"restrooms\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"customerSatisfaction\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"trash\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"projectCleaning\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"activitySupport\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"safetyCompliance\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"equipment\"],\"message\":\"Expected number, received string\"},{\"code\":\"invalid_type\",\"expected\":\"number\",\"received\":\"string\",\"path\":[\"monitoring\"],\"message\":\"Expected number, received string\"}]}"
+      "details": "Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand-1/comprehensive-test.cjs"
     },
     {
       "testName": "Admin Login",
-      "passed": false,
-      "details": "Status: 401, Data: {\"success\":false,\"message\":\"Invalid credentials\"}"
+      "passed": true,
+      "details": "Admin login successful"
     },
     {
       "testName": "Frontend Page: Home Page",
@@ -100,8 +100,8 @@
     },
     {
       "testName": "Database Consistency",
-      "passed": false,
-      "details": ""
+      "passed": true,
+      "details": "Inspections: 130, Notes: 17"
     }
   ]
 }

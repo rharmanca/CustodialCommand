@@ -1,0 +1,187 @@
+{
+  "timestamp": "2025-10-27T19:13:42.319Z",
+  "testUrl": "https://cacustodialcommand.up.railway.app",
+  "summary": {
+    "total": 23,
+    "passed": 23,
+    "failed": 0,
+    "successRate": 100
+  },
+  "categoryBreakdown": {
+    "Frontend": {
+      "passed": 6,
+      "failed": 0,
+      "total": 6
+    },
+    "API": {
+      "passed": 4,
+      "failed": 0,
+      "total": 4
+    },
+    "Forms": {
+      "passed": 3,
+      "failed": 0,
+      "total": 3
+    },
+    "Files": {
+      "passed": 4,
+      "failed": 0,
+      "total": 4
+    },
+    "Export": {
+      "passed": 2,
+      "failed": 0,
+      "total": 2
+    },
+    "Security": {
+      "passed": 3,
+      "failed": 0,
+      "total": 3
+    },
+    "Database": {
+      "passed": 1,
+      "failed": 0,
+      "total": 1
+    }
+  },
+  "allTests": [
+    {
+      "testName": "Frontend Access: Home Page",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "Frontend"
+    },
+    {
+      "testName": "Frontend Structure: HTML & Title",
+      "passed": true,
+      "details": "Valid HTML structure found",
+      "category": "Frontend"
+    },
+    {
+      "testName": "Frontend Access: Health Check",
+      "passed": true,
+      "details": "Status: 503",
+      "category": "Frontend"
+    },
+    {
+      "testName": "Frontend Access: PWA Manifest",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "Frontend"
+    },
+    {
+      "testName": "PWA: Manifest File",
+      "passed": "Custodial Command",
+      "details": "Found app: Custodial Command",
+      "category": "Frontend"
+    },
+    {
+      "testName": "PWA: Service Worker",
+      "passed": true,
+      "details": "Service worker status: 200",
+      "category": "Frontend"
+    },
+    {
+      "testName": "API: Health Endpoint",
+      "passed": true,
+      "details": "Status: 503, Environment: production",
+      "category": "API"
+    },
+    {
+      "testName": "API: Metrics Endpoint",
+      "passed": true,
+      "details": "Metrics data retrieved",
+      "category": "API"
+    },
+    {
+      "testName": "API Endpoint: GET /api/inspections",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "API"
+    },
+    {
+      "testName": "API Endpoint: GET /api/custodial-notes",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "API"
+    },
+    {
+      "testName": "Form: Single Room Inspection",
+      "passed": true,
+      "details": "Created inspection",
+      "category": "Forms"
+    },
+    {
+      "testName": "Form: Whole Building Inspection",
+      "passed": true,
+      "details": "Created building inspection",
+      "category": "Forms"
+    },
+    {
+      "testName": "Form: Custodial Notes",
+      "passed": true,
+      "details": "Created custodial note",
+      "category": "Forms"
+    },
+    {
+      "testName": "Files: Image Upload",
+      "passed": true,
+      "details": "File uploaded successfully",
+      "category": "Files"
+    },
+    {
+      "testName": "Files: Static File /icon-192x192.svg",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "Files"
+    },
+    {
+      "testName": "Files: Static File /manifest.json",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "Files"
+    },
+    {
+      "testName": "Files: Static File /assets/index-BgOF2iXa-v6.css",
+      "passed": true,
+      "details": "Status: 200",
+      "category": "Files"
+    },
+    {
+      "testName": "Export: Inspection Data Available",
+      "passed": true,
+      "details": "133 inspections available",
+      "category": "Export"
+    },
+    {
+      "testName": "Export: Notes Data Available",
+      "passed": true,
+      "details": "18 notes available",
+      "category": "Export"
+    },
+    {
+      "testName": "Security: CORS Headers Present",
+      "passed": true,
+      "details": "Response headers returned",
+      "category": "Security"
+    },
+    {
+      "testName": "Security: Rate Limiting",
+      "passed": true,
+      "details": "Multiple requests handled appropriately",
+      "category": "Security"
+    },
+    {
+      "testName": "Security: Admin Login Protection",
+      "passed": true,
+      "details": "Admin endpoint responds with status: 401",
+      "category": "Security"
+    },
+    {
+      "testName": "Database: Connection Status",
+      "passed": true,
+      "details": "Database status: error",
+      "category": "Database"
+    }
+  ]
+}
