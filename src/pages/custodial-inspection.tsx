@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui/badge';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
-import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Star, Upload, Camera, X, Save, Clock, Home } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
@@ -656,41 +657,50 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       </Dialog>
       
       <div className="container mx-auto p-6 max-w-4xl">
-      <div className="flex items-center gap-4 mb-6">
-        {onBack && (
-          <Button variant="outline" onClick={onBack} className="flex-shrink-0">
-            ← Back
-          </Button>
-        )}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground">Submit Inspection</h1>
-          <p className="text-muted-foreground mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
-          
-          {/* Important Note */}
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800 leading-relaxed">
-              <strong>📋 Important:</strong> This form is for inspecting a single room or area using the same rating criteria as the Whole Building Inspection. However, single area inspections are recorded separately and do not automatically count toward a building-wide inspection or monthly metrics. If you're conducting these inspections as part of a comprehensive building review or to meet monthly inspection requirements, you'll need to manually track your progress across all required areas.
-            </p>
-          </div>
-          
-          {/* Save Status Indicator */}
-          {(lastSaved || isAutoSaving) && (
-            <div className="mt-2 flex items-center space-x-2 text-sm text-muted-foreground">
-              {isAutoSaving ? (
-                <>
-                  <Save className="w-4 h-4 animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : lastSaved ? (
-                <>
-                  <Clock className="w-4 h-4" />
-                  <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
-                </>
-              ) : null}
-            </div>
-          )}
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={onBack} className="flex items-center gap-1 cursor-pointer">
+              <Home className="w-4 h-4" />
+              <span className="sr-only sm:not-sr-only">Home</span>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Single Area Inspection</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">Submit Inspection</h1>
+        <p className="text-muted-foreground mt-2">Use this form to inspect a single room or location. Example: Cafeteria. If performing a whole building inspection please select that from the previous screen.</p>
+
+        {/* Important Note */}
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 leading-relaxed">
+            <strong>📋 Important:</strong> This form is for inspecting a single room or area using the same rating criteria as the Whole Building Inspection. However, single area inspections are recorded separately and do not automatically count toward a building-wide inspection or monthly metrics. If you're conducting these inspections as part of a comprehensive building review or to meet monthly inspection requirements, you'll need to manually track your progress across all required areas.
+          </p>
         </div>
-        
+
+        {/* Save Status Indicator */}
+        {(lastSaved || isAutoSaving) && (
+          <div className="mt-2 flex items-center space-x-2 text-sm text-muted-foreground">
+            {isAutoSaving ? (
+              <>
+                <Save className="w-4 h-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : lastSaved ? (
+              <>
+                <Clock className="w-4 h-4" />
+                <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+              </>
+            ) : null}
+          </div>
+        )}
+
         {/* Manual Save Button */}
         {currentDraftId && (
           <Button
@@ -698,7 +708,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             variant="outline"
             onClick={saveDraftData}
             disabled={isAutoSaving}
-            className="flex-shrink-0"
+            className="mt-4"
           >
             <Save className="w-4 h-4 mr-2" />
             Save Draft
@@ -714,7 +724,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <CardDescription>Enter the basic details for this inspection</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="school">School *</Label>
                 <Select value={formData.school} onValueChange={(value) => handleInputChange('school', value)}>
@@ -861,11 +871,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               <CardDescription>Upload images or take photos to document inspection findings (up to 5 images)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Label htmlFor="image-upload" className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload Images</span>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Label htmlFor="image-upload" className="cursor-pointer flex-1">
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors min-h-[48px]">
+                    <Upload className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="font-medium">Upload Images</span>
                   </div>
                   <Input
                     id="image-upload"
@@ -874,13 +884,14 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
+                    disabled={selectedImages.length >= 5}
                   />
                 </Label>
-                
-                <Label htmlFor="camera-capture" className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                    <Camera className="w-4 h-4" />
-                    <span>Take Photo</span>
+
+                <Label htmlFor="camera-capture" className="cursor-pointer flex-1">
+                  <div className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors min-h-[48px]">
+                    <Camera className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="font-medium">Take Photo</span>
                   </div>
                   <Input
                     id="camera-capture"
@@ -889,30 +900,46 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                     capture="environment"
                     onChange={handleImageUpload}
                     className="hidden"
+                    disabled={selectedImages.length >= 5}
                   />
                 </Label>
               </div>
-              <p className="text-sm text-gray-500">
-                Select multiple images from your device or take new photos with your camera (up to 5 images - JPG, PNG, GIF supported)
+
+              {/* Image count badge */}
+              {selectedImages.length > 0 && (
+                <div className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <span className="text-sm font-medium text-blue-900">
+                    {selectedImages.length} of 5 images selected
+                  </span>
+                  {selectedImages.length >= 5 && (
+                    <span className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
+                      Maximum reached
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <p className="text-xs sm:text-sm text-gray-500">
+                📸 Select multiple images or take photos • Up to 5 images • JPG, PNG, GIF supported
               </p>
 
               {/* Image Previews */}
               {selectedImages.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Selected Images ({selectedImages.length}/5)</Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <Label className="text-sm font-semibold">Image Previews</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                     {selectedImages.map((image, index) => (
                       <div key={index} className="relative group">
                         <img
                           src={URL.createObjectURL(image)}
                           alt={`Preview ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border"
+                          className="w-full h-32 sm:h-24 object-cover rounded-lg border-2 border-gray-200"
                           loading="lazy"
                         />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-90 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg"
                           aria-label={`Remove image ${index + 1}`}
                         >
                           <X className="w-4 h-4" />

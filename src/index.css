@@ -4,98 +4,406 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Legacy browser polyfills and vendor prefixes */
-* {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
+/* ========================================
+   MODERN CSS ARCHITECTURE
+   ======================================== */
+
+/* 
+ * CSS Cascade Layer Architecture
+ * Order (lowest to highest priority):
+ * 1. reset - CSS reset and normalize
+ * 2. base - Element-level base styles
+ * 3. performance - Performance optimizations
+ * 4. accessibility - Accessibility enhancements
+ * 5. responsive - Responsive design patterns
+ * 6. performance-advanced - Advanced performance optimizations
+ * 7. components - Component-specific styles
+ * 8. utilities - Utility classes and overrides
+ * 9. overrides - Important overrides and emergency fixes
+ */
+
+/* Define layer order */
+@layer reset, base, performance, accessibility, responsive, performance-advanced, components, utilities, overrides;
+
+/* ========================================
+   MODERN PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-/* Optimize for older mobile browsers */
-body {
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+/* Hardware acceleration for smooth animations */
+@layer performance {
+  .gpu-accelerated {
+    /* Force hardware acceleration for smooth 60fps animations */
+    transform: translateZ(0);
+    /* Backface visibility prevents flickering */
+    backface-visibility: hidden;
+    /* Optimize for animations */
+    will-change: transform, opacity;
+  }
+  
+  /* Remove will-change after animations complete */
+  .animation-complete {
+    will-change: auto;
+  }
+  
+  /* Optimize scrolling performance */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    /* Optimize scroll performance */
+    overflow-anchor: none;
+  }
+  
+  /* Content visibility for performance */
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 1000px;
+  }
+  
+  /* CSS containment for layout optimization */
+  .layout-contained {
+    contain: layout style paint;
+  }
 }
 
-/* Better touch targets for mobile - only when needed */
-.touch-target {
-  -webkit-user-select: auto;
-  -moz-user-select: auto;
-  -ms-user-select: auto;
-  user-select: auto;
-  min-height: 44px; /* iOS/Android recommended touch target size */
-  min-width: 44px;
+/* Focus-visible for better accessibility */
+@layer accessibility {
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.8);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
+  /* Hide focus ring when using mouse */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
-/* Default user-select for interactive elements */
-button, input, select, textarea, a {
-  -webkit-user-select: auto;
-  -moz-user-select: auto;
-  -ms-user-select: auto;
-  user-select: auto;
+/* ========================================
+   MODERN RESPONSIVE DESIGN PATTERNS
+   ======================================== */
+
+@layer responsive {
+  /* Container queries for component-level responsiveness */
+  .responsive-card {
+    container-type: inline-size;
+  }
+  
+  @container (min-width: 300px) {
+    .responsive-card .card-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+    }
+  }
+  
+  @container (min-width: 500px) {
+    .responsive-card .card-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+  }
+  
+  @container (min-width: 700px) {
+    .responsive-card .card-content {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  
+  /* Modern fluid typography */
+  .fluid-text {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    line-height: 1.6;
+  }
+  
+  .fluid-heading {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.2;
+  }
+  
+  /* Responsive spacing with modern units */
+  .responsive-spacing {
+    padding: clamp(1rem, 5vw, 3rem);
+    margin: clamp(0.5rem, 2.5vw, 1.5rem);
+  }
+  
+  /* Modern grid system */
+  .responsive-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-grid {
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-grid {
+      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+  }
+  
+  /* Touch-optimized interactive elements */
+  .touch-optimized {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Prevent zoom on input focus (iOS) */
+  .no-zoom-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Safe area support for notched displays */
+  .safe-area-padding {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Modern aspect ratio containers */
+  .aspect-ratio-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+  
+  .aspect-ratio-1-1 {
+    aspect-ratio: 1 / 1;
+  }
+  
+  .aspect-ratio-4-3 {
+    aspect-ratio: 4 / 3;
+  }
 }
 
-/* Legacy flexbox with vendor prefixes */
-.legacy-flex {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: flex;
+/* ========================================
+   ADVANCED CSS PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+@layer performance-advanced {
+  /* Content visibility for off-screen content */
+  .offscreen-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 1000px;
+  }
+  
+  .hidden-content {
+    content-visibility: hidden;
+    contain-intrinsic-size: 0 0;
+  }
+  
+  /* CSS containment for complex components */
+  .layout-contained {
+    contain: layout style paint;
+  }
+  
+  .size-contained {
+    contain: size layout;
+  }
+  
+  .style-contained {
+    contain: style;
+  }
+  
+  .paint-contained {
+    contain: paint;
+  }
+  
+  /* Critical CSS inlining hint */
+  .critical-above-fold {
+    contain: layout style;
+  }
+  
+  /* Optimize images for performance */
+  .responsive-image {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px;
+  }
+  
+  /* Optimize iframes and embeds */
+  .embedded-content {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
+  
+  /* Performance monitoring utilities */
+  .performance-monitor {
+    /* Debug class for performance profiling */
+    contain: strict;
+    will-change: auto;
+  }
+  
+  /* Reduce paint complexity */
+  .paint-optimized {
+    /* Isolate compositing layers */
+    isolation: isolate;
+    /* Create new stacking context */
+    transform: translateZ(0);
+  }
+  
+  /* Optimize scrolling areas */
+  .scroll-optimized {
+    overflow-anchor: none;
+    scroll-behavior: smooth;
+    contain: layout style paint;
+  }
+  
+  /* Font loading optimization */
+  .font-display-swap {
+    font-display: swap;
+  }
+  
+  .font-display-optional {
+    font-display: optional;
+  }
+  
+  .font-display-fallback {
+    font-display: fallback;
+  }
+  
+  /* Network-aware loading */
+  @media (prefers-reduced-data: reduce) {
+    .data-heavy {
+      display: none;
+    }
+    
+    .responsive-image {
+      background-image: none;
+    }
+  }
+  
+  /* Battery-aware animations */
+  @media (prefers-reduced-data: reduce) {
+    .animation-heavy {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
 }
 
-.legacy-flex-column {
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -moz-box-orient: vertical;
-  -moz-box-direction: normal;
-  -ms-flex-direction: column;
-  flex-direction: column;
+/* ========================================
+   RESET LAYER - CSS Reset & Legacy Support
+   ======================================== */
+
+@layer reset {
+  /* Legacy browser polyfills and vendor prefixes */
+  * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  
+  /* Legacy flexbox with vendor prefixes */
+  .legacy-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+  }
+  
+  .legacy-flex-column {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -moz-box-orient: vertical;
+    -moz-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  
+  .legacy-flex-center {
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -moz-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -moz-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  
+  /* Float-based layout for very old browsers */
+  .legacy-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+    overflow: hidden; /* Clearfix */
+  }
+  
+  .legacy-container:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  
+  .legacy-col-half {
+    float: left;
+    width: 48%;
+    margin-right: 4%;
+  }
+  
+  .legacy-col-half:last-child {
+    margin-right: 0;
+  }
 }
 
-.legacy-flex-center {
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -moz-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -moz-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-}
+/* ========================================
+   BASE LAYER - Element-level Base Styles
+   ======================================== */
 
-/* Float-based layout for very old browsers */
-.legacy-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px;
-  overflow: hidden; /* Clearfix */
-}
-
-.legacy-container:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.legacy-col-half {
-  float: left;
-  width: 48%;
-  margin-right: 4%;
-}
-
-.legacy-col-half:last-child {
-  margin-right: 0;
+@layer base {
+  /* Optimize for older mobile browsers */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Better touch targets for mobile - only when needed */
+  .touch-target {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+    min-height: 44px; /* iOS/Android recommended touch target size */
+    min-width: 44px;
+  }
+  
+  /* Default user-select for interactive elements */
+  button, input, select, textarea, a {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+  }
 }
 
 @layer base {
@@ -549,31 +857,107 @@ a:hover,
   }
 }
 
-/* Modern buttons - mobile-first responsive - ENHANCED */
-.modern-button {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 600; /* ENHANCED from 500 to 600 for better readability */
-  font-size: 0.875rem;
-  padding: 1rem 1.25rem; /* ENHANCED padding for better touch targets (was 0.875rem 1rem) */
-  letter-spacing: 0.01em;
-  border: 3px solid hsl(var(--border)); /* ENHANCED from 1px to 3px for stronger borders */
-  border-radius: var(--radius);
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1); /* ENHANCED shadows with inset */
-  transition: all 0.15s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  width: 100%;
-  max-width: 100%;
-  /* Touch optimization */
-  min-height: 48px;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add text shadow for better contrast */
+/* Modern buttons - mobile-first responsive - ENHANCED WITH 60FPS OPTIMIZATIONS */
+@layer components {
+  .modern-button {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600; /* ENHANCED from 500 to 600 for better readability */
+    font-size: 0.875rem;
+    padding: 1rem 1.25rem; /* ENHANCED padding for better touch targets (was 0.875rem 1rem) */
+    letter-spacing: 0.01em;
+    border: 3px solid hsl(var(--border)); /* ENHANCED from 1px to 3px for stronger borders */
+    border-radius: var(--radius);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    
+    /* Enhanced multi-layer shadow system */
+    box-shadow: 
+      /* Outer shadow - depth */
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1),
+      /* Inner highlight - dimension */
+      inset 0 2px 0 rgba(255, 255, 255, 0.15),
+      /* Subtle bottom edge */
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    
+    /* 60fps optimized transitions - only transform and opacity */
+    transition: 
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.15s ease;
+    
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 100%;
+    max-width: 100%;
+    
+    /* Touch optimization - WCAG minimum 44x44px */
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    
+    /* Text enhancement */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    
+    /* Performance optimizations */
+    transform: translateZ(0); /* Force hardware acceleration */
+    backface-visibility: hidden; /* Prevent flickering */
+    contain: layout style paint; /* Optimize rendering */
+  }
+  
+  .modern-button:hover {
+    background: hsl(var(--primary) / 0.9);
+    border-color: hsl(var(--primary) / 0.85);
+    
+    /* Enhanced hover shadow with more depth */
+    box-shadow:
+      /* Deeper outer shadow */
+      0 10px 15px -3px rgb(0 0 0 / 0.15),
+      0 4px 6px -4px rgb(0 0 0 / 0.1),
+      /* Brighter inner highlight */
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    
+    /* Smooth lift effect - hardware accelerated */
+    transform: translateY(-2px) translateZ(0);
+  }
+  
+  .modern-button:active {
+    /* Press down effect - immediate feedback */
+    transform: translateY(0.5px) translateZ(0);
+    
+    /* Subtle shadow on press */
+    box-shadow:
+      0 1px 2px 0 rgb(0 0 0 / 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    /* Faster transition for immediate feedback */
+    transition-duration: 0.1s;
+    
+    /* Slightly dimmer on press */
+    background: hsl(var(--primary) / 0.95);
+  }
+  
+  .modern-button:focus-visible {
+    /* Enhanced focus ring for accessibility */
+    outline: 2px solid hsl(var(--primary) / 0.6);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) + 2px);
+  }
+  
+  /* Remove will-change after animations */
+  .modern-button:not(:hover):not(:active) {
+    will-change: auto;
+  }
+  
+  .modern-button:hover,
+  .modern-button:active {
+    will-change: transform, box-shadow;
+  }
 }
 
 /* When used in responsive-grid, maintain consistent width */
@@ -709,20 +1093,64 @@ a:hover,
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
-/* Modern star rating buttons - ENHANCED for mobile */
-.star-button {
-  background: none;
-  border: 2px solid transparent; /* Add border for better definition */
-  color: hsl(45 100% 50%); /* ENHANCED more saturated yellow (was 45 93% 47%) */
-  font-size: 1.75rem; /* ENHANCED size for better mobile visibility (was 1.5rem) */
-  cursor: pointer;
-  transition: all 0.15s ease;
-  padding: 0.75rem; /* ENHANCED padding (was 0.5rem) */
-  border-radius: 0.5rem;
-  min-height: 48px; /* ENHANCED touch target (was 44px) */
-  min-width: 48px; /* ENHANCED touch target (was 44px) */
-  touch-action: manipulation;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+/* Modern star rating buttons - ENHANCED WITH 60FPS OPTIMIZATIONS */
+@layer components {
+  .star-button {
+    background: none;
+    border: 2px solid transparent; /* Add border for better definition */
+    color: hsl(45 100% 50%); /* ENHANCED more saturated yellow (was 45 93% 47%) */
+    font-size: 1.75rem; /* ENHANCED size for better mobile visibility (was 1.5rem) */
+    cursor: pointer;
+    
+    /* 60fps optimized transitions - only transform and opacity */
+    transition: 
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.15s ease,
+      box-shadow 0.15s ease;
+    
+    padding: 0.75rem; /* ENHANCED padding (was 0.5rem) */
+    border-radius: 0.5rem;
+    min-height: 48px; /* ENHANCED touch target (was 44px) */
+    min-width: 48px; /* ENHANCED touch target (was 44px) */
+    touch-action: manipulation;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    
+    /* Performance optimizations */
+    transform: translateZ(0); /* Force hardware acceleration */
+    backface-visibility: hidden; /* Prevent flickering */
+    contain: layout style paint; /* Optimize rendering */
+  }
+  
+  .star-button:hover {
+    background: hsl(45 100% 50% / 0.15); /* ENHANCED hover background with more saturated color */
+    transform: scale(1.1) translateZ(0); /* ENHANCED scale with hardware acceleration */
+    border-color: hsl(45 100% 50% / 0.3); /* Add border color on hover */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* ENHANCED hover shadow */
+    
+    /* Optimize for animation */
+    will-change: transform, box-shadow;
+  }
+  
+  .star-button.filled {
+    color: hsl(45 100% 50%); /* ENHANCED more saturated yellow */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add shadow to filled stars */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow to filled stars */
+  }
+  
+  .star-button.empty {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  .star-button:focus-visible {
+    /* Enhanced focus ring for accessibility */
+    outline: 2px solid hsl(45 100% 50% / 0.6);
+    outline-offset: 2px;
+  }
+  
+  /* Remove will-change after animations */
+  .star-button:not(:hover) {
+    will-change: auto;
+  }
 }
 
 @media (min-width: 640px) {

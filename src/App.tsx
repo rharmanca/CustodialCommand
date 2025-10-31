@@ -324,47 +324,70 @@ function App() {
                 )}
               </div>
 
-              <div className="responsive-grid mb-6">
-                <button
-                  onClick={() => setCurrentPage("Custodial Notes")}
-                  className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
-                >
-                  Report A Custodial Concern
-                </button>
-                <button
-                  onClick={() => setCurrentPage("Custodial Inspection")}
-                  className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
-                >
-                  Single Area Inspection
-                </button>
-                <button
-                  onClick={() => setCurrentPage("Whole Building Inspection")}
-                  className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
-                >
-                  Building Inspection
-                </button>
-                <button
-                  onClick={() => setCurrentPage("Rating Criteria")}
-                  className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white"
-                >
-                  Rating Criteria Guide
-                </button>
-                <button
-                  onClick={() => setCurrentPage("Monthly Feedback")}
-                  className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white"
-                >
-                  📄 Monthly Feedback Reports
-                </button>
-                <div className="flex flex-col items-center space-y-3 w-full max-w-400px">
-                  <p className="text-sm text-muted-foreground font-medium text-center">
-                    Note: Best viewed on desktop
-                  </p>
-                  <button
-                    onClick={() => setCurrentPage("Inspection Data")}
-                    className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white w-full max-w-400px min-w-280px"
-                  >
-                    View Data & Reports
-                  </button>
+              {/* Primary Actions - Inspections and Reports */}
+              <div className="space-y-6 mb-6">
+                <div className="space-y-2">
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
+                    Submit Inspections
+                  </h2>
+                  <div className="responsive-grid">
+                    <button
+                      onClick={() => setCurrentPage("Custodial Notes")}
+                      className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        📝 Report A Custodial Concern
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage("Custodial Inspection")}
+                      className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        🔍 Single Area Inspection
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage("Whole Building Inspection")}
+                      className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        🏢 Building Inspection
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
+                    View & Reports
+                  </h2>
+                  <div className="responsive-grid">
+                    <button
+                      onClick={() => setCurrentPage("Inspection Data")}
+                      className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        📊 View Data & Reports
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage("Monthly Feedback")}
+                      className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        📄 Monthly Feedback Reports
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage("Rating Criteria")}
+                      className="modern-button bg-gray-600 hover:bg-gray-700 border-gray-600 text-white shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        ℹ️ Rating Criteria Guide
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
 

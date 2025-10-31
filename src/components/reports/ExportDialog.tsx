@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, FileSpreadsheet, FileText, FileImage, Loader2 } from 'lucide-react';
 import type { Inspection, CustodialNote } from '../../../shared/schema';
 import { exportToExcel, exportToCSV, type ExportOptions } from '../../utils/excelExporter';
+import { generateIssuesReport, type IssuesReportData } from '../../utils/printReportGenerator';
 
 interface ExportDialogProps {
   inspections: Inspection[];
@@ -57,8 +58,26 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
           exportToCSV(exportData, sheetName);
           break;
         case 'pdf':
-          // TODO: Implement PDF export
-          console.log('PDF export not yet implemented');
+          // Generate PDF using the Issues Report generator
+          const pdfData: IssuesReportData = {
+            inspections,
+            custodialNotes,
+            activeFilters: Object.entries(options)
+              .filter(([_, value]) => value)
+              .map(([key]) => key)
+          };
+
+          const pdfBlob = generateIssuesReport(pdfData);
+
+          // Create download link
+          const url = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `custodial-report-${new Date().toISOString().split('T')[0]}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
           break;
       }
 
@@ -66,7 +85,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
       setOpen(false);
     } catch (error) {
       console.error('Export failed:', error);
-      // TODO: Show error message to user
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -146,10 +165,10 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="pdf" id="pdf" disabled />
-                <Label htmlFor="pdf" className="flex items-center gap-2 text-muted-foreground">
+                <RadioGroupItem value="pdf" id="pdf" />
+                <Label htmlFor="pdf" className="flex items-center gap-2">
                   <FileImage className="w-4 h-4" />
-                  PDF (.pdf) - Formatted reports (Coming Soon)
+                  PDF (.pdf) - Formatted issue reports with summaries
                 </Label>
               </div>
             </RadioGroup>

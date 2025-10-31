@@ -69,9 +69,10 @@ export const RatingInput: React.FC<RatingInputProps> = memo(({
             disabled={disabled}
             className={cn(
               'transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm',
+              'p-2 min-w-[44px] min-h-[44px] flex items-center justify-center',
               disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-110',
-              value >= rating 
-                ? 'text-yellow-400' 
+              value >= rating
+                ? 'text-yellow-400'
                 : 'text-gray-300 hover:text-yellow-200'
             )}
             aria-label={`Rate ${rating} star${rating > 1 ? 's' : ''}`}
