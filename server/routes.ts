@@ -436,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const roomInspection = await storage.createRoomInspection(validatedData);
       console.log("[POST] Successfully created room inspection:", roomInspection.id);
 
-      res.json(roomInspection);
+      res.status(201).json(roomInspection);
     } catch (error) {
       console.error("Error creating room inspection:", error);
       if (error instanceof z.ZodError) {

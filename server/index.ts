@@ -6,7 +6,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, validateRequest, sanitizeInput, createRateLimit, strictRateLimit, apiRateLimit } from "./security";
+import { securityHeaders, validateRequest, sanitizeInput, apiRateLimit, strictRateLimit } from "./security";
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
 
@@ -21,7 +21,6 @@ if (process.env.REPL_SLUG) {
 } else {
   app.set('trust proxy', false); // Disable in other environments
   }
-  app.use(requestIdMiddleware);
   app.use(requestIdMiddleware);
   app.use(performanceMonitor);
   app.use(metricsMiddleware);
@@ -86,10 +85,10 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Apply rate limiting to API routes with different limits for different endpoints
-// app.use('/api/admin/login', strictRateLimit); // Strict rate limiting for auth - commented out for now
-app.use('/api/inspections', strictRateLimit); // Rate limiting for inspections with uploads
-app.use('/api/custodial-notes', strictRateLimit); // Rate limiting for notes with uploads
-app.use('/api/monthly-feedback', strictRateLimit); // Rate limiting for feedback with uploads
+app.use('/api/admin/login', strictRateLimit); // Strict rate limiting for auth
+app.use('/api/inspections', apiRateLimit); // Rate limiting for inspections with uploads
+app.use('/api/custodial-notes', apiRateLimit); // Rate limiting for notes with uploads
+app.use('/api/monthly-feedback', apiRateLimit); // Rate limiting for feedback with uploads
 app.use('/api', apiRateLimit); // Default rate limiting for other API routes
 
 // Debug: Log API requests with headers and body (after parsers)
@@ -150,6 +149,32 @@ app.use((req, res, next) => {
   next();
 });
 
+/** ALLOW_IFRAME_FROM_REPLIT (only on Replit) **/
+if (process.env.REPL_SLUG) {
+  app.use((req: any, res: any, next: any) => {
+    try {
+      // Remove headers that block embedding
+      res.removeHeader('X-Frame-Options');
+      res.removeHeader('Cross-Origin-Opener-Policy');
+      res.removeHeader('Cross-Origin-Embedder-Policy');
+
+      // Ensure CSP allows Replit to embed this app in an iframe
+      const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
+      const current = res.getHeader('Content-Security-Policy');
+      if (!current) {
+        res.setHeader('Content-Security-Policy', fa);
+      } else {
+        const value = Array.isArray(current) ? current.join('; ') : String(current);
+        const re = /frame-ancestors[^;]*/i;
+        const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
+        res.setHeader('Content-Security-Policy', newVal);
+      }
+    } catch {}
+    next();
+  });
+}
+/** END ALLOW_IFRAME_FROM_REPLIT **/
+
 (async () => {
   try {
     logger.info("Starting server setup...");
@@ -185,9 +210,10 @@ app.use((req, res, next) => {
 
     await registerRoutes(app);
     logger.info("Routes registered successfully");
-    
+
     // Apply cache control after routes are registered
-    // app.use(cacheControl); // Cache control middleware not implemented yet
+    // TODO: cacheControl middleware not defined - need to create or remove
+    // app.use(cacheControl);
 
     // Use static file serving (frontend is already built) - MUST be last
     serveStatic(app);
@@ -232,26 +258,3 @@ app.use((req, res, next) => {
   logger.error("Unhandled error in server startup", { error: error instanceof Error ? error.message : 'Unknown error' });
   process.exit(1);
 });
-/** ALLOW_IFRAME_FROM_REPLIT **/
-app.use((req: any, res: any, next: any) => {
-  try {
-    // Remove headers that block embedding
-    res.removeHeader('X-Frame-Options');
-    res.removeHeader('Cross-Origin-Opener-Policy');
-    res.removeHeader('Cross-Origin-Embedder-Policy');
-
-    // Ensure CSP allows Replit to embed this app in an iframe
-    const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
-    const current = res.getHeader('Content-Security-Policy');
-    if (!current) {
-      res.setHeader('Content-Security-Policy', fa);
-    } else {
-      const value = Array.isArray(current) ? current.join('; ') : String(current);
-      const re = /frame-ancestors[^;]*/i;
-      const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
-      res.setHeader('Content-Security-Policy', newVal);
-    }
-  } catch {}
-  next();
-});
-/** END ALLOW_IFRAME_FROM_REPLIT **/
