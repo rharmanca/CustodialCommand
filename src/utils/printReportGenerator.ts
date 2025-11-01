@@ -489,28 +489,28 @@ export function generateCustomReportPDF(data: ReportData, config: ExportConfig):
   const filteredData = filterDataByConfig(data, config);
   const doc = new jsPDF('p', 'mm', 'letter');
   let currentY = 20;
-  
+
   // Header
   doc.setFontSize(PRINT_FONTS.title);
   doc.setTextColor(PRINT_THEME.primary);
   doc.setFont('helvetica', 'bold');
   doc.text('CUSTOM REPORT', MARGINS.left, currentY);
   currentY += 15;
-  
+
   // Custom report content based on selected data types
   if (config.dataTypes.inspections) {
     doc.setFontSize(PRINT_FONTS.heading);
     doc.setTextColor(PRINT_THEME.primary);
     doc.text('INSPECTIONS', MARGINS.left, currentY);
     currentY += 10;
-    
+
     // Inspection summary
     const inspectionData = filteredData.inspections.slice(0, 10).map(inspection => [
       inspection.school,
       inspection.date,
       calculateAverageRating(inspection)?.toFixed(1) || 'N/A'
     ]);
-    
+
     autoTable(doc, {
       startY: currentY,
       head: [['School', 'Date', 'Rating']],
@@ -519,23 +519,23 @@ export function generateCustomReportPDF(data: ReportData, config: ExportConfig):
       headStyles: { fillColor: PRINT_THEME.tableHeader },
       styles: { fontSize: PRINT_FONTS.body }
     });
-    
+
     currentY = (doc as any).lastAutoTable.finalY + 10;
   }
-  
+
   if (config.dataTypes.custodialNotes) {
     doc.setFontSize(PRINT_FONTS.heading);
     doc.setTextColor(PRINT_THEME.primary);
     doc.text('CUSTODIAL NOTES', MARGINS.left, currentY);
     currentY += 10;
-    
+
     // Notes summary
     const notesData = filteredData.custodialNotes.slice(0, 10).map(note => [
       note.school,
       note.date,
       note.notes.substring(0, 50) + (note.notes.length > 50 ? '...' : '')
     ]);
-    
+
     autoTable(doc, {
       startY: currentY,
       head: [['School', 'Date', 'Note']],
@@ -545,6 +545,189 @@ export function generateCustomReportPDF(data: ReportData, config: ExportConfig):
       styles: { fontSize: PRINT_FONTS.body }
     });
   }
-  
+
+  return doc.output('blob');
+}
+
+/**
+ * Interface for whole-building walkthrough data
+ */
+export interface WalkthroughReportData {
+  school: string;
+  date: string;
+  inspectorName: string;
+  inspections: Inspection[];
+  completionStatus: {
+    category: string;
+    required: number;
+    completed: number;
+  }[];
+  overallRating: number;
+  notes?: string;
+}
+
+/**
+ * Generate Whole-Building Walkthrough Report PDF
+ */
+export function generateWalkthroughReportPDF(data: WalkthroughReportData): Blob {
+  const doc = new jsPDF('p', 'mm', 'letter');
+  let currentY = 20;
+
+  // Header
+  doc.setFontSize(PRINT_FONTS.title);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BUILDING WALKTHROUGH INSPECTION REPORT', MARGINS.left, currentY);
+  currentY += 12;
+
+  // Report metadata
+  doc.setFontSize(PRINT_FONTS.body);
+  doc.setTextColor(PRINT_THEME.secondary);
+  doc.setFont('helvetica', 'normal');
+
+  doc.text(`School: ${data.school}`, MARGINS.left, currentY);
+  currentY += 6;
+  doc.text(`Date: ${new Date(data.date).toLocaleDateString()}`, MARGINS.left, currentY);
+  currentY += 6;
+  doc.text(`Inspector: ${data.inspectorName}`, MARGINS.left, currentY);
+  currentY += 6;
+  doc.text(`Overall Rating: ${data.overallRating.toFixed(1)}/5.0`, MARGINS.left, currentY);
+  currentY += 10;
+
+  // Separator line
+  doc.setDrawColor(PRINT_THEME.border);
+  doc.setLineWidth(0.5);
+  doc.line(MARGINS.left, currentY, doc.internal.pageSize.getWidth() - MARGINS.right, currentY);
+  currentY += 8;
+
+  // Completion Status Summary
+  doc.setFontSize(PRINT_FONTS.heading);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INSPECTION COVERAGE', MARGINS.left, currentY);
+  currentY += 6;
+
+  const completionData = data.completionStatus.map(status => [
+    status.category,
+    `${status.completed} / ${status.required}`,
+    status.completed >= status.required ? 'Complete ✓' : 'Incomplete'
+  ]);
+
+  autoTable(doc, {
+    startY: currentY,
+    head: [['Area Type', 'Completed', 'Status']],
+    body: completionData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: PRINT_THEME.tableHeader,
+      textColor: PRINT_THEME.primary,
+      fontStyle: 'bold',
+      fontSize: PRINT_FONTS.small
+    },
+    bodyStyles: {
+      fontSize: PRINT_FONTS.small,
+      textColor: PRINT_THEME.text
+    },
+    columnStyles: {
+      0: { cellWidth: 70 },
+      1: { cellWidth: 40, halign: 'center' },
+      2: { cellWidth: 40, halign: 'center' }
+    }
+  });
+
+  currentY = doc.lastAutoTable.finalY + 10;
+
+  // Detailed Inspection Results
+  doc.setFontSize(PRINT_FONTS.heading);
+  doc.setTextColor(PRINT_THEME.primary);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DETAILED INSPECTION RESULTS', MARGINS.left, currentY);
+  currentY += 6;
+
+  // Group inspections by category
+  const inspectionsByCategory = data.inspections.reduce((acc, inspection) => {
+    const category = inspection.locationCategory || 'Other';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(inspection);
+    return acc;
+  }, {} as Record<string, Inspection[]>);
+
+  // Process each category
+  Object.entries(inspectionsByCategory).forEach(([category, categoryInspections]) => {
+    // Check if we need a new page
+    if (currentY > doc.internal.pageSize.getHeight() - 50) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    // Category header
+    doc.setFontSize(PRINT_FONTS.body);
+    doc.setTextColor(PRINT_THEME.primary);
+    doc.setFont('helvetica', 'bold');
+    doc.text(category.toUpperCase().replace(/_/g, ' '), MARGINS.left, currentY);
+    currentY += 6;
+
+    // Category inspection details
+    const categoryData = categoryInspections.map(inspection => {
+      const avgRating = calculateAverageRating(inspection);
+      return [
+        inspection.roomNumber || 'N/A',
+        inspection.locationDescription || 'N/A',
+        avgRating !== null ? avgRating.toFixed(1) : 'N/A',
+        inspection.notes ? inspection.notes.substring(0, 50) + (inspection.notes.length > 50 ? '...' : '') : ''
+      ];
+    });
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Room #', 'Description', 'Rating', 'Notes']],
+      body: categoryData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: PRINT_THEME.tableHeader,
+        textColor: PRINT_THEME.primary,
+        fontSize: PRINT_FONTS.small
+      },
+      bodyStyles: {
+        fontSize: PRINT_FONTS.small,
+        textColor: PRINT_THEME.text
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 25, halign: 'center' },
+        3: { cellWidth: 55 }
+      }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 8;
+  });
+
+  // Summary notes
+  if (data.notes) {
+    if (currentY > doc.internal.pageSize.getHeight() - 40) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    doc.setFontSize(PRINT_FONTS.heading);
+    doc.setTextColor(PRINT_THEME.primary);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ADDITIONAL NOTES', MARGINS.left, currentY);
+    currentY += 6;
+
+    doc.setFontSize(PRINT_FONTS.body);
+    doc.setTextColor(PRINT_THEME.text);
+    doc.setFont('helvetica', 'normal');
+
+    const splitNotes = doc.splitTextToSize(data.notes, doc.internal.pageSize.getWidth() - MARGINS.left - MARGINS.right);
+    doc.text(splitNotes, MARGINS.left, currentY);
+  }
+
+  // Add footer to all pages
+  addPrintFooter(doc);
+
   return doc.output('blob');
 }

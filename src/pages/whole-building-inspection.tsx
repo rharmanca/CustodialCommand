@@ -34,13 +34,15 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
-import { Star, Check, X, Upload, Camera, Save, Clock } from "lucide-react";
+import { Star, Check, X, Upload, Camera, Save, Clock, Download } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import {
   ratingDescriptions,
   inspectionCategories,
 } from "../../shared/custodial-criteria";
+import { generateWalkthroughReportPDF, type WalkthroughReportData } from "@/utils/printReportGenerator";
+import { calculateAverageRating } from "@/utils/problemAnalysis";
 // Navigation handled by onBack prop
 
 interface WholeBuildingInspectionPageProps {
@@ -915,6 +917,62 @@ export default function WholeBuildingInspectionPage({
     }
   };
 
+  const handleExportPDF = () => {
+    try {
+      // Calculate completion status
+      const completionStatus = Object.entries(requirements).map(([category, required]) => ({
+        category: categoryLabels[category],
+        required,
+        completed: completed[category] || 0
+      }));
+
+      // Calculate overall rating from all saved inspections
+      const ratings = savedInspections
+        .map(inspection => calculateAverageRating(inspection))
+        .filter((rating): rating is number => rating !== null);
+      const overallRating = ratings.length > 0
+        ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+        : 0;
+
+      // Prepare report data
+      const reportData: WalkthroughReportData = {
+        school: formData.school,
+        date: formData.date,
+        inspectorName: formData.inspectorName,
+        inspections: savedInspections,
+        completionStatus,
+        overallRating,
+        notes: formData.notes
+      };
+
+      // Generate PDF
+      const pdfBlob = generateWalkthroughReportPDF(reportData);
+
+      // Download PDF
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Walkthrough-Report-${formData.school}-${formData.date}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      // Show success toast
+      toast({
+        title: "PDF Exported Successfully",
+        description: "Your walkthrough report has been downloaded.",
+      });
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate PDF report. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-4xl space-y-6">
       {/* Primary call-to-action placed above progress table */}
@@ -936,20 +994,32 @@ export default function WholeBuildingInspectionPage({
       )}
       {finalized && (
         <Card className="border-green-300 bg-green-50">
-          <CardContent className="py-4 flex items-center justify-between gap-4">
-            <div>
-              <div className="font-semibold text-green-800">Building Inspection Finalized</div>
-              <div className="text-sm text-green-700">Your comprehensive inspection has been submitted successfully.</div>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div>
+                <div className="font-semibold text-green-800">Building Inspection Finalized</div>
+                <div className="text-sm text-green-700">Your comprehensive inspection has been submitted successfully.</div>
+              </div>
             </div>
-            <Button
-              onClick={() => {
-                setFinalized(false);
-                startNewInspection();
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              Start New Building Inspection
-            </Button>
+            <div className="flex gap-3 flex-wrap">
+              <Button
+                onClick={handleExportPDF}
+                variant="outline"
+                className="border-green-600 text-green-700 hover:bg-green-100 flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Export PDF Report
+              </Button>
+              <Button
+                onClick={() => {
+                  setFinalized(false);
+                  startNewInspection();
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Start New Building Inspection
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
