@@ -6,6 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
 import { custodialNotesSchema, type CustodialNotesForm, custodialNotesDefaultValues } from '@/schemas';
@@ -34,6 +44,11 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   // Image state (handled separately from form data)
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+
+  // Confirmation dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [formDataToConfirm, setFormDataToConfirm] = useState<CustodialNotesForm | null>(null);
+  const [isActuallySubmitting, setIsActuallySubmitting] = useState(false);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -140,14 +155,26 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     setImagePreviewUrls(newPreviewUrls);
   };
 
-  // Form submission handler with Zod validation
+  // Form submission handler with Zod validation - shows confirmation dialog
   const onSubmit = async (data: CustodialNotesForm) => {
     // Validation is automatically handled by Zod schema via zodResolver
+    // Store form data and show confirmation dialog
+    setFormDataToConfirm(data);
+    setShowConfirmDialog(true);
+  };
+
+  // Actual submission after confirmation
+  const handleConfirmedSubmit = async () => {
+    if (!formDataToConfirm) return;
+
+    setIsActuallySubmitting(true);
+    setShowConfirmDialog(false);
+
     try {
       const formDataToSend = new FormData();
 
       // Add text fields from validated data
-      Object.entries(data).forEach(([key, value]) => {
+      Object.entries(formDataToConfirm).forEach(([key, value]) => {
         if (key !== 'images') { // Skip images array from form data
           formDataToSend.append(key, value?.toString() || '');
         }
@@ -177,6 +204,8 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         // Clean up preview URLs
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
+        setFormDataToConfirm(null);
+        setIsActuallySubmitting(false);
 
         // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
@@ -192,6 +221,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           description: `Error: ${errorData.message || 'Unable to submit custodial note. Please try again.'}`,
           duration: 7000
         });
+        setIsActuallySubmitting(false);
       }
     } catch (error) {
       console.error('Error submitting custodial note:', error);
@@ -201,6 +231,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         description: "Unable to connect to the server. Please check your connection and try again.",
         duration: 7000
       });
+      setIsActuallySubmitting(false);
     }
   };
 
@@ -216,6 +247,19 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         <p className="text-gray-600">Report maintenance issues, concerns, or general observations</p>
       </div>
 
+      {/* Inspector Name Requirement Notice */}
+      <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl flex-shrink-0">⭐</span>
+          <div className="flex-1">
+            <h3 className="font-bold text-amber-900 text-lg mb-1">New Requirement: Inspector Name</h3>
+            <p className="text-amber-800 text-sm">
+              Please enter your name in the <strong>Inspector Name</strong> field. This is now required for all custodial notes to ensure proper accountability and follow-up.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={hookFormSubmit(onSubmit)} className="space-y-6">
         {/* Basic Information */}
         <Card>
@@ -225,44 +269,68 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="inspectorName">Inspector Name <span className="text-red-500">*</span></Label>
+              <Label htmlFor="inspectorName" className="flex items-center gap-2 flex-wrap">
+                <span>Inspector Name</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                  Required
+                </span>
+              </Label>
               <Input
                 id="inspectorName"
                 {...register('inspectorName')}
                 placeholder="Enter your name"
+                className="border-2"
               />
               {errors.inspectorName && (
                 <p className="text-sm text-red-500">{errors.inspectorName.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="school">School <span className="text-red-500">*</span></Label>
+              <Label htmlFor="school" className="flex items-center gap-2 flex-wrap">
+                <span>School</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                  Required
+                </span>
+              </Label>
               <Input
                 id="school"
                 {...register('school')}
                 placeholder="Enter school name"
+                className="border-2"
               />
               {errors.school && (
                 <p className="text-sm text-red-500">{errors.school.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
+              <Label htmlFor="date" className="flex items-center gap-2 flex-wrap">
+                <span>Date</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                  Required
+                </span>
+              </Label>
               <Input
                 id="date"
                 type="date"
                 {...register('date')}
+                className="border-2"
               />
               {errors.date && (
                 <p className="text-sm text-red-500">{errors.date.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Location <span className="text-red-500">*</span></Label>
+              <Label htmlFor="location" className="flex items-center gap-2 flex-wrap">
+                <span>Location</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                  Required
+                </span>
+              </Label>
               <Input
                 id="location"
                 {...register('location')}
                 placeholder="e.g., Room 105, Gymnasium, Cafeteria"
+                className="border-2"
               />
               {errors.location && (
                 <p className="text-sm text-red-500">{errors.location.message}</p>
@@ -310,19 +378,36 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <Label htmlFor="imageUpload" className="block mb-2">Upload Images</Label>
+                <Label htmlFor="imageUpload" className="block mb-2">Upload Images (Optional)</Label>
                 <Input
                   id="imageUpload"
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageUpload}
-                  className="cursor-pointer"
+                  className="hidden"
                 />
+                <Button
+                  type="button"
+                  onClick={() => document.getElementById('imageUpload')?.click()}
+                  variant="outline"
+                  className="w-full h-12 border-2 border-dashed hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2 text-base">
+                    <span className="text-2xl">📁</span>
+                    <span className="font-medium">
+                      Tap to Select Photos {images.length > 0 && `(${images.length} selected)`}
+                    </span>
+                  </span>
+                </Button>
+                <p className="text-xs text-gray-500 mt-1">Maximum 5 images • Images auto-compressed</p>
               </div>
               <div className="flex items-end">
-                <Button type="button" onClick={capturePhoto} variant="outline" className="w-full sm:w-auto">
-                  📷 Capture Photo
+                <Button type="button" onClick={capturePhoto} variant="outline" className="w-full sm:w-auto h-12 border-2">
+                  <span className="flex items-center gap-2 text-base">
+                    <span className="text-xl">📷</span>
+                    <span>Capture Photo</span>
+                  </span>
                 </Button>
               </div>
             </div>
@@ -358,26 +443,90 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
         {/* Submit Button */}
         <div className="flex justify-center">
-          <Button 
-            type="submit" 
-            size="lg" 
-            disabled={isSubmitting}
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSubmitting || isActuallySubmitting}
             className="w-full md:w-auto disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
+            {(isSubmitting || isActuallySubmitting) ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
                 Submitting...
               </>
             ) : (
-              'Report a Problem'
+              'Submit Custodial Note'
             )}
           </Button>
         </div>
       </form>
 
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-blue-800 text-xl">
+              ✅ Confirm Submission
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              Please review your custodial note before submitting:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {formDataToConfirm && (
+            <div className="space-y-3 py-4">
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <div>
+                  <span className="font-semibold text-sm text-gray-700">Inspector:</span>
+                  <p className="text-gray-900">{formDataToConfirm.inspectorName}</p>
+                </div>
+                <div>
+                  <span className="font-semibold text-sm text-gray-700">School:</span>
+                  <p className="text-gray-900">{formDataToConfirm.school}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="font-semibold text-sm text-gray-700">Date:</span>
+                    <p className="text-gray-900">{formDataToConfirm.date}</p>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-sm text-gray-700">Location:</span>
+                    <p className="text-gray-900">{formDataToConfirm.location}</p>
+                  </div>
+                </div>
+                {formDataToConfirm.locationDescription && (
+                  <div>
+                    <span className="font-semibold text-sm text-gray-700">Location Details:</span>
+                    <p className="text-gray-900 text-sm">{formDataToConfirm.locationDescription}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="font-semibold text-sm text-gray-700">Notes:</span>
+                  <p className="text-gray-900 text-sm max-h-24 overflow-y-auto">
+                    {formDataToConfirm.notes && formDataToConfirm.notes.length > 200
+                      ? `${formDataToConfirm.notes.substring(0, 200)}...`
+                      : formDataToConfirm.notes || 'No notes provided'}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-semibold text-sm text-gray-700">Photos:</span>
+                  <p className="text-gray-900">{images.length} image{images.length !== 1 ? 's' : ''} attached</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Review/Edit</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedSubmit} className="bg-blue-600 hover:bg-blue-700">
+              Confirm & Submit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Loading overlay during form submission */}
-      {isSubmitting && (
+      {isActuallySubmitting && (
         <LoadingOverlay message="Submitting report..." />
       )}
     </div>
