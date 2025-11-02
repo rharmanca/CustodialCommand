@@ -32,7 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
 import { custodialNotesSchema, type CustodialNotesForm, custodialNotesDefaultValues } from '@/schemas';
 import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
-import { Check, ChevronsUpDown, ChevronDown } from 'lucide-react';
+import { Check, ChevronsUpDown, ChevronDown, HelpCircle, RotateCcw, Save, Sparkles } from 'lucide-react';
 
 // School list for dropdown
 const SCHOOLS = [
@@ -47,6 +47,18 @@ const SCHOOLS = [
 interface CustodialNotesPageProps {
   onBack?: () => void;
 }
+
+// Add custom animation styles
+const progressAnimation = `
+  @keyframes progress {
+    from {
+      width: 0%;
+    }
+    to {
+      width: 100%;
+    }
+  }
+`;
 
 export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) {
   const { toast } = useToast();
@@ -81,6 +93,17 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   const [currentSection, setCurrentSection] = useState<number | null>(null);
   const [showScrollHint, setShowScrollHint] = useState(true);
 
+  // Landscape detection for phones
+  const [isLandscapePhone, setIsLandscapePhone] = useState(false);
+  const [showLandscapeWarning, setShowLandscapeWarning] = useState(true);
+
+  // Auto-save state
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Success animation
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+
   // Track scroll position to determine current section
   useEffect(() => {
     const handleScroll = () => {
@@ -108,6 +131,82 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Detect landscape mode on phones
+  useEffect(() => {
+    const checkOrientation = () => {
+      const isPhone = window.innerWidth <= 768;
+      const isLandscape = window.innerHeight < 500;
+      setIsLandscapePhone(isPhone && isLandscape);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    const formData = getValues();
+    const hasData = Object.values(formData).some(val => val && val !== '');
+
+    if (hasData && !isActuallySubmitting) {
+      const saveTimer = setTimeout(() => {
+        setIsSaving(true);
+        const dataToSave = {
+          ...formData,
+          selectedSchool,
+          savedAt: new Date().toISOString()
+        };
+        localStorage.setItem('custodialNotesDraft', JSON.stringify(dataToSave));
+        setLastSaved(new Date());
+        setIsSaving(false);
+      }, 2000); // Save 2 seconds after user stops typing
+
+      return () => clearTimeout(saveTimer);
+    }
+  }, [getValues, selectedSchool, isActuallySubmitting]);
+
+  // Load saved draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('custodialNotesDraft');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const savedDate = new Date(data.savedAt);
+        const hoursSince = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60);
+
+        // Only restore if saved within last 24 hours
+        if (hoursSince < 24) {
+          Object.keys(data).forEach(key => {
+            if (key !== 'savedAt' && key !== 'selectedSchool') {
+              setValue(key as any, data[key]);
+            }
+          });
+          if (data.selectedSchool) {
+            setSelectedSchool(data.selectedSchool);
+            setValue('school', data.selectedSchool);
+          }
+          setLastSaved(savedDate);
+          toast({
+            title: "Draft Restored",
+            description: `Your work from ${savedDate.toLocaleString()} was restored.`,
+            duration: 5000
+          });
+        } else {
+          // Clear old draft
+          localStorage.removeItem('custodialNotesDraft');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading draft:', error);
+    }
+  }, [setValue, toast]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -250,6 +349,12 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       });
 
       if (response.ok) {
+        // Show success animation
+        setShowSuccessAnimation(true);
+
+        // Clear the draft from localStorage
+        localStorage.removeItem('custodialNotesDraft');
+
         toast({
           title: "✅ Custodial Note Submitted Successfully!",
           description: "Your custodial concern has been recorded and will be reviewed.",
@@ -264,10 +369,13 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
         setFormDataToConfirm(null);
+        setSelectedSchool("");
+        setLastSaved(null);
         setIsActuallySubmitting(false);
 
-        // Navigate back to home page after enough time to read the notification
+        // Navigate back to home page after animation
         setTimeout(() => {
+          setShowSuccessAnimation(false);
           if (onBack) {
             onBack();
           }
@@ -295,12 +403,59 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-8">
+    <>
+      {/* Inject animation styles */}
+      <style>{progressAnimation}</style>
+
+      <div className="max-w-3xl mx-auto p-6 space-y-8">
       {onBack && (
         <Button onClick={onBack} variant="outline" className="mb-4 back-button min-h-[48px] px-6">
           ← Back to Custodial
         </Button>
       )}
+
+      {/* Landscape Phone Warning */}
+      {isLandscapePhone && showLandscapeWarning && (
+        <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4 shadow-lg">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 flex-1">
+              <span className="text-2xl flex-shrink-0">📱</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-900 text-lg mb-1">Landscape Mode Detected</h3>
+                <p className="text-orange-800 text-sm">
+                  For the best experience filling out this form, please <strong>rotate your device to portrait mode</strong> (vertical orientation).
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLandscapeWarning(false)}
+              className="text-orange-900 hover:bg-orange-100 flex-shrink-0"
+            >
+              ✕
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Save Indicator */}
+      {lastSaved && (
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+          {isSaving ? (
+            <>
+              <Save className="h-4 w-4 animate-pulse" />
+              <span>Saving draft...</span>
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 text-green-600" />
+              <span>Draft saved at {lastSaved.toLocaleTimeString()}</span>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="text-center">
         <h1 className="text-3xl font-bold text-blue-800 mb-2">Submit Custodial Note</h1>
         <p className="text-gray-600">Report maintenance issues, concerns, or general observations</p>
@@ -362,6 +517,19 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
                   Required
                 </span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button type="button" className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <HelpCircle className="h-4 w-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 text-sm">
+                    <p className="font-semibold mb-1">Why is this required?</p>
+                    <p className="text-gray-600">
+                      Your name ensures accountability and allows for proper follow-up on reported issues. This helps maintain quality standards across all facilities.
+                    </p>
+                  </PopoverContent>
+                </Popover>
               </Label>
               <Input
                 id="inspectorName"
@@ -448,6 +616,22 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
                   Required
                 </span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button type="button" className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <HelpCircle className="h-4 w-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 text-sm">
+                    <p className="font-semibold mb-1">Location Examples</p>
+                    <ul className="text-gray-600 space-y-1 list-disc list-inside">
+                      <li>Room numbers: "Room 105", "Classroom 202"</li>
+                      <li>Common areas: "Gymnasium", "Cafeteria", "Library"</li>
+                      <li>Outdoor: "Playground", "Parking Lot", "Field"</li>
+                      <li>Facilities: "Restroom 1st Floor", "Main Office"</li>
+                    </ul>
+                  </PopoverContent>
+                </Popover>
               </Label>
               <Input
                 id="location"
@@ -477,7 +661,27 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         {/* Notes Section */}
         <Card className="form-section">
           <CardHeader>
-            <CardTitle>Issue Description & Notes</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Issue Description & Notes
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button type="button" className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <HelpCircle className="h-4 w-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 text-sm">
+                  <p className="font-semibold mb-2">What to Include</p>
+                  <ul className="text-gray-600 space-y-1 list-disc list-inside">
+                    <li><strong>What:</strong> Describe the issue clearly</li>
+                    <li><strong>Where:</strong> Specific location details</li>
+                    <li><strong>When:</strong> When you noticed it</li>
+                    <li><strong>Severity:</strong> Is it urgent or can it wait?</li>
+                    <li><strong>Impact:</strong> How does it affect operations?</li>
+                    <li><strong>Action:</strong> What needs to be done?</li>
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            </CardTitle>
             <CardDescription>Provide detailed information about the custodial issue or observation</CardDescription>
           </CardHeader>
           <CardContent>
@@ -565,21 +769,27 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           </CardContent>
         </Card>
 
-        {/* Submit Button */}
+        {/* Submit Button with Enhanced Loading States */}
         <div className="flex justify-center">
           <Button
             type="submit"
             size="lg"
             disabled={isSubmitting || isActuallySubmitting}
-            className="w-full md:w-auto disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full md:w-auto disabled:bg-gray-400 disabled:cursor-not-allowed min-h-[56px] text-lg font-semibold transition-all duration-300 relative overflow-hidden"
           >
             {(isSubmitting || isActuallySubmitting) ? (
-              <>
-                <span className="animate-spin mr-2">⏳</span>
-                Submitting...
-              </>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 w-5 h-5 border-3 border-white/30 rounded-full"></div>
+                </div>
+                <span className="animate-pulse">Submitting your report...</span>
+              </div>
             ) : (
-              'Submit Custodial Note'
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                <span>Submit Custodial Note</span>
+              </div>
             )}
           </Button>
         </div>
@@ -653,6 +863,64 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       {isActuallySubmitting && (
         <LoadingOverlay message="Submitting report..." />
       )}
-    </div>
+
+      {/* Success Animation Overlay */}
+      {showSuccessAnimation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl animate-in zoom-in duration-500">
+            <div className="text-center space-y-6">
+              {/* Animated Success Checkmark */}
+              <div className="relative inline-block">
+                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+                  <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                    <svg
+                      className="w-12 h-12 text-white animate-in zoom-in duration-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {/* Sparkles around checkmark */}
+                <Sparkles className="absolute -top-2 -right-2 h-8 w-8 text-yellow-400 animate-pulse" />
+                <Sparkles className="absolute -bottom-2 -left-2 h-6 w-6 text-yellow-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                <Sparkles className="absolute -top-2 -left-2 h-5 w-5 text-blue-400 animate-pulse" style={{ animationDelay: '0.4s' }} />
+              </div>
+
+              {/* Success Message */}
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-green-700">
+                  🎉 Success!
+                </h2>
+                <p className="text-gray-600 text-lg">
+                  Your custodial note has been submitted successfully!
+                </p>
+                <p className="text-sm text-gray-500">
+                  Redirecting you back to the home page...
+                </p>
+              </div>
+
+              {/* Progress indicator */}
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-[progress_3s_ease-in-out]"
+                  style={{
+                    animation: 'progress 3s ease-in-out forwards'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 }
