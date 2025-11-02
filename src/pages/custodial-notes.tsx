@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -16,10 +16,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
 import { custodialNotesSchema, type CustodialNotesForm, custodialNotesDefaultValues } from '@/schemas';
 import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
+import { Check, ChevronsUpDown, ChevronDown } from 'lucide-react';
+
+// School list for dropdown
+const SCHOOLS = [
+  'ASA',
+  'CBR',
+  'GWC',
+  'LCA',
+  'OA',
+  'WLC',
+];
 
 interface CustodialNotesPageProps {
   onBack?: () => void;
@@ -49,6 +72,42 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [formDataToConfirm, setFormDataToConfirm] = useState<CustodialNotesForm | null>(null);
   const [isActuallySubmitting, setIsActuallySubmitting] = useState(false);
+
+  // School dropdown state
+  const [openSchoolDropdown, setOpenSchoolDropdown] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState("");
+
+  // Form progress tracking
+  const [currentSection, setCurrentSection] = useState<number | null>(null);
+  const [showScrollHint, setShowScrollHint] = useState(true);
+
+  // Track scroll position to determine current section
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = document.querySelectorAll('.form-section');
+      const scrollPosition = window.scrollY + window.innerHeight / 2;
+
+      sections.forEach((section, index) => {
+        const rect = section.getBoundingClientRect();
+        const sectionTop = rect.top + window.scrollY;
+        const sectionBottom = sectionTop + rect.height;
+
+        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+          setCurrentSection(index + 1);
+        }
+      });
+
+      // Hide scroll hint after user scrolls
+      if (window.scrollY > 100) {
+        setShowScrollHint(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -236,9 +295,9 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="max-w-3xl mx-auto p-6 space-y-8">
       {onBack && (
-        <Button onClick={onBack} variant="outline" className="mb-4 back-button">
+        <Button onClick={onBack} variant="outline" className="mb-4 back-button min-h-[48px] px-6">
           ← Back to Custodial
         </Button>
       )}
@@ -246,6 +305,35 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         <h1 className="text-3xl font-bold text-blue-800 mb-2">Submit Custodial Note</h1>
         <p className="text-gray-600">Report maintenance issues, concerns, or general observations</p>
       </div>
+
+      {/* Progress Indicator */}
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b-2 border-blue-200 py-3 -mx-6 px-6 shadow-sm">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-blue-800">
+              Form Progress:
+            </span>
+            {currentSection && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border-2 border-blue-300">
+                Section {currentSection} of 3
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <div className={`w-16 h-2 rounded-full transition-colors ${currentSection === 1 ? 'bg-blue-600' : currentSection && currentSection > 1 ? 'bg-blue-400' : 'bg-gray-200'}`} />
+            <div className={`w-16 h-2 rounded-full transition-colors ${currentSection === 2 ? 'bg-blue-600' : currentSection && currentSection > 2 ? 'bg-blue-400' : 'bg-gray-200'}`} />
+            <div className={`w-16 h-2 rounded-full transition-colors ${currentSection === 3 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll Hint */}
+      {showScrollHint && (
+        <div className="animate-bounce text-center text-gray-500 text-sm">
+          <ChevronDown className="inline-block" />
+          <p>Scroll down to continue</p>
+        </div>
+      )}
 
       {/* Inspector Name Requirement Notice */}
       <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 shadow-sm">
@@ -260,14 +348,14 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         </div>
       </div>
 
-      <form onSubmit={hookFormSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={hookFormSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information */}
-        <Card>
+        <Card className="form-section">
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
             <CardDescription>Enter the basic details for this custodial note</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="inspectorName" className="flex items-center gap-2 flex-wrap">
                 <span>Inspector Name</span>
@@ -279,7 +367,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 id="inspectorName"
                 {...register('inspectorName')}
                 placeholder="Enter your name"
-                className="border-2"
+                className="border-2 min-h-[48px]"
               />
               {errors.inspectorName && (
                 <p className="text-sm text-red-500">{errors.inspectorName.message}</p>
@@ -292,12 +380,47 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                   Required
                 </span>
               </Label>
-              <Input
-                id="school"
-                {...register('school')}
-                placeholder="Enter school name"
-                className="border-2"
-              />
+              <Popover open={openSchoolDropdown} onOpenChange={setOpenSchoolDropdown}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openSchoolDropdown}
+                    className="w-full justify-between border-2 min-h-[48px] text-left font-normal"
+                  >
+                    {selectedSchool || "Select school..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search schools..." />
+                    <CommandEmpty>No school found.</CommandEmpty>
+                    <CommandGroup>
+                      {SCHOOLS.map((school) => (
+                        <CommandItem
+                          key={school}
+                          value={school}
+                          onSelect={(currentValue) => {
+                            const newValue = currentValue.toUpperCase();
+                            setSelectedSchool(newValue);
+                            setValue('school', newValue);
+                            setOpenSchoolDropdown(false);
+                          }}
+                          className="min-h-[48px] cursor-pointer"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedSchool === school ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          {school}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               {errors.school && (
                 <p className="text-sm text-red-500">{errors.school.message}</p>
               )}
@@ -313,7 +436,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 id="date"
                 type="date"
                 {...register('date')}
-                className="border-2"
+                className="border-2 min-h-[48px]"
               />
               {errors.date && (
                 <p className="text-sm text-red-500">{errors.date.message}</p>
@@ -330,7 +453,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 id="location"
                 {...register('location')}
                 placeholder="e.g., Room 105, Gymnasium, Cafeteria"
-                className="border-2"
+                className="border-2 min-h-[48px]"
               />
               {errors.location && (
                 <p className="text-sm text-red-500">{errors.location.message}</p>
@@ -342,6 +465,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                 id="locationDescription"
                 {...register('locationDescription')}
                 placeholder="e.g., Main Building, East Wing, 2nd Floor"
+                className="min-h-[48px]"
               />
               {errors.locationDescription && (
                 <p className="text-sm text-red-500">{errors.locationDescription.message}</p>
@@ -351,7 +475,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         </Card>
 
         {/* Notes Section */}
-        <Card>
+        <Card className="form-section">
           <CardHeader>
             <CardTitle>Issue Description & Notes</CardTitle>
             <CardDescription>Provide detailed information about the custodial issue or observation</CardDescription>
@@ -370,7 +494,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         </Card>
 
         {/* Image Upload Section */}
-        <Card>
+        <Card className="form-section">
           <CardHeader>
             <CardTitle>Photos & Documentation</CardTitle>
             <CardDescription>Upload images or capture photos to document the issue</CardDescription>
