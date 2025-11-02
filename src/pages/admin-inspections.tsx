@@ -305,7 +305,9 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
+                  name="username"
                   type="text"
+                  autoComplete="username"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
                   placeholder="Enter username"
@@ -316,7 +318,9 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   value={loginForm.password}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Enter password"

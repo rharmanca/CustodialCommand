@@ -69,11 +69,13 @@ export const roomInspections = pgTable("room_inspections", {
 
 export const custodialNotes = pgTable("custodial_notes", {
   id: serial("id").primaryKey(),
+  inspectorName: text("inspector_name"),
   school: text("school").notNull(),
   date: text("date").notNull(),
   location: text("location").notNull(),
-  locationDescription: text("location_description").notNull(),
+  locationDescription: text("location_description"),
   notes: text("notes").notNull(),
+  images: text("images").array().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -149,6 +151,14 @@ export const insertRoomInspectionSchema = createInsertSchema(roomInspections).om
 export const insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
   id: true,
   createdAt: true,
+}).extend({
+  inspectorName: z.string().min(1, "Inspector name is required").max(100, "Inspector name too long"),
+  school: z.string().min(1, "School is required").max(100, "School name too long"),
+  date: z.string().min(1, "Date is required"),
+  location: z.string().min(1, "Location is required").max(200, "Location too long"),
+  locationDescription: z.string().max(500, "Location description too long").optional().nullable(),
+  notes: z.string().min(10, "Please provide a detailed description (minimum 10 characters)").max(5000, "Notes too long"),
+  images: z.array(z.string()).optional().default([]),
 });
 
 export const insertMonthlyFeedbackSchema = createInsertSchema(monthlyFeedback)

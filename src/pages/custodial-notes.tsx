@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
+import { custodialNotesSchema, type CustodialNotesForm, custodialNotesDefaultValues } from '@/schemas';
+import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 
 interface CustodialNotesPageProps {
   onBack?: () => void;
@@ -12,62 +17,80 @@ interface CustodialNotesPageProps {
 
 export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    inspectorName: '',
-    school: '',
-    date: '',
-    location: '',
-    locationDescription: '',
-    notes: ''
+
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit: hookFormSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+    getValues
+  } = useForm<CustodialNotesForm>({
+    resolver: zodResolver(custodialNotesSchema),
+    defaultValues: custodialNotesDefaultValues
   });
 
+  // Image state (handled separately from form data)
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      // Check file size limit (5MB per file)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-      const validFiles = Array.from(files).filter(file => {
-        if (file.size > maxSize) {
-          toast({
-            variant: "destructive",
-            title: "File Too Large",
-            description: `File "${file.name}" is too large. Maximum size is 5MB per file.`
-          });
-          return false;
+      const newImages = Array.from(files);
+      const currentCount = images.length;
+      const availableSlots = 5 - currentCount;
+      const imagesToAdd = newImages.slice(0, availableSlots);
+
+      if (imagesToAdd.length < newImages.length) {
+        toast({
+          title: "Maximum Images Reached",
+          description: `Only ${imagesToAdd.length} images were added. Maximum of 5 images allowed.`
+        });
+      }
+
+      // Compress images that need it
+      const compressedImages: File[] = [];
+      let totalOriginalSize = 0;
+      let totalCompressedSize = 0;
+
+      for (const image of imagesToAdd) {
+        totalOriginalSize += image.size;
+
+        if (needsCompression(image, 500)) {
+          try {
+            const result = await compressImage(image, { maxSizeKB: 500 });
+            compressedImages.push(result.compressedFile);
+            totalCompressedSize += result.compressedSize;
+
+            console.log(`Compressed ${image.name}: ${formatFileSize(image.size)} → ${formatFileSize(result.compressedSize)}`);
+          } catch (error) {
+            console.error('Failed to compress image:', error);
+            compressedImages.push(image);
+            totalCompressedSize += image.size;
+          }
+        } else {
+          compressedImages.push(image);
+          totalCompressedSize += image.size;
         }
-        return true;
-      });
+      }
 
-      if (validFiles.length > 0) {
-        // Limit total images to 5
-        const currentCount = images.length;
-        const availableSlots = 5 - currentCount;
-        const filesToAdd = validFiles.slice(0, availableSlots);
+      setImages(prev => [...prev, ...compressedImages]);
 
-        if (filesToAdd.length < validFiles.length) {
-          toast({
-            title: "Maximum Images Reached",
-            description: `Only ${filesToAdd.length} images were added. Maximum of 5 images allowed.`
-          });
-        }
+      // Create preview URLs
+      const urls = compressedImages.map(file => URL.createObjectURL(file));
+      setImagePreviewUrls(prev => [...prev, ...urls]);
 
-        setImages(prev => [...prev, ...filesToAdd]);
-
-        // Create preview URLs
-        const urls = filesToAdd.map(file => URL.createObjectURL(file));
-        setImagePreviewUrls(prev => [...prev, ...urls]);
+      if (compressedImages.length > 0) {
+        const compressionSaved = totalOriginalSize - totalCompressedSize;
+        const compressionRatio = compressionSaved > 0
+          ? ((compressionSaved / totalOriginalSize) * 100).toFixed(1)
+          : '0';
 
         toast({
           title: "📸 Photos Uploaded Successfully!",
-          description: `Successfully added ${filesToAdd.length} photo${filesToAdd.length > 1 ? 's' : ''} to your custodial note documentation.`,
+          description: `Successfully added ${compressedImages.length} photo${compressedImages.length > 1 ? 's' : ''} to your custodial note documentation.${compressionSaved > 0 ? ` Saved ${formatFileSize(compressionSaved)} (${compressionRatio}% compression).` : ''}`,
           duration: 3000
         });
       }
@@ -117,44 +140,20 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     setImagePreviewUrls(newPreviewUrls);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isSubmitting) return; // Prevent multiple submissions
-
-    // Validate required fields
-    if (!formData.inspectorName.trim() || !formData.school || !formData.date) {
-      toast({
-        variant: "destructive",
-        title: "Missing Required Fields",
-        description: "Please fill in Inspector Name, School, and Date before submitting.",
-        duration: 6000
-      });
-      return;
-    }
-
-    // Require location to match server-side expectations
-    if (!formData.location.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Location Required",
-        description: "Please provide the location of the custodial concern.",
-        duration: 6000
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
+  // Form submission handler with Zod validation
+  const onSubmit = async (data: CustodialNotesForm) => {
+    // Validation is automatically handled by Zod schema via zodResolver
     try {
       const formDataToSend = new FormData();
 
-      // Add text fields
-      Object.entries(formData).forEach(([key, value]) => {
-        formDataToSend.append(key, value);
+      // Add text fields from validated data
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'images') { // Skip images array from form data
+          formDataToSend.append(key, value?.toString() || '');
+        }
       });
 
-      // Add images - use 'images' field name that backend expects
+      // Add image files - use 'images' field name that backend expects
       images.forEach((image) => {
         formDataToSend.append('images', image);
       });
@@ -171,21 +170,14 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           variant: "default",
           duration: 5000
         });
-        
-        // Reset form
-        setFormData({
-          inspectorName: '',
-          school: '',
-          date: '',
-          location: '',
-          locationDescription: '',
-          notes: ''
-        });
+
+        // Reset form using React Hook Form's reset
+        reset();
         setImages([]);
         // Clean up preview URLs
         imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
         setImagePreviewUrls([]);
-        
+
         // Navigate back to home page after enough time to read the notification
         setTimeout(() => {
           if (onBack) {
@@ -209,8 +201,6 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         description: "Unable to connect to the server. Please check your connection and try again.",
         duration: 7000
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -226,7 +216,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         <p className="text-gray-600">Report maintenance issues, concerns, or general observations</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={hookFormSubmit(onSubmit)} className="space-y-6">
         {/* Basic Information */}
         <Card>
           <CardHeader>
@@ -238,50 +228,56 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
               <Label htmlFor="inspectorName">Inspector Name <span className="text-red-500">*</span></Label>
               <Input
                 id="inspectorName"
-                value={formData.inspectorName}
-                onChange={(e) => handleInputChange('inspectorName', e.target.value)}
+                {...register('inspectorName')}
                 placeholder="Enter your name"
-                required
               />
+              {errors.inspectorName && (
+                <p className="text-sm text-red-500">{errors.inspectorName.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="school">School <span className="text-red-500">*</span></Label>
               <Input
                 id="school"
-                value={formData.school}
-                onChange={(e) => handleInputChange('school', e.target.value)}
+                {...register('school')}
                 placeholder="Enter school name"
-                required
               />
+              {errors.school && (
+                <p className="text-sm text-red-500">{errors.school.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
               <Input
                 id="date"
                 type="date"
-                value={formData.date}
-                onChange={(e) => handleInputChange('date', e.target.value)}
-                required
+                {...register('date')}
               />
+              {errors.date && (
+                <p className="text-sm text-red-500">{errors.date.message}</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">Location <span className="text-red-500">*</span></Label>
               <Input
                 id="location"
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
+                {...register('location')}
                 placeholder="e.g., Room 105, Gymnasium, Cafeteria"
-                required
               />
+              {errors.location && (
+                <p className="text-sm text-red-500">{errors.location.message}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="locationDescription">Location Description</Label>
               <Input
                 id="locationDescription"
-                value={formData.locationDescription}
-                onChange={(e) => handleInputChange('locationDescription', e.target.value)}
+                {...register('locationDescription')}
                 placeholder="e.g., Main Building, East Wing, 2nd Floor"
               />
+              {errors.locationDescription && (
+                <p className="text-sm text-red-500">{errors.locationDescription.message}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -294,12 +290,14 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           </CardHeader>
           <CardContent>
             <Textarea
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
+              {...register('notes')}
               placeholder="Describe the issue, maintenance need, or observation...&#10;&#10;Examples:&#10;• Broken equipment or fixtures&#10;• Cleaning supply needs&#10;• Safety concerns&#10;• Maintenance requests&#10;• General observations&#10;• Follow-up needed"
               rows={10}
               className="min-h-[250px]"
             />
+            {errors.notes && (
+              <p className="text-sm text-red-500 mt-2">{errors.notes.message}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -377,6 +375,11 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           </Button>
         </div>
       </form>
+
+      {/* Loading overlay during form submission */}
+      {isSubmitting && (
+        <LoadingOverlay message="Submitting report..." />
+      )}
     </div>
   );
 }

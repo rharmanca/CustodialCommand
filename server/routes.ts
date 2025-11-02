@@ -194,15 +194,15 @@ export async function registerRoutes(app: Express): Promise<void> {
     });
 
     try {
-      const { school, date, locationDescription, location, notes } = req.body;
+      const { inspectorName, school, date, locationDescription, location, notes } = req.body;
       const files = req.files as Express.Multer.File[];
 
       // Validate required fields
-      if (!school || !date || !location) {
-        logger.warn('[POST] Missing required fields', { school, date, location });
+      if (!inspectorName || !school || !date || !location) {
+        logger.warn('[POST] Missing required fields', { inspectorName, school, date, location });
         return res.status(400).json({
           message: 'Missing required fields',
-          details: { school: !!school, date: !!date, location: !!location }
+          details: { inspectorName: !!inspectorName, school: !!school, date: !!date, location: !!location }
         });
       }
 
@@ -234,17 +234,23 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const custodialNote = {
+        inspectorName,
         school,
         date,
         location,
-        locationDescription: locationDescription || '',
+        locationDescription: locationDescription || null,
         notes: notes || '',
         images: imageUrls
       };
 
-      logger.info('[POST] Creating custodial note', { custodialNote });
+      logger.info('[POST] Validating custodial note data', { custodialNote });
 
-      const custodialNoteResult = await storage.createCustodialNote(custodialNote);
+      // Validate data with Zod schema
+      const validatedData = insertCustodialNoteSchema.parse(custodialNote);
+
+      logger.info('[POST] Creating custodial note', { validatedData });
+
+      const custodialNoteResult = await storage.createCustodialNote(validatedData);
 
       logger.info('[POST] Custodial note created successfully', { id: custodialNoteResult.id });
 

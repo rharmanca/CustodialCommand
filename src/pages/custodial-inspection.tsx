@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, processImageForStorage, getStorageStats } from '@/utils/storage';
 import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,8 @@ import { Star, Upload, Camera, X, Save, Clock, Home } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
+import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
+import { singleAreaInspectionSchema, type SingleAreaInspectionForm, inspectionDefaultValues } from '@/schemas';
 
 interface CustodialInspectionPageProps {
   onBack?: () => void;
@@ -24,34 +28,31 @@ interface CustodialInspectionPageProps {
 export default function CustodialInspectionPage({ onBack }: CustodialInspectionPageProps) {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    school: '',
-    date: '',
-    inspectionType: 'single_room',
-    locationDescription: '',
-    roomNumber: '',
-    locationCategory: '',
-    floors: 0,
-    verticalHorizontalSurfaces: 0,
-    ceiling: 0,
-    restrooms: 0,
-    customerSatisfaction: 0,
-    trash: 0,
-    projectCleaning: 0,
-    activitySupport: 0,
-    safetyCompliance: 0,
-    equipment: 0,
-    monitoring: 0,
-    notes: '',
-    images: [] as string[]
+
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit: hookFormSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+    watch,
+    getValues,
+    control
+  } = useForm<SingleAreaInspectionForm>({
+    resolver: zodResolver(singleAreaInspectionSchema),
+    defaultValues: inspectionDefaultValues
   });
 
+  // Watch all form values for auto-save functionality
+  const formData = watch();
+
+  // Draft-saving state
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [draftInspections, setDraftInspections] = useState<any[]>([]);
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // School options
   const schoolOptions = [
@@ -177,27 +178,25 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   };
 
   const loadDraftData = (draft: any) => {
-    setFormData({
-      school: draft.school || '',
-      date: draft.date || '',
-      inspectionType: draft.inspectionType || 'single_room',
-      locationDescription: draft.locationDescription || '',
-      roomNumber: draft.roomNumber || '',
-      locationCategory: draft.locationCategory || '',
-      floors: draft.floors || 0,
-      verticalHorizontalSurfaces: draft.verticalHorizontalSurfaces || 0,
-      ceiling: draft.ceiling || 0,
-      restrooms: draft.restrooms || 0,
-      customerSatisfaction: draft.customerSatisfaction || 0,
-      trash: draft.trash || 0,
-      projectCleaning: draft.projectCleaning || 0,
-      activitySupport: draft.activitySupport || 0,
-      safetyCompliance: draft.safetyCompliance || 0,
-      equipment: draft.equipment || 0,
-      monitoring: draft.monitoring || 0,
-      notes: draft.notes || '',
-      images: []
-    });
+    // Load draft data into React Hook Form using setValue
+    setValue('school', draft.school || '');
+    setValue('date', draft.date || '');
+    setValue('inspectionType', draft.inspectionType || 'single_room');
+    setValue('locationDescription', draft.locationDescription || '');
+    setValue('roomNumber', draft.roomNumber || '');
+    setValue('locationCategory', draft.locationCategory || '');
+    setValue('floors', draft.floors || 0);
+    setValue('verticalHorizontalSurfaces', draft.verticalHorizontalSurfaces || 0);
+    setValue('ceiling', draft.ceiling || 0);
+    setValue('restrooms', draft.restrooms || 0);
+    setValue('customerSatisfaction', draft.customerSatisfaction || 0);
+    setValue('trash', draft.trash || 0);
+    setValue('projectCleaning', draft.projectCleaning || 0);
+    setValue('activitySupport', draft.activitySupport || 0);
+    setValue('safetyCompliance', draft.safetyCompliance || 0);
+    setValue('equipment', draft.equipment || 0);
+    setValue('monitoring', draft.monitoring || 0);
+    setValue('notes', draft.notes || '');
 
     // Load images from base64
     if (draft.selectedImages && draft.selectedImages.length > 0) {
@@ -239,13 +238,6 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     setShowResumeDialog(false);
     setCurrentDraftId(null);
     setLastSaved(null);
-  };
-
-  const handleInputChange = (field: string, value: string | number | string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -312,64 +304,21 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isSubmitting) return; // Prevent multiple submissions
-
-    if (!formData.school || !formData.date) {
-      toast({
-        variant: "destructive",
-        title: "Missing Required Fields",
-        description: "Please fill in school and date fields before submitting.",
-        duration: 6000
-      });
-      return;
-    }
-
-    // Check if at least one rating category has been filled
-    const hasRating = inspectionCategories.some(category => {
-      const rating = formData[category.key as keyof typeof formData] as number;
-      return rating > 0;
-    });
-
-    if (!hasRating) {
-      toast({
-        variant: "destructive",
-        title: "Missing Ratings",
-        description: "Please provide at least one rating for the inspection categories.",
-        duration: 6000
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
+  // Form submission handler with Zod validation
+  const onSubmit = async (data: SingleAreaInspectionForm) => {
+    // Validation is automatically handled by Zod schema via zodResolver
     try {
       // Use FormData for multipart upload (same as custodial-notes)
       const formDataToSend = new FormData();
 
-      // Add text fields
-      formDataToSend.append('school', formData.school);
-      formDataToSend.append('date', formData.date);
-      formDataToSend.append('inspectionType', formData.inspectionType);
-      formDataToSend.append('locationDescription', formData.locationDescription);
-      formDataToSend.append('roomNumber', formData.roomNumber || '');
-      formDataToSend.append('locationCategory', formData.locationCategory || '');
-      formDataToSend.append('floors', (formData.floors || '').toString());
-      formDataToSend.append('verticalHorizontalSurfaces', (formData.verticalHorizontalSurfaces || '').toString());
-      formDataToSend.append('ceiling', (formData.ceiling || '').toString());
-      formDataToSend.append('restrooms', (formData.restrooms || '').toString());
-      formDataToSend.append('customerSatisfaction', (formData.customerSatisfaction || '').toString());
-      formDataToSend.append('trash', (formData.trash || '').toString());
-      formDataToSend.append('projectCleaning', (formData.projectCleaning || '').toString());
-      formDataToSend.append('activitySupport', (formData.activitySupport || '').toString());
-      formDataToSend.append('safetyCompliance', (formData.safetyCompliance || '').toString());
-      formDataToSend.append('equipment', (formData.equipment || '').toString());
-      formDataToSend.append('monitoring', (formData.monitoring || '').toString());
-      formDataToSend.append('notes', formData.notes || '');
+      // Add all form fields from validated data
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'images') { // Skip images array from form data
+          formDataToSend.append(key, value?.toString() || '');
+        }
+      });
 
-      // Add images as files (not base64)
+      // Add image files as multipart data
       selectedImages.forEach((image) => {
         formDataToSend.append('images', image);
       });
@@ -383,38 +332,18 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         // Show success notification
         toast({
           title: "✅ Inspection Submitted Successfully!",
-          description: `Single area inspection for ${formData.school} has been submitted and saved.`,
+          description: `Single area inspection for ${data.school} has been submitted and saved.`,
           variant: "default",
           duration: 5000
         });
-        
+
         // Clean up draft after successful submission
         if (currentDraftId) {
           deleteDraft(currentDraftId);
         }
-        
-        // Reset form
-        setFormData({
-          school: '',
-          date: '',
-          inspectionType: 'single_room',
-          locationDescription: '',
-          roomNumber: '',
-          locationCategory: '',
-          floors: 0,
-          verticalHorizontalSurfaces: 0,
-          ceiling: 0,
-          restrooms: 0,
-          customerSatisfaction: 0,
-          trash: 0,
-          projectCleaning: 0,
-          activitySupport: 0,
-          safetyCompliance: 0,
-          equipment: 0,
-          monitoring: 0,
-          notes: '',
-          images: []
-        });
+
+        // Reset form using React Hook Form's reset
+        reset();
         setSelectedImages([]);
         setCurrentDraftId(null);
         setLastSaved(null);
@@ -456,12 +385,10 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         description: errorMessage,
         duration: 7000
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const renderMobileStarRating = (categoryObj: any, currentRating: number) => {
+  const renderMobileStarRating = useCallback((categoryObj: any, currentRating: number) => {
     return (
       <div className="space-y-4">
         <div className="bg-gray-50 rounded-lg p-4 border">
@@ -475,11 +402,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               <button
                 key={star}
                 type="button"
-                className="p-2 rounded-md hover:bg-yellow-50 transition-colors touch-manipulation"
-                onClick={() => handleInputChange(categoryObj.key, star)}
+                className="p-3 min-w-[48px] min-h-[48px] rounded-md hover:bg-yellow-50 transition-colors touch-manipulation flex items-center justify-center"
+                onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, star)}
               >
                 <Star
-                  className={`w-6 h-6 ${
+                  className={`w-7 h-7 ${
                     star <= currentRating && currentRating > 0
                       ? 'fill-yellow-400 text-yellow-400'
                       : 'text-gray-300 hover:text-yellow-300'
@@ -493,12 +420,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           <div className="flex justify-center">
             <button
               type="button"
-              className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors touch-manipulation ${
+              className={`px-6 py-3 min-h-[48px] rounded-md border text-sm font-medium transition-colors touch-manipulation ${
                 currentRating === 0
                   ? 'bg-gray-100 border-gray-300 text-gray-700'
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
-              onClick={() => handleInputChange(categoryObj.key, 0)}
+              onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, 0)}
             >
               Not Rated
             </button>
@@ -536,9 +463,9 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         )}
       </div>
     );
-  };
+  }, [setValue]);
 
-  const renderStarRating = (categoryObj: any, currentRating: number) => {
+  const renderStarRating = useCallback((categoryObj: any, currentRating: number) => {
     return (
       <div className="space-y-5">
         <div className="flex flex-wrap justify-center gap-2">
@@ -546,8 +473,8 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             type="button"
             variant={currentRating === 0 ? "default" : "outline"}
             size="sm"
-            className="px-3 py-2 text-xs"
-            onClick={() => handleInputChange(categoryObj.key, 0)}
+            className="px-4 py-3 text-xs min-h-[48px]"
+            onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, 0)}
           >
             Not Rated
           </Button>
@@ -556,12 +483,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               key={star}
               type="button"
               variant="ghost"
-              size="sm"
-              className="p-2 h-auto"
-              onClick={() => handleInputChange(categoryObj.key, star)}
+              size="icon"
+              className="min-w-[48px] min-h-[48px]"
+              onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, star)}
             >
               <Star
-                className={`w-6 h-6 ${
+                className={`w-7 h-7 ${
                   star <= currentRating && currentRating > 0
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-gray-300'
@@ -602,7 +529,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         )}
       </div>
     );
-  };
+  }, [setValue]);
 
   return (
     <>
@@ -716,7 +643,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={hookFormSubmit(onSubmit)} className="space-y-6">
         {/* Basic Information - Organized in columns */}
         <Card>
           <CardHeader>
@@ -727,18 +654,27 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="school">School *</Label>
-                <Select value={formData.school} onValueChange={(value) => handleInputChange('school', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select school" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {schoolOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="school"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select school" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {schoolOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.school && (
+                  <p className="text-sm text-red-500 mt-1">{errors.school.message}</p>
+                )}
               </div>
 
               <div>
@@ -746,11 +682,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 <Input
                   id="date"
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                  required
+                  {...register('date')}
                   aria-describedby="date-help"
                 />
+                {errors.date && (
+                  <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>
+                )}
                 <p id="date-help" className="text-sm text-muted-foreground mt-1">
                   Select the date when this inspection was conducted
                 </p>
@@ -758,28 +695,39 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
               <div>
                 <Label htmlFor="locationCategory">Location Category</Label>
-                <Select value={formData.locationCategory} onValueChange={(value) => handleInputChange('locationCategory', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locationCategoryOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="locationCategory"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locationCategoryOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.locationCategory && (
+                  <p className="text-sm text-red-500 mt-1">{errors.locationCategory.message}</p>
+                )}
               </div>
 
               <div>
                 <Label htmlFor="roomNumber">Room Number</Label>
                 <Input
                   id="roomNumber"
-                  value={formData.roomNumber}
-                  onChange={(e) => handleInputChange('roomNumber', e.target.value)}
+                  {...register('roomNumber')}
                   placeholder="e.g., 101, Main Hall"
                 />
+                {errors.roomNumber && (
+                  <p className="text-sm text-red-500 mt-1">{errors.roomNumber.message}</p>
+                )}
               </div>
             </div>
 
@@ -787,10 +735,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               <Label htmlFor="locationDescription">Location Description</Label>
               <Input
                 id="locationDescription"
-                value={formData.locationDescription}
-                onChange={(e) => handleInputChange('locationDescription', e.target.value)}
+                {...register('locationDescription')}
                 placeholder="e.g., Main Building, Second Floor, Near Library"
               />
+              {errors.locationDescription && (
+                <p className="text-sm text-red-500 mt-1">{errors.locationDescription.message}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -851,13 +801,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               </CardHeader>
               <CardContent>
               <Textarea
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
+                {...register('notes')}
                 placeholder="Enter detailed notes about this inspection...&#10;&#10;Examples:&#10;• Specific areas that need attention&#10;• Safety concerns observed&#10;• Maintenance recommendations&#10;• Follow-up actions required&#10;• Staff performance observations&#10;• Equipment issues noted"
                 rows={8}
                 className="min-h-[200px]"
                 aria-describedby="notes-help"
               />
+              {errors.notes && (
+                <p className="text-sm text-red-500 mt-2">{errors.notes.message}</p>
+              )}
               <p id="notes-help" className="text-sm text-muted-foreground mt-2">
                 Provide detailed observations, specific issues, recommendations, or additional context for this inspection
               </p>
@@ -976,6 +928,11 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         </div>
       </form>
     </div>
+
+    {/* Loading overlay during form submission */}
+    {isSubmitting && (
+      <LoadingOverlay message="Submitting inspection..." />
+    )}
     </>
   );
 }

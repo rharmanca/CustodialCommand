@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Export Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    .info {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 16px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 16px;
+      border-radius: 6px;
+      margin: 20px 0;
+      display: none;
+    }
+    pre {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Walkthrough PDF Export Test</h1>
+
+  <div class="info">
+    <h3>Test Purpose</h3>
+    <p>This page tests the PDF generation function with the exact same logic used in the production application.</p>
+    <p>Click the button below to generate a sample walkthrough report PDF.</p>
+  </div>
+
+  <button onclick="generateTestPDF()">📄 Generate Test PDF</button>
+
+  <div id="success" class="success">
+    <h3>✅ PDF Generated Successfully!</h3>
+    <p>The PDF should have downloaded automatically. Check your downloads folder.</p>
+  </div>
+
+  <h3>Sample Data Preview:</h3>
+  <pre id="dataPreview"></pre>
+
+  <script>
+    // Sample inspection data
+    const sampleData = {
+      school: "Central Academy",
+      date: "2025-01-15",
+      inspectorName: "PDF Test Inspector",
+      overallRating: 4.2,
+      notes: "Overall building is in excellent condition. All areas meet or exceed standards.",
+      completionStatus: [
+        { category: "Administrative", required: 2, completed: 2 },
+        { category: "Classrooms", required: 20, completed: 20 },
+        { category: "Restrooms", required: 4, completed: 4 },
+        { category: "Hallways", required: 3, completed: 3 },
+        { category: "Cafeteria", required: 1, completed: 1 }
+      ],
+      inspections: [
+        {
+          locationDescription: "Main Office",
+          locationCategory: "Administrative",
+          floors: 5, verticalHorizontalSurfaces: 4, ceiling: 5,
+          customerSatisfaction: 4, trash: 5, projectCleaning: 4,
+          activitySupport: 5, safetyCompliance: 5, equipment: 4,
+          monitoring: 4, notes: "Excellent condition"
+        },
+        {
+          locationDescription: "Room 101",
+          locationCategory: "Classroom",
+          floors: 4, verticalHorizontalSurfaces: 4, ceiling: 4,
+          customerSatisfaction: 5, trash: 4, projectCleaning: 4,
+          activitySupport: 5, safetyCompliance: 4, equipment: 4,
+          monitoring: 4, notes: "Clean and ready"
+        },
+        {
+          locationDescription: "Student Restroom 1st Floor",
+          locationCategory: "Restroom",
+          floors: 4, verticalHorizontalSurfaces: 4, ceiling: 5,
+          restrooms: 4, customerSatisfaction: 4, trash: 5,
+          projectCleaning: 4, activitySupport: 5, safetyCompliance: 5,
+          equipment: 4, monitoring: 4, notes: "Well maintained"
+        }
+      ]
+    };
+
+    // Display sample data
+    document.getElementById('dataPreview').textContent = JSON.stringify(sampleData, null, 2);
+
+    function generateTestPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'letter');
+      let currentY = 20;
+
+      // Header
+      doc.setFontSize(18);
+      doc.setTextColor(37, 99, 235);
+      doc.setFont('helvetica', 'bold');
+      doc.text('BUILDING WALKTHROUGH INSPECTION REPORT', 20, currentY);
+      currentY += 12;
+
+      // Report metadata
+      doc.setFontSize(11);
+      doc.setTextColor(75, 85, 99);
+      doc.setFont('helvetica', 'normal');
+
+      doc.text(`School: ${sampleData.school}`, 20, currentY);
+      currentY += 6;
+      doc.text(`Date: ${new Date(sampleData.date).toLocaleDateString()}`, 20, currentY);
+      currentY += 6;
+      doc.text(`Inspector: ${sampleData.inspectorName}`, 20, currentY);
+      currentY += 6;
+      doc.text(`Overall Rating: ${sampleData.overallRating.toFixed(1)}/5.0`, 20, currentY);
+      currentY += 10;
+
+      // Separator
+      doc.setDrawColor(209, 213, 219);
+      doc.setLineWidth(0.5);
+      doc.line(20, currentY, doc.internal.pageSize.getWidth() - 20, currentY);
+      currentY += 8;
+
+      // Completion Status Summary
+      doc.setFontSize(14);
+      doc.setTextColor(37, 99, 235);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Completion Status Summary', 20, currentY);
+      currentY += 8;
+
+      doc.autoTable({
+        startY: currentY,
+        head: [['Category', 'Required', 'Completed', 'Status']],
+        body: sampleData.completionStatus.map(item => [
+          item.category,
+          item.required.toString(),
+          item.completed.toString(),
+          item.completed >= item.required ? '✓ Complete' : '⚠ Incomplete'
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+        margin: { left: 20, right: 20 }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      // Detailed Inspections
+      doc.setFontSize(14);
+      doc.setTextColor(37, 99, 235);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detailed Inspection Results', 20, currentY);
+      currentY += 8;
+
+      // Group by category
+      const groupedInspections = {};
+      sampleData.inspections.forEach(inspection => {
+        const cat = inspection.locationCategory || 'Other';
+        if (!groupedInspections[cat]) groupedInspections[cat] = [];
+        groupedInspections[cat].push(inspection);
+      });
+
+      Object.entries(groupedInspections).forEach(([category, inspections]) => {
+        doc.setFontSize(12);
+        doc.setTextColor(37, 99, 235);
+        doc.setFont('helvetica', 'bold');
+        doc.text(category, 20, currentY);
+        currentY += 6;
+
+        inspections.forEach(inspection => {
+          const ratings = [
+            inspection.floors,
+            inspection.verticalHorizontalSurfaces,
+            inspection.ceiling,
+            inspection.restrooms,
+            inspection.customerSatisfaction,
+            inspection.trash,
+            inspection.projectCleaning,
+            inspection.activitySupport,
+            inspection.safetyCompliance,
+            inspection.equipment,
+            inspection.monitoring
+          ].filter(r => r != null);
+
+          const avgRating = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+
+          doc.autoTable({
+            startY: currentY,
+            head: [[inspection.locationDescription]],
+            body: [
+              ['Average Rating', `${avgRating.toFixed(1)}/5.0`],
+              ['Notes', inspection.notes || 'None']
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [241, 245, 249], textColor: [37, 99, 235] },
+            margin: { left: 25, right: 20 },
+            columnStyles: { 0: { cellWidth: 50 } }
+          });
+
+          currentY = doc.lastAutoTable.finalY + 6;
+        });
+
+        currentY += 4;
+      });
+
+      // Additional Notes
+      if (sampleData.notes) {
+        doc.setFontSize(14);
+        doc.setTextColor(37, 99, 235);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Additional Notes', 20, currentY);
+        currentY += 6;
+
+        doc.setFontSize(11);
+        doc.setTextColor(75, 85, 99);
+        doc.setFont('helvetica', 'normal');
+        const splitNotes = doc.splitTextToSize(sampleData.notes, 170);
+        doc.text(splitNotes, 20, currentY);
+      }
+
+      // Save PDF
+      doc.save(`Walkthrough-Report-${sampleData.school}-${sampleData.date}.pdf`);
+
+      // Show success message
+      document.getElementById('success').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

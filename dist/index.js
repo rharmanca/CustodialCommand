@@ -98,11 +98,13 @@ var init_schema = __esm({
     });
     custodialNotes = pgTable("custodial_notes", {
       id: serial("id").primaryKey(),
+      inspectorName: text("inspector_name"),
       school: text("school").notNull(),
       date: text("date").notNull(),
       location: text("location").notNull(),
-      locationDescription: text("location_description").notNull(),
+      locationDescription: text("location_description"),
       notes: text("notes").notNull(),
+      images: text("images").array().default([]),
       createdAt: timestamp("created_at").defaultNow().notNull()
     });
     monthlyFeedback = pgTable("monthly_feedback", {
@@ -153,6 +155,9 @@ var init_schema = __esm({
       id: true,
       createdAt: true
     }).extend({
+      buildingInspectionId: z.coerce.number().int(),
+      // Coerce string to number for tests
+      roomType: z.string().min(1, "Room type is required"),
       images: z.array(z.string()).optional().default([]),
       floors: coerceNullableNumber.optional(),
       verticalHorizontalSurfaces: coerceNullableNumber.optional(),
@@ -171,6 +176,14 @@ var init_schema = __esm({
     insertCustodialNoteSchema = createInsertSchema(custodialNotes).omit({
       id: true,
       createdAt: true
+    }).extend({
+      inspectorName: z.string().min(1, "Inspector name is required").max(100, "Inspector name too long"),
+      school: z.string().min(1, "School is required").max(100, "School name too long"),
+      date: z.string().min(1, "Date is required"),
+      location: z.string().min(1, "Location is required").max(200, "Location too long"),
+      locationDescription: z.string().max(500, "Location description too long").optional().nullable(),
+      notes: z.string().min(10, "Please provide a detailed description (minimum 10 characters)").max(5e3, "Notes too long"),
+      images: z.array(z.string()).optional().default([])
     });
     insertMonthlyFeedbackSchema = createInsertSchema(monthlyFeedback).omit({ id: true, createdAt: true }).extend({
       school: z.string().min(1, "School is required").max(100),
@@ -408,6 +421,16 @@ var storage = {
       return result;
     } catch (error) {
       logger.error("Error getting room inspection:", error);
+      throw error;
+    }
+  },
+  async getRoomInspectionsByBuildingId(buildingInspectionId) {
+    try {
+      const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+      logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
+      return result;
+    } catch (error) {
+      logger.error("Error getting room inspections by building ID:", error);
       throw error;
     }
   },
@@ -747,13 +770,13 @@ async function registerRoutes(app2) {
       files: req.files ? req.files.length : 0
     });
     try {
-      const { school, date, locationDescription, location, notes } = req.body;
+      const { inspectorName, school, date, locationDescription, location, notes } = req.body;
       const files = req.files;
-      if (!school || !date || !location) {
-        logger.warn("[POST] Missing required fields", { school, date, location });
+      if (!inspectorName || !school || !date || !location) {
+        logger.warn("[POST] Missing required fields", { inspectorName, school, date, location });
         return res.status(400).json({
           message: "Missing required fields",
-          details: { school: !!school, date: !!date, location: !!location }
+          details: { inspectorName: !!inspectorName, school: !!school, date: !!date, location: !!location }
         });
       }
       let imageUrls = [];
@@ -779,15 +802,18 @@ async function registerRoutes(app2) {
         }
       }
       const custodialNote = {
+        inspectorName,
         school,
         date,
         location,
-        locationDescription: locationDescription || "",
+        locationDescription: locationDescription || null,
         notes: notes || "",
         images: imageUrls
       };
-      logger.info("[POST] Creating custodial note", { custodialNote });
-      const custodialNoteResult = await storage.createCustodialNote(custodialNote);
+      logger.info("[POST] Validating custodial note data", { custodialNote });
+      const validatedData = insertCustodialNoteSchema.parse(custodialNote);
+      logger.info("[POST] Creating custodial note", { validatedData });
+      const custodialNoteResult = await storage.createCustodialNote(validatedData);
       logger.info("[POST] Custodial note created successfully", { id: custodialNoteResult.id });
       res.status(201).json({
         message: "Custodial note submitted successfully",
@@ -943,7 +969,7 @@ async function registerRoutes(app2) {
       console.log("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
       const roomInspection = await storage.createRoomInspection(validatedData);
       console.log("[POST] Successfully created room inspection:", roomInspection.id);
-      res.json(roomInspection);
+      res.status(201).json(roomInspection);
     } catch (error) {
       console.error("Error creating room inspection:", error);
       if (error instanceof z2.ZodError) {
@@ -1454,10 +1480,12 @@ var createRateLimit = (windowMs, max) => {
     legacyHeaders: false
   });
 };
+var API_RATE_LIMIT = 1e4;
+var STRICT_RATE_LIMIT = 1e3;
 var apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1e3,
   // 15 minutes
-  max: 100,
+  max: API_RATE_LIMIT,
   message: { error: "Too many requests, please try again later" },
   standardHeaders: true,
   legacyHeaders: false,
@@ -1467,7 +1495,7 @@ var apiRateLimit = rateLimit({
     return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
   }
 });
-var strictRateLimit = createRateLimit(15 * 60 * 1e3, 10);
+var strictRateLimit = createRateLimit(15 * 60 * 1e3, STRICT_RATE_LIMIT);
 var sanitizeInput = (req, res, next) => {
   const sanitizeString = (str) => {
     return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
@@ -1644,7 +1672,6 @@ if (process.env.REPL_SLUG) {
 } else {
   app.set("trust proxy", false);
 }
-app.use(requestTimingMiddleware);
 app.use(requestIdMiddleware);
 app.use(performanceMonitor);
 app.use(metricsMiddleware);
@@ -1707,10 +1734,10 @@ app.use(validateRequest);
 app.use(sanitizeInput);
 app.use(express3.json({ limit: "10mb" }));
 app.use(express3.urlencoded({ extended: false, limit: "10mb" }));
-app.use("/api/admin/login", authRateLimit);
-app.use("/api/inspections", uploadRateLimit);
-app.use("/api/custodial-notes", uploadRateLimit);
-app.use("/api/monthly-feedback", uploadRateLimit);
+app.use("/api/admin/login", strictRateLimit);
+app.use("/api/inspections", apiRateLimit);
+app.use("/api/custodial-notes", apiRateLimit);
+app.use("/api/monthly-feedback", apiRateLimit);
 app.use("/api", apiRateLimit);
 app.use("/api", (req, res, next) => {
   try {
@@ -1758,6 +1785,27 @@ app.use((req, res, next) => {
   });
   next();
 });
+if (process.env.REPL_SLUG) {
+  app.use((req, res, next) => {
+    try {
+      res.removeHeader("X-Frame-Options");
+      res.removeHeader("Cross-Origin-Opener-Policy");
+      res.removeHeader("Cross-Origin-Embedder-Policy");
+      const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
+      const current = res.getHeader("Content-Security-Policy");
+      if (!current) {
+        res.setHeader("Content-Security-Policy", fa);
+      } else {
+        const value = Array.isArray(current) ? current.join("; ") : String(current);
+        const re = /frame-ancestors[^;]*/i;
+        const newVal = re.test(value) ? value.replace(re, fa) : value ? value + "; " + fa : fa;
+        res.setHeader("Content-Security-Policy", newVal);
+      }
+    } catch {
+    }
+    next();
+  });
+}
 (async () => {
   try {
     logger.info("Starting server setup...");
@@ -1784,7 +1832,6 @@ app.use((req, res, next) => {
     logger.info("Health check endpoints configured");
     await registerRoutes(app);
     logger.info("Routes registered successfully");
-    app.use(cacheControl);
     serveStatic(app);
     logger.info("Static file serving configured");
     const server = createServer(app);
@@ -1814,23 +1861,4 @@ app.use((req, res, next) => {
 })().catch((error) => {
   logger.error("Unhandled error in server startup", { error: error instanceof Error ? error.message : "Unknown error" });
   process.exit(1);
-});
-app.use((req, res, next) => {
-  try {
-    res.removeHeader("X-Frame-Options");
-    res.removeHeader("Cross-Origin-Opener-Policy");
-    res.removeHeader("Cross-Origin-Embedder-Policy");
-    const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
-    const current = res.getHeader("Content-Security-Policy");
-    if (!current) {
-      res.setHeader("Content-Security-Policy", fa);
-    } else {
-      const value = Array.isArray(current) ? current.join("; ") : String(current);
-      const re = /frame-ancestors[^;]*/i;
-      const newVal = re.test(value) ? value.replace(re, fa) : value ? value + "; " + fa : fa;
-      res.setHeader("Content-Security-Policy", newVal);
-    }
-  } catch {
-  }
-  next();
 });
