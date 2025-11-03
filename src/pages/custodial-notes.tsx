@@ -70,7 +70,8 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     formState: { errors, isSubmitting },
     reset,
     setValue,
-    getValues
+    getValues,
+    clearErrors
   } = useForm<CustodialNotesForm>({
     resolver: zodResolver(custodialNotesSchema),
     defaultValues: custodialNotesDefaultValues
@@ -97,12 +98,19 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   const [isLandscapePhone, setIsLandscapePhone] = useState(false);
   const [showLandscapeWarning, setShowLandscapeWarning] = useState(true);
 
+  // Recent locations for quick selection
+  const [recentLocations, setRecentLocations] = useState<string[]>([]);
+
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Success animation
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+
+  // Report another issue workflow
+  const [showReportAnotherDialog, setShowReportAnotherDialog] = useState(false);
+  const [lastSubmittedData, setLastSubmittedData] = useState<CustodialNotesForm | null>(null);
 
   // Track scroll position to determine current section
   useEffect(() => {
@@ -207,6 +215,33 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
       console.error('Error loading draft:', error);
     }
   }, [setValue, toast]);
+
+  // Restore inspector name, school, and recent locations from localStorage
+  useEffect(() => {
+    try {
+      // Restore inspector name
+      const savedInspectorName = localStorage.getItem('custodialInspectorName');
+      if (savedInspectorName) {
+        setValue('inspectorName', savedInspectorName);
+      }
+
+      // Restore last school
+      const savedSchool = localStorage.getItem('custodialLastSchool');
+      if (savedSchool) {
+        setSelectedSchool(savedSchool);
+        setValue('school', savedSchool);
+      }
+
+      // Load recent locations
+      const savedLocations = localStorage.getItem('custodialRecentLocations');
+      if (savedLocations) {
+        const locations = JSON.parse(savedLocations);
+        setRecentLocations(Array.isArray(locations) ? locations : []);
+      }
+    } catch (error) {
+      console.error('Error loading saved preferences:', error);
+    }
+  }, [setValue, setSelectedSchool]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -313,6 +348,67 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     setImagePreviewUrls(newPreviewUrls);
   };
 
+  // Helper function to update recent locations (keep last 5 unique values)
+  const updateRecentLocations = (newLocation: string) => {
+    if (!newLocation.trim()) return;
+
+    setRecentLocations(prev => {
+      // Remove the location if it already exists
+      const filtered = prev.filter(loc => loc !== newLocation);
+      // Add to the beginning and keep only the last 5
+      const updated = [newLocation, ...filtered].slice(0, 5);
+
+      // Save to localStorage
+      try {
+        localStorage.setItem('custodialRecentLocations', JSON.stringify(updated));
+      } catch (error) {
+        console.error('Error saving recent locations:', error);
+      }
+
+      return updated;
+    });
+  };
+
+  // Handler for "Report Another Issue" workflow
+  const handleReportAnotherIssue = () => {
+    if (!lastSubmittedData) return;
+
+    // Pre-fill form with previous data (except notes and images)
+    setValue('inspectorName', lastSubmittedData.inspectorName);
+    setValue('school', lastSubmittedData.school);
+    setValue('date', lastSubmittedData.date);
+    setValue('location', lastSubmittedData.location);
+    setValue('locationDescription', lastSubmittedData.locationDescription || '');
+
+    // Also set the selected school for the dropdown
+    setSelectedSchool(lastSubmittedData.school);
+
+    // Clear notes and images for new report
+    setValue('notes', '');
+    setValue('images', []);
+
+    // Close dialog and scroll to top
+    setShowReportAnotherDialog(false);
+    setLastSubmittedData(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Show toast to confirm pre-fill
+    toast({
+      title: "Form Pre-filled",
+      description: "Inspector, school, date, and location have been filled in. Just add new notes and photos!",
+      duration: 4000
+    });
+  };
+
+  // Handler for "Return to Home"
+  const handleReturnHome = () => {
+    setShowReportAnotherDialog(false);
+    setLastSubmittedData(null);
+    if (onBack) {
+      onBack();
+    }
+  };
+
   // Form submission handler with Zod validation - shows confirmation dialog
   const onSubmit = async (data: CustodialNotesForm) => {
     // Validation is automatically handled by Zod schema via zodResolver
@@ -355,6 +451,18 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         // Clear the draft from localStorage
         localStorage.removeItem('custodialNotesDraft');
 
+        // Save user preferences for next time
+        try {
+          localStorage.setItem('custodialInspectorName', formDataToConfirm.inspectorName);
+          localStorage.setItem('custodialLastSchool', selectedSchool);
+          updateRecentLocations(formDataToConfirm.location);
+        } catch (error) {
+          console.error('Error saving user preferences:', error);
+        }
+
+        // Save submitted data for "Report Another Issue" workflow
+        setLastSubmittedData(formDataToConfirm);
+
         toast({
           title: "✅ Custodial Note Submitted Successfully!",
           description: "Your custodial concern has been recorded and will be reviewed.",
@@ -373,12 +481,10 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         setLastSaved(null);
         setIsActuallySubmitting(false);
 
-        // Navigate back to home page after animation
+        // Show "Report Another Issue" dialog after animation
         setTimeout(() => {
           setShowSuccessAnimation(false);
-          if (onBack) {
-            onBack();
-          }
+          setShowReportAnotherDialog(true);
         }, 3000);
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
@@ -633,6 +739,32 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                   </PopoverContent>
                 </Popover>
               </Label>
+
+              {/* Recent Locations Quick Selection */}
+              {recentLocations.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs text-gray-500 mb-1.5">Recent locations:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {recentLocations.map((loc, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          setValue('location', loc);
+                          // Optionally trigger validation
+                          if (errors.location) {
+                            clearErrors('location');
+                          }
+                        }}
+                        className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <Input
                 id="location"
                 {...register('location')}
@@ -915,6 +1047,43 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
                     animation: 'progress 3s ease-in-out forwards'
                   }}
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Another Issue Dialog */}
+      {showReportAnotherDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl animate-in zoom-in duration-500">
+            <div className="text-center space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Report Another Issue?
+                </h2>
+                <p className="text-gray-600">
+                  Found another issue at the same location?
+                </p>
+                <p className="text-sm text-gray-500">
+                  We can pre-fill your inspector name, school, date, and location to save you time!
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleReportAnotherIssue}
+                  className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-md hover:shadow-lg min-h-[48px]"
+                >
+                  📝 Report Another Issue Here
+                </button>
+                <button
+                  onClick={handleReturnHome}
+                  className="w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors min-h-[48px]"
+                >
+                  🏠 Return to Home
+                </button>
               </div>
             </div>
           </div>

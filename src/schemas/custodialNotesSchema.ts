@@ -58,7 +58,7 @@ export type CustodialNotesForm = z.infer<typeof custodialNotesSchema>;
 export const custodialNotesDefaultValues: Partial<CustodialNotesForm> = {
   inspectorName: '',
   school: '',
-  date: '',
+  date: new Date().toISOString().split('T')[0], // Default to today's date
   location: '',
   locationDescription: '',
   notes: '',
