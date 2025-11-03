@@ -33,6 +33,9 @@ import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
 import { custodialNotesSchema, type CustodialNotesForm, custodialNotesDefaultValues } from '@/schemas';
 import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 import { Check, ChevronsUpDown, ChevronDown, HelpCircle, RotateCcw, Save, Sparkles } from 'lucide-react';
+import LocalStorageErrorBoundary from '@/components/errors/LocalStorageErrorBoundary';
+import SafeLocalStorage from '@/utils/SafeLocalStorage';
+import { useStorageQuotaMonitor } from '@/hooks/useStorageQuotaMonitor';
 
 // School list for dropdown
 const SCHOOLS = [
@@ -63,6 +66,20 @@ const progressAnimation = `
 export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) {
   const { toast } = useToast();
 
+  // Monitor storage quota and show warnings
+  useStorageQuotaMonitor({
+    onWarning: (message, percentage, level) => {
+      toast({
+        variant: level === 'critical' ? 'destructive' : 'default',
+        title: level === 'critical' ? '⚠️ Storage Almost Full' : '⚡ Storage Warning',
+        description: message,
+        duration: 7000,
+      });
+    },
+    checkInterval: 30000, // Check every 30 seconds
+    checkOnMount: true, // Check immediately on component mount
+  });
+
   // React Hook Form with Zod validation
   const {
     register,
@@ -71,11 +88,16 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
     reset,
     setValue,
     getValues,
+    watch,
     clearErrors
   } = useForm<CustodialNotesForm>({
     resolver: zodResolver(custodialNotesSchema),
     defaultValues: custodialNotesDefaultValues
   });
+
+  // Watch all form fields for auto-save functionality
+  // Using watch() instead of getValues() ensures the effect re-runs when form changes
+  const watchedFields = watch();
 
   // Image state (handled separately from form data)
   const [images, setImages] = useState<File[]>([]);
@@ -159,31 +181,33 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   }, []);
 
   // Auto-save form data to localStorage
+  // CRITICAL: Using watchedFields (from watch()) instead of getValues() to ensure
+  // the effect re-runs whenever form fields change. getValues() is a stable function
+  // reference and won't trigger re-renders when form data changes.
   useEffect(() => {
-    const formData = getValues();
-    const hasData = Object.values(formData).some(val => val && val !== '');
+    const hasData = Object.values(watchedFields).some(val => val && val !== '');
 
     if (hasData && !isActuallySubmitting) {
       const saveTimer = setTimeout(() => {
         setIsSaving(true);
         const dataToSave = {
-          ...formData,
+          ...watchedFields,
           selectedSchool,
           savedAt: new Date().toISOString()
         };
-        localStorage.setItem('custodialNotesDraft', JSON.stringify(dataToSave));
+        SafeLocalStorage.setItem('custodialNotesDraft', JSON.stringify(dataToSave));
         setLastSaved(new Date());
         setIsSaving(false);
       }, 2000); // Save 2 seconds after user stops typing
 
       return () => clearTimeout(saveTimer);
     }
-  }, [getValues, selectedSchool, isActuallySubmitting]);
+  }, [watchedFields, selectedSchool, isActuallySubmitting]);
 
   // Load saved draft on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('custodialNotesDraft');
+      const saved = SafeLocalStorage.getItem('custodialNotesDraft');
       if (saved) {
         const data = JSON.parse(saved);
         const savedDate = new Date(data.savedAt);
@@ -208,7 +232,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
           });
         } else {
           // Clear old draft
-          localStorage.removeItem('custodialNotesDraft');
+          SafeLocalStorage.removeItem('custodialNotesDraft');
         }
       }
     } catch (error) {
@@ -220,20 +244,20 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   useEffect(() => {
     try {
       // Restore inspector name
-      const savedInspectorName = localStorage.getItem('custodialInspectorName');
+      const savedInspectorName = SafeLocalStorage.getItem('custodialInspectorName');
       if (savedInspectorName) {
         setValue('inspectorName', savedInspectorName);
       }
 
       // Restore last school
-      const savedSchool = localStorage.getItem('custodialLastSchool');
+      const savedSchool = SafeLocalStorage.getItem('custodialLastSchool');
       if (savedSchool) {
         setSelectedSchool(savedSchool);
         setValue('school', savedSchool);
       }
 
       // Load recent locations
-      const savedLocations = localStorage.getItem('custodialRecentLocations');
+      const savedLocations = SafeLocalStorage.getItem('custodialRecentLocations');
       if (savedLocations) {
         const locations = JSON.parse(savedLocations);
         setRecentLocations(Array.isArray(locations) ? locations : []);
@@ -360,7 +384,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
 
       // Save to localStorage
       try {
-        localStorage.setItem('custodialRecentLocations', JSON.stringify(updated));
+        SafeLocalStorage.setItem('custodialRecentLocations', JSON.stringify(updated));
       } catch (error) {
         console.error('Error saving recent locations:', error);
       }
@@ -449,12 +473,12 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         setShowSuccessAnimation(true);
 
         // Clear the draft from localStorage
-        localStorage.removeItem('custodialNotesDraft');
+        SafeLocalStorage.removeItem('custodialNotesDraft');
 
         // Save user preferences for next time
         try {
-          localStorage.setItem('custodialInspectorName', formDataToConfirm.inspectorName);
-          localStorage.setItem('custodialLastSchool', selectedSchool);
+          SafeLocalStorage.setItem('custodialInspectorName', formDataToConfirm.inspectorName);
+          SafeLocalStorage.setItem('custodialLastSchool', selectedSchool);
           updateRecentLocations(formDataToConfirm.location);
         } catch (error) {
           console.error('Error saving user preferences:', error);
@@ -509,7 +533,7 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
   };
 
   return (
-    <>
+    <LocalStorageErrorBoundary>
       {/* Inject animation styles */}
       <style>{progressAnimation}</style>
 
@@ -1090,6 +1114,6 @@ export default function CustodialNotesPage({ onBack }: CustodialNotesPageProps) 
         </div>
       )}
       </div>
-    </>
+    </LocalStorageErrorBoundary>
   );
 }
