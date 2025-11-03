@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useIsMobile } from "./hooks/use-mobile";
 import { useCustomNotifications } from "@/hooks/use-custom-notifications";
+import SafeLocalStorage from "@/utils/SafeLocalStorage";
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationContainer } from "@/components/ui/custom-notification";
 import { OfflineStatus } from "@/components/ui/offline-status";
@@ -137,9 +138,9 @@ function App() {
       setIsPWAInstalled(isStandalone);
 
       // Show success message if just installed
-      if (isStandalone && !localStorage.getItem("pwa-install-shown")) {
+      if (isStandalone && !SafeLocalStorage.getItem("pwa-install-shown")) {
         setShowInstallSuccess(true);
-        localStorage.setItem("pwa-install-shown", "true");
+        SafeLocalStorage.setItem("pwa-install-shown", "true");
         setTimeout(() => setShowInstallSuccess(false), 5000);
         
         // Show enhanced notification
@@ -156,7 +157,7 @@ function App() {
     // Automatic cache invalidation and version check
     const checkForUpdates = () => {
       const currentVersion = 'v6';
-      const storedVersion = localStorage.getItem('app-version');
+      const storedVersion = SafeLocalStorage.getItem('app-version');
       
       // If version changed, clear cache and reload
       if (storedVersion && storedVersion !== currentVersion) {
@@ -173,24 +174,19 @@ function App() {
         
         // Clear localStorage except for essential data
         const essentialKeys = ['app-version', 'pwa-install-shown'];
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && !essentialKeys.includes(key)) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
+        const allKeys = SafeLocalStorage.keys();
+        const keysToRemove = allKeys.filter(key => !essentialKeys.includes(key));
+        keysToRemove.forEach(key => SafeLocalStorage.removeItem(key));
         
         // Update version and reload
-        localStorage.setItem('app-version', currentVersion);
+        SafeLocalStorage.setItem('app-version', currentVersion);
         showInfo('App Updated', '🔄 App updated! Reloading with latest version...');
         setTimeout(() => window.location.reload(), 2000);
         return;
       }
       
       // Store current version
-      localStorage.setItem('app-version', currentVersion);
+      SafeLocalStorage.setItem('app-version', currentVersion);
     };
 
     checkForUpdates();
@@ -199,7 +195,7 @@ function App() {
     const handleAppInstalled = () => {
       setIsPWAInstalled(true);
       setShowInstallSuccess(true);
-      localStorage.setItem("pwa-install-shown", "true");
+      SafeLocalStorage.setItem("pwa-install-shown", "true");
       setTimeout(() => setShowInstallSuccess(false), 5000);
       
       // Show enhanced notification
