@@ -1,5 +1,6 @@
 
 // Local storage utilities for offline functionality
+import SafeLocalStorage from './SafeLocalStorage';
 
 export const STORAGE_KEYS = {
   DRAFT_INSPECTION: 'custodial-draft-inspection',
@@ -23,9 +24,11 @@ const STORAGE_LIMITS = {
 // Check storage usage
 const getStorageSize = (): number => {
   let total = 0;
-  for (const key in localStorage) {
-    if (localStorage.hasOwnProperty(key)) {
-      total += localStorage[key].length + key.length;
+  const keys = SafeLocalStorage.keys();
+  for (const key of keys) {
+    const value = SafeLocalStorage.getItem(key);
+    if (value) {
+      total += value.length + key.length;
     }
   }
   return total;
@@ -86,14 +89,14 @@ export const saveDraft = (key: string, data: any): void => {
       }
     }
     
-    localStorage.setItem(key, serialized);
+    SafeLocalStorage.setItem(key, serialized);
   } catch (error) {
     console.error('Failed to save draft to localStorage:', error);
     // If quota exceeded, try cleaning up and retry once
     if (error instanceof Error && error.name === 'QuotaExceededError') {
       cleanupOldDrafts();
       try {
-        localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+        SafeLocalStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
       } catch (retryError) {
         console.error('Failed to save draft even after cleanup:', retryError);
       }
@@ -103,16 +106,16 @@ export const saveDraft = (key: string, data: any): void => {
 
 export const loadDraft = (key: string): any | null => {
   try {
-    const stored = localStorage.getItem(key);
+    const stored = SafeLocalStorage.getItem(key);
     if (!stored) return null;
-    
+
     const parsed = JSON.parse(stored);
     // Remove drafts older than 7 days
     if (Date.now() - parsed.timestamp > 7 * 24 * 60 * 60 * 1000) {
-      localStorage.removeItem(key);
+      SafeLocalStorage.removeItem(key);
       return null;
     }
-    
+
     return parsed.data;
   } catch (error) {
     console.error('Failed to load draft from localStorage:', error);
@@ -122,7 +125,7 @@ export const loadDraft = (key: string): any | null => {
 
 export const clearDraft = (key: string): void => {
   try {
-    localStorage.removeItem(key);
+    SafeLocalStorage.removeItem(key);
   } catch (error) {
     console.error('Failed to clear draft from localStorage:', error);
   }
@@ -133,12 +136,13 @@ export const cleanupOldDrafts = (): void => {
   try {
     const cutoffTime = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
     const keysToRemove: string[] = [];
-    
+
     // Find old drafts
-    for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key) && key.startsWith('custodial-')) {
+    const allKeys = SafeLocalStorage.keys();
+    for (const key of allKeys) {
+      if (key.startsWith('custodial-')) {
         try {
-          const stored = localStorage.getItem(key);
+          const stored = SafeLocalStorage.getItem(key);
           if (stored) {
             const parsed = JSON.parse(stored);
             if (parsed.timestamp && parsed.timestamp < cutoffTime) {
@@ -151,10 +155,10 @@ export const cleanupOldDrafts = (): void => {
         }
       }
     }
-    
+
     // Remove old drafts
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
+    keysToRemove.forEach(key => SafeLocalStorage.removeItem(key));
+
     console.log(`Cleaned up ${keysToRemove.length} old drafts`);
   } catch (error) {
     console.error('Failed to cleanup old drafts:', error);
@@ -165,19 +169,19 @@ export const cleanupOldDrafts = (): void => {
 export const migrateLegacyDrafts = (): void => {
   try {
     // Migrate old inspection drafts
-    const oldInspectionDrafts = localStorage.getItem(STORAGE_KEYS.LEGACY_INSPECTION_DRAFTS);
+    const oldInspectionDrafts = SafeLocalStorage.getItem(STORAGE_KEYS.LEGACY_INSPECTION_DRAFTS);
     if (oldInspectionDrafts) {
       console.log('Migrating legacy inspection drafts...');
-      localStorage.removeItem(STORAGE_KEYS.LEGACY_INSPECTION_DRAFTS);
+      SafeLocalStorage.removeItem(STORAGE_KEYS.LEGACY_INSPECTION_DRAFTS);
     }
-    
+
     // Migrate old building drafts
-    const oldBuildingDrafts = localStorage.getItem(STORAGE_KEYS.LEGACY_BUILDING_DRAFTS);
+    const oldBuildingDrafts = SafeLocalStorage.getItem(STORAGE_KEYS.LEGACY_BUILDING_DRAFTS);
     if (oldBuildingDrafts) {
       console.log('Migrating legacy building inspection drafts...');
-      localStorage.removeItem(STORAGE_KEYS.LEGACY_BUILDING_DRAFTS);
+      SafeLocalStorage.removeItem(STORAGE_KEYS.LEGACY_BUILDING_DRAFTS);
     }
-    
+
     // Run initial cleanup
     cleanupOldDrafts();
   } catch (error) {
@@ -209,8 +213,8 @@ export const processImageForStorage = async (file: File): Promise<string> => {
 // Get storage statistics
 export const getStorageStats = () => {
   const totalSize = getStorageSize();
-  const draftCount = Object.keys(localStorage).filter(key => key.startsWith('custodial-')).length;
-  
+  const draftCount = SafeLocalStorage.keys().filter(key => key.startsWith('custodial-')).length;
+
   return {
     totalSizeKB: Math.round(totalSize / 1024),
     totalSizeMB: Math.round(totalSize / (1024 * 1024) * 100) / 100,
