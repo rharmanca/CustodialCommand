@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import SafeLocalStorage from '@/utils/SafeLocalStorage';
 
 /**
  * Return type for useLocalStorageAvailable hook
@@ -60,35 +61,39 @@ export function useLocalStorageAvailable(): LocalStorageAvailability {
 
   useEffect(() => {
     /**
-     * Tests if localStorage is available by attempting read/write
+     * Tests if localStorage is available by attempting read/write using SafeLocalStorage
      */
     const checkAvailability = (): { available: boolean; error: string | null } => {
       try {
         const testKey = '__storage_test__';
         const testValue = 'test';
 
-        // Check if localStorage exists
-        if (typeof localStorage === 'undefined') {
-          return {
-            available: false,
-            error: 'localStorage is not supported in this browser',
-          };
-        }
-
-        // Try to write
-        localStorage.setItem(testKey, testValue);
+        // Use SafeLocalStorage to avoid SecurityError on localStorage getter access
+        // SafeLocalStorage handles all localStorage errors internally
+        SafeLocalStorage.setItem(testKey, testValue);
 
         // Try to read
-        const retrieved = localStorage.getItem(testKey);
+        const retrieved = SafeLocalStorage.getItem(testKey);
 
         // Clean up
-        localStorage.removeItem(testKey);
+        SafeLocalStorage.removeItem(testKey);
+
+        // Check if SafeLocalStorage is using real localStorage or fallback
+        const isUsingLocalStorage = SafeLocalStorage.isUsingLocalStorage();
 
         // Verify read matches write
         if (retrieved !== testValue) {
           return {
             available: false,
             error: 'localStorage read/write verification failed',
+          };
+        }
+
+        // If SafeLocalStorage fell back to in-memory storage, report as unavailable
+        if (!isUsingLocalStorage) {
+          return {
+            available: false,
+            error: 'localStorage access denied (private browsing or security policy)',
           };
         }
 
