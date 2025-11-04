@@ -20,6 +20,7 @@ const WholeBuildingInspectionPage = lazy(() => import("./pages/whole-building-in
 const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
 const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
 const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
+const ScoresDashboard = lazy(() => import("./pages/scores-dashboard"));
 
 // Loading skeleton component
 const PageLoadingSkeleton = () => (
@@ -80,6 +81,7 @@ function App() {
     | "Rating Criteria"
     | "admin-inspections"
     | "Monthly Feedback"
+    | "Scores Dashboard"
   >("Custodial");
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
@@ -360,6 +362,14 @@ function App() {
                   </h2>
                   <div className="responsive-grid">
                     <button
+                      onClick={() => setCurrentPage("Scores Dashboard")}
+                      className="modern-button bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        📈 Building Scores Dashboard
+                      </span>
+                    </button>
+                    <button
                       onClick={() => setCurrentPage("Inspection Data")}
                       className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white shadow-md hover:shadow-lg transition-shadow"
                     >
@@ -436,6 +446,12 @@ function App() {
           return (
             <Suspense fallback={<PageLoadingSkeleton />}>
               <MonthlyFeedbackPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
+          );
+        case "Scores Dashboard":
+          return (
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <ScoresDashboard onBack={() => setCurrentPage("Custodial")} />
             </Suspense>
           );
         default:
