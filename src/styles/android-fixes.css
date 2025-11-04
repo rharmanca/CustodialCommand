@@ -1,0 +1,299 @@
+/**
+ * Android-Specific Layout Fixes for Motorola A54
+ *
+ * These fixes address the following issues:
+ * 1. Grid layout collapse causing text/image overlap
+ * 2. Z-index stacking problems with collapsible sections
+ * 3. Image overflow and containment issues
+ * 4. Font scaling differences on Android Chrome
+ *
+ * Created: November 4, 2025
+ */
+
+/* ============================================
+   FIX #1: Force Flexbox on Android Mobile
+   Problem: CSS Grid breaks on some Android devices
+   Solution: Override all grid classes to use flexbox
+   ============================================ */
+@media screen and (max-width: 767px) {
+  /* Force all grid containers to use flexbox */
+  .grid,
+  [class*="grid-cols-"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  /* Override Tailwind grid utilities */
+  .grid-cols-1,
+  .grid-cols-2,
+  .grid-cols-3,
+  .sm\:grid-cols-2,
+  .lg\:grid-cols-3 {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Ensure all form children stack vertically */
+  form > div {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+}
+
+/* ============================================
+   FIX #2: Image Containment
+   Problem: Images overflow containers on Android
+   Solution: Strict max-width and height constraints
+   ============================================ */
+@media screen and (max-width: 767px) {
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    object-fit: contain;
+  }
+
+  /* Prevent image parent containers from overflowing */
+  .image-container,
+  [class*="image-"],
+  figure {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+/* ============================================
+   FIX #3: Z-Index Stacking Context
+   Problem: Collapsible sections overlap with other content
+   Solution: Create proper stacking contexts
+   ============================================ */
+@media screen and (max-width: 767px) {
+  /* Main content wrapper - lowest z-index */
+  .main-content,
+  main {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Collapsible sections - medium z-index */
+  [data-state="open"],
+  [data-state="closed"],
+  .collapsible {
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Modals and overlays - highest z-index */
+  [role="dialog"],
+  .modal,
+  .overlay {
+    position: fixed;
+    z-index: 100;
+  }
+
+  /* Ensure dropdown menus appear above content */
+  [role="menu"],
+  [role="listbox"] {
+    position: absolute;
+    z-index: 50;
+  }
+}
+
+/* ============================================
+   FIX #4: Text Size and Readability
+   Problem: Android text-size-adjust causes inconsistent sizing
+   Solution: Disable auto-adjustment, use explicit sizing
+   ============================================ */
+@media screen and (max-width: 767px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-size: 16px !important; /* Prevents zoom on input focus */
+    line-height: 1.5;
+  }
+
+  /* Ensure input fields don't trigger zoom */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Headings remain proportional */
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+  h5, h6 { font-size: 1rem; }
+}
+
+/* ============================================
+   FIX #5: Form Field Spacing
+   Problem: Form fields overlap on narrow screens
+   Solution: Add consistent vertical spacing
+   ============================================ */
+@media screen and (max-width: 767px) {
+  /* Space out all form groups */
+  .form-group,
+  .field-group,
+  [class*="space-y-"] {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Ensure labels are clearly separated from inputs */
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Add breathing room around inputs */
+  input,
+  textarea,
+  select {
+    width: 100% !important;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem !important;
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================
+   FIX #6: Button Touch Targets
+   Problem: Buttons too small for accurate tapping
+   Solution: Minimum 44px height (Apple HIG standard)
+   ============================================ */
+@media screen and (max-width: 767px) {
+  button,
+  [role="button"],
+  .btn,
+  .button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 0.75rem 1rem !important;
+    touch-action: manipulation; /* Prevents double-tap zoom */
+  }
+
+  /* Star rating buttons need extra space */
+  .star-rating button,
+  [data-rating-button] {
+    min-width: 48px !important;
+    min-height: 48px !important;
+    margin: 0.25rem !important;
+  }
+}
+
+/* ============================================
+   FIX #7: Prevent Horizontal Scroll
+   Problem: Content overflows viewport width
+   Solution: Constrain all containers
+   ============================================ */
+@media screen and (max-width: 767px) {
+  html,
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Prevent any child from causing horizontal scroll */
+  * {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Exception: Allow horizontal scroll for specific components */
+  .allow-scroll-x {
+    max-width: none !important;
+    overflow-x: auto !important;
+  }
+}
+
+/* ============================================
+   FIX #8: Safe Area Insets (Notch Support)
+   Problem: Content hidden behind notch/camera cutout
+   Solution: Use CSS environment variables
+   ============================================ */
+@media screen and (max-width: 767px) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Header accounting for notch */
+  header,
+  .header {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+
+  /* Footer accounting for home indicator */
+  footer,
+  .footer {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================
+   FIX #9: Collapsible Section Rendering
+   Problem: Sections don't expand/collapse smoothly
+   Solution: Hardware-accelerated transitions
+   ============================================ */
+@media screen and (max-width: 767px) {
+  [data-state] {
+    transition: all 0.2s ease-in-out;
+    will-change: transform, opacity;
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  [data-state="open"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-state="closed"] {
+    opacity: 0;
+    transform: translateY(-10px);
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+/* ============================================
+   FIX #10: Android-Specific Input Styling
+   Problem: Input borders/shadows render poorly
+   Solution: Simplified styling for Android
+   ============================================ */
+@media screen and (max-width: 767px) {
+  /* Detect Android Chrome specifically */
+  @supports (-webkit-appearance: none) {
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    textarea {
+      -webkit-appearance: none;
+      appearance: none;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background-color: white;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #8B4513; /* Match theme color */
+      box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    }
+  }
+}

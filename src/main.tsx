@@ -2,6 +2,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "./styles/android-fixes.css";
 
 // Register service worker for offline PWA capabilities
 if ('serviceWorker' in navigator) {
