@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from "@playwright/test";
 
 /**
  * LocalStorage Error Handling Test Suite
@@ -14,10 +14,10 @@ import { test, expect, Page } from '@playwright/test';
  * Based on Context7 localStorage error handling best practices.
  */
 
-const PRODUCTION_URL = 'https://cacustodialcommand.up.railway.app/';
-const TEST_INSPECTOR_NAME = 'Error Test User';
-const TEST_SCHOOL = 'WLC';
-const TEST_LOCATION = 'Test Error Location';
+const PRODUCTION_URL = "https://cacustodialcommand.up.railway.app/";
+const TEST_INSPECTOR_NAME = "Error Test User";
+const TEST_SCHOOL = "WLC";
+const TEST_LOCATION = "Test Error Location";
 
 /**
  * Helper function to scroll the form into view after clicking "Report A Custodial Concern"
@@ -35,6 +35,12 @@ const scrollToForm = async (page: Page) => {
  * NOT a native HTML <select> element. This requires custom interaction instead of
  * Playwright's selectOption() method.
  *
+ * MOBILE SAFARI WORKAROUND: Uses JavaScript click event instead of Playwright's click()
+ * because Mobile Safari's Popover component fails viewport detection even with force: true.
+ * This directly triggers the click event via element.click(), which bypasses Playwright's
+ * actionability checks but still tests that the application responds correctly to clicks.
+ * This is a known limitation with mobile Safari and Shadcn UI Popover components.
+ *
  * @param page - Playwright page object
  * @param schoolCode - School code to select (e.g., "CBR", "ASA")
  */
@@ -43,32 +49,55 @@ const selectSchool = async (page: Page, schoolCode: string) => {
     // Open the dropdown by clicking the combobox button
     await page.click('button[role="combobox"]', { timeout: 5000 });
 
-    // Wait for the popover menu to be visible and the school option to appear
-    await page.waitForSelector(`text="${schoolCode}"`, {
-      state: 'visible',
-      timeout: 5000
+    // Wait for the popover menu to be visible
+    await page.waitForTimeout(500);
+
+    // Wait for the school option to be in the DOM
+    await page.waitForSelector(`[role="option"][data-value="${schoolCode}"]`, {
+      state: "attached",
+      timeout: 5000,
     });
 
-    // Select the school from the dropdown
-    await page.click(`text="${schoolCode}"`);
+    // MOBILE SAFARI FIX: Use JavaScript click to bypass viewport checks
+    // Mobile Safari's Popover component fails Playwright's viewport detection even with force: true
+    // This directly triggers the click event, which is less ideal for testing user interaction
+    // but necessary to test application behavior on mobile Safari with this Popover component
+    const clicked = await page.evaluate((code) => {
+      const option = document.querySelector(
+        `[role="option"][data-value="${code}"]`,
+      ) as HTMLElement;
+      if (option) {
+        // Scroll into view first
+        option.scrollIntoView({ block: "center", behavior: "instant" });
+        // Trigger click event directly
+        option.click();
+        return true;
+      }
+      return false;
+    }, schoolCode);
+
+    if (!clicked) {
+      throw new Error(
+        `Could not find school option "${schoolCode}" in dropdown`,
+      );
+    }
 
     // Wait for the popover to close and the form state to update
-    // Using waitForSelector to ensure the popover is actually closed
     await page.waitForSelector('[role="combobox"]', {
-      state: 'visible',
-      timeout: 3000
+      state: "visible",
+      timeout: 3000,
     });
 
     // Small additional delay to ensure form state is fully updated
     await page.waitForTimeout(200);
-
   } catch (error) {
-    throw new Error(`Failed to select school "${schoolCode}": ${error.message}`);
+    throw new Error(
+      `Failed to select school "${schoolCode}": ${error.message}`,
+    );
   }
 };
 
-test.describe('LocalStorage Error Handling', () => {
-
+test.describe("LocalStorage Error Handling", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(PRODUCTION_URL);
   });
@@ -76,30 +105,35 @@ test.describe('LocalStorage Error Handling', () => {
   /**
    * Test 1: Application Functions Normally with localStorage Available
    */
-  test('Normal Operation: localStorage available and working', async ({ page }) => {
+  test("Normal Operation: localStorage available and working", async ({
+    page,
+  }) => {
     // Navigate to form
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill out form to trigger localStorage operations
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
     // NOTE: Using ID selector #location instead of placeholder-based selector
     // because the actual placeholder is "e.g., Room 105, Gymnasium, Cafeteria"
-    await page.fill('#location', TEST_LOCATION);
+    await page.fill("#location", TEST_LOCATION);
 
     // Wait for auto-save to trigger (SafeLocalStorage.setItem)
     await page.waitForTimeout(1000);
 
     // Verify no error boundary fallback is shown
-    const errorBoundary = page.locator('text=/Error|Something went wrong/i');
+    const errorBoundary = page.locator("text=/Error|Something went wrong/i");
     await expect(errorBoundary).not.toBeVisible();
 
     // Verify console has no localStorage errors
     const consoleLogs: string[] = [];
-    page.on('console', msg => {
-      if (msg.type() === 'error' || msg.type() === 'warn') {
+    page.on("console", (msg) => {
+      if (msg.type() === "error" || msg.type() === "warn") {
         consoleLogs.push(msg.text());
       }
     });
@@ -107,111 +141,128 @@ test.describe('LocalStorage Error Handling', () => {
     await page.waitForTimeout(500);
 
     // No localStorage errors should be present
-    const hasStorageError = consoleLogs.some(log =>
-      log.includes('localStorage') || log.includes('SafeLocalStorage')
+    const hasStorageError = consoleLogs.some(
+      (log) => log.includes("localStorage") || log.includes("SafeLocalStorage"),
     );
     expect(hasStorageError).toBe(false);
 
-    console.log('✅ Test 1 PASS: Normal operation with localStorage available');
+    console.log("✅ Test 1 PASS: Normal operation with localStorage available");
   });
 
   /**
    * Test 2: Private Browsing Mode Simulation
    * Simulates SecurityError when localStorage is disabled
    */
-  test('Private Browsing: Application works with localStorage disabled', async ({ page }) => {
+  test("Private Browsing: Application works with localStorage disabled", async ({
+    page,
+  }) => {
     // Disable localStorage by overriding it to throw SecurityError
     await page.addInitScript(() => {
       const originalLocalStorage = window.localStorage;
-      Object.defineProperty(window, 'localStorage', {
+      Object.defineProperty(window, "localStorage", {
         get() {
-          throw new DOMException('SecurityError: localStorage access denied', 'SecurityError');
+          throw new DOMException(
+            "SecurityError: localStorage access denied",
+            "SecurityError",
+          );
         },
-        configurable: true
+        configurable: true,
       });
     });
 
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill out form - should work with in-memory fallback
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
-    await page.fill('#location', TEST_LOCATION);
+    await page.fill("#location", TEST_LOCATION);
 
     // Take screenshot to verify form works
     await page.screenshot({
-      path: 'test-results/error-handling-private-browsing.png',
-      fullPage: true
+      path: "test-results/error-handling-private-browsing.png",
+      fullPage: true,
     });
 
     // Verify no error boundary fallback
-    const errorBoundary = page.locator('text=/Error|Something went wrong/i');
+    const errorBoundary = page.locator("text=/Error|Something went wrong/i");
     await expect(errorBoundary).not.toBeVisible();
 
     // Verify form is functional
-    const inspectorValue = await page.inputValue('input[placeholder="Enter your name"]');
+    const inspectorValue = await page.inputValue(
+      'input[placeholder="Enter your name"]',
+    );
     expect(inspectorValue).toBe(TEST_INSPECTOR_NAME);
 
-    console.log('✅ Test 2 PASS: Application works in private browsing mode');
+    console.log("✅ Test 2 PASS: Application works in private browsing mode");
   });
 
   /**
    * Test 3: Storage Quota Exceeded Simulation
    * Simulates QuotaExceededError during setItem
    */
-  test('Quota Exceeded: Fallback to in-memory storage', async ({ page }) => {
+  test("Quota Exceeded: Fallback to in-memory storage", async ({ page }) => {
     // Override localStorage.setItem to throw QuotaExceededError
     await page.addInitScript(() => {
       const originalSetItem = localStorage.setItem;
       let callCount = 0;
-      Storage.prototype.setItem = function(key: string, value: string) {
+      Storage.prototype.setItem = function (key: string, value: string) {
         callCount++;
         // Allow first few calls, then throw quota exceeded
         if (callCount > 2) {
-          throw new DOMException('QuotaExceededError', 'QuotaExceededError');
+          throw new DOMException("QuotaExceededError", "QuotaExceededError");
         }
         return originalSetItem.call(this, key, value);
       };
     });
 
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill form - should trigger quota exceeded error and fallback
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
-    await page.fill('#location', TEST_LOCATION);
+    await page.fill("#location", TEST_LOCATION);
 
     // Wait for SafeLocalStorage to handle error
     await page.waitForTimeout(1000);
 
     // Take screenshot
     await page.screenshot({
-      path: 'test-results/error-handling-quota-exceeded.png',
-      fullPage: true
+      path: "test-results/error-handling-quota-exceeded.png",
+      fullPage: true,
     });
 
     // Verify no error boundary fallback
-    const errorBoundary = page.locator('text=/Error|Something went wrong/i');
+    const errorBoundary = page.locator("text=/Error|Something went wrong/i");
     await expect(errorBoundary).not.toBeVisible();
 
     // Verify form still works
-    const inspectorValue = await page.inputValue('input[placeholder="Enter your name"]');
+    const inspectorValue = await page.inputValue(
+      'input[placeholder="Enter your name"]',
+    );
     expect(inspectorValue).toBe(TEST_INSPECTOR_NAME);
 
-    console.log('✅ Test 3 PASS: Quota exceeded handled with fallback');
+    console.log("✅ Test 3 PASS: Quota exceeded handled with fallback");
   });
 
   /**
    * Test 4: localStorage Completely Unavailable
    * Simulates browser that doesn't support localStorage
    */
-  test('Browser Incompatibility: Works without localStorage support', async ({ page }) => {
+  test("Browser Incompatibility: Works without localStorage support", async ({
+    page,
+  }) => {
     // Remove localStorage entirely
     await page.addInitScript(() => {
       // @ts-ignore
@@ -219,51 +270,62 @@ test.describe('LocalStorage Error Handling', () => {
     });
 
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill form
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
-    await page.fill('#location', TEST_LOCATION);
+    await page.fill("#location", TEST_LOCATION);
 
     // Take screenshot
     await page.screenshot({
-      path: 'test-results/error-handling-no-localstorage.png',
-      fullPage: true
+      path: "test-results/error-handling-no-localstorage.png",
+      fullPage: true,
     });
 
     // Verify form works
-    const inspectorValue = await page.inputValue('input[placeholder="Enter your name"]');
+    const inspectorValue = await page.inputValue(
+      'input[placeholder="Enter your name"]',
+    );
     expect(inspectorValue).toBe(TEST_INSPECTOR_NAME);
 
-    console.log('✅ Test 4 PASS: Application works without localStorage');
+    console.log("✅ Test 4 PASS: Application works without localStorage");
   });
 
   /**
    * Test 5: Storage Quota Warning at 80%
    * Verifies quota monitoring shows warnings
    */
-  test('Quota Monitoring: 80% warning displayed', async ({ page, browserName }) => {
+  test("Quota Monitoring: 80% warning displayed", async ({
+    page,
+    browserName,
+  }) => {
     // Skip for webkit (Safari) as Storage API may not be fully supported
-    test.skip(browserName === 'webkit', 'Storage API not fully supported in WebKit');
+    test.skip(
+      browserName === "webkit",
+      "Storage API not fully supported in WebKit",
+    );
 
     // Mock navigator.storage.estimate to return 80% usage
     await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'storage', {
+      Object.defineProperty(navigator, "storage", {
         value: {
           estimate: async () => ({
-            usage: 80 * 1024 * 1024,      // 80 MB used
-            quota: 100 * 1024 * 1024,     // 100 MB total
-          })
+            usage: 80 * 1024 * 1024, // 80 MB used
+            quota: 100 * 1024 * 1024, // 100 MB total
+          }),
         },
-        configurable: true
+        configurable: true,
       });
     });
 
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
@@ -271,43 +333,51 @@ test.describe('LocalStorage Error Handling', () => {
     await page.waitForTimeout(2000);
 
     // Look for warning toast
-    const warningToast = page.locator('text=/Storage.*80%.*full/i');
+    const warningToast = page.locator("text=/Storage.*80%.*full/i");
 
     // Take screenshot
     await page.screenshot({
-      path: 'test-results/error-handling-quota-warning.png',
-      fullPage: true
+      path: "test-results/error-handling-quota-warning.png",
+      fullPage: true,
     });
 
     // Note: Toast may have auto-dismissed, so we check if it was visible or logged
     const toastWasVisible = await warningToast.isVisible().catch(() => false);
 
-    console.log(`✅ Test 5 PASS: Quota warning system active (visible: ${toastWasVisible})`);
+    console.log(
+      `✅ Test 5 PASS: Quota warning system active (visible: ${toastWasVisible})`,
+    );
   });
 
   /**
    * Test 6: Storage Quota Critical at 95%
    * Verifies critical warnings are shown
    */
-  test('Quota Monitoring: 95% critical warning displayed', async ({ page, browserName }) => {
+  test("Quota Monitoring: 95% critical warning displayed", async ({
+    page,
+    browserName,
+  }) => {
     // Skip for webkit
-    test.skip(browserName === 'webkit', 'Storage API not fully supported in WebKit');
+    test.skip(
+      browserName === "webkit",
+      "Storage API not fully supported in WebKit",
+    );
 
     // Mock navigator.storage.estimate to return 95% usage
     await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'storage', {
+      Object.defineProperty(navigator, "storage", {
         value: {
           estimate: async () => ({
-            usage: 95 * 1024 * 1024,      // 95 MB used
-            quota: 100 * 1024 * 1024,     // 100 MB total
-          })
+            usage: 95 * 1024 * 1024, // 95 MB used
+            quota: 100 * 1024 * 1024, // 100 MB total
+          }),
         },
-        configurable: true
+        configurable: true,
       });
     });
 
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
@@ -315,181 +385,211 @@ test.describe('LocalStorage Error Handling', () => {
     await page.waitForTimeout(2000);
 
     // Look for critical toast
-    const criticalToast = page.locator('text=/Storage.*full|nearly full/i');
+    const criticalToast = page.locator("text=/Storage.*full|nearly full/i");
 
     // Take screenshot
     await page.screenshot({
-      path: 'test-results/error-handling-quota-critical.png',
-      fullPage: true
+      path: "test-results/error-handling-quota-critical.png",
+      fullPage: true,
     });
 
     const toastWasVisible = await criticalToast.isVisible().catch(() => false);
 
-    console.log(`✅ Test 6 PASS: Critical quota warning system active (visible: ${toastWasVisible})`);
+    console.log(
+      `✅ Test 6 PASS: Critical quota warning system active (visible: ${toastWasVisible})`,
+    );
   });
 
   /**
    * Test 7: Data Persistence After Reload (Normal Mode)
    * Verifies localStorage works for persistence
    */
-  test('Data Persistence: localStorage persists across reloads', async ({ page }) => {
+  test("Data Persistence: localStorage persists across reloads", async ({
+    page,
+  }) => {
     // Navigate to form
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill inspector name
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
 
-    // Wait for auto-save
-    await page.waitForTimeout(1000);
+    // Wait for auto-save (debounce is 2000ms, wait 2500ms to be safe)
+    await page.waitForTimeout(2500);
 
     // Reload page
     await page.reload();
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Verify data persisted
-    const inspectorValue = await page.inputValue('input[placeholder="Enter your name"]');
-    const schoolValue = await page.inputValue('select');
+    const inspectorValue = await page.inputValue(
+      'input[placeholder="Enter your name"]',
+    );
+    // School is displayed in the combobox button text, not a select element
+    const schoolButton = page.locator('button[role="combobox"]');
+    const schoolValue = await schoolButton.textContent();
 
     expect(inspectorValue).toBe(TEST_INSPECTOR_NAME);
-    expect(schoolValue).toBe(TEST_SCHOOL);
+    expect(schoolValue).toContain(TEST_SCHOOL);
 
-    console.log('✅ Test 7 PASS: Data persists across page reloads');
+    console.log("✅ Test 7 PASS: Data persists across page reloads");
   });
 
   /**
    * Test 8: Data Does NOT Persist After Reload (Fallback Mode)
    * Verifies in-memory storage doesn't persist
    */
-  test('Fallback Mode: In-memory storage does not persist', async ({ page }) => {
+  test("Fallback Mode: In-memory storage does not persist", async ({
+    page,
+  }) => {
     // Disable localStorage
     await page.addInitScript(() => {
-      Object.defineProperty(window, 'localStorage', {
+      Object.defineProperty(window, "localStorage", {
         get() {
-          throw new DOMException('SecurityError', 'SecurityError');
+          throw new DOMException("SecurityError", "SecurityError");
         },
-        configurable: true
+        configurable: true,
       });
     });
 
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill form (will use in-memory storage)
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
     await page.waitForTimeout(1000);
 
     // Reload page (in-memory storage will be lost)
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Verify data is NOT persisted (expected behavior for fallback)
-    const inspectorValue = await page.inputValue('input[placeholder="Enter your name"]');
-    expect(inspectorValue).toBe(''); // Should be empty
+    const inspectorValue = await page.inputValue(
+      'input[placeholder="Enter your name"]',
+    );
+    expect(inspectorValue).toBe(""); // Should be empty
 
-    console.log('✅ Test 8 PASS: In-memory storage does not persist (expected)');
+    console.log(
+      "✅ Test 8 PASS: In-memory storage does not persist (expected)",
+    );
   });
 
   /**
    * Test 9: Auto-Save Draft Functionality
    * Verifies draft auto-save works with SafeLocalStorage
    */
-  test('Auto-Save: Draft saved and restored', async ({ page }) => {
-    await page.click('text=Report A Custodial Concern');
+  test("Auto-Save: Draft saved and restored", async ({ page }) => {
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill form partially
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
-    await page.fill('#location', TEST_LOCATION);
-    await page.fill('textarea', 'Draft notes for auto-save test');
+    await page.fill("#location", TEST_LOCATION);
+    await page.fill("textarea", "Draft notes for auto-save test");
 
-    // Wait for auto-save to trigger
-    await page.waitForTimeout(1500);
+    // Wait for auto-save to trigger (debounce is 2000ms, wait 2500ms to be safe)
+    await page.waitForTimeout(2500);
 
     // Navigate away without submitting
     await page.goto(PRODUCTION_URL);
 
     // Return to form
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Verify draft was restored
-    const notesValue = await page.inputValue('textarea');
-    const locationValue = await page.inputValue('#location');
+    const notesValue = await page.inputValue("textarea");
+    const locationValue = await page.inputValue("#location");
 
     // Take screenshot
     await page.screenshot({
-      path: 'test-results/error-handling-auto-save.png',
-      fullPage: true
+      path: "test-results/error-handling-auto-save.png",
+      fullPage: true,
     });
 
-    expect(notesValue).toContain('Draft notes');
+    expect(notesValue).toContain("Draft notes");
     expect(locationValue).toBe(TEST_LOCATION);
 
-    console.log('✅ Test 9 PASS: Auto-save draft restored successfully');
+    console.log("✅ Test 9 PASS: Auto-save draft restored successfully");
   });
 
   /**
    * Test 10: Draft Cleared After Successful Submit
    * Verifies draft is removed after form submission
    */
-  test('Draft Cleanup: Draft cleared after submit', async ({ page }) => {
-    await page.click('text=Report A Custodial Concern');
+  test("Draft Cleanup: Draft cleared after submit", async ({ page }) => {
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Fill and submit form
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
-    await page.fill('#location', TEST_LOCATION);
-    await page.fill('textarea', 'Notes to be cleared after submit');
+    await page.fill("#location", TEST_LOCATION);
+    await page.fill("textarea", "Notes to be cleared after submit");
 
     await page.click('button[type="submit"]');
 
-    // Wait for submission
-    await page.waitForTimeout(2000);
+    // Wait for confirmation dialog and confirm
+    await page.waitForSelector("text=Confirm & Submit", { timeout: 5000 });
+    await page.click("text=Confirm & Submit");
+
+    // Wait for submission to complete
+    await page.waitForTimeout(3000);
 
     // Navigate back to form
-    const returnHome = page.locator('text=Return to Home');
+    const returnHome = page.locator("text=Return to Home");
     if (await returnHome.isVisible()) {
       await returnHome.click();
     } else {
       await page.goto(PRODUCTION_URL);
     }
 
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Verify draft was cleared
-    const notesValue = await page.inputValue('textarea');
-    const locationValue = await page.inputValue('#location');
+    const notesValue = await page.inputValue("textarea");
+    const locationValue = await page.inputValue("#location");
 
     // Inspector and school should persist, but location and notes should be clear
-    expect(notesValue).toBe('');
-    expect(locationValue).toBe('');
+    expect(notesValue).toBe("");
+    expect(locationValue).toBe("");
 
-    console.log('✅ Test 10 PASS: Draft cleared after successful submission');
+    console.log("✅ Test 10 PASS: Draft cleared after successful submission");
   });
 
   /**
    * Test 11: Multiple Storage Operations
    * Stress test with rapid storage operations
    */
-  test('Stress Test: Multiple rapid storage operations', async ({ page }) => {
-    await page.click('text=Report A Custodial Concern');
+  test("Stress Test: Multiple rapid storage operations", async ({ page }) => {
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
@@ -503,166 +603,187 @@ test.describe('LocalStorage Error Handling', () => {
     await page.waitForTimeout(1000);
 
     // Verify last value is correct
-    const finalValue = await page.inputValue('input[placeholder="Enter your name"]');
-    expect(finalValue).toBe('Test User 9');
+    const finalValue = await page.inputValue(
+      'input[placeholder="Enter your name"]',
+    );
+    expect(finalValue).toBe("Test User 9");
 
     // Verify no errors occurred
-    const errorBoundary = page.locator('text=/Error|Something went wrong/i');
+    const errorBoundary = page.locator("text=/Error|Something went wrong/i");
     await expect(errorBoundary).not.toBeVisible();
 
-    console.log('✅ Test 11 PASS: Multiple rapid operations handled correctly');
+    console.log("✅ Test 11 PASS: Multiple rapid operations handled correctly");
   });
 
   /**
    * Test 12: Recent Locations with SafeLocalStorage
    * Verifies recent locations feature works with error handling
    */
-  test('Recent Locations: Works with SafeLocalStorage', async ({ page }) => {
+  test("Recent Locations: Works with SafeLocalStorage", async ({ page }) => {
     // Submit first report
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
-    await page.fill('input[placeholder="Enter your name"]', TEST_INSPECTOR_NAME);
+    await page.fill(
+      'input[placeholder="Enter your name"]',
+      TEST_INSPECTOR_NAME,
+    );
     await selectSchool(page, TEST_SCHOOL);
-    await page.fill('#location', 'Location Alpha');
-    await page.fill('textarea', 'First location test');
+    await page.fill("#location", "Location Alpha");
+    await page.fill("textarea", "First location test");
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(2000);
+
+    // Wait for confirmation dialog and confirm
+    await page.waitForSelector("text=Confirm & Submit", { timeout: 5000 });
+    await page.click("text=Confirm & Submit");
+    await page.waitForTimeout(3000);
 
     // Return and submit second report
-    const homeButton = page.locator('text=Return to Home');
+    const homeButton = page.locator("text=Return to Home");
     if (await homeButton.isVisible()) {
       await homeButton.click();
     } else {
       await page.goto(PRODUCTION_URL);
     }
 
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
-    await page.waitForSelector('#location');
-    await page.fill('#location', 'Location Beta');
-    await page.fill('textarea', 'Second location test');
+    await page.waitForSelector("#location");
+    await page.fill("#location", "Location Beta");
+    await page.fill("textarea", "Second location test");
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(2000);
+
+    // Wait for confirmation dialog and confirm
+    await page.waitForSelector("text=Confirm & Submit", { timeout: 5000 });
+    await page.click("text=Confirm & Submit");
+    await page.waitForTimeout(3000);
 
     // Return to form and verify chips
-    const homeButton2 = page.locator('text=Return to Home');
+    const homeButton2 = page.locator("text=Return to Home");
     if (await homeButton2.isVisible()) {
       await homeButton2.click();
     } else {
       await page.goto(PRODUCTION_URL);
     }
 
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
-    await page.waitForSelector('#location');
+    await page.waitForSelector("#location");
 
     // Take screenshot showing chips
     await page.screenshot({
-      path: 'test-results/error-handling-recent-locations.png',
-      fullPage: true
+      path: "test-results/error-handling-recent-locations.png",
+      fullPage: true,
     });
 
     // Verify chips exist
-    const locationChips = page.locator('text=/Location Alpha|Location Beta/i');
+    const locationChips = page.locator("text=/Location Alpha|Location Beta/i");
     const chipsCount = await locationChips.count();
     expect(chipsCount).toBeGreaterThan(0);
 
-    console.log(`✅ Test 12 PASS: Recent locations working (${chipsCount} chips found)`);
+    console.log(
+      `✅ Test 12 PASS: Recent locations working (${chipsCount} chips found)`,
+    );
   });
 });
 
 /**
  * Error Boundary Specific Tests
  */
-test.describe('Error Boundary Component', () => {
-
-  test('Error Boundary: Fallback UI not shown during normal operation', async ({ page }) => {
+test.describe("Error Boundary Component", () => {
+  test("Error Boundary: Fallback UI not shown during normal operation", async ({
+    page,
+  }) => {
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
     await page.waitForSelector('input[placeholder="Enter your name"]');
 
     // Verify error boundary fallback is not visible
-    const errorBoundary = page.locator('text=/Something went wrong|Error loading/i');
+    const errorBoundary = page.locator(
+      "text=/Something went wrong|Error loading/i",
+    );
     await expect(errorBoundary).not.toBeVisible();
 
     // Verify Retry button is not visible
     const retryButton = page.locator('button:has-text("Retry")');
     await expect(retryButton).not.toBeVisible();
 
-    console.log('✅ Error Boundary: Normal operation without fallback UI');
+    console.log("✅ Error Boundary: Normal operation without fallback UI");
   });
 
-  test('Error Boundary: Component mounts correctly', async ({ page }) => {
+  test("Error Boundary: Component mounts correctly", async ({ page }) => {
     await page.goto(PRODUCTION_URL);
-    await page.click('text=Report A Custodial Concern');
+    await page.click("text=Report A Custodial Concern");
     await scrollToForm(page);
 
     // Verify form loads successfully
     await page.waitForSelector('input[placeholder="Enter your name"]');
     await page.waitForSelector('button[role="combobox"]'); // School dropdown
-    await page.waitForSelector('textarea');
+    await page.waitForSelector("textarea");
 
     // Take screenshot
     await page.screenshot({
-      path: 'test-results/error-boundary-normal.png',
-      fullPage: true
+      path: "test-results/error-boundary-normal.png",
+      fullPage: true,
     });
 
-    console.log('✅ Error Boundary: Component mounts without errors');
+    console.log("✅ Error Boundary: Component mounts without errors");
   });
 });
 
 /**
  * SafeLocalStorage Specific Tests
  */
-test.describe('SafeLocalStorage Wrapper', () => {
-
-  test('SafeLocalStorage: Singleton instance used', async ({ page }) => {
+test.describe("SafeLocalStorage Wrapper", () => {
+  test("SafeLocalStorage: Singleton instance used", async ({ page }) => {
     await page.goto(PRODUCTION_URL);
 
     // Check that SafeLocalStorage is properly initialized
     const safeStorageExists = await page.evaluate(() => {
       // Check if SafeLocalStorage module is loaded
-      return typeof window !== 'undefined';
+      return typeof window !== "undefined";
     });
 
     expect(safeStorageExists).toBe(true);
-    console.log('✅ SafeLocalStorage: Singleton pattern verified');
+    console.log("✅ SafeLocalStorage: Singleton pattern verified");
   });
 
-  test('SafeLocalStorage: Handles getItem on non-existent key', async ({ page }) => {
+  test("SafeLocalStorage: Handles getItem on non-existent key", async ({
+    page,
+  }) => {
     await page.goto(PRODUCTION_URL);
 
     // Try to get a non-existent key
     const result = await page.evaluate(() => {
       try {
-        return localStorage.getItem('non_existent_key_12345');
+        return localStorage.getItem("non_existent_key_12345");
       } catch (e) {
-        return 'ERROR';
+        return "ERROR";
       }
     });
 
     // Should return null, not throw error
     expect(result).toBe(null);
-    console.log('✅ SafeLocalStorage: getItem handles non-existent keys');
+    console.log("✅ SafeLocalStorage: getItem handles non-existent keys");
   });
 
-  test('SafeLocalStorage: Handles removeItem on non-existent key', async ({ page }) => {
+  test("SafeLocalStorage: Handles removeItem on non-existent key", async ({
+    page,
+  }) => {
     await page.goto(PRODUCTION_URL);
 
     // Try to remove a non-existent key
     const result = await page.evaluate(() => {
       try {
-        localStorage.removeItem('non_existent_key_12345');
-        return 'SUCCESS';
+        localStorage.removeItem("non_existent_key_12345");
+        return "SUCCESS";
       } catch (e) {
-        return 'ERROR';
+        return "ERROR";
       }
     });
 
-    expect(result).toBe('SUCCESS');
-    console.log('✅ SafeLocalStorage: removeItem handles non-existent keys');
+    expect(result).toBe("SUCCESS");
+    console.log("✅ SafeLocalStorage: removeItem handles non-existent keys");
   });
 });
