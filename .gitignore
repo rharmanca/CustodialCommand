@@ -85,3 +85,16 @@ temp/
 uploads/
 test-feedback.txt
 comprehensive-test-wizard.js
+
+# Test artifacts
+test-results/
+ui-test-report/
+playwright-report/
+*.bak
+*.bak2
+test-*.js
+test-*.cjs
+test-*.py
+run-*test*.sh
+PHASE_*_ENHANCEMENT_PLAN.md
+.taskmaster/
