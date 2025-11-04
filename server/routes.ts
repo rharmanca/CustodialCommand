@@ -11,6 +11,7 @@ import { logger } from "./logger";
 import { doclingService } from './doclingService';
 
 import { ObjectStorageService } from './objectStorage';
+import { calculateBuildingScore, calculateSchoolScores, getComplianceStatus } from './utils/scoring';
 
 const objectStorageService = new ObjectStorageService();
 
@@ -998,6 +999,119 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Scoring routes
+  // GET /api/scores - Get scores for all schools
+  app.get('/api/scores', async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      logger.info('[GET] Fetching building scores', { startDate, endDate });
+
+      // Fetch all inspections and notes
+      const allInspections = await storage.getInspections();
+      const allNotes = await storage.getCustodialNotes();
+
+      // Filter by date range if provided
+      let filteredInspections = allInspections;
+      let filteredNotes = allNotes;
+
+      if (startDate && typeof startDate === 'string') {
+        filteredInspections = filteredInspections.filter(i => i.date >= startDate);
+        filteredNotes = filteredNotes.filter(n => n.date >= startDate);
+      }
+
+      if (endDate && typeof endDate === 'string') {
+        filteredInspections = filteredInspections.filter(i => i.date <= endDate);
+        filteredNotes = filteredNotes.filter(n => n.date <= endDate);
+      }
+
+      // Group by school
+      const inspectionsBySchool: Record<string, any[]> = {};
+      const notesBySchool: Record<string, any[]> = {};
+
+      filteredInspections.forEach(inspection => {
+        if (!inspectionsBySchool[inspection.school]) {
+          inspectionsBySchool[inspection.school] = [];
+        }
+        inspectionsBySchool[inspection.school].push(inspection);
+      });
+
+      filteredNotes.forEach(note => {
+        if (!notesBySchool[note.school]) {
+          notesBySchool[note.school] = [];
+        }
+        notesBySchool[note.school].push(note);
+      });
+
+      // Calculate scores for each school
+      const schoolScores = calculateSchoolScores(
+        inspectionsBySchool,
+        notesBySchool,
+        startDate && endDate
+          ? { start: startDate as string, end: endDate as string }
+          : undefined
+      );
+
+      res.json({
+        success: true,
+        scores: schoolScores,
+        dateRange: {
+          start: startDate || 'all',
+          end: endDate || 'all',
+        },
+      });
+    } catch (error) {
+      logger.error('[GET] Error fetching scores:', error);
+      res.status(500).json({ message: 'Failed to fetch scores' });
+    }
+  });
+
+  // GET /api/scores/:school - Get score for a specific school
+  app.get('/api/scores/:school', async (req, res) => {
+    try {
+      const { school } = req.params;
+      const { startDate, endDate } = req.query;
+
+      logger.info('[GET] Fetching score for school', { school, startDate, endDate });
+
+      // Fetch inspections and notes for this school
+      const allInspections = await storage.getInspections();
+      const allNotes = await storage.getCustodialNotes();
+
+      let inspections = allInspections.filter(i => i.school === school);
+      let notes = allNotes.filter(n => n.school === school);
+
+      // Filter by date range if provided
+      if (startDate && typeof startDate === 'string') {
+        inspections = inspections.filter(i => i.date >= startDate);
+        notes = notes.filter(n => n.date >= startDate);
+      }
+
+      if (endDate && typeof endDate === 'string') {
+        inspections = inspections.filter(i => i.date <= endDate);
+        notes = notes.filter(n => n.date <= endDate);
+      }
+
+      // Calculate score
+      const scoringResult = calculateBuildingScore(inspections, notes);
+      const complianceStatus = getComplianceStatus(scoringResult.overallScore);
+
+      res.json({
+        success: true,
+        school,
+        score: scoringResult,
+        complianceStatus,
+        dateRange: {
+          start: startDate || (inspections[0]?.date || notes[0]?.date),
+          end: endDate || (inspections[inspections.length - 1]?.date || notes[notes.length - 1]?.date),
+        },
+      });
+    } catch (error) {
+      logger.error('[GET] Error fetching school score:', error);
+      res.status(500).json({ message: 'Failed to fetch school score' });
+    }
+  });
+
   // Catch-all handler for unknown API routes (must be at the end)
   app.use('/api/*', (req: any, res: any) => {
     res.status(404).json({
@@ -1010,7 +1124,9 @@ export async function registerRoutes(app: Express): Promise<void> {
         'GET /api/inspections',
         'POST /api/submit-building-inspection',
         'POST /api/custodial-notes',
-        'POST /api/room-inspections'
+        'POST /api/room-inspections',
+        'GET /api/scores',
+        'GET /api/scores/:school'
       ]
     });
   });
