@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
 import { LoadingOverlay } from '@/components/shared/LoadingOverlay';
 import { singleAreaInspectionSchema, type SingleAreaInspectionForm, inspectionDefaultValues } from '@/schemas';
+import { AutoSaveIndicator, type SaveStatus } from '@/components/auto-save-indicator';
 
 interface CustodialInspectionPageProps {
   onBack?: () => void;
@@ -53,6 +54,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   // School options
   const schoolOptions = [
@@ -141,6 +143,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     }
 
     setIsAutoSaving(true);
+    setSaveStatus('saving');
     try {
       const draftId = currentDraftId || generateDraftId();
       if (!currentDraftId) {
@@ -170,8 +173,10 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       // Use optimized storage system
       saveDraft(STORAGE_KEYS.DRAFT_INSPECTION, draftData);
       setLastSaved(new Date());
+      setSaveStatus('saved');
     } catch (error) {
       console.error('Error saving draft:', error);
+      setSaveStatus('error');
     } finally {
       setIsAutoSaving(false);
     }
@@ -933,6 +938,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
     {isSubmitting && (
       <LoadingOverlay message="Submitting inspection..." />
     )}
+
+    {/* Auto-save status indicator */}
+    <AutoSaveIndicator
+      status={saveStatus}
+      lastSaved={lastSaved}
+    />
     </>
   );
 }

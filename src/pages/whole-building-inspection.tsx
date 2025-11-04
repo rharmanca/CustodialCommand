@@ -43,6 +43,8 @@ import {
 } from "../../shared/custodial-criteria";
 import { generateWalkthroughReportPDF, type WalkthroughReportData } from "@/utils/printReportGenerator";
 import { calculateAverageRating } from "@/utils/problemAnalysis";
+import { VoiceRatingInput } from "@/components/voice-rating-input";
+import { AutoSaveIndicator, type SaveStatus } from "@/components/auto-save-indicator";
 // Navigation handled by onBack prop
 
 interface WholeBuildingInspectionPageProps {
@@ -166,6 +168,7 @@ export default function WholeBuildingInspectionPage({
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [currentFormDraftId, setCurrentFormDraftId] = useState<string | null>(
     null
   );
@@ -231,6 +234,7 @@ export default function WholeBuildingInspectionPage({
     if (!buildingInspectionId || !selectedCategory) return;
 
     setIsAutoSaving(true);
+    setSaveStatus('saving');
     try {
       const draftId = currentFormDraftId || generateFormDraftId();
       if (!currentFormDraftId) {
@@ -254,8 +258,10 @@ export default function WholeBuildingInspectionPage({
         draftData
       );
       setLastSaved(new Date());
+      setSaveStatus('saved');
     } catch (error) {
       console.error("Error saving form draft:", error);
+      setSaveStatus('error');
     } finally {
       setIsAutoSaving(false);
     }
@@ -1614,6 +1620,28 @@ export default function WholeBuildingInspectionPage({
               </Card>
             )}
 
+            {/* Voice Rating Input - Quick entry method */}
+            <VoiceRatingInput
+              onRatingsUpdate={(ratings) => {
+                Object.entries(ratings).forEach(([key, value]) => {
+                  handleInputChange(key as keyof typeof formData, value);
+                });
+              }}
+              currentRatings={{
+                floors: formData.floors,
+                floorSurfaces: formData.verticalHorizontalSurfaces,
+                ceilings: formData.ceiling,
+                surfaces: formData.restrooms,
+                fixtures: formData.customerSatisfaction,
+                trash: formData.trash,
+                projectCleaning: formData.projectCleaning,
+                activitySupport: formData.activitySupport,
+                safetyCompliance: formData.safetyCompliance,
+                equipment: formData.equipment,
+                monitoring: formData.monitoring,
+              }}
+            />
+
             {/* Rating Categories - Collapsible sections */}
             {isMobile ? (
               <MobileCard title="Rate Each Category">
@@ -1894,6 +1922,12 @@ export default function WholeBuildingInspectionPage({
           )}
         </div>
       )}
+
+      {/* Auto-save status indicator */}
+      <AutoSaveIndicator
+        status={saveStatus}
+        lastSaved={lastSaved}
+      />
     </div>
   );
 }
