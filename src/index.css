@@ -131,31 +131,40 @@ button, input, select, textarea, a {
 
 @layer base {
   :root {
-    /* Retro propaganda poster color palette - ENHANCED for mobile readability */
-    --background: 46 45% 88%;        /* Cream/beige background like the poster */
-    --foreground: 14 20% 18%;        /* DARKER charcoal for better text contrast (was 14 15% 25%) */
-    --card: 46 45% 95%;             /* Slightly LIGHTER cream for better card contrast (was 92%) */
-    --card-foreground: 14 20% 18%;   /* DARKER charcoal for card text (was 14 15% 25%) */
-    --popover: 46 45% 95%;          /* Lighter cream for popovers (was 92%) */
-    --popover-foreground: 14 20% 18%; /* DARKER charcoal for popover text (was 14 15% 25%) */
-    --primary: 8 76% 45%;           /* Bold red from the poster */
-    --primary-foreground: 46 45% 88%; /* Cream text on red backgrounds */
-    --secondary: 14 15% 35%;        /* Dark gray/charcoal like the robot */
-    --secondary-foreground: 46 45% 88%; /* Cream text on dark backgrounds */
-    --muted: 46 25% 80%;            /* Muted cream for subtle elements */
-    --muted-foreground: 14 20% 32%; /* DARKER gray for better muted text contrast (was 14 15% 45%) */
-    --accent: 8 65% 55%;            /* Lighter red for accents */
-    --accent-foreground: 46 45% 88%; /* Cream text on accent backgrounds */
-    --destructive: 8 85% 50%;       /* Bright red for destructive actions */
-    --destructive-foreground: 46 45% 88%; /* Cream text on destructive backgrounds */
-    --border: 46 25% 68%;           /* DARKER border for better visibility (was 46 25% 75%) */
-    --input: 46 35% 85%;            /* Light cream for inputs */
-    --ring: 8 76% 45%;              /* Red focus ring */
-    --chart-1: 8 76% 45%;           /* Red for charts */
-    --chart-2: 14 15% 35%;          /* Charcoal for charts */
-    --chart-3: 46 45% 65%;          /* Medium cream for charts */
-    --chart-4: 8 55% 60%;           /* Light red for charts */
-    --chart-5: 14 10% 55%;          /* Medium gray for charts */
+    /* Modernized Retro Propaganda - Comfortable Reading & Vintage Aesthetic */
+    --background: 42 40% 96%;        /* Even lighter warm cream - airy and open */
+    --foreground: 25 18% 22%;        /* Warm dark brown - softer than black, good contrast */
+    --card: 42 35% 98%;              /* Almost white cream cards - maximum lightness */
+    --card-foreground: 25 18% 22%;   /* Warm dark brown for card text */
+    --popover: 42 35% 98%;           /* Very light cream popovers */
+    --popover-foreground: 25 18% 22%; /* Warm dark brown for popover text */
+    --primary: 355 60% 42%;          /* Deep burgundy - sophisticated retro red */
+    --primary-foreground: 42 48% 96%; /* Light cream text on burgundy */
+    --secondary: 25 22% 32%;         /* Warm charcoal - less harsh than pure gray */
+    --secondary-foreground: 42 48% 96%; /* Light cream text on charcoal */
+    --muted: 42 30% 88%;             /* Soft muted cream */
+    --muted-foreground: 25 16% 38%;  /* Medium warm gray - comfortable contrast */
+    --accent: 22 65% 52%;            /* Burnt orange - vintage accent color */
+    --accent-foreground: 42 48% 96%; /* Light cream text on orange */
+    --destructive: 8 70% 48%;        /* Softer red - less aggressive */
+    --destructive-foreground: 42 48% 96%; /* Light cream on destructive */
+    --border: 42 25% 78%;            /* Subtle warm border */
+    --input: 42 38% 90%;             /* Soft cream inputs */
+    --ring: 355 60% 42%;             /* Burgundy focus ring */
+
+    /* Enhanced semantic colors for status */
+    --success: 140 55% 38%;          /* Vintage green - muted but clear */
+    --success-foreground: 42 48% 96%; /* Light text on green */
+    --warning: 38 75% 52%;           /* Warm amber - retro warning */
+    --warning-foreground: 25 18% 22%; /* Dark text on warning */
+    --info: 210 35% 45%;             /* Muted slate blue - vintage info */
+    --info-foreground: 42 48% 96%;   /* Light text on blue */
+
+    --chart-1: 355 60% 42%;          /* Burgundy for charts */
+    --chart-2: 140 55% 38%;          /* Vintage green for charts */
+    --chart-3: 22 65% 52%;           /* Burnt orange for charts */
+    --chart-4: 210 35% 45%;          /* Slate blue for charts */
+    --chart-5: 42 45% 65%;           /* Medium cream for charts */
     --radius: 0.75rem;
 
     /* Safe area insets with fallbacks for older browsers */
@@ -166,31 +175,40 @@ button, input, select, textarea, a {
   }
 
   .dark {
-    /* Dark retro theme - inverted poster colors */
-    --background: 14 15% 12%;           /* Very dark charcoal background */
-    --foreground: 46 35% 85%;           /* Light cream text */
-    --card: 14 15% 18%;                 /* Dark charcoal cards */
-    --card-foreground: 46 35% 85%;      /* Light cream card text */
-    --popover: 14 15% 18%;              /* Dark charcoal popovers */
-    --popover-foreground: 46 35% 85%;   /* Light cream popover text */
-    --primary: 8 85% 55%;               /* Bright red primary */
-    --primary-foreground: 14 15% 12%;   /* Dark text on red */
-    --secondary: 46 25% 65%;            /* Medium cream secondary */
-    --secondary-foreground: 14 15% 12%; /* Dark text on cream */
-    --muted: 14 10% 25%;                /* Dark muted elements */
-    --muted-foreground: 46 20% 65%;     /* Light cream muted text */
-    --accent: 8 75% 60%;                /* Red accent */
-    --accent-foreground: 14 15% 12%;    /* Dark text on accent */
-    --destructive: 8 90% 60%;           /* Bright red destructive */
-    --destructive-foreground: 46 35% 85%; /* Light cream on destructive */
-    --border: 14 10% 30%;               /* Dark border */
-    --input: 14 10% 22%;                /* Dark input background */
-    --ring: 8 85% 55%;                  /* Red focus ring */
-    --chart-1: 8 85% 55%;               /* Red for charts */
-    --chart-2: 46 35% 75%;              /* Light cream for charts */
-    --chart-3: 14 15% 45%;              /* Medium gray for charts */
-    --chart-4: 8 65% 65%;               /* Light red for charts */
-    --chart-5: 46 20% 55%;              /* Medium cream for charts */
+    /* Dark Modernized Retro - Comfortable Night Reading */
+    --background: 25 15% 14%;           /* Warm dark brown - easier than pure black */
+    --foreground: 42 42% 88%;           /* Soft warm cream text */
+    --card: 25 18% 18%;                 /* Slightly lighter warm dark cards */
+    --card-foreground: 42 42% 88%;      /* Soft cream card text */
+    --popover: 25 18% 18%;              /* Warm dark popovers */
+    --popover-foreground: 42 42% 88%;   /* Soft cream popover text */
+    --primary: 355 65% 52%;             /* Lighter burgundy for dark mode */
+    --primary-foreground: 42 48% 96%;   /* Light cream text on burgundy */
+    --secondary: 42 30% 60%;            /* Warm medium cream secondary */
+    --secondary-foreground: 25 15% 14%; /* Dark text on cream */
+    --muted: 25 12% 28%;                /* Warm muted dark */
+    --muted-foreground: 42 25% 68%;     /* Medium cream muted text */
+    --accent: 22 70% 58%;               /* Brighter burnt orange for dark mode */
+    --accent-foreground: 25 15% 14%;    /* Dark text on accent */
+    --destructive: 8 75% 55%;           /* Brighter red for visibility in dark */
+    --destructive-foreground: 42 48% 96%; /* Light cream on destructive */
+    --border: 25 12% 32%;               /* Subtle warm border */
+    --input: 25 15% 20%;                /* Warm dark input */
+    --ring: 355 65% 52%;                /* Burgundy focus ring */
+
+    /* Enhanced semantic colors for dark mode */
+    --success: 140 48% 48%;             /* Brighter vintage green for dark */
+    --success-foreground: 42 48% 96%;   /* Light text on green */
+    --warning: 38 80% 58%;              /* Brighter amber for dark mode */
+    --warning-foreground: 25 18% 22%;   /* Dark text on warning */
+    --info: 210 45% 55%;                /* Brighter slate blue for dark */
+    --info-foreground: 42 48% 96%;      /* Light text on blue */
+
+    --chart-1: 355 65% 52%;             /* Burgundy for charts */
+    --chart-2: 140 48% 48%;             /* Vintage green for charts */
+    --chart-3: 22 70% 58%;              /* Burnt orange for charts */
+    --chart-4: 210 45% 55%;             /* Slate blue for charts */
+    --chart-5: 42 30% 60%;              /* Medium cream for charts */
   }
 }
 

@@ -25,7 +25,7 @@ export function MonthlyFeedbackCard({ feedback, onView, onDownload }: MonthlyFee
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between leading-7">
           <div className="flex items-center gap-2">
