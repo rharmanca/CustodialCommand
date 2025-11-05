@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   saveDraft,
   loadDraft,
@@ -27,6 +27,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MobileCard } from "@/components/ui/mobile-card";
 import {
   Collapsible,
@@ -34,7 +41,31 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
-import { Star, Check, X, Upload, Camera, Save, Clock } from "lucide-react";
+import {
+  Star,
+  Check,
+  X,
+  Upload,
+  Camera,
+  Save,
+  Clock,
+  Building2,
+  Dumbbell,
+  BookOpen,
+  Utensils,
+  Package,
+  Briefcase,
+  ArrowRight,
+  TrendingUp,
+  Bath,
+  User,
+  ChevronRight,
+  Home,
+  Send,
+  Loader2,
+  HelpCircle,
+  CheckCircle2
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -104,6 +135,20 @@ export default function WholeBuildingInspectionPage({
     staff_single_restroom: "Staff or Single Restroom",
   };
 
+  // Category icons for visual identification
+  const categoryIcons: Record<string, React.ElementType> = {
+    exterior: Building2,
+    gym_bleachers: Dumbbell,
+    classroom: BookOpen,
+    cafeteria: Utensils,
+    utility_storage: Package,
+    admin_office: Briefcase,
+    hallway: ArrowRight,
+    stairwell: TrendingUp,
+    restroom: Bath,
+    staff_single_restroom: User,
+  };
+
   // School options
   const schoolOptions = [
     { value: "ASA", label: "ASA" },
@@ -134,7 +179,7 @@ export default function WholeBuildingInspectionPage({
   const [formData, setFormData] = useState({
     inspectorName: "",
     school: "",
-    date: "",
+    date: new Date().toISOString().split('T')[0], // Smart default: today's date
     inspectionType: "whole_building",
     locationCategory: "",
     roomNumber: "",
@@ -161,6 +206,7 @@ export default function WholeBuildingInspectionPage({
     number | null
   >(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // State for submission
+  const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
   // Auto-save state
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -169,7 +215,7 @@ export default function WholeBuildingInspectionPage({
     null
   );
 
-  // Check if all categories are complete
+  // Check if all categories are complete and calculate overall progress
   useEffect(() => {
     const checkCompletion = () => {
       return Object.entries(requirements).every(([category, required]) => {
@@ -178,6 +224,31 @@ export default function WholeBuildingInspectionPage({
     };
     setIsAllComplete(checkCompletion());
   }, [completed]);
+
+  // Calculate overall statistics
+  // Memoize expensive stats calculation to prevent unnecessary recalculations
+  const stats = useMemo(() => {
+    const totalRequired = Object.values(requirements).reduce((sum, req) => sum + req, 0);
+    const totalCompleted = Object.values(completed).reduce((sum, count) => sum + count, 0);
+    const completedCategories = Object.entries(requirements).filter(
+      ([category, required]) => completed[category] >= required
+    ).length;
+    const inProgressCategories = Object.entries(requirements).filter(
+      ([category, required]) => completed[category] > 0 && completed[category] < required
+    ).length;
+    const notStartedCategories = Object.keys(requirements).length - completedCategories - inProgressCategories;
+    const overallPercentage = totalRequired > 0 ? Math.round((totalCompleted / totalRequired) * 100) : 0;
+
+    return {
+      totalRequired,
+      totalCompleted,
+      completedCategories,
+      inProgressCategories,
+      notStartedCategories,
+      overallPercentage,
+      totalCategories: Object.keys(requirements).length
+    };
+  }, [completed, requirements]);
 
   // Load available inspections on mount
   useEffect(() => {
@@ -656,6 +727,9 @@ export default function WholeBuildingInspectionPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Clear previous validation errors
+    setValidationErrors({});
+
     if (!selectedCategory) {
       toast({
         title: "Category Required",
@@ -666,15 +740,22 @@ export default function WholeBuildingInspectionPage({
     }
 
     // Validation
-    const requiredFields = ["inspectorName", "school", "date"];
+    const requiredFields = ["inspectorName", "school", "date", "roomNumber"];
     const missingFields = requiredFields.filter(
       (field) => !formData[field as keyof typeof formData]
     );
 
     if (missingFields.length > 0) {
+      // Set validation errors for visual feedback
+      const errors: Record<string, boolean> = {};
+      missingFields.forEach(field => {
+        errors[field] = true;
+      });
+      setValidationErrors(errors);
+
       toast({
         title: "Missing Required Fields",
-        description: `Please fill in: ${missingFields.join(", ")}`,
+        description: `Please fill in the highlighted fields`,
         variant: "destructive",
       });
       return;
@@ -750,9 +831,18 @@ export default function WholeBuildingInspectionPage({
 
       // Treat as success if server indicates success or returned an id
       if ((result && (result.success || result.id)) || response.ok) {
+        // Clear validation errors on success
+        setValidationErrors({});
+
         toast({
-          title: "Success",
-          description: "Building inspection submitted successfully!",
+          title: (
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <span>Room Inspection Saved!</span>
+            </span>
+          ),
+          description: `${categoryLabels[selectedCategory]} room ${formData.roomNumber} recorded successfully. Progress updated.`,
+          className: "border-green-500 bg-green-50",
         });
 
         // Set buildingInspectionId from the first successful submission for finalization
@@ -906,10 +996,11 @@ export default function WholeBuildingInspectionPage({
 
       // Show success toast notification
       toast({
-        title: "🎉 You Did Your Duty, Thank You! 🎉",
+        title: "🎉 Building Inspection Complete! 🎉",
         description:
-          "Outstanding work! Your complete building inspection has been submitted successfully. Ready to start a new inspection when you return home.",
+          "Excellent work! All required inspections submitted successfully. The building inspection is now finalized.",
         duration: 5000,
+        className: "border-green-500 bg-green-50",
       });
 
       console.log("Whole building inspection completed successfully!");
@@ -932,7 +1023,8 @@ export default function WholeBuildingInspectionPage({
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-6">
+    <TooltipProvider>
+      <div className="container mx-auto p-6 max-w-4xl space-y-6">
       {/* Primary call-to-action placed above progress table */}
       {!showInspectionSelector && (
         <Card className="border-primary/30">
@@ -943,7 +1035,8 @@ export default function WholeBuildingInspectionPage({
             </div>
             <Button
               onClick={startNewInspection}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-shadow min-h-[44px]"
             >
               🏢 Start New Building Inspection
             </Button>
@@ -1066,7 +1159,7 @@ export default function WholeBuildingInspectionPage({
               </h4>
               <Button
                 onClick={startNewInspection}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 text-lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 border-2 border-green-600 hover:border-green-700 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 text-lg min-h-[56px]"
                 variant="default"
                 size="lg"
               >
@@ -1243,6 +1336,137 @@ export default function WholeBuildingInspectionPage({
           </CardContent>
         </Card>
       )}
+      {/* Overall Progress Summary */}
+      {!showInspectionSelector && (formData.school || formData.date || isResuming) && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 animate-in fade-in-0 slide-in-from-top-4 duration-500">
+          <CardContent className="py-4">
+            <div className="space-y-4" role="region" aria-label="Overall inspection progress summary">
+              {/* Overall Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-primary">Overall Progress</h3>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Tracks completion across all required room categories. Complete all rooms in a category to mark it complete.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <span className="text-2xl font-bold text-primary">
+                    {stats.overallPercentage}%
+                  </span>
+                </div>
+                <Progress
+                  value={stats.overallPercentage}
+                  className="h-3 bg-primary/10 transition-all duration-700 ease-out"
+                  aria-label={`Overall progress: ${stats.overallPercentage}% complete`}
+                />
+                <p className="text-sm text-muted-foreground text-center" aria-live="polite" aria-atomic="true">
+                  {stats.totalCompleted} of {stats.totalRequired} rooms inspected
+                </p>
+              </div>
+
+              {/* Status Breakdown */}
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-xs font-medium text-muted-foreground">Complete</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-700">
+                    {stats.completedCategories}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <span className="text-xs font-medium text-muted-foreground">In Progress</span>
+                  </div>
+                  <p className="text-xl font-bold text-amber-700">
+                    {stats.inProgressCategories}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                    <span className="text-xs font-medium text-muted-foreground">Not Started</span>
+                  </div>
+                  <p className="text-xl font-bold text-gray-600">
+                    {stats.notStartedCategories}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Jump Category Navigation */}
+      {!showInspectionSelector && (formData.school || formData.date || isResuming) && (
+        <Card className="animate-in fade-in-0 slide-in-from-top-4 duration-500 delay-75">
+          <CardContent className="py-3">
+            <div className="space-y-2" role="navigation" aria-label="Category quick jump navigation">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-medium text-muted-foreground">Quick Jump</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Quickly switch between room categories. Green = complete, Amber = in progress, Gray = not started.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {Object.entries(requirements).map(([category, required]) => {
+                  const completedCount = completed[category];
+                  const isComplete = completedCount >= required;
+                  const isInProgress = completedCount > 0 && !isComplete;
+                  const IconComponent = categoryIcons[category];
+
+                  return (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        handleCategorySelect(category);
+                        // Scroll to top smoothly
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-lg border-2 transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 min-w-[80px] ${
+                        selectedCategory === category
+                          ? "border-blue-500 bg-blue-50 shadow-sm"
+                          : isComplete
+                          ? "border-green-300 bg-green-50 hover:border-green-400"
+                          : isInProgress
+                          ? "border-amber-300 bg-amber-50 hover:border-amber-400"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                      disabled={!formData.school || !formData.date || !formData.inspectorName.trim()}
+                      aria-label={`Select ${categoryLabels[category]} category. ${completedCount} of ${required} rooms completed. ${isComplete ? 'Complete' : isInProgress ? 'In progress' : 'Not started'}.`}
+                    >
+                      {IconComponent && (
+                        <IconComponent
+                          className={`w-5 h-5 ${
+                            isComplete ? "text-green-600" : isInProgress ? "text-amber-600" : "text-gray-500"
+                          }`}
+                        />
+                      )}
+                      <span className="text-xs font-medium text-center leading-tight">
+                        {categoryLabels[category].split(' ')[0]}
+                      </span>
+                      {isComplete && <Check className="w-3 h-3 text-green-600" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Dynamic Checklist */}
       {!showInspectionSelector &&
         (isMobile ? (
@@ -1255,20 +1479,23 @@ export default function WholeBuildingInspectionPage({
                 </span>
               )}
             </p>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {Object.entries(requirements).map(([category, required]) => {
                 const completedCount = completed[category];
                 const isComplete = completedCount >= required;
+                const IconComponent = categoryIcons[category];
 
                 return (
                   <div
                     key={category}
-                    className={`p-3 rounded-lg border ${
+                    className={`p-4 rounded-lg border-l-4 border-y border-r ${
                       isComplete
-                        ? "bg-green-50 border-green-200"
+                        ? "bg-green-50 border-l-green-500 border-y-green-200 border-r-green-200"
                         : selectedCategory === category
-                        ? "bg-blue-50 border-blue-300 border-2"
-                        : "bg-gray-50 border-gray-200"
+                        ? "bg-blue-50 border-l-blue-500 border-y-blue-300 border-r-blue-300"
+                        : completedCount > 0
+                        ? "bg-amber-50 border-l-amber-500 border-y-amber-200 border-r-amber-200"
+                        : "bg-gray-50 border-l-gray-300 border-y-gray-200 border-r-gray-200"
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -1285,20 +1512,38 @@ export default function WholeBuildingInspectionPage({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span
-                            className={`font-medium text-sm block leading-tight ${
-                              isComplete ? "text-green-800" : "text-gray-700"
-                            }`}
-                          >
-                            {categoryLabels[category]}
-                          </span>
-                          <div className="flex items-center justify-between mt-2">
-                            <Badge
-                              variant={isComplete ? "default" : "secondary"}
-                              className="text-xs"
+                          <div className="flex items-center gap-2">
+                            {IconComponent && (
+                              <IconComponent
+                                className={`w-4 h-4 flex-shrink-0 ${
+                                  isComplete ? "text-green-700" : "text-gray-600"
+                                }`}
+                              />
+                            )}
+                            <span
+                              className={`font-medium text-sm leading-tight ${
+                                isComplete ? "text-green-800" : "text-gray-700"
+                              }`}
                             >
-                              {completedCount}/{required} Done
-                            </Badge>
+                              {categoryLabels[category]}
+                            </span>
+                          </div>
+                          <div className="space-y-2 mt-2">
+                            <div className="flex items-center justify-between">
+                              <Badge
+                                variant={isComplete ? "default" : "secondary"}
+                                className="text-xs"
+                              >
+                                {completedCount}/{required} Done
+                              </Badge>
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {Math.round((completedCount / required) * 100)}%
+                              </span>
+                            </div>
+                            <Progress
+                              value={(completedCount / required) * 100}
+                              className="h-2"
+                            />
                             {!isComplete &&
                               formData.school &&
                               formData.date &&
@@ -1307,9 +1552,9 @@ export default function WholeBuildingInspectionPage({
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleCategorySelect(category)}
-                                  className={`text-xs px-3 py-1 h-7 ${
+                                  className={`text-xs px-3 min-h-[44px] w-full ${
                                     selectedCategory === category
-                                      ? "border-blue-500 bg-blue-50"
+                                      ? "border-blue-500 bg-blue-50 shadow-sm"
                                       : ""
                                   }`}
                                 >
@@ -1338,25 +1583,28 @@ export default function WholeBuildingInspectionPage({
                 )}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               {Object.entries(requirements).map(([category, required]) => {
                 const completedCount = completed[category];
                 const isComplete = completedCount >= required;
+                const IconComponent = categoryIcons[category];
 
                 return (
                   <div
                     key={category}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                    className={`flex items-center justify-between p-4 rounded-lg border-l-4 border-y border-r ${
                       isComplete
-                        ? "bg-green-50 border-green-200"
+                        ? "bg-green-50 border-l-green-500 border-y-green-200 border-r-green-200"
                         : selectedCategory === category
-                        ? "bg-blue-50 border-blue-300 border-2"
-                        : "bg-gray-50 border-gray-200"
+                        ? "bg-blue-50 border-l-blue-500 border-y-blue-300 border-r-blue-300"
+                        : completedCount > 0
+                        ? "bg-amber-50 border-l-amber-500 border-y-amber-200 border-r-amber-200"
+                        : "bg-gray-50 border-l-gray-300 border-y-gray-200 border-r-gray-200"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1">
                       <div
-                        className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center ${
+                        className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 ${
                           isComplete
                             ? "bg-green-500 border-green-500"
                             : "border-gray-400"
@@ -1364,15 +1612,35 @@ export default function WholeBuildingInspectionPage({
                       >
                         {isComplete && <Check className="w-4 h-4 text-white" />}
                       </div>
-                      <span
-                        className={`font-medium ${
-                          isComplete ? "text-green-800" : "text-gray-700"
-                        }`}
-                      >
-                        {categoryLabels[category]}
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          {IconComponent && (
+                            <IconComponent
+                              className={`w-4 h-4 flex-shrink-0 ${
+                                isComplete ? "text-green-700" : "text-gray-600"
+                              }`}
+                            />
+                          )}
+                          <span
+                            className={`font-medium ${
+                              isComplete ? "text-green-800" : "text-gray-700"
+                            }`}
+                          >
+                            {categoryLabels[category]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Progress
+                            value={(completedCount / required) * 100}
+                            className="h-2 flex-1"
+                          />
+                          <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
+                            {Math.round((completedCount / required) * 100)}%
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       <Badge variant={isComplete ? "default" : "secondary"}>
                         {completedCount}/{required} Completed
                       </Badge>
@@ -1384,11 +1652,11 @@ export default function WholeBuildingInspectionPage({
                             size="sm"
                             variant="outline"
                             onClick={() => handleCategorySelect(category)}
-                            className={
+                            className={`min-h-[44px] px-4 ${
                               selectedCategory === category
-                                ? "border-blue-500"
+                                ? "border-blue-500 bg-blue-50 shadow-sm"
                                 : ""
-                            }
+                            }`}
                           >
                             Select
                           </Button>
@@ -1437,6 +1705,34 @@ export default function WholeBuildingInspectionPage({
           </Card>
         )}
 
+      {/* Breadcrumb Trail */}
+      {!showInspectionSelector &&
+        selectedCategory &&
+        formData.school &&
+        formData.date &&
+        formData.inspectorName.trim() && (
+          <Card className="bg-muted/30">
+            <CardContent className="py-3">
+              <nav className="flex items-center text-sm text-muted-foreground">
+                <Home className="w-4 h-4 mr-2" />
+                <span className="font-medium text-foreground">{formData.school}</span>
+                <ChevronRight className="w-4 h-4 mx-2" />
+                <span className="font-medium text-foreground">
+                  {categoryLabels[selectedCategory]}
+                </span>
+                {formData.roomNumber && (
+                  <>
+                    <ChevronRight className="w-4 h-4 mx-2" />
+                    <span className="text-primary font-semibold">
+                      Room {formData.roomNumber}
+                    </span>
+                  </>
+                )}
+              </nav>
+            </CardContent>
+          </Card>
+        )}
+
       {/* Inspection Form */}
       {!showInspectionSelector &&
         selectedCategory &&
@@ -1467,20 +1763,33 @@ export default function WholeBuildingInspectionPage({
                   <div className="space-y-2">
                     <Label
                       htmlFor="roomNumber"
-                      className="text-base font-medium"
+                      className={`text-base font-medium ${
+                        validationErrors.roomNumber ? "text-destructive" : ""
+                      }`}
                     >
-                      Room Number
+                      Room Number *
                     </Label>
                     <Input
                       id="roomNumber"
-                      className="h-12 text-base"
+                      className={`h-12 text-base ${
+                        validationErrors.roomNumber
+                          ? "border-destructive focus-visible:ring-destructive"
+                          : ""
+                      }`}
                       value={formData.roomNumber}
-                      onChange={(e) =>
-                        handleInputChange("roomNumber", e.target.value)
-                      }
+                      onChange={(e) => {
+                        handleInputChange("roomNumber", e.target.value);
+                        // Clear error when user starts typing
+                        if (validationErrors.roomNumber) {
+                          setValidationErrors(prev => ({ ...prev, roomNumber: false }));
+                        }
+                      }}
                       placeholder="Enter room number"
                       required
                     />
+                    {validationErrors.roomNumber && (
+                      <p className="text-sm text-destructive">Room number is required</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label
@@ -1528,16 +1837,33 @@ export default function WholeBuildingInspectionPage({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="roomNumber">Room Number</Label>
+                      <Label
+                        htmlFor="roomNumber"
+                        className={validationErrors.roomNumber ? "text-destructive" : ""}
+                      >
+                        Room Number *
+                      </Label>
                       <Input
                         id="roomNumber"
-                        value={formData.roomNumber}
-                        onChange={(e) =>
-                          handleInputChange("roomNumber", e.target.value)
+                        className={
+                          validationErrors.roomNumber
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
                         }
+                        value={formData.roomNumber}
+                        onChange={(e) => {
+                          handleInputChange("roomNumber", e.target.value);
+                          // Clear error when user starts typing
+                          if (validationErrors.roomNumber) {
+                            setValidationErrors(prev => ({ ...prev, roomNumber: false }));
+                          }
+                        }}
                         placeholder="Enter room number"
                         required
                       />
+                      {validationErrors.roomNumber && (
+                        <p className="text-sm text-destructive">Room number is required</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="locationDescription">
@@ -1801,14 +2127,19 @@ export default function WholeBuildingInspectionPage({
             <Button
               type="submit"
               size="lg"
-              className={`w-full bg-blue-600 hover:bg-blue-700 ${
-                isMobile ? "h-14 text-lg" : ""
+              className={`w-full bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-shadow ${
+                isMobile ? "min-h-[56px] text-lg" : "min-h-[48px]"
               }`}
               disabled={isSubmitting} // Disable button while submitting
             >
-              {isSubmitting
-                ? "Submitting..."
-                : `Submit ${categoryLabels[selectedCategory]} Inspection`}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Saving inspection...
+                </span>
+              ) : (
+                `Submit ${categoryLabels[selectedCategory]} Inspection`
+              )}
             </Button>
           </form>
         )}
@@ -1818,8 +2149,8 @@ export default function WholeBuildingInspectionPage({
           <Button
             onClick={handleFinalSubmit}
             size="lg"
-            className={`w-full bg-green-600 hover:bg-green-700 ${
-              isMobile ? "h-14 text-base" : ""
+            className={`w-full bg-green-600 hover:bg-green-700 shadow-md hover:shadow-xl transition-all ${
+              isMobile ? "min-h-[56px] text-base" : "min-h-[48px]"
             }`}
             disabled={!isAllComplete}
           >
@@ -1840,6 +2171,42 @@ export default function WholeBuildingInspectionPage({
           )}
         </div>
       )}
-    </div>
+
+      {/* Floating Action Button (FAB) for Quick Submit */}
+      {!showInspectionSelector &&
+        selectedCategory &&
+        formData.school &&
+        formData.date &&
+        formData.inspectorName.trim() && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in fade-in-0 zoom-in-95 duration-300">
+            <Button
+              type="button"
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                // Find the form and trigger submit
+                const form = document.querySelector('form');
+                if (form) {
+                  const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                  form.dispatchEvent(submitEvent);
+                }
+              }}
+              disabled={isSubmitting}
+              className={`rounded-full shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-200 ${
+                isMobile
+                  ? "w-14 h-14"
+                  : "w-16 h-16"
+              } bg-blue-600 hover:bg-blue-700 text-white`}
+              title="Quick Submit Room"
+              aria-label={isSubmitting ? "Submitting room inspection" : `Quick submit ${categoryLabels[selectedCategory]} inspection`}
+            >
+              {isSubmitting ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-6 h-6" />
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
