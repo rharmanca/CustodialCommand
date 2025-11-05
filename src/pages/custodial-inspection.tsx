@@ -15,6 +15,7 @@ import { Star, Upload, Camera, X, Save, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { ratingDescriptions, inspectionCategories } from '../../shared/custodial-criteria';
+import { CategoryCriteriaHelper, MobileCategoryCriteriaHelper } from '@/components/ui/category-criteria-helper';
 
 interface CustodialInspectionPageProps {
   onBack?: () => void;
@@ -463,6 +464,12 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   const renderMobileStarRating = (categoryObj: any, currentRating: number) => {
     return (
       <div className="space-y-4">
+        {/* Criteria Help Button */}
+        <MobileCategoryCriteriaHelper
+          categoryLabel={categoryObj.label}
+          criteria={categoryObj.criteria}
+        />
+
         <div className="bg-gray-50 rounded-lg p-4 border">
           <div className="text-sm font-medium text-gray-700 mb-3 text-center">
             Rate this category:
@@ -540,6 +547,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
   const renderStarRating = (categoryObj: any, currentRating: number) => {
     return (
       <div className="space-y-5">
+        {/* Criteria Help - Desktop */}
+        <div className="flex items-center justify-center">
+          <span className="text-sm font-medium text-gray-700">Select Rating:</span>
+          <CategoryCriteriaHelper
+            categoryLabel={categoryObj.label}
+            criteria={categoryObj.criteria}
+          />
+        </div>
+
         <div className="flex flex-wrap justify-center gap-2">
           <Button
             type="button"

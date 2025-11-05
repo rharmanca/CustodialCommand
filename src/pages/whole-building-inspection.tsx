@@ -41,6 +41,7 @@ import {
   ratingDescriptions,
   inspectionCategories,
 } from "../../shared/custodial-criteria";
+import { CategoryCriteriaHelper, MobileCategoryCriteriaHelper } from '@/components/ui/category-criteria-helper';
 // Navigation handled by onBack prop
 
 interface WholeBuildingInspectionPageProps {
@@ -415,6 +416,12 @@ export default function WholeBuildingInspectionPage({
   ) => {
     return (
       <div className="space-y-4">
+        {/* Criteria Help Button */}
+        <MobileCategoryCriteriaHelper
+          categoryLabel={category.label}
+          criteria={category.criteria}
+        />
+
         <div className="bg-gray-50 rounded-lg p-4 border">
           <div className="text-sm font-medium text-gray-700 mb-3 text-center">
             Rate this category:
@@ -500,6 +507,15 @@ export default function WholeBuildingInspectionPage({
   ) => {
     return (
       <div className="space-y-4">
+        {/* Criteria Help - Desktop */}
+        <div className="flex items-center justify-center">
+          <span className="text-sm font-medium text-gray-700">Select Rating:</span>
+          <CategoryCriteriaHelper
+            categoryLabel={category.label}
+            criteria={category.criteria}
+          />
+        </div>
+
         <div className="flex justify-center gap-2">
           <Button
             type="button"
