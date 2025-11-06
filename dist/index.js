@@ -623,6 +623,149 @@ var ObjectStorageService = class {
   }
 };
 
+// server/utils/scoring.ts
+var SENTIMENT_PATTERNS = {
+  positive: [
+    /\b(excellent|outstanding|exceptional|great|good|clean|well maintained|shine|bright|fresh|spotless|tidy)\b/i,
+    /\b(going well|improving|progress|complimentary)\b/i
+  ],
+  major: [
+    /\b(crisis|unsafe|hazard|broken|damaged|filthy|disgusting|unacceptable|failure|critical)\b/i,
+    /\b(not working|completely|severe|major|serious|significant)\b/i,
+    /\b(overflowing|overflow|smells|stinks|foul|offensive)\b/i
+  ],
+  minor: [
+    /\b(needs|need|should|could|minor|slight|small|little|dull|dingy|stain|streak|smudge)\b/i,
+    /\b(attention|cleaning|maintenance|repair|replace|fix)\b/i
+  ]
+};
+function analyzeSentiment(noteText) {
+  const lowerText = noteText.toLowerCase();
+  if (SENTIMENT_PATTERNS.major.some((pattern) => pattern.test(lowerText))) {
+    return "major" /* MAJOR_ISSUE */;
+  }
+  if (SENTIMENT_PATTERNS.minor.some((pattern) => pattern.test(lowerText))) {
+    return "minor" /* MINOR_ISSUE */;
+  }
+  if (SENTIMENT_PATTERNS.positive.some((pattern) => pattern.test(lowerText))) {
+    return "positive" /* POSITIVE */;
+  }
+  return "neutral" /* NEUTRAL */;
+}
+function calculateNotesSentimentScore(notes) {
+  if (notes.length === 0) return 0;
+  let totalSentimentScore = 0;
+  for (const note of notes) {
+    const sentiment = analyzeSentiment(note.notes);
+    switch (sentiment) {
+      case "positive" /* POSITIVE */:
+        totalSentimentScore += 0.1;
+        break;
+      case "minor" /* MINOR_ISSUE */:
+        totalSentimentScore -= 0.1;
+        break;
+      case "major" /* MAJOR_ISSUE */:
+        totalSentimentScore -= 0.3;
+        break;
+      case "neutral" /* NEUTRAL */:
+      default:
+        break;
+    }
+  }
+  const averageSentiment = totalSentimentScore / notes.length;
+  return Math.max(-0.5, Math.min(0.5, averageSentiment));
+}
+function calculateInspectionScore(inspection) {
+  const ratingFields = [
+    inspection.floors,
+    inspection.verticalHorizontalSurfaces,
+    inspection.ceiling,
+    inspection.restrooms,
+    inspection.customerSatisfaction,
+    inspection.trash,
+    inspection.projectCleaning,
+    inspection.activitySupport,
+    inspection.safetyCompliance,
+    inspection.equipment,
+    inspection.monitoring
+  ];
+  const validRatings = ratingFields.filter(
+    (rating) => rating !== null && rating !== void 0 && rating >= 0
+  );
+  if (validRatings.length === 0) return null;
+  const sum = validRatings.reduce((acc, rating) => acc + (rating || 0), 0);
+  return sum / validRatings.length;
+}
+function calculateCategoryBreakdown(inspections2) {
+  const categories = [
+    { key: "floors", name: "Floors" },
+    { key: "verticalHorizontalSurfaces", name: "Surfaces" },
+    { key: "ceiling", name: "Ceiling" },
+    { key: "restrooms", name: "Restrooms" },
+    { key: "customerSatisfaction", name: "Customer Satisfaction" },
+    { key: "trash", name: "Trash" },
+    { key: "projectCleaning", name: "Project Cleaning" },
+    { key: "activitySupport", name: "Activity Support" },
+    { key: "safetyCompliance", name: "Safety & Compliance" },
+    { key: "equipment", name: "Equipment" },
+    { key: "monitoring", name: "Monitoring" }
+  ];
+  return categories.map(({ key, name }) => {
+    const ratings = inspections2.map((i) => i[key]).filter((r) => r !== null && r !== void 0 && r >= 0);
+    const averageRating = ratings.length > 0 ? ratings.reduce((acc, r) => acc + (r || 0), 0) / ratings.length : 0;
+    return {
+      category: name,
+      averageRating,
+      count: ratings.length
+    };
+  });
+}
+function calculateBuildingScore(inspections2, notes) {
+  const inspectionScores = inspections2.map((inspection) => calculateInspectionScore(inspection)).filter((score) => score !== null);
+  const inspectionScore = inspectionScores.length > 0 ? inspectionScores.reduce((acc, score) => acc + score, 0) / inspectionScores.length : 0;
+  const notesModifier = calculateNotesSentimentScore(notes);
+  const weightedInspection = inspectionScore * 0.75;
+  const weightedNotes = notesModifier * 0.25;
+  const overallScore = weightedInspection + weightedNotes;
+  const categoryBreakdown = calculateCategoryBreakdown(inspections2);
+  return {
+    overallScore,
+    inspectionScore,
+    notesModifier,
+    level2Compliant: overallScore >= 3,
+    inspectionCount: inspections2.length,
+    notesCount: notes.length,
+    categoryBreakdown
+  };
+}
+function calculateSchoolScores(inspectionsBySchool, notesBySchool, dateRange) {
+  const schools = Object.keys(inspectionsBySchool);
+  const schoolScores = schools.map((school) => {
+    const inspections2 = inspectionsBySchool[school] || [];
+    const notes = notesBySchool[school] || [];
+    return {
+      school,
+      score: calculateBuildingScore(inspections2, notes),
+      dateRange: dateRange || {
+        start: inspections2[0]?.date || notes[0]?.date || (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
+        end: inspections2[inspections2.length - 1]?.date || notes[notes.length - 1]?.date || (/* @__PURE__ */ new Date()).toISOString().split("T")[0]
+      }
+    };
+  });
+  return schoolScores.sort((a, b) => b.score.overallScore - a.score.overallScore);
+}
+function getComplianceStatus(score) {
+  if (score >= 4) {
+    return { text: "Exceeds Standards", color: "green" };
+  } else if (score >= 3) {
+    return { text: "Meets Level 2 Standards", color: "green" };
+  } else if (score >= 2) {
+    return { text: "Below Standards", color: "yellow" };
+  } else {
+    return { text: "Needs Immediate Attention", color: "red" };
+  }
+}
+
 // server/routes.ts
 var objectStorageService = new ObjectStorageService();
 var upload = multer({
@@ -1424,6 +1567,88 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to update notes" });
     }
   });
+  app2.get("/api/scores", async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      logger.info("[GET] Fetching building scores", { startDate, endDate });
+      const allInspections = await storage.getInspections();
+      const allNotes = await storage.getCustodialNotes();
+      let filteredInspections = allInspections;
+      let filteredNotes = allNotes;
+      if (startDate && typeof startDate === "string") {
+        filteredInspections = filteredInspections.filter((i) => i.date >= startDate);
+        filteredNotes = filteredNotes.filter((n) => n.date >= startDate);
+      }
+      if (endDate && typeof endDate === "string") {
+        filteredInspections = filteredInspections.filter((i) => i.date <= endDate);
+        filteredNotes = filteredNotes.filter((n) => n.date <= endDate);
+      }
+      const inspectionsBySchool = {};
+      const notesBySchool = {};
+      filteredInspections.forEach((inspection) => {
+        if (!inspectionsBySchool[inspection.school]) {
+          inspectionsBySchool[inspection.school] = [];
+        }
+        inspectionsBySchool[inspection.school].push(inspection);
+      });
+      filteredNotes.forEach((note) => {
+        if (!notesBySchool[note.school]) {
+          notesBySchool[note.school] = [];
+        }
+        notesBySchool[note.school].push(note);
+      });
+      const schoolScores = calculateSchoolScores(
+        inspectionsBySchool,
+        notesBySchool,
+        startDate && endDate ? { start: startDate, end: endDate } : void 0
+      );
+      res.json({
+        success: true,
+        scores: schoolScores,
+        dateRange: {
+          start: startDate || "all",
+          end: endDate || "all"
+        }
+      });
+    } catch (error) {
+      logger.error("[GET] Error fetching scores:", error);
+      res.status(500).json({ message: "Failed to fetch scores" });
+    }
+  });
+  app2.get("/api/scores/:school", async (req, res) => {
+    try {
+      const { school } = req.params;
+      const { startDate, endDate } = req.query;
+      logger.info("[GET] Fetching score for school", { school, startDate, endDate });
+      const allInspections = await storage.getInspections();
+      const allNotes = await storage.getCustodialNotes();
+      let inspections2 = allInspections.filter((i) => i.school === school);
+      let notes = allNotes.filter((n) => n.school === school);
+      if (startDate && typeof startDate === "string") {
+        inspections2 = inspections2.filter((i) => i.date >= startDate);
+        notes = notes.filter((n) => n.date >= startDate);
+      }
+      if (endDate && typeof endDate === "string") {
+        inspections2 = inspections2.filter((i) => i.date <= endDate);
+        notes = notes.filter((n) => n.date <= endDate);
+      }
+      const scoringResult = calculateBuildingScore(inspections2, notes);
+      const complianceStatus = getComplianceStatus(scoringResult.overallScore);
+      res.json({
+        success: true,
+        school,
+        score: scoringResult,
+        complianceStatus,
+        dateRange: {
+          start: startDate || (inspections2[0]?.date || notes[0]?.date),
+          end: endDate || (inspections2[inspections2.length - 1]?.date || notes[notes.length - 1]?.date)
+        }
+      });
+    } catch (error) {
+      logger.error("[GET] Error fetching school score:", error);
+      res.status(500).json({ message: "Failed to fetch school score" });
+    }
+  });
   app2.use("/api/*", (req, res) => {
     res.status(404).json({
       error: "API endpoint not found",
@@ -1435,7 +1660,9 @@ async function registerRoutes(app2) {
         "GET /api/inspections",
         "POST /api/submit-building-inspection",
         "POST /api/custodial-notes",
-        "POST /api/room-inspections"
+        "POST /api/room-inspections",
+        "GET /api/scores",
+        "GET /api/scores/:school"
       ]
     });
   });

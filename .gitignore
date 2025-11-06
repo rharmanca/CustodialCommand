@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build outputs
-dist/
+# dist/  # Temporarily commented to deploy Phase 4 features to Railway
 build/
 *.tsbuildinfo
 
