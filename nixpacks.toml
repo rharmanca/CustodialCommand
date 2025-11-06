@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install --production=false"]
+
+[phases.build]
+# Disable build phase - use pre-built dist files from repo
+cmds = []
+
+[start]
+cmd = "npm run railway:start"
