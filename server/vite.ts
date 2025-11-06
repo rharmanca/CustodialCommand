@@ -14,19 +14,37 @@ export function serveStatic(app: Express) {
   const uploadsPath = path.join(process.cwd(), 'uploads');
   app.use('/uploads', express.static(uploadsPath));
   logger.info(`Serving uploads from: ${uploadsPath}`);
-  
+
   // Serve built static files from dist/public
   const staticPath = path.join(process.cwd(), 'dist', 'public');
+
+  // Add cache control middleware for HTML files to prevent edge CDN caching
+  app.use((req, res, next) => {
+    if (req.path.endsWith('.html') || req.path === '/') {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      logger.debug(`Setting no-cache headers for HTML request: ${req.path}`);
+    }
+    next();
+  });
+
   app.use(express.static(staticPath));
-  
+
   // Serve index.html for all non-API routes (SPA routing)
   app.get('*', (req, res, next) => {
     // Skip API routes and uploads
     if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/uploads')) {
       return next();
     }
-    
+
     const indexPath = path.join(staticPath, 'index.html');
+
+    // Set no-cache headers for index.html to prevent edge CDN caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     res.sendFile(indexPath, (err) => {
       if (err) {
         logger.error('Error serving index.html:', err);
@@ -34,7 +52,7 @@ export function serveStatic(app: Express) {
       }
     });
   });
-  
+
   logger.info(`Serving static files from: ${staticPath}`);
 }
 

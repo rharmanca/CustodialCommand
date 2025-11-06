@@ -1677,12 +1677,24 @@ function serveStatic(app2) {
   app2.use("/uploads", express2.static(uploadsPath));
   logger.info(`Serving uploads from: ${uploadsPath}`);
   const staticPath = path4.join(process.cwd(), "dist", "public");
+  app2.use((req, res, next) => {
+    if (req.path.endsWith(".html") || req.path === "/") {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      logger.debug(`Setting no-cache headers for HTML request: ${req.path}`);
+    }
+    next();
+  });
   app2.use(express2.static(staticPath));
   app2.get("*", (req, res, next) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/health") || req.path.startsWith("/uploads")) {
       return next();
     }
     const indexPath = path4.join(staticPath, "index.html");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     res.sendFile(indexPath, (err) => {
       if (err) {
         logger.error("Error serving index.html:", err);
