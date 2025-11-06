@@ -1,5 +1,6 @@
 {
   "deploy": {
+    "buildCommand": "npm run build",
     "startCommand": "npm run railway:start"
   }
 }
