@@ -30,6 +30,8 @@ export default defineConfig({
   build: {
     outDir: "dist/public",
     sourcemap: true,
+    cssMinify: true,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {

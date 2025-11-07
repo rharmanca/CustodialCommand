@@ -59,7 +59,7 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
     );
   };
   return (
-    <Card className="w-full">
+    <Card className="w-full offscreen-content layout-contained">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Target className="w-5 h-5 text-primary" />

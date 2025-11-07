@@ -70,7 +70,7 @@ const RoomHeatmap: React.FC<RoomHeatmapProps> = ({
   }, {} as Record<string, RoomData[]>);
 
   return (
-    <Card className="w-full">
+    <Card className="w-full offscreen-content layout-contained">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <MapPin className="w-5 h-5 text-primary" />

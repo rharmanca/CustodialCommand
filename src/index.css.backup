@@ -1,0 +1,1479 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   MODERN CSS ARCHITECTURE
+   ======================================== */
+
+/* 
+ * CSS Cascade Layer Architecture
+ * Order (lowest to highest priority):
+ * 1. reset - CSS reset and normalize
+ * 2. base - Element-level base styles
+ * 3. performance - Performance optimizations
+ * 4. accessibility - Accessibility enhancements
+ * 5. responsive - Responsive design patterns
+ * 6. performance-advanced - Advanced performance optimizations
+ * 7. components - Component-specific styles
+ * 8. utilities - Utility classes and overrides
+ * 9. overrides - Important overrides and emergency fixes
+ */
+
+/* Define layer order */
+@layer reset, base, performance, accessibility, responsive, performance-advanced, components, utilities, overrides;
+
+/* ========================================
+   MODERN PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hardware acceleration for smooth animations */
+@layer performance {
+  .gpu-accelerated {
+    /* Force hardware acceleration for smooth 60fps animations */
+    transform: translateZ(0);
+    /* Backface visibility prevents flickering */
+    backface-visibility: hidden;
+    /* Optimize for animations */
+    will-change: transform, opacity;
+  }
+  
+  /* Remove will-change after animations complete */
+  .animation-complete {
+    will-change: auto;
+  }
+  
+  /* Optimize scrolling performance */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    /* Optimize scroll performance */
+    overflow-anchor: none;
+  }
+  
+  /* Content visibility for performance */
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 1000px;
+  }
+  
+  /* CSS containment for layout optimization */
+  .layout-contained {
+    contain: layout style paint;
+  }
+}
+
+/* Focus-visible for better accessibility */
+@layer accessibility {
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.8);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
+  /* Hide focus ring when using mouse */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* ========================================
+   MODERN RESPONSIVE DESIGN PATTERNS
+   ======================================== */
+
+@layer responsive {
+  /* Container queries for component-level responsiveness */
+  .responsive-card {
+    container-type: inline-size;
+  }
+  
+  @container (min-width: 300px) {
+    .responsive-card .card-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+    }
+  }
+  
+  @container (min-width: 500px) {
+    .responsive-card .card-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+  }
+  
+  @container (min-width: 700px) {
+    .responsive-card .card-content {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  
+  /* Modern fluid typography */
+  .fluid-text {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    line-height: 1.6;
+  }
+  
+  .fluid-heading {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.2;
+  }
+  
+  /* Responsive spacing with modern units */
+  .responsive-spacing {
+    padding: clamp(1rem, 5vw, 3rem);
+    margin: clamp(0.5rem, 2.5vw, 1.5rem);
+  }
+  
+  /* Modern grid system */
+  .responsive-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-grid {
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-grid {
+      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+  }
+  
+  /* Touch-optimized interactive elements */
+  .touch-optimized {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Prevent zoom on input focus (iOS) */
+  .no-zoom-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Safe area support for notched displays */
+  .safe-area-padding {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Modern aspect ratio containers */
+  .aspect-ratio-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+  
+  .aspect-ratio-1-1 {
+    aspect-ratio: 1 / 1;
+  }
+  
+  .aspect-ratio-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* ========================================
+   ADVANCED CSS PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+@layer performance-advanced {
+  /* Content visibility for off-screen content */
+  .offscreen-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 1000px;
+  }
+  
+  .hidden-content {
+    content-visibility: hidden;
+    contain-intrinsic-size: 0 0;
+  }
+  
+  /* CSS containment for complex components */
+  .layout-contained {
+    contain: layout style paint;
+  }
+  
+  .size-contained {
+    contain: size layout;
+  }
+  
+  .style-contained {
+    contain: style;
+  }
+  
+  .paint-contained {
+    contain: paint;
+  }
+  
+  /* Critical CSS inlining hint */
+  .critical-above-fold {
+    contain: layout style;
+  }
+  
+  /* Optimize images for performance */
+  .responsive-image {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px;
+  }
+  
+  /* Optimize iframes and embeds */
+  .embedded-content {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
+  
+  /* Performance monitoring utilities */
+  .performance-monitor {
+    /* Debug class for performance profiling */
+    contain: strict;
+    will-change: auto;
+  }
+  
+  /* Reduce paint complexity */
+  .paint-optimized {
+    /* Isolate compositing layers */
+    isolation: isolate;
+    /* Create new stacking context */
+    transform: translateZ(0);
+  }
+  
+  /* Optimize scrolling areas */
+  .scroll-optimized {
+    overflow-anchor: none;
+    scroll-behavior: smooth;
+    contain: layout style paint;
+  }
+  
+  /* Font loading optimization */
+  .font-display-swap {
+    font-display: swap;
+  }
+  
+  .font-display-optional {
+    font-display: optional;
+  }
+  
+  .font-display-fallback {
+    font-display: fallback;
+  }
+  
+  /* Network-aware loading */
+  @media (prefers-reduced-data: reduce) {
+    .data-heavy {
+      display: none;
+    }
+    
+    .responsive-image {
+      background-image: none;
+    }
+  }
+  
+  /* Battery-aware animations */
+  @media (prefers-reduced-data: reduce) {
+    .animation-heavy {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+/* ========================================
+   RESET LAYER - CSS Reset & Legacy Support
+   ======================================== */
+
+@layer reset {
+  /* Legacy browser polyfills and vendor prefixes */
+  * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  
+  /* Legacy flexbox with vendor prefixes */
+  .legacy-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: flex;
+  }
+  
+  .legacy-flex-column {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -moz-box-orient: vertical;
+    -moz-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  
+  .legacy-flex-center {
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -moz-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -moz-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  
+  /* Float-based layout for very old browsers */
+  .legacy-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+    overflow: hidden; /* Clearfix */
+  }
+  
+  .legacy-container:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  
+  .legacy-col-half {
+    float: left;
+    width: 48%;
+    margin-right: 4%;
+  }
+  
+  .legacy-col-half:last-child {
+    margin-right: 0;
+  }
+}
+
+/* ========================================
+   BASE LAYER - Element-level Base Styles
+   ======================================== */
+
+@layer base {
+  /* Optimize for older mobile browsers */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Better touch targets for mobile - only when needed */
+  .touch-target {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+    min-height: 44px; /* iOS/Android recommended touch target size */
+    min-width: 44px;
+  }
+  
+  /* Default user-select for interactive elements */
+  button, input, select, textarea, a {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+  }
+}
+
+@layer base {
+  :root {
+    /* Retro propaganda poster color palette - ENHANCED for mobile readability */
+    --background: 46 45% 88%;        /* Cream/beige background like the poster */
+    --foreground: 14 20% 18%;        /* DARKER charcoal for better text contrast (was 14 15% 25%) */
+    --card: 46 45% 95%;             /* Slightly LIGHTER cream for better card contrast (was 92%) */
+    --card-foreground: 14 20% 18%;   /* DARKER charcoal for card text (was 14 15% 25%) */
+    --popover: 46 45% 95%;          /* Lighter cream for popovers (was 92%) */
+    --popover-foreground: 14 20% 18%; /* DARKER charcoal for popover text (was 14 15% 25%) */
+    --primary: 8 76% 45%;           /* Bold red from the poster */
+    --primary-foreground: 46 45% 88%; /* Cream text on red backgrounds */
+    --secondary: 14 15% 35%;        /* Dark gray/charcoal like the robot */
+    --secondary-foreground: 46 45% 88%; /* Cream text on dark backgrounds */
+    --muted: 46 25% 80%;            /* Muted cream for subtle elements */
+    --muted-foreground: 14 20% 32%; /* DARKER gray for better muted text contrast (was 14 15% 45%) */
+    --accent: 8 65% 55%;            /* Lighter red for accents */
+    --accent-foreground: 46 45% 88%; /* Cream text on accent backgrounds */
+    --destructive: 8 85% 50%;       /* Bright red for destructive actions */
+    --destructive-foreground: 46 45% 88%; /* Cream text on destructive backgrounds */
+    --border: 46 25% 68%;           /* DARKER border for better visibility (was 46 25% 75%) */
+    --input: 46 35% 85%;            /* Light cream for inputs */
+    --ring: 8 76% 45%;              /* Red focus ring */
+    --chart-1: 8 76% 45%;           /* Red for charts */
+    --chart-2: 14 15% 35%;          /* Charcoal for charts */
+    --chart-3: 46 45% 65%;          /* Medium cream for charts */
+    --chart-4: 8 55% 60%;           /* Light red for charts */
+    --chart-5: 14 10% 55%;          /* Medium gray for charts */
+    --radius: 0.75rem;
+
+    /* Safe area insets with fallbacks for older browsers */
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-right: 0px;
+    --safe-area-inset-bottom: 0px;
+    --safe-area-inset-left: 0px;
+  }
+
+  .dark {
+    /* Dark retro theme - inverted poster colors */
+    --background: 14 15% 12%;           /* Very dark charcoal background */
+    --foreground: 46 35% 85%;           /* Light cream text */
+    --card: 14 15% 18%;                 /* Dark charcoal cards */
+    --card-foreground: 46 35% 85%;      /* Light cream card text */
+    --popover: 14 15% 18%;              /* Dark charcoal popovers */
+    --popover-foreground: 46 35% 85%;   /* Light cream popover text */
+    --primary: 8 85% 55%;               /* Bright red primary */
+    --primary-foreground: 14 15% 12%;   /* Dark text on red */
+    --secondary: 46 25% 65%;            /* Medium cream secondary */
+    --secondary-foreground: 14 15% 12%; /* Dark text on cream */
+    --muted: 14 10% 25%;                /* Dark muted elements */
+    --muted-foreground: 46 20% 65%;     /* Light cream muted text */
+    --accent: 8 75% 60%;                /* Red accent */
+    --accent-foreground: 14 15% 12%;    /* Dark text on accent */
+    --destructive: 8 90% 60%;           /* Bright red destructive */
+    --destructive-foreground: 46 35% 85%; /* Light cream on destructive */
+    --border: 14 10% 30%;               /* Dark border */
+    --input: 14 10% 22%;                /* Dark input background */
+    --ring: 8 85% 55%;                  /* Red focus ring */
+    --chart-1: 8 85% 55%;               /* Red for charts */
+    --chart-2: 46 35% 75%;              /* Light cream for charts */
+    --chart-3: 14 15% 45%;              /* Medium gray for charts */
+    --chart-4: 8 65% 65%;               /* Light red for charts */
+    --chart-5: 46 20% 55%;              /* Medium cream for charts */
+  }
+}
+
+/* Firefox mobile and legacy browser optimizations - less aggressive */
+input, select, textarea, button {
+  /* Prevent zoom on focus in mobile browsers - only when needed */
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Apply form styling only to forms that need it */
+.legacy-form input, .legacy-form select, .legacy-form textarea, .legacy-form button {
+  font-size: 16px !important;
+  min-height: 44px;
+  padding: 12px 16px;
+
+  /* Disable text selection on form controls */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Enable text selection for input fields */
+input[type="text"], input[type="email"], input[type="password"], 
+input[type="number"], input[type="tel"], textarea {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Performance optimizations for older devices - applied selectively to avoid layout issues */
+.hardware-accelerated {
+  /* Hardware acceleration for animations - only when needed */
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+
+  /* Reduce layout thrashing */
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Legacy flexbox support */
+.flex-legacy {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -moz-box !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+}
+
+.flex-column-legacy {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -moz-box-orient: vertical;
+  -moz-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+/* Scrollable areas optimization */
+.scrollable-legacy {
+  -webkit-overflow-scrolling: touch;
+  -moz-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+  overflow-y: auto;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Legacy browser and Firefox mobile optimizations */
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+
+    /* Prevent zoom on mobile when focusing inputs */
+    font-size: 17px; /* ENHANCED base font size for better mobile readability (was 16px) */
+
+    /* Improve scroll performance */
+    -webkit-overflow-scrolling: touch;
+    -moz-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    /* Add safe area padding for devices with notches */
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+
+    /* Firefox mobile optimizations */
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+
+    /* Touch optimizations */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+
+    /* Memory optimization for low-end devices */
+    will-change: auto;
+    
+    /* Browser cursor and display fixes */
+    cursor: default;
+    
+    /* Fix cursor disappearing issues */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    /* Re-enable text selection for input fields */
+    input, textarea {
+      -webkit-user-select: auto;
+      -moz-user-select: auto;
+      -ms-user-select: auto;
+      user-select: auto;
+    }
+    
+    /* Fix hardware acceleration issues */
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    
+    /* Prevent cursor from disappearing during animations */
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* Modern font classes */
+.font-inter-light { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; }
+.font-inter-regular { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 400; }
+.font-inter-medium { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 500; }
+.font-inter-semibold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 600; }
+.font-inter-bold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 700; }
+
+/* Browser Cursor and Display Fixes */
+/* Fix cursor disappearing issues in various browsers */
+* {
+  /* Ensure cursor is always visible */
+  cursor: default;
+}
+
+/* Fix cursor issues on interactive elements */
+button, 
+input, 
+select, 
+textarea, 
+a, 
+[role="button"], 
+[tabindex] {
+  cursor: pointer;
+}
+
+/* Fix cursor disappearing while typing */
+input:focus, 
+textarea:focus {
+  cursor: text;
+}
+
+/* Prevent cursor from disappearing on hover */
+button:hover, 
+a:hover, 
+[role="button"]:hover {
+  cursor: pointer;
+}
+
+/* Fix cursor issues in Firefox */
+@-moz-document url-prefix() {
+  * {
+    cursor: default !important;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea, 
+  a, 
+  [role="button"] {
+    cursor: pointer !important;
+  }
+  
+  input:focus, 
+  textarea:focus {
+    cursor: text !important;
+  }
+}
+
+/* Fix cursor issues in Safari */
+@supports (-webkit-appearance: none) {
+  * {
+    cursor: default;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea, 
+  a, 
+  [role="button"] {
+    cursor: pointer;
+  }
+  
+  input:focus, 
+  textarea:focus {
+    cursor: text;
+  }
+}
+
+/* Fix cursor issues in Chrome/Edge */
+@supports (display: grid) {
+  * {
+    cursor: default;
+  }
+  
+  button, 
+  input, 
+  select, 
+  textarea, 
+  a, 
+  [role="button"] {
+    cursor: pointer;
+  }
+  
+  input:focus, 
+  textarea:focus {
+    cursor: text;
+  }
+}
+
+/* Modern Clean Design - Mobile-First Responsive */
+
+/* Main container responsive layout - improved centering */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    padding: 0 1.25rem;
+  }
+}
+
+/* Header container - ENHANCED for better visual impact */
+.header-container {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
+  position: relative;
+  border-bottom: 3px solid hsl(var(--primary) / 0.8); /* ENHANCED border (was 1px) */
+  padding: 1.5rem; /* ENHANCED padding (was 1rem) */
+  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Add shadow for depth */
+}
+
+@media (min-width: 768px) {
+  .header-container {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.modern-header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  color: hsl(var(--primary-foreground));
+  letter-spacing: -0.02em;
+  font-size: 2rem; /* ENHANCED mobile size (was 1.75rem) */
+  line-height: 1.2;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
+}
+
+@media (min-width: 480px) {
+  .modern-header {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .modern-header {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modern-header {
+    font-size: 3rem;
+  }
+}
+
+/* Navigation container - ENHANCED for better visual separation */
+.nav-container {
+  background: hsl(var(--card));
+  border: 2px solid hsl(var(--border)); /* ENHANCED border width (was 1px) */
+  border-radius: var(--radius);
+  padding: 1.25rem; /* ENHANCED padding (was 1rem) */
+  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Add subtle shadow */
+}
+
+@media (min-width: 768px) {
+  .nav-container {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Responsive button container */
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .button-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .button-container {
+    gap: 1.5rem;
+  }
+}
+
+/* Responsive grid for main page buttons */
+.responsive-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem;
+  align-items: center !important;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Content area - ENHANCED for better visual separation */
+.content-area {
+  background: hsl(var(--background));
+  padding: 1.5rem; /* ENHANCED padding for better mobile spacing (was 1rem) */
+  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
+  border: 1px solid hsl(var(--border)); /* Add subtle border for separation */
+  border-radius: var(--radius); /* Add border radius for consistency */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Add subtle shadow */
+}
+
+@media (min-width: 768px) {
+  .content-area {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Modern buttons - mobile-first responsive - ENHANCED WITH 60FPS OPTIMIZATIONS */
+@layer components {
+  .modern-button {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600; /* ENHANCED from 500 to 600 for better readability */
+    font-size: 0.875rem;
+    padding: 1rem 1.25rem; /* ENHANCED padding for better touch targets (was 0.875rem 1rem) */
+    letter-spacing: 0.01em;
+    border: 3px solid hsl(var(--border)); /* ENHANCED from 1px to 3px for stronger borders */
+    border-radius: var(--radius);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    
+    /* Enhanced multi-layer shadow system */
+    box-shadow: 
+      /* Outer shadow - depth */
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1),
+      /* Inner highlight - dimension */
+      inset 0 2px 0 rgba(255, 255, 255, 0.15),
+      /* Subtle bottom edge */
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    
+    /* 60fps optimized transitions - only transform and opacity */
+    transition: 
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.15s ease;
+    
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 100%;
+    max-width: 100%;
+    
+    /* Touch optimization - WCAG minimum 44x44px */
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    
+    /* Text enhancement */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    
+    /* Performance optimizations */
+    transform: translateZ(0); /* Force hardware acceleration */
+    backface-visibility: hidden; /* Prevent flickering */
+    contain: layout style paint; /* Optimize rendering */
+  }
+  
+  .modern-button:hover {
+    background: hsl(var(--primary) / 0.9);
+    border-color: hsl(var(--primary) / 0.85);
+    
+    /* Enhanced hover shadow with more depth */
+    box-shadow:
+      /* Deeper outer shadow */
+      0 10px 15px -3px rgb(0 0 0 / 0.15),
+      0 4px 6px -4px rgb(0 0 0 / 0.1),
+      /* Brighter inner highlight */
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    
+    /* Smooth lift effect - hardware accelerated */
+    transform: translateY(-2px) translateZ(0);
+  }
+  
+  .modern-button:active {
+    /* Press down effect - immediate feedback */
+    transform: translateY(0.5px) translateZ(0);
+    
+    /* Subtle shadow on press */
+    box-shadow:
+      0 1px 2px 0 rgb(0 0 0 / 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    /* Faster transition for immediate feedback */
+    transition-duration: 0.1s;
+    
+    /* Slightly dimmer on press */
+    background: hsl(var(--primary) / 0.95);
+  }
+  
+  .modern-button:focus-visible {
+    /* Enhanced focus ring for accessibility */
+    outline: 2px solid hsl(var(--primary) / 0.6);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) + 2px);
+  }
+  
+  /* Remove will-change after animations */
+  .modern-button:not(:hover):not(:active) {
+    will-change: auto;
+  }
+  
+  .modern-button:hover,
+  .modern-button:active {
+    will-change: transform, box-shadow;
+  }
+}
+
+/* When used in responsive-grid, maintain consistent width */
+.responsive-grid .modern-button {
+  width: 100%;
+  max-width: 400px;
+  min-width: 280px;
+  /* Ensure consistent alignment */
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 480px) {
+  .modern-button {
+    width: auto;
+    min-width: 120px;
+    flex: 1;
+    max-width: 300px;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .modern-button {
+    font-size: 0.9rem;
+    padding: 0.875rem 2rem;
+    flex: 0 1 auto;
+  }
+}
+
+.modern-button:hover {
+  background: hsl(var(--primary) / 0.9);
+  box-shadow: 0 6px 16px 0 rgb(0 0 0 / 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15); /* ENHANCED hover shadow */
+  transform: translateY(-2px); /* ENHANCED hover lift (was -1px) */
+  border-color: hsl(var(--primary) / 0.8); /* ENHANCED border color on hover */
+}
+
+.modern-button:active {
+  transform: translateY(0.5px);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.retro-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.retro-button:hover::before {
+  opacity: 1;
+}
+
+.retro-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 0 rgba(0,0,0,0.2),
+    0 6px 12px rgba(0,0,0,0.15);
+}
+
+@media (min-width: 640px) {
+  .retro-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 5px 0 rgba(0,0,0,0.2),
+      0 10px 16px rgba(0,0,0,0.15);
+  }
+}
+
+@media (min-width: 1024px) {
+  .retro-button:hover {
+    box-shadow: 
+      0 6px 0 rgba(0,0,0,0.2),
+      0 12px 20px rgba(0,0,0,0.15);
+  }
+}
+
+.retro-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0,0,0,0.2),
+    0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (min-width: 640px) {
+  .retro-button:active {
+    transform: translateY(2px);
+    box-shadow: 
+      0 2px 0 rgba(0,0,0,0.2),
+      0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+.retro-button.active {
+  transform: translateY(1px);
+  box-shadow: 
+    0 1px 0 rgba(0,0,0,0.2),
+    0 2px 4px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border-color: #065f46;
+}
+
+@media (min-width: 640px) {
+  .retro-button.active {
+    transform: translateY(2px);
+    box-shadow: 
+      0 2px 0 rgba(0,0,0,0.2),
+      0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+/* Back button */
+.back-button {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #991b1b;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .back-button {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.back-button:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Modern star rating buttons - ENHANCED WITH 60FPS OPTIMIZATIONS */
+@layer components {
+  .star-button {
+    background: none;
+    border: 2px solid transparent; /* Add border for better definition */
+    color: hsl(45 100% 50%); /* ENHANCED more saturated yellow (was 45 93% 47%) */
+    font-size: 1.75rem; /* ENHANCED size for better mobile visibility (was 1.5rem) */
+    cursor: pointer;
+    
+    /* 60fps optimized transitions - only transform and opacity */
+    transition: 
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.15s ease,
+      box-shadow 0.15s ease;
+    
+    padding: 0.75rem; /* ENHANCED padding (was 0.5rem) */
+    border-radius: 0.5rem;
+    min-height: 48px; /* ENHANCED touch target (was 44px) */
+    min-width: 48px; /* ENHANCED touch target (was 44px) */
+    touch-action: manipulation;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    
+    /* Performance optimizations */
+    transform: translateZ(0); /* Force hardware acceleration */
+    backface-visibility: hidden; /* Prevent flickering */
+    contain: layout style paint; /* Optimize rendering */
+  }
+  
+  .star-button:hover {
+    background: hsl(45 100% 50% / 0.15); /* ENHANCED hover background with more saturated color */
+    transform: scale(1.1) translateZ(0); /* ENHANCED scale with hardware acceleration */
+    border-color: hsl(45 100% 50% / 0.3); /* Add border color on hover */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* ENHANCED hover shadow */
+    
+    /* Optimize for animation */
+    will-change: transform, box-shadow;
+  }
+  
+  .star-button.filled {
+    color: hsl(45 100% 50%); /* ENHANCED more saturated yellow */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add shadow to filled stars */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow to filled stars */
+  }
+  
+  .star-button.empty {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  .star-button:focus-visible {
+    /* Enhanced focus ring for accessibility */
+    outline: 2px solid hsl(45 100% 50% / 0.6);
+    outline-offset: 2px;
+  }
+  
+  /* Remove will-change after animations */
+  .star-button:not(:hover) {
+    will-change: auto;
+  }
+}
+
+@media (min-width: 640px) {
+  .star-button {
+    font-size: 1.75rem;
+    padding: 0.375rem;
+  }
+}
+
+.star-button:hover {
+  background: hsl(45 100% 50% / 0.15); /* ENHANCED hover background with more saturated color */
+  transform: scale(1.1); /* ENHANCED scale (was 1.05) */
+  border-color: hsl(45 100% 50% / 0.3); /* Add border color on hover */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* ENHANCED hover shadow */
+}
+
+.star-button.filled {
+  color: hsl(45 100% 50%); /* ENHANCED more saturated yellow */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Add shadow to filled stars */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow to filled stars */
+}
+
+.star-button.empty {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Mobile-First Form elements styling - ENHANCED for better visibility */
+.responsive-form input, .responsive-form textarea, .responsive-form select {
+  font-family: 'Inter', sans-serif;
+  border: 3px solid #9ca3af; /* ENHANCED darker border (was 2px solid #d1d5db) */
+  border-radius: 8px;
+  padding: 1rem 0.75rem;
+  transition: border-color 0.2s ease;
+  font-size: 17px; /* ENHANCED base font size (was 16px) */
+  min-height: 48px;
+  width: 100%;
+  background-color: hsl(var(--card)); /* Add background color for better contrast */
+  font-weight: 500; /* ENHANCED font weight for better readability */
+}
+
+@media (min-width: 640px) {
+  .responsive-form input, .responsive-form textarea, .responsive-form select {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+}
+
+.responsive-form input:focus, .responsive-form textarea:focus, .responsive-form select:focus {
+  outline: none;
+  border-color: hsl(var(--primary)); /* ENHANCED use primary color for focus */
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2); /* ENHANCED wider, more prominent focus ring */
+  background-color: hsl(var(--background)); /* ENHANCED background on focus */
+}
+
+/* Cards - ENHANCED for better visual separation */
+.card {
+  background: hsl(var(--card)); /* Use CSS variable for consistency */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08); /* ENHANCED shadows */
+  border: 2px solid hsl(var(--border)); /* ENHANCED border width and color (was 1px solid #e5e7eb) */
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+  .card {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+  }
+}
+
+/* Responsive image scaling */
+.responsive-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0 auto;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .responsive-image {
+    border-radius: 0.75rem;
+  }
+}
+
+/* Responsive grid layouts - removed conflicting grid definition */
+/* The responsive-grid class is already defined above as flexbox */
+
+/* Mobile improvements */
+@media (max-width: 767px) {
+  /* Force mobile stacking when needed */
+  .force-mobile-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  /* Enhanced mobile image handling */
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+  }
+
+  /* Mobile container safety */
+  .mobile-safe-container {
+    max-width: 100%;
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  /* Ensure text is readable on mobile */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Stack navigation buttons vertically on small screens */
+  .nav-container .button-container {
+    flex-direction: column !important;
+  }
+}
+
+/* Toast Notification Positioning Fix - Force Center */
+[data-radix-toast-viewport] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999999 !important;
+  width: auto !important;
+  max-width: 500px !important;
+  padding: 1rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+}
+
+/* Ensure toast content is visible */
+[data-radix-toast-viewport] > * {
+  pointer-events: auto !important;
+}
+
+/* Force positioning regardless of any other classes */
+[data-radix-toast-viewport][class*="top-"],
+[data-radix-toast-viewport][class*="bottom-"],
+[data-radix-toast-viewport][class*="left-"],
+[data-radix-toast-viewport][class*="right-"],
+[data-radix-toast-viewport].fixed,
+[data-radix-toast-viewport][class*="fixed"] {
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Enhanced toast styling for better visibility */
+[data-radix-toast] {
+  background: white !important;
+  border: 2px solid #e5e7eb !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.75rem !important;
+  padding: 1.25rem !important;
+  margin-bottom: 0.75rem !important;
+  min-height: 70px !important;
+  min-width: 320px !important;
+  max-width: 480px !important;
+  font-weight: 500 !important;
+  position: relative !important;
+  transform: none !important;
+  font-size: 1rem !important;
+  pointer-events: auto !important;
+  width: 100% !important;
+}
+
+/* Enhanced focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2);
+}
+
+/* Ensure focus states are visible on all interactive elements */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[role="button"]:focus,
+[tabindex]:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* ENHANCED Data Tables & Lists for better mobile readability */
+.table-enhanced {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border: 2px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.table-enhanced th {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid hsl(var(--border));
+  font-size: 0.9rem;
+}
+
+.table-enhanced td {
+  padding: 1rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.table-enhanced tbody tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.table-enhanced tbody tr:hover {
+  background: hsl(var(--accent) / 0.1);
+  transition: background-color 0.2s ease;
+}
+
+/* ENHANCED List items for better visual separation */
+.list-enhanced {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-enhanced li {
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.list-enhanced li:hover {
+  background: hsl(var(--accent) / 0.05);
+  border-color: hsl(var(--accent) / 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ENHANCED Badge styling for better visibility */
+.badge-enhanced {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border: 2px solid transparent;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-enhanced.badge-critical {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.2);
+}
+
+.badge-enhanced.badge-warning {
+  background: hsl(45 100% 50% / 0.1);
+  color: hsl(45 100% 40%);
+  border-color: hsl(45 100% 50% / 0.2);
+}
+
+.badge-enhanced.badge-success {
+  background: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
+  border-color: hsl(142 76% 36% / 0.2);
+}
+
+/* Success toast styling */
+[data-radix-toast][data-state="open"]:not([class*="destructive"]) {
+  background-color: #f0fdf4 !important;
+  border-color: #22c55e !important;
+  color: #166534 !important;
+}
+
+/* Error/destructive toast styling */
+[data-radix-toast].destructive,
+[data-radix-toast][class*="destructive"] {
+  background-color: #fef2f2 !important;
+  border-color: #ef4444 !important;
+  color: #991b1b !important;
+}
+
+/* Custom notification backdrop */
+.notification-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  z-index: 9999998 !important;
+  pointer-events: none !important;
+}

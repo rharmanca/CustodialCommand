@@ -16,7 +16,20 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "flex h-10 w-full items-center justify-between rounded-md bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground",
+      // Base transition for all states
+      "transition-all duration-200 ease-out",
+      // Default state with retro propaganda theme
+      "border-3 border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))]",
+      // Focus states with enhanced visual feedback
+      "focus:outline-none focus:ring-0 focus:border-[hsl(var(--primary))] focus:shadow-[0_0_0_4px_hsl(var(--primary)_/_0.2)] focus:bg-[hsl(var(--background))]",
+      // Hover states
+      "hover:border-[hsl(var(--primary)_/_0.8)] hover:shadow-[0_0_0_2px_hsl(var(--primary)_/_0.1)]",
+      // Disabled states
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      // Hardware acceleration for 60fps performance
+      "transform-gpu will-change-auto",
+      "[&>span]:line-clamp-1",
       className
     )}
     {...props}

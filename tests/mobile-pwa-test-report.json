@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-09-18T00:57:25.173Z",
+  "timestamp": "2025-10-28T17:27:20.268Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 26,
-    "passed": 17,
-    "failed": 9,
-    "successRate": 65.38461538461539
+    "passed": 15,
+    "failed": 11,
+    "successRate": 57.692307692307686
   },
   "pwaFeatures": [
     {
@@ -85,7 +85,7 @@
     },
     {
       "testName": "Mobile API Performance - /health",
-      "passed": true,
+      "passed": false,
       "feature": "performance"
     },
     {
@@ -110,7 +110,7 @@
     },
     {
       "testName": "PWA Security - X-Frame-Options",
-      "passed": true,
+      "passed": false,
       "feature": "security"
     },
     {
@@ -221,19 +221,19 @@
     {
       "testName": "Mobile API Performance - /api/inspections",
       "passed": false,
-      "details": "Status: 429, Time: 46ms",
+      "details": "Status: 429, Time: 56ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /api/custodial-notes",
       "passed": false,
-      "details": "Status: 429, Time: 33ms",
+      "details": "Status: 429, Time: 54ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /health",
-      "passed": true,
-      "details": "Status: 200, Time: 37ms",
+      "passed": false,
+      "details": "Status: 503, Time: 58ms",
       "feature": "performance"
     },
     {
@@ -262,8 +262,8 @@
     },
     {
       "testName": "PWA Security - X-Frame-Options",
-      "passed": true,
-      "details": "X-Frame-Options header present",
+      "passed": false,
+      "details": "X-Frame-Options header missing",
       "feature": "security"
     },
     {

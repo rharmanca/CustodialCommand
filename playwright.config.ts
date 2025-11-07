@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const baseURL = process.env.TEST_URL || 'https://cacustodialcommand.up.railway.app';
 
 export default defineConfig({
-  testDir: './ui-tests',
+  testDir: './tests',
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,

@@ -1,4 +1,5 @@
 // Full-featured server with all API routes
+require('dotenv').config();
 const express = require('express');
 const { drizzle } = require('drizzle-orm/neon-http');
 const { neon } = require('@neondatabase/serverless');
@@ -32,7 +33,7 @@ const persistentStorage = new RailwayPersistentStorage();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "5000", 10);
-const HOST = "0.0.0.0";
+const HOST = "127.0.0.1";
 
 // Trust proxy for Railway deployment (fixes rate limiting warnings)
 app.set('trust proxy', 1);
@@ -210,8 +211,8 @@ const strictLimiter = rateLimit({
 });
 
 // Apply rate limiting
-app.use('/api/', limiter);
 app.use('/api/admin/', strictLimiter);
+// Note: /api/ routes use more lenient limiter for testing
 
 // Basic middleware
 app.use(express.json({ limit: "10mb" }));
@@ -278,6 +279,28 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     database: 'connected'
   });
+});
+
+// API Health check endpoint with better error handling
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await sql`SELECT 1`;
+    
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  } catch (error) {
+    console.error('[HEALTH] Database connection test failed:', error);
+    res.status(503).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      database: 'error',
+      error: error.message || 'Database connection failed'
+    });
+  }
 });
 
 // Basic API endpoint
@@ -1113,6 +1136,52 @@ app.delete('/api/admin/inspections/:id', validateAdminSession, async (req, res) 
   } catch (error) {
     console.error('Error deleting admin inspection', { error });
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+// Delete endpoint for regular inspections (non-admin)
+app.delete('/api/inspections/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    console.log(`[DELETE] Request received for inspection ID: ${id}`);
+    console.log(`[DELETE] Request params:`, req.params);
+    console.log(`[DELETE] Request URL: ${req.method} ${req.url}`);
+    
+    if (isNaN(id)) {
+      console.log(`[DELETE] Invalid inspection ID: ${req.params.id}`);
+      return res.status(400).json({ error: 'Invalid inspection ID' });
+    }
+    
+    // Check if inspection exists before attempting deletion
+    console.log(`[DELETE] Checking if inspection ${id} exists...`);
+    const existsResult = await sql`
+      SELECT id FROM inspections WHERE id = ${id}
+    `;
+    
+    console.log(`[DELETE] Exists check result:`, existsResult);
+    
+    if (existsResult.length === 0) {
+      console.log(`[DELETE] Inspection ${id} not found in database`);
+      return res.status(404).json({ error: 'Inspection not found' });
+    }
+    
+    console.log(`[DELETE] Proceeding with deletion of inspection ${id}...`);
+    const result = await sql`
+      DELETE FROM inspections WHERE id = ${id} RETURNING id
+    `;
+    
+    console.log(`[DELETE] Delete operation result:`, result);
+    
+    if (result.length > 0) {
+      console.log(`[DELETE] Successfully deleted inspection ${id}`);
+      res.json({ message: 'Inspection deleted successfully' });
+    } else {
+      console.log(`[DELETE] Delete operation failed for inspection ${id}`);
+      res.status(404).json({ error: 'Inspection not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting inspection:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

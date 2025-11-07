@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-18T00:57:23.934Z",
+  "timestamp": "2025-10-28T17:27:18.697Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
@@ -10,32 +10,32 @@
   "vulnerabilities": [
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
@@ -164,8 +164,8 @@
       "severity": "high"
     },
     {
-      "testName": "Security Header - X-XSS-Protection",
-      "details": "Missing or incorrect: 0",
+      "testName": "Security Header - X-Frame-Options",
+      "details": "Missing or incorrect: not set",
       "severity": "medium"
     },
     {
@@ -198,37 +198,37 @@
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
       "passed": false,
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
       "passed": false,
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
       "passed": false,
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
       "passed": false,
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
       "passed": false,
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
       "passed": false,
-      "details": "Status: 429, Response: \"Too many requests from this IP, please try again later.\"",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
       "severity": "high"
     },
     {
@@ -407,14 +407,14 @@
     },
     {
       "testName": "Security Header - X-Frame-Options",
-      "passed": true,
-      "details": "Present: SAMEORIGIN",
+      "passed": false,
+      "details": "Missing or incorrect: not set",
       "severity": "medium"
     },
     {
       "testName": "Security Header - X-XSS-Protection",
-      "passed": false,
-      "details": "Missing or incorrect: 0",
+      "passed": true,
+      "details": "Present: 1; mode=block",
       "severity": "medium"
     },
     {
@@ -426,7 +426,7 @@
     {
       "testName": "Security Header - Content-Security-Policy",
       "passed": true,
-      "details": "Present: default-src 'self';style-src 'self' 'unsafe-inline';script-src 'self';img-src 'self' data: https:;base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';object-src 'none';script-src-attr 'none';upgrade-insecure-requests",
+      "details": "Present: frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app",
       "severity": "medium"
     },
     {

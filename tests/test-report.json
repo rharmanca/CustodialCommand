@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-10-28T17:50:39.751Z",
+  "baseUrl": "http://localhost:5000",
+  "duration": 4220,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "successRate": 100
+  },
+  "results": [
+    {
+      "testName": "API Health Check",
+      "passed": true,
+      "details": "Status: ok"
+    },
+    {
+      "testName": "Create Inspection",
+      "passed": true,
+      "details": "Created ID: 330"
+    },
+    {
+      "testName": "Get Inspection",
+      "passed": true,
+      "details": "Retrieved ID: 331"
+    },
+    {
+      "testName": "Update Inspection",
+      "passed": true,
+      "details": "Updated ID: 332"
+    },
+    {
+      "testName": "Delete Inspection",
+      "passed": true,
+      "details": "Deleted ID: 333"
+    },
+    {
+      "testName": "List Inspections",
+      "passed": true,
+      "details": "Found 227 inspections"
+    }
+  ]
+}
