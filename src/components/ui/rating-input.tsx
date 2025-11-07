@@ -97,6 +97,9 @@ const getRatingDescription = (rating: number): string => {
       return 'Orderly Spotlessness';
     default:
       return '';
+  }
+}
+
 interface StarButtonProps {
   rating: number;
   currentValue: number;
@@ -186,8 +189,6 @@ const StarButton: React.FC<StarButtonProps> = memo(({
 });
 
 StarButton.displayName = 'StarButton';
-  }
-};
 
 RatingInput.displayName = 'RatingInput';
 
