@@ -324,12 +324,12 @@ if (process.env.REPL_SLUG) {
     await registerRoutes(app);
     logger.info("Routes registered successfully");
 
-    // Enhanced error handling middleware (must be before static serving)
-    app.use(performanceErrorHandler);
-
-    // Use static file serving (frontend is already built) - MUST be last
+    // Use static file serving (frontend is already built) - MUST be before error handler
     serveStatic(app);
     logger.info("Static file serving configured");
+
+    // Enhanced error handling middleware (must be last)
+    app.use(performanceErrorHandler);
 
     const server = createServer(app);
     logger.info("HTTP server created");
