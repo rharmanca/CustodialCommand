@@ -6,6 +6,7 @@ import { Request, Response, NextFunction } from "express";
 import { randomBytes } from "crypto";
 import { storage } from "./storage";
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema, insertMonthlyFeedbackSchema } from "../shared/schema";
+import { PasswordManager, SessionManager } from "./security";
 import { z } from "zod";
 import multer from "multer";
 import { logger } from "./logger";
@@ -844,18 +845,29 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
 
-      if (username === adminUsername && password === adminPassword) {
+      // Secure password verification using bcrypt
+      const hashedPassword = process.env.ADMIN_PASSWORD_HASH;
+
+      if (!hashedPassword) {
+        logger.error('ADMIN_PASSWORD_HASH environment variable not set - please run password setup');
+        return res.status(500).json({
+          success: false,
+          message: 'Server configuration error - password not properly hashed'
+        });
+      }
+
+      const isValidPassword = await PasswordManager.verifyPassword(password, hashedPassword);
+
+      if (username === adminUsername && isValidPassword) {
         // Generate a cryptographically secure session token
         const sessionToken = 'admin_' + randomBytes(32).toString('hex');
 
-        // Store session (in production, use Redis or database)
-        if (!global.adminSessions) {
-          global.adminSessions = new Map();
-        }
-        global.adminSessions.set(sessionToken, {
+        // Store session securely using Redis or fallback to memory
+        await SessionManager.setSession(sessionToken, {
           username,
-          createdAt: new Date(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+          loginTime: new Date().toISOString(),
+          userAgent: req.headers['user-agent'],
+          ip: req.ip || req.connection.remoteAddress
         });
 
         logger.info('Admin login successful', { username });
@@ -892,27 +904,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
     }
 
-    if (!global.adminSessions) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'No active sessions' 
-      });
-    }
+    // Use secure session management
+    const session = await SessionManager.getSession(sessionToken);
 
-    const session = global.adminSessions.get(sessionToken);
-    
     if (!session) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid session token' 
-      });
-    }
-
-    if (new Date() > session.expiresAt) {
-      global.adminSessions.delete(sessionToken);
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Session expired' 
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid session token'
       });
     }
 

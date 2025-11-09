@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
+import bcrypt from 'bcrypt';
+import { createClient, RedisClientType } from 'redis';
+import { logger } from './logger';
 
 // Rate limiting middleware
 export const createRateLimit = (windowMs: number, max: number) => {
@@ -100,6 +103,407 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
     next();
   }
 };
+
+// Redis client for secure session and cache storage
+let redisClient: RedisClientType | null = null;
+
+// Initialize Redis connection
+export async function initializeRedis(): Promise<void> {
+  try {
+    if (!process.env.REDIS_URL) {
+      logger.warn('REDIS_URL not configured, falling back to memory storage (NOT RECOMMENDED FOR PRODUCTION)');
+      return;
+    }
+
+    redisClient = createClient({
+      url: process.env.REDIS_URL,
+      socket: {
+        connectTimeout: 5000,
+        lazyConnect: true
+      }
+    });
+
+    redisClient.on('error', (err) => {
+      logger.error('Redis Client Error', { error: err.message });
+      redisClient = null; // Fallback to memory storage
+    });
+
+    redisClient.on('connect', () => {
+      logger.info('Redis client connected successfully');
+    });
+
+    await redisClient.connect();
+    logger.info('Redis initialized successfully');
+  } catch (error) {
+    logger.error('Failed to initialize Redis', { error: error instanceof Error ? error.message : 'Unknown error' });
+    redisClient = null;
+  }
+}
+
+// Password hashing utilities
+export class PasswordManager {
+  private static readonly SALT_ROUNDS = 12;
+
+  /**
+   * Hash a password using bcrypt
+   */
+  static async hashPassword(password: string): Promise<string> {
+    try {
+      const salt = await bcrypt.genSalt(this.SALT_ROUNDS);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      logger.debug('Password hashed successfully');
+      return hashedPassword;
+    } catch (error) {
+      logger.error('Failed to hash password', { error: error instanceof Error ? error.message : 'Unknown error' });
+      throw new Error('Password hashing failed');
+    }
+  }
+
+  /**
+   * Verify a password against its hash
+   */
+  static async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+    try {
+      const isValid = await bcrypt.compare(password, hashedPassword);
+      logger.debug('Password verification completed', { isValid });
+      return isValid;
+    } catch (error) {
+      logger.error('Failed to verify password', { error: error instanceof Error ? error.message : 'Unknown error' });
+      return false;
+    }
+  }
+
+  /**
+   * Generate a secure random password
+   */
+  static generateSecurePassword(length: number = 16): string {
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    return password;
+  }
+}
+
+// Secure session management
+export class SessionManager {
+  private static readonly SESSION_PREFIX = 'admin_session:';
+  private static readonly CACHE_PREFIX = 'app_cache:';
+  private static readonly DEFAULT_TTL = 24 * 60 * 60; // 24 hours in seconds
+
+  /**
+   * Store session data securely
+   */
+  static async setSession(sessionToken: string, sessionData: any, ttl: number = this.DEFAULT_TTL): Promise<void> {
+    try {
+      const key = this.SESSION_PREFIX + sessionToken;
+      const value = JSON.stringify({
+        ...sessionData,
+        createdAt: new Date().toISOString(),
+        lastAccessed: new Date().toISOString()
+      });
+
+      if (redisClient) {
+        await redisClient.setEx(key, ttl, value);
+        logger.debug('Session stored in Redis', { sessionToken, ttl });
+      } else {
+        // Fallback to memory storage with expiration
+        if (!global.adminSessions) {
+          global.adminSessions = new Map();
+        }
+        const expiresAt = new Date(Date.now() + ttl * 1000);
+        (global.adminSessions as Map<string, any>).set(sessionToken, {
+          ...sessionData,
+          expiresAt
+        });
+        logger.warn('Session stored in memory (NOT SECURE FOR PRODUCTION)', { sessionToken });
+      }
+    } catch (error) {
+      logger.error('Failed to store session', { error: error instanceof Error ? error.message : 'Unknown error' });
+      throw new Error('Session storage failed');
+    }
+  }
+
+  /**
+   * Retrieve session data
+   */
+  static async getSession(sessionToken: string): Promise<any | null> {
+    try {
+      const key = this.SESSION_PREFIX + sessionToken;
+
+      if (redisClient) {
+        const value = await redisClient.get(key);
+        if (!value) {
+          logger.debug('Session not found in Redis', { sessionToken });
+          return null;
+        }
+
+        const sessionData = JSON.parse(value);
+
+        // Update last accessed time
+        sessionData.lastAccessed = new Date().toISOString();
+        await redisClient.setEx(key, this.DEFAULT_TTL, JSON.stringify(sessionData));
+
+        logger.debug('Session retrieved from Redis', { sessionToken });
+        return sessionData;
+      } else {
+        // Fallback to memory storage
+        if (!global.adminSessions) {
+          return null;
+        }
+
+        const sessionData = (global.adminSessions as Map<string, any>).get(sessionToken);
+        if (!sessionData) {
+          return null;
+        }
+
+        // Check expiration
+        if (sessionData.expiresAt && new Date() > sessionData.expiresAt) {
+          (global.adminSessions as Map<string, any>).delete(sessionToken);
+          return null;
+        }
+
+        // Update last accessed time
+        sessionData.lastAccessed = new Date().toISOString();
+
+        logger.debug('Session retrieved from memory', { sessionToken });
+        return sessionData;
+      }
+    } catch (error) {
+      logger.error('Failed to retrieve session', { error: error instanceof Error ? error.message : 'Unknown error' });
+      return null;
+    }
+  }
+
+  /**
+   * Delete a session
+   */
+  static async deleteSession(sessionToken: string): Promise<void> {
+    try {
+      const key = this.SESSION_PREFIX + sessionToken;
+
+      if (redisClient) {
+        await redisClient.del(key);
+        logger.debug('Session deleted from Redis', { sessionToken });
+      } else {
+        // Fallback to memory storage
+        if (global.adminSessions) {
+          (global.adminSessions as Map<string, any>).delete(sessionToken);
+          logger.debug('Session deleted from memory', { sessionToken });
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to delete session', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+
+  /**
+   * Clean up expired sessions
+   */
+  static async cleanupExpiredSessions(): Promise<void> {
+    try {
+      if (redisClient) {
+        // Redis automatically handles TTL expiration
+        logger.debug('Redis handles automatic session expiration');
+        return;
+      }
+
+      // Clean up memory sessions
+      if (!global.adminSessions) {
+        return;
+      }
+
+      const sessions = global.adminSessions as Map<string, any>;
+      const now = new Date();
+      let cleanedCount = 0;
+
+      for (const [token, sessionData] of sessions.entries()) {
+        if (sessionData.expiresAt && now > sessionData.expiresAt) {
+          sessions.delete(token);
+          cleanedCount++;
+        }
+      }
+
+      if (cleanedCount > 0) {
+        logger.info('Cleaned up expired memory sessions', { count: cleanedCount });
+      }
+    } catch (error) {
+      logger.error('Failed to cleanup expired sessions', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+}
+
+// Secure cache management (replacing in-memory Map)
+export class CacheManager {
+  private static readonly DEFAULT_TTL = 5 * 60; // 5 minutes in seconds
+
+  /**
+   * Set cache value
+   */
+  static async set(key: string, value: any, ttl: number = this.DEFAULT_TTL): Promise<void> {
+    try {
+      const cacheKey = SessionManager.CACHE_PREFIX + key;
+      const serializedValue = JSON.stringify(value);
+
+      if (redisClient) {
+        await redisClient.setEx(cacheKey, ttl, serializedValue);
+        logger.debug('Cache stored in Redis', { key, ttl });
+      } else {
+        // Fallback to memory storage
+        if (!global.appCache) {
+          global.appCache = new Map();
+        }
+
+        const cache = global.appCache as Map<string, { data: any; expiresAt: Date }>;
+        const expiresAt = new Date(Date.now() + ttl * 1000);
+        cache.set(key, { data: value, expiresAt });
+
+        // Implement LRU eviction if cache gets too large
+        if (cache.size > 100) {
+          const oldestKey = cache.keys().next().value;
+          cache.delete(oldestKey);
+        }
+
+        logger.debug('Cache stored in memory', { key, ttl });
+      }
+    } catch (error) {
+      logger.error('Failed to set cache', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+
+  /**
+   * Get cache value
+   */
+  static async get(key: string): Promise<any | null> {
+    try {
+      const cacheKey = SessionManager.CACHE_PREFIX + key;
+
+      if (redisClient) {
+        const value = await redisClient.get(cacheKey);
+        if (!value) {
+          return null;
+        }
+
+        const parsedValue = JSON.parse(value);
+        logger.debug('Cache hit in Redis', { key });
+        return parsedValue;
+      } else {
+        // Fallback to memory storage
+        if (!global.appCache) {
+          return null;
+        }
+
+        const cache = global.appCache as Map<string, { data: any; expiresAt: Date }>;
+        const cached = cache.get(key);
+
+        if (!cached) {
+          return null;
+        }
+
+        // Check expiration
+        if (new Date() > cached.expiresAt) {
+          cache.delete(key);
+          return null;
+        }
+
+        logger.debug('Cache hit in memory', { key });
+        return cached.data;
+      }
+    } catch (error) {
+      logger.error('Failed to get cache', { error: error instanceof Error ? error.message : 'Unknown error' });
+      return null;
+    }
+  }
+
+  /**
+   * Delete cache value
+   */
+  static async delete(key: string): Promise<void> {
+    try {
+      const cacheKey = SessionManager.CACHE_PREFIX + key;
+
+      if (redisClient) {
+        await redisClient.del(cacheKey);
+        logger.debug('Cache deleted from Redis', { key });
+      } else {
+        // Fallback to memory storage
+        if (global.appCache) {
+          (global.appCache as Map<string, any>).delete(key);
+          logger.debug('Cache deleted from memory', { key });
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to delete cache', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+
+  /**
+   * Clear cache by pattern
+   */
+  static async clearPattern(pattern: string): Promise<void> {
+    try {
+      if (redisClient) {
+        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + '*' + pattern + '*');
+        if (keys.length > 0) {
+          await redisClient.del(keys);
+          logger.info('Cleared cache pattern in Redis', { pattern, count: keys.length });
+        }
+      } else {
+        // Fallback to memory storage
+        if (!global.appCache) {
+          return;
+        }
+
+        const cache = global.appCache as Map<string, any>;
+        const keysToDelete = Array.from(cache.keys()).filter(key => key.includes(pattern));
+        let deletedCount = 0;
+
+        for (const key of keysToDelete) {
+          cache.delete(key);
+          deletedCount++;
+        }
+
+        if (deletedCount > 0) {
+          logger.info('Cleared cache pattern in memory', { pattern, count: deletedCount });
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to clear cache pattern', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  static async getStats(): Promise<{ size: number; type: string }> {
+    try {
+      if (redisClient) {
+        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + '*');
+        return { size: keys.length, type: 'Redis' };
+      } else {
+        const size = global.appCache ? (global.appCache as Map<string, any>).size : 0;
+        return { size, type: 'Memory (INSECURE)' };
+      }
+    } catch (error) {
+      logger.error('Failed to get cache stats', { error: error instanceof Error ? error.message : 'Unknown error' });
+      return { size: 0, type: 'Unknown' };
+    }
+  }
+}
+
+// Initialize Redis on module import
+initializeRedis().catch(() => {
+  logger.warn('Security module initialized without Redis (falling back to insecure memory storage)');
+});
+
+// Cleanup expired sessions every 10 minutes
+setInterval(() => {
+  SessionManager.cleanupExpiredSessions().catch(error => {
+    logger.error('Failed to cleanup expired sessions', { error });
+  });
+}, 10 * 60 * 1000);
 
 // Request validation middleware
 export const validateRequest = (req: Request, res: Response, next: NextFunction) => {

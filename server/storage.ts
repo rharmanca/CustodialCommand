@@ -3,6 +3,7 @@ import { inspections, custodialNotes, roomInspections, monthlyFeedback, inspecti
 import type { InsertInspection, InsertCustodialNote, InsertRoomInspection, InsertMonthlyFeedback, InsertInspectionPhoto, InsertSyncQueue } from '../shared/schema';
 import { eq, desc, and, gte, lte } from 'drizzle-orm';
 import { logger } from './logger';
+import { CacheManager } from './security';
 
 // Performance monitoring for storage operations
 const performanceMetrics = {
@@ -16,26 +17,28 @@ const performanceMetrics = {
 const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
-function getFromCache(key: string): any | null {
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < cached.ttl) {
-    performanceMetrics.cacheHits++;
-    return cached.data;
+async function getFromCache(key: string): Promise<any | null> {
+  try {
+    const cached = await CacheManager.get(key);
+    if (cached !== null) {
+      performanceMetrics.cacheHits++;
+      return cached;
+    }
+    performanceMetrics.cacheMisses++;
+    return null;
+  } catch (error) {
+    logger.error('Cache retrieval failed', { error, key });
+    performanceMetrics.cacheMisses++;
+    return null;
   }
-  if (cached) {
-    cache.delete(key); // Remove expired entry
-  }
-  performanceMetrics.cacheMisses++;
-  return null;
 }
 
-function setCache(key: string, data: any, ttl: number = DEFAULT_TTL): void {
-  // Implement LRU eviction if cache gets too large
-  if (cache.size > 100) {
-    const oldestKey = cache.keys().next().value;
-    cache.delete(oldestKey);
+async function setCache(key: string, data: any, ttl: number = DEFAULT_TTL): Promise<void> {
+  try {
+    await CacheManager.set(key, data, ttl / 1000); // Convert ms to seconds for Redis
+  } catch (error) {
+    logger.error('Cache storage failed', { error, key });
   }
-  cache.set(key, { data, timestamp: Date.now(), ttl });
 }
 
 // Query performance wrapper
@@ -51,7 +54,7 @@ async function executeQuery<T>(
   try {
     // Check cache first if cache key provided
     if (cacheKey) {
-      const cached = getFromCache(cacheKey);
+      const cached = await getFromCache(cacheKey);
       if (cached !== null) {
         logger.debug('Cache hit for operation', { operation, cacheKey });
         return cached;
@@ -73,7 +76,7 @@ async function executeQuery<T>(
 
     // Cache result if cache key provided
     if (cacheKey && result) {
-      setCache(cacheKey, result, ttl);
+      await setCache(cacheKey, result, ttl);
     }
 
     logger.debug('Query completed', {
@@ -102,7 +105,7 @@ export const storage = {
       logger.info('Created inspection:', { id: result.id });
 
       // Invalidate relevant cache entries
-      cache.delete('inspections:all');
+      await CacheManager.clearPattern('inspections:all');
 
       return result;
     });
@@ -155,8 +158,8 @@ export const storage = {
       logger.info('Updated inspection:', { id });
 
       // Invalidate relevant cache entries
-      cache.delete(`inspection:${id}`);
-      cache.delete('inspections:all');
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern('inspections:all');
 
       return result;
     });
@@ -168,8 +171,8 @@ export const storage = {
       logger.info('Deleted inspection:', { id });
 
       // Invalidate relevant cache entries
-      cache.delete(`inspection:${id}`);
-      cache.delete('inspections:all');
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern('inspections:all');
 
       return true;
     });
@@ -182,7 +185,7 @@ export const storage = {
       logger.info('Created custodial note:', { id: result.id });
 
       // Invalidate relevant cache entries
-      cache.delete('custodialNotes:all');
+      await CacheManager.delete('custodialNotes:all');
 
       return result;
     });
@@ -227,7 +230,7 @@ export const storage = {
 
       // Invalidate relevant cache entries
       cache.delete(`custodialNote:${id}`);
-      cache.delete('custodialNotes:all');
+      await CacheManager.delete('custodialNotes:all');
 
       return true;
     });
@@ -240,7 +243,7 @@ export const storage = {
       logger.info('Created room inspection:', { id: result.id });
 
       // Invalidate relevant cache entries
-      cache.delete('roomInspections:all');
+      await CacheManager.delete('roomInspections:all');
 
       return result;
     });
@@ -298,7 +301,7 @@ export const storage = {
       // Invalidate relevant cache entries
       cache.delete(`roomInspection:${roomId}`);
       cache.delete(`roomInspections:all:${buildingInspectionId}`);
-      cache.delete('roomInspections:all:all');
+      await CacheManager.delete('roomInspections:all:all');
 
       return result;
     });
@@ -311,7 +314,7 @@ export const storage = {
       logger.info('Created monthly feedback:', { id: result.id, school: result.school });
 
       // Invalidate relevant cache entries
-      cache.delete('monthlyFeedback:all');
+      await CacheManager.delete('monthlyFeedback:all');
 
       return result;
     });
@@ -357,7 +360,7 @@ export const storage = {
 
       // Invalidate relevant cache entries
       cache.delete(`monthlyFeedback:${id}`);
-      cache.delete('monthlyFeedback:all');
+      await CacheManager.delete('monthlyFeedback:all');
 
       return true;
     });
@@ -373,7 +376,7 @@ export const storage = {
 
       // Invalidate relevant cache entries
       cache.delete(`monthlyFeedback:${id}`);
-      cache.delete('monthlyFeedback:all');
+      await CacheManager.delete('monthlyFeedback:all');
 
       return result;
     });
@@ -398,15 +401,17 @@ export const storage = {
     };
   },
 
-  clearCache(pattern?: string) {
-    if (pattern) {
-      const keysToDelete = Array.from(cache.keys()).filter(key => key.includes(pattern));
-      keysToDelete.forEach(key => cache.delete(key));
-      logger.info('Cleared cache entries matching pattern', { pattern, deletedCount: keysToDelete.length });
-    } else {
-      const size = cache.size;
-      cache.clear();
-      logger.info('Cleared entire cache', { deletedCount: size });
+  async clearCache(pattern?: string) {
+    try {
+      if (pattern) {
+        await CacheManager.clearPattern(pattern);
+        logger.info('Cleared cache entries matching pattern', { pattern });
+      } else {
+        // Clear all cache - this would require implementation in CacheManager
+        logger.warn('Full cache clearing not implemented with Redis - use pattern-based clearing');
+      }
+    } catch (error) {
+      logger.error('Failed to clear cache', { error, pattern });
     }
   },
 
