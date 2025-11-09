@@ -513,10 +513,30 @@ export default function CustodialNotesPage({
         formDataToSend.append("images", image);
       });
 
-      const response = await fetch("/api/custodial-notes", {
+      // Ensure proper content-type handling for FormData
+      // Some environments may not handle FormData correctly with fetch
+      const fetchOptions: RequestInit = {
         method: "POST",
         body: formDataToSend,
-      });
+        // Don't set Content-Type header when using FormData - browser will set it automatically with boundary
+        headers: {}
+      };
+
+      // Add user agent for debugging (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        fetchOptions.headers = {
+          ...fetchOptions.headers,
+          'X-Debug-Info': JSON.stringify({
+            userAgent: navigator.userAgent,
+            formDataEntries: Array.from(formDataToSend.entries()).map(([key, value]) => [
+              key,
+              typeof value === 'string' ? value.substring(0, 50) + (value.length > 50 ? '...' : '') : `File(${value instanceof File ? value.name : 'unknown'})`
+            ])
+          })
+        };
+      }
+
+      const response = await fetch("/api/custodial-notes", fetchOptions);
 
       if (response.ok) {
         // Show success animation
@@ -579,23 +599,82 @@ export default function CustodialNotesPage({
       } else {
         const errorData = await response
           .json()
-          .catch(() => ({ message: "Unknown error" }));
+          .catch(() => ({
+            success: false,
+            message: "Unknown error occurred",
+            details: "Unable to parse server response"
+          }));
+
+        // Enhanced error handling with specific user guidance
+        let errorMessage = errorData.message || "Unable to submit custodial note. Please try again.";
+        let errorDetails = "";
+
+        if (errorData.success === false && errorData.details) {
+          if (Array.isArray(errorData.details)) {
+            // Validation errors - show specific field issues
+            const fieldErrors = errorData.details.map((err: any) =>
+              `${err.field}: ${err.message}`
+            ).join(', ');
+            errorDetails = `Please check: ${fieldErrors}`;
+          } else if (typeof errorData.details === 'object') {
+            // Missing fields - show what's required
+            const missingFields = Object.entries(errorData.details)
+              .filter(([_, value]) => value === '✗ required')
+              .map(([field]) => field.replace(/([A-Z])/g, ' $1').trim())
+              .join(', ');
+            errorDetails = `Required: ${missingFields}`;
+          } else {
+            errorDetails = errorData.details;
+          }
+        }
+
+        // Special handling for FormData issues
+        if (errorData.technical === 'FormData parsing failed' ||
+            errorData.message?.includes('form data is malformed')) {
+          errorMessage = "Form submission error";
+          errorDetails = "Please refresh the page and try submitting again. If the problem persists, contact support.";
+        }
+
         toast({
           variant: "destructive",
-          title: "Submission Failed",
-          description: `Error: ${errorData.message || "Unable to submit custodial note. Please try again."}`,
-          duration: 7000,
+          title: "❌ Submission Failed",
+          description: `${errorMessage}${errorDetails ? `\n\n${errorDetails}` : ''}`,
+          duration: 8000,
         });
         setIsActuallySubmitting(false);
+
+        // Log detailed error for debugging (in development)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Form submission error details:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData,
+            formDataFields: Object.keys(formDataToConfirm || {})
+          });
+        }
       }
     } catch (error) {
       console.error("Error submitting custodial note:", error);
+
+      // Enhanced network error handling
+      let errorMessage = "Network Error";
+      let errorDetails = "Unable to connect to the server. Please check your connection and try again.";
+
+      if (error instanceof TypeError) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = "Connection Failed";
+          errorDetails = "Unable to reach the server. Please check:\n• Internet connection\n• Server is running\n• No firewall blocking the request";
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = "Network Error";
+          errorDetails = "A network error occurred. Please try again.";
+        }
+      }
+
       toast({
         variant: "destructive",
-        title: "Network Error",
-        description:
-          "Unable to connect to the server. Please check your connection and try again.",
-        duration: 7000,
+        title: `❌ ${errorMessage}`,
+        description: errorDetails,
+        duration: 8000,
       });
       setIsActuallySubmitting(false);
     }

@@ -1528,8 +1528,85 @@ textarea:focus,
   a:not([class]) {
     @apply underline decoration-2 underline-offset-2;
     text-decoration-color: hsl(var(--primary) / 0.6);
+  }
+
+  /* WCAG AA compliant color improvements */
+  .wcag-compliant {
+    /* Ensure text meets 4.5:1 contrast ratio */
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+  }
+
+  .wcag-compliant-text {
+    /* Enhanced text contrast for better readability */
+    color: hsl(var(--foreground));
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  }
+
+  .wcag-compliant-button {
+    /* Ensure button text meets contrast requirements */
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 2px solid hsl(var(--primary));
+
+    /* Enhanced focus states */
+    &:focus-visible {
+      outline: 3px solid hsl(var(--primary) / 0.5);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2);
     }
   }
+
+  .wcag-compliant-error {
+    /* Error text with sufficient contrast */
+    color: hsl(0 84% 40%); /* Darker red for better contrast */
+    background-color: hsl(0 84% 97%); /* Light red background */
+    border: 2px solid hsl(0 84% 70%);
+  }
+
+  .wcag-compliant-success {
+    /* Success text with sufficient contrast */
+    color: hsl(142 76% 25%); /* Darker green for better contrast */
+    background-color: hsl(142 76% 97%); /* Light green background */
+    border: 2px solid hsl(142 76% 60%);
+  }
+
+  .wcag-compliant-warning {
+    /* Warning text with sufficient contrast */
+    color: hsl(38 92% 35%); /* Darker amber for better contrast */
+    background-color: hsl(38 92% 97%); /* Light amber background */
+    border: 2px solid hsl(38 92% 70%);
+  }
+
+  /* Enhanced interactive elements */
+  .wcag-focus-indicator {
+    &:focus-visible {
+      outline: 3px solid hsl(var(--primary));
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px hsl(var(--background)), 0 0 0 6px hsl(var(--primary));
+    }
+  }
+
+  /* Skip links enhanced visibility */
+  .wcag-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 2px solid hsl(var(--primary-foreground));
+    font-weight: 600;
+    z-index: 1000;
+    transition: top 0.3s;
+
+    &:focus {
+      top: 6px;
+    }
+  }
+}
 
 /* Cognitive Accessibility Enhancements */
 @layer cognitive {

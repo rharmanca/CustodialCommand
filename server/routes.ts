@@ -190,20 +190,61 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Custodial Notes routes - now supports file uploads
   app.post("/api/custodial-notes", upload.array('images'), async (req, res) => {
     logger.info('[POST] Custodial Notes submission started', {
-      body: req.body,
+      headers: req.headers,
+      contentType: req.headers['content-type'],
       files: req.files ? req.files.length : 0
     });
 
+    // Explicit content type validation - ensure multipart/form-data
+    const contentType = req.headers['content-type'];
+    if (!contentType || !contentType.includes('multipart/form-data')) {
+      logger.warn('[POST] Invalid content type for multipart endpoint', {
+        contentType,
+        userAgent: req.headers['user-agent']
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content type',
+        details: 'This endpoint requires multipart/form-data. Please use the form to submit data.',
+        technical: 'Expected multipart/form-data, got ' + (contentType || 'none')
+      });
+    }
+
     try {
       const { inspectorName, school, date, locationDescription, location, notes } = req.body;
-      const files = req.files as Express.Multer.File[];
+      const files = Array.isArray(req.files) ? req.files as Express.Multer.File[] : [];
+
+      logger.info('[POST] Parsed form data', {
+        inspectorName,
+        school,
+        date,
+        location,
+        locationDescription,
+        notes: notes ? `${notes.substring(0, 50)}...` : 'none',
+        fileCount: files.length
+      });
 
       // Validate required fields
       if (!inspectorName || !school || !date || !location) {
-        logger.warn('[POST] Missing required fields', { inspectorName, school, date, location });
+        logger.warn('[POST] Missing required fields', {
+          received: { inspectorName, school, date, location },
+          validation: {
+            inspectorName: !!inspectorName,
+            school: !!school,
+            date: !!date,
+            location: !!location
+          }
+        });
         return res.status(400).json({
+          success: false,
           message: 'Missing required fields',
-          details: { inspectorName: !!inspectorName, school: !!school, date: !!date, location: !!location }
+          details: {
+            inspectorName: !!inspectorName ? '✓' : '✗ required',
+            school: !!school ? '✓' : '✗ required',
+            date: !!date ? '✓' : '✗ required',
+            location: !!location ? '✓' : '✗ required'
+          },
+          receivedFields: { inspectorName, school, date, location }
         });
       }
 
@@ -256,6 +297,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       logger.info('[POST] Custodial note created successfully', { id: custodialNoteResult.id });
 
       res.status(201).json({
+        success: true,
         message: 'Custodial note submitted successfully',
         id: custodialNoteResult.id,
         imageCount: imageUrls.length
@@ -263,8 +305,136 @@ export async function registerRoutes(app: Express): Promise<void> {
 
     } catch (error) {
       logger.error('[POST] Error creating custodial note:', error);
-      res.status(500).json({ message: 'Internal server error' });
+
+      // Handle multer/busboy specific errors
+      if (error && error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'File size too large',
+          details: 'Maximum file size is 5MB per image'
+        });
+      }
+
+      if (error && error.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({
+          success: false,
+          message: 'Too many files',
+          details: 'Maximum 5 images allowed'
+        });
+      }
+
+      if (error && error.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid file field',
+          details: 'Only image files are allowed'
+        });
+      }
+
+      // Handle Zod validation errors
+      if (error instanceof z.ZodError) {
+        logger.warn('[POST] Validation failed', { errors: error.errors });
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid form data',
+          details: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+
+      // Handle multer parsing errors
+      if (error && error.message && error.message.includes('Unexpected end of form')) {
+        logger.error('[POST] FormData parsing error - likely malformed request', error);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid form data format',
+          details: 'The form data was not properly formatted. Please try again.',
+          technical: 'FormData parsing failed'
+        });
+      }
+
+      // Generic error
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ?
+          (error instanceof Error ? error.message : 'Unknown error') :
+          'Please try again or contact support'
+      });
     }
+  });
+
+  // Add multer error handling middleware for the custodial notes route
+  app.use('/api/custodial-notes', (err: any, req: Request, res: Response, next: NextFunction) => {
+    logger.error('[POST] Multipart error in custodial notes:', err);
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'File size too large',
+          details: 'Maximum file size is 5MB per image'
+        });
+      }
+
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({
+          success: false,
+          message: 'Too many files',
+          details: 'Maximum 5 images allowed'
+        });
+      }
+
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid file field',
+          details: 'Only image files are allowed'
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: 'File upload error',
+        details: err.message
+      });
+    }
+
+    // Handle various multipart parsing errors
+    if (err && err.message) {
+      if (err.message.includes('Unexpected end of form') ||
+          err.message.includes('Multipart: Boundary not found') ||
+          err.message.includes('Malformed part header')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Form data is malformed',
+          details: 'The request format was invalid. Please try submitting the form again.',
+          technical: 'FormData parsing failed'
+        });
+      }
+
+      // Handle JSON sent to multipart endpoint
+      if (err.message.includes('Unexpected field') ||
+          err.message.includes('Error: Multipart') ||
+          req.headers['content-type']?.includes('application/json')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid content type',
+          details: 'This endpoint requires multipart/form-data. Please use the form to submit data.',
+          technical: 'Wrong content type for multipart endpoint'
+        });
+      }
+    }
+
+    // Generic multipart error
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid request format',
+      details: 'The request could not be processed. Please ensure you are submitting the form correctly.',
+      technical: 'Multipart processing error'
+    });
   });
 
   app.get("/api/custodial-notes", async (req: any, res: any) => {
@@ -1112,6 +1282,355 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Photo upload endpoint for mobile photo capture
+  app.post('/api/photos/upload', upload.single('photo'), async (req, res) => {
+    logger.info('[POST] Photo upload started', {
+      contentType: req.get('Content-Type'),
+      hasFile: !!req.file,
+      metadata: req.body.metadata,
+      hasLocation: !!req.body.location,
+      inspectionId: req.body.inspectionId
+    });
+
+    try {
+      // Validate required file
+      if (!req.file) {
+        logger.warn('[POST] No photo file provided');
+        return res.status(400).json({
+          success: false,
+          message: 'Photo file is required'
+        });
+      }
+
+      // Validate metadata
+      let metadata;
+      try {
+        metadata = JSON.parse(req.body.metadata || '{}');
+
+        // Validate required metadata fields
+        if (!metadata.width || !metadata.height || !metadata.fileSize) {
+          logger.warn('[POST] Missing required metadata fields', { metadata });
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid metadata: missing required fields (width, height, fileSize)'
+          });
+        }
+
+        // Validate metadata values
+        if (metadata.width <= 0 || metadata.height <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid image dimensions'
+          });
+        }
+
+        if (metadata.fileSize <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid file size'
+          });
+        }
+
+      } catch (parseError) {
+        logger.warn('[POST] Invalid metadata format', { error: parseError, metadata: req.body.metadata });
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid metadata format'
+        });
+      }
+
+      // Validate location data if provided
+      let locationData;
+      try {
+        locationData = req.body.location ? JSON.parse(req.body.location) : null;
+
+        if (locationData) {
+          // Validate location data structure
+          if (typeof locationData.latitude !== 'number' ||
+              typeof locationData.longitude !== 'number' ||
+              locationData.latitude < -90 || locationData.latitude > 90 ||
+              locationData.longitude < -180 || locationData.longitude > 180) {
+            return res.status(400).json({
+              success: false,
+              message: 'Invalid location coordinates'
+            });
+          }
+
+          if (locationData.accuracy && (typeof locationData.accuracy !== 'number' || locationData.accuracy < 0)) {
+            return res.status(400).json({
+              success: false,
+              message: 'Invalid location accuracy'
+            });
+          }
+        }
+      } catch (locationError) {
+        logger.warn('[POST] Invalid location data format', { error: locationError, location: req.body.location });
+        // Don't fail the request for invalid location data, just log it
+        locationData = null;
+      }
+
+      // Validate inspection ID if provided
+      let inspectionId;
+      if (req.body.inspectionId) {
+        try {
+          inspectionId = parseInt(req.body.inspectionId, 10);
+          if (isNaN(inspectionId) || inspectionId <= 0) {
+            return res.status(400).json({
+              success: false,
+              message: 'Invalid inspection ID'
+            });
+          }
+
+          // Verify inspection exists
+          const inspection = await storage.getInspection(inspectionId);
+          if (!inspection) {
+            return res.status(404).json({
+              success: false,
+              message: 'Inspection not found'
+            });
+          }
+        } catch (inspectionError) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid inspection ID format'
+          });
+        }
+      }
+
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomId = Math.round(Math.random() * 1E9);
+      const filename = `photos/${timestamp}-${randomId}-${req.file.originalname}`;
+
+      logger.info('[POST] Uploading photo to object storage', {
+        filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+
+      // Upload to object storage
+      const uploadResult = await objectStorageService.uploadLargeFile(
+        req.file.buffer,
+        filename,
+        req.file.mimetype
+      );
+
+      if (!uploadResult.success) {
+        logger.error('[POST] Failed to upload photo to object storage', {
+          filename,
+          error: uploadResult.error
+        });
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload photo'
+        });
+      }
+
+      const photoUrl = `/objects/${filename}`;
+
+      // Save to database
+      const photoData = {
+        inspectionId: inspectionId || null,
+        photoUrl: photoUrl,
+        locationLat: locationData ? locationData.latitude.toString() : null,
+        locationLng: locationData ? locationData.longitude.toString() : null,
+        locationAccuracy: locationData && locationData.accuracy ? locationData.accuracy.toString() : null,
+        locationSource: locationData ? locationData.source || 'gps' : null,
+        buildingId: locationData?.buildingId || null,
+        floor: locationData?.floor || null,
+        room: locationData?.room || null,
+        capturedAt: metadata.capturedAt ? new Date(metadata.capturedAt) : new Date(),
+        notes: metadata.notes || null,
+        syncStatus: 'synced' as const,
+        fileSize: metadata.fileSize,
+        imageWidth: metadata.width,
+        imageHeight: metadata.height,
+        compressionRatio: metadata.compressionRatio || null,
+        deviceInfo: metadata.deviceInfo ? JSON.stringify(metadata.deviceInfo) : null
+      };
+
+      const savedPhoto = await storage.createInspectionPhoto(photoData);
+
+      logger.info('[POST] Photo uploaded and saved successfully', {
+        photoId: savedPhoto.id,
+        photoUrl,
+        inspectionId
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Photo uploaded successfully',
+        photo: {
+          id: savedPhoto.id,
+          url: photoUrl,
+          metadata: {
+            width: metadata.width,
+            height: metadata.height,
+            fileSize: metadata.fileSize,
+            capturedAt: metadata.capturedAt
+          },
+          location: locationData ? {
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            accuracy: locationData.accuracy,
+            source: locationData.source
+          } : null,
+          inspectionId: inspectionId || null
+        }
+      });
+
+    } catch (error) {
+      logger.error('[POST] Error uploading photo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during photo upload'
+      });
+    }
+  });
+
+  // Get photos for an inspection
+  app.get('/api/photos/:inspectionId', async (req, res) => {
+    try {
+      const inspectionId = parseInt(req.params.inspectionId, 10);
+
+      if (isNaN(inspectionId) || inspectionId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid inspection ID'
+        });
+      }
+
+      // Verify inspection exists
+      const inspection = await storage.getInspection(inspectionId);
+      if (!inspection) {
+        return res.status(404).json({
+          success: false,
+          message: 'Inspection not found'
+        });
+      }
+
+      // Get photos for this inspection
+      const photos = await storage.getInspectionPhotosByInspectionId(inspectionId);
+
+      res.json({
+        success: true,
+        inspectionId,
+        photos: photos.map(photo => ({
+          id: photo.id,
+          url: photo.photoUrl,
+          thumbnailUrl: photo.thumbnailUrl,
+          capturedAt: photo.capturedAt,
+          location: photo.locationLat && photo.locationLng ? {
+            latitude: parseFloat(photo.locationLat),
+            longitude: parseFloat(photo.locationLng),
+            accuracy: photo.locationAccuracy ? parseFloat(photo.locationAccuracy) : null,
+            source: photo.locationSource
+          } : null,
+          buildingId: photo.buildingId,
+          floor: photo.floor,
+          room: photo.room,
+          syncStatus: photo.syncStatus,
+          fileSize: photo.fileSize,
+          dimensions: photo.imageWidth && photo.imageHeight ? {
+            width: photo.imageWidth,
+            height: photo.imageHeight
+          } : null
+        }))
+      });
+
+    } catch (error) {
+      logger.error('[GET] Error fetching photos:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch photos'
+      });
+    }
+  });
+
+  // Delete a photo
+  app.delete('/api/photos/:photoId', async (req, res) => {
+    try {
+      const photoId = parseInt(req.params.photoId, 10);
+
+      if (isNaN(photoId) || photoId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid photo ID'
+        });
+      }
+
+      // Get photo details
+      const photo = await storage.getInspectionPhoto(photoId);
+      if (!photo) {
+        return res.status(404).json({
+          success: false,
+          message: 'Photo not found'
+        });
+      }
+
+      // Delete from object storage if it's a valid URL
+      if (photo.photoUrl && photo.photoUrl.startsWith('/objects/')) {
+        const filename = photo.photoUrl.replace('/objects/', '');
+        const deleteResult = await objectStorageService.deleteFile(filename);
+
+        if (!deleteResult.success) {
+          logger.warn('[DELETE] Failed to delete photo from object storage', {
+            filename,
+            error: deleteResult.error
+          });
+        }
+      }
+
+      // Delete from database
+      await storage.deleteInspectionPhoto(photoId);
+
+      logger.info('[DELETE] Photo deleted successfully', { photoId });
+
+      res.json({
+        success: true,
+        message: 'Photo deleted successfully'
+      });
+
+    } catch (error) {
+      logger.error('[DELETE] Error deleting photo:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete photo'
+      });
+    }
+  });
+
+  // Get sync status for photos
+  app.get('/api/photos/sync-status', async (req, res) => {
+    try {
+      // Get all photos with sync status
+      const photos = await storage.getAllInspectionPhotos();
+
+      const syncStats = {
+        total: photos.length,
+        pending: photos.filter(p => p.syncStatus === 'pending').length,
+        synced: photos.filter(p => p.syncStatus === 'synced').length,
+        failed: photos.filter(p => p.syncStatus === 'failed').length,
+        lastSyncTime: photos.length > 0
+          ? Math.max(...photos.map(p => new Date(p.updatedAt).getTime()))
+          : null
+      };
+
+      res.json({
+        success: true,
+        stats: syncStats
+      });
+
+    } catch (error) {
+      logger.error('[GET] Error fetching sync status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch sync status'
+      });
+    }
+  });
+
   // Catch-all handler for unknown API routes (must be at the end)
   app.use('/api/*', (req: any, res: any) => {
     res.status(404).json({
@@ -1126,7 +1645,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         'POST /api/custodial-notes',
         'POST /api/room-inspections',
         'GET /api/scores',
-        'GET /api/scores/:school'
+        'GET /api/scores/:school',
+        'POST /api/photos/upload',
+        'GET /api/photos/:inspectionId',
+        'DELETE /api/photos/:photoId',
+        'GET /api/photos/sync-status'
       ]
     });
   });

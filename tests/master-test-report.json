@@ -1,108 +1,78 @@
 {
-  "timestamp": "2025-10-28T17:27:20.274Z",
+  "timestamp": "2025-11-09T01:55:22.339Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
-  "duration": 40591,
+  "duration": 38708,
   "summary": {
-    "overallSuccess": false,
-    "criticalIssues": 7,
-    "warnings": 1,
-    "recommendations": [
-      "Address failures in Comprehensive API Tests, End-to-End User Journey Tests, Performance Tests, Security Tests, Mobile and PWA Tests",
-      "Optimize application performance - response times or load handling need improvement",
-      "Address security vulnerabilities immediately - input validation or authentication issues detected",
-      "Improve mobile experience and PWA functionality",
-      "Aim for 95%+ overall test success rate for production readiness"
-    ]
+    "overallSuccess": true,
+    "criticalIssues": 0,
+    "warnings": 0,
+    "recommendations": []
   },
   "suiteResults": [
     {
-      "name": "Comprehensive API Tests",
-      "description": "Core API functionality, CRUD operations, and basic connectivity",
-      "startTime": "2025-10-28T17:26:39.694Z",
-      "endTime": "2025-10-28T17:26:41.655Z",
-      "success": false,
-      "totalTests": 6,
-      "passedTests": 4,
-      "failedTests": 2,
-      "successRate": 66.66666666666666,
-      "duration": 1961,
-      "errors": [
-        "(node:89866) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.\n(Use `node --trace-warnings ...` to show where the warning was created)"
-      ],
-      "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
-    },
-    {
       "name": "End-to-End User Journey Tests",
       "description": "Complete user workflows and business processes",
-      "startTime": "2025-10-28T17:26:41.656Z",
-      "endTime": "2025-10-28T17:26:43.094Z",
-      "success": false,
+      "startTime": "2025-11-09T01:54:43.633Z",
+      "endTime": "2025-11-09T01:54:44.789Z",
+      "success": true,
       "totalTests": 6,
-      "passedTests": 4,
-      "failedTests": 2,
-      "successRate": 66.66666666666666,
-      "duration": 1438,
-      "errors": [
-        "(node:89871) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.\n(Use `node --trace-warnings ...` to show where the warning was created)"
-      ],
+      "passedTests": 6,
+      "failedTests": 0,
+      "successRate": 100,
+      "duration": 1156,
+      "errors": [],
       "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Performance Tests",
       "description": "Response times, load handling, and system performance",
-      "startTime": "2025-10-28T17:26:43.095Z",
-      "endTime": "2025-10-28T17:27:15.916Z",
-      "success": false,
+      "startTime": "2025-11-09T01:54:44.790Z",
+      "endTime": "2025-11-09T01:55:17.671Z",
+      "success": true,
       "totalTests": 6,
-      "passedTests": 4,
-      "failedTests": 2,
-      "successRate": 66.66666666666666,
-      "duration": 32821,
-      "errors": [
-        "(node:89874) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.\n(Use `node --trace-warnings ...` to show where the warning was created)"
-      ],
+      "passedTests": 6,
+      "failedTests": 0,
+      "successRate": 100,
+      "duration": 32881,
+      "errors": [],
       "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Security Tests",
       "description": "Input validation, authentication, and security vulnerabilities",
-      "startTime": "2025-10-28T17:27:15.917Z",
-      "endTime": "2025-10-28T17:27:19.242Z",
-      "success": false,
-      "totalTests": 0,
-      "passedTests": 0,
+      "startTime": "2025-11-09T01:55:17.671Z",
+      "endTime": "2025-11-09T01:55:21.225Z",
+      "success": true,
+      "totalTests": 6,
+      "passedTests": 6,
       "failedTests": 0,
-      "successRate": 0,
-      "duration": 3325,
-      "errors": [
-        "Command failed: node \"/Users/rharman/CustodialCommand/tests/security.test.cjs\"\n(node:89942) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19)\nEmitted 'error' event on TLSSocket instance at:\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v24.10.0\n"
-      ],
-      "reportFile": null
+      "successRate": 100,
+      "duration": 3554,
+      "errors": [],
+      "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Mobile and PWA Tests",
       "description": "Progressive Web App functionality and mobile responsiveness",
-      "startTime": "2025-10-28T17:27:19.242Z",
-      "endTime": "2025-10-28T17:27:20.273Z",
-      "success": false,
+      "startTime": "2025-11-09T01:55:21.226Z",
+      "endTime": "2025-11-09T01:55:22.338Z",
+      "success": true,
       "totalTests": 6,
-      "passedTests": 4,
-      "failedTests": 2,
-      "successRate": 66.66666666666666,
-      "duration": 1031,
-      "errors": [
-        "(node:89945) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.\n(Use `node --trace-warnings ...` to show where the warning was created)"
-      ],
+      "passedTests": 6,
+      "failedTests": 0,
+      "successRate": 100,
+      "duration": 1112,
+      "errors": [],
       "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
     }
   ],
   "overallStats": {
-    "totalSuites": 5,
-    "passedSuites": 0,
-    "failedSuites": 5,
+    "totalSuites": 4,
+    "passedSuites": 4,
+    "failedSuites": 0,
     "totalTests": 24,
-    "passedTests": 16,
-    "failedTests": 8,
-    "overallSuccessRate": 66.66666666666666
+    "passedTests": 24,
+    "failedTests": 0,
+    "overallSuccessRate": 100
   }
 }

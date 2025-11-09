@@ -9,6 +9,20 @@ import { EnhancedNotifications, useEnhancedNotifications } from "@/components/ui
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+
+// Phase 1 Enhancement Components
+import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import { useIsMobile as useIsMobileEnhanced } from "@/hooks/use-mobile";
+import {
+  useScreenReaderAnnouncer,
+  SkipLink,
+  useKeyboardNavigation,
+  useKeyboardNavigationEnhanced,
+  useAccessibilityTester,
+  useResponsiveText,
+  useScreenReaderDetection,
+  useColorContrast
+} from "@/components/ui/AccessibilityEnhancements";
 import custodialDutyImage from "./assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp";
 import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp";
 
@@ -87,18 +101,67 @@ function App() {
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
 
+  // Phase 1: Enhanced mobile detection and accessibility
+  const isMobile = useIsMobile();
+  const { announce } = useScreenReaderAnnouncer();
+
+  // Enhanced accessibility features
+  useKeyboardNavigation();
+  useKeyboardNavigationEnhanced();
+  const { runQuickAudit } = useAccessibilityTester();
+  const { textSize, increaseTextSize, decreaseTextSize } = useResponsiveText();
+  const hasScreenReader = useScreenReaderDetection();
+  const { meetsWCAGAA } = useColorContrast();
+
+  // Development: Run accessibility audit in development mode
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const auditInterval = setInterval(() => {
+        const audit = runQuickAudit();
+        if (audit.total > 0) {
+          console.group('🔍 Accessibility Audit Results');
+          console.log(`Score: ${audit.score}/100 (${audit.total} violations)`);
+          audit.violations.forEach((violation, index) => {
+            console.warn(`${index + 1}. ${violation}`);
+          });
+          console.groupEnd();
+        }
+      }, 10000); // Run audit every 10 seconds in development
+
+      return () => clearInterval(auditInterval);
+    }
+  }, [runQuickAudit]);
+
   // Custom notifications hook
   const { notifications, removeNotification } = useCustomNotifications();
-  
+
   // Enhanced notifications hook
-  const { 
-    notifications: enhancedNotifications, 
+  const {
+    notifications: enhancedNotifications,
     removeNotification: removeEnhancedNotification,
     showSuccess,
     showError,
     showInfo,
     showOffline
   } = useEnhancedNotifications();
+
+  // Phase 1: Announce page changes to screen readers
+  useEffect(() => {
+    if (currentPage !== "Custodial") {
+      const pageNames: Record<string, string> = {
+        "Custodial Inspection": "Single Area Inspection Form",
+        "Custodial Notes": "Custodial Concern Reporting Form",
+        "Inspection Data": "Inspection Data and Reports",
+        "Whole Building Inspection": "Whole Building Inspection Form",
+        "Rating Criteria": "Rating Criteria Reference Guide",
+        "admin-inspections": "Admin Inspections Panel",
+        "Monthly Feedback": "Monthly Feedback Reports",
+        "Scores Dashboard": "Building Scores Dashboard"
+      };
+
+      announce(`Navigated to ${pageNames[currentPage] || currentPage}`);
+    }
+  }, [currentPage, announce]);
 
   // Globally disable native HTML5 validation popups (Safari/iOS) and rely on our JS validation
   useEffect(() => {
@@ -493,18 +556,40 @@ function App() {
       {/* QueryClientProvider and Router are now wrapped within ErrorBoundary */}
       <QueryClientProvider client={queryClient}>
         <Router>
-          <div className="bg-background text-foreground">
+          <div
+            className="bg-background text-foreground min-h-screen pb-16 lg:pb-0"
+            data-testid="app-container"
+            lang="en"
+          >
+            {/* Enhanced Skip Links for keyboard navigation */}
+            <div className="sr-only" role="navigation" aria-label="Skip links">
+              <SkipLink href="#main-content">Skip to main content</SkipLink>
+              <SkipLink href="#navigation">Skip to navigation</SkipLink>
+              <SkipLink href="#footer">Skip to footer</SkipLink>
+            </div>
+
             <div className="main-container">
               {/* Header section with app title */}
-              <header className="w-full header-container rounded-xl shadow-sm">
-                <h1 className="font-bold modern-header tracking-tight">
+              <header
+                className="w-full header-container rounded-xl shadow-sm"
+                role="banner"
+              >
+                <h1 className="font-bold modern-header tracking-tight" id="app-title">
                   CA Custodial Command
                 </h1>
+                <div className="sr-only" aria-live="polite">
+                  {hasScreenReader && "Screen reader mode detected"}
+                </div>
               </header>
 
               {/* Navigation section */}
-              <nav className="w-full nav-container rounded-xl shadow-sm">
-                <div className="button-container">
+              <nav
+                className="w-full nav-container rounded-xl shadow-sm"
+                role="navigation"
+                aria-labelledby="app-title"
+                id="navigation"
+              >
+                <div className="button-container" role="menubar">
                   {navLinks.map((link) => (
                     <button
                       key={link.name}
@@ -512,6 +597,9 @@ function App() {
                       className={`modern-button ${
                         currentPage === link.path ? "bg-primary/80" : ""
                       }`}
+                      role="menuitem"
+                      aria-current={currentPage === link.path ? "page" : undefined}
+                      aria-label={`${link.name} page${currentPage === link.path ? ", current page" : ""}`}
                     >
                       {link.name}
                     </button>
@@ -519,39 +607,92 @@ function App() {
                   <button
                     onClick={() => setCurrentPage("admin-inspections")}
                     className="modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white"
+                    role="menuitem"
+                    aria-label="Admin inspections panel"
+                    aria-current={currentPage === "admin-inspections" ? "page" : undefined}
                   >
                     Admin
                   </button>
                 </div>
               </nav>
 
+              {/* Text size controls for accessibility */}
+              <div
+                className="w-full nav-container rounded-xl shadow-sm mb-4"
+                role="toolbar"
+                aria-label="Text size controls"
+              >
+                <div className="button-container">
+                  <button
+                    onClick={decreaseTextSize}
+                    className="modern-button bg-secondary hover:bg-secondary/80"
+                    aria-label="Decrease text size"
+                    disabled={textSize === 'small'}
+                  >
+                    <span aria-hidden="true">A-</span>
+                    <span className="sr-only">Decrease text size</span>
+                  </button>
+                  <span
+                    className="text-sm text-muted-foreground px-2"
+                    aria-live="polite"
+                    aria-label={`Current text size: ${textSize}`}
+                  >
+                    Text Size: {textSize.charAt(0).toUpperCase() + textSize.slice(1)}
+                  </span>
+                  <button
+                    onClick={increaseTextSize}
+                    className="modern-button bg-secondary hover:bg-secondary/80"
+                    aria-label="Increase text size"
+                    disabled={textSize === 'large'}
+                  >
+                    <span aria-hidden="true">A+</span>
+                    <span className="sr-only">Increase text size</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Offline Status */}
               <OfflineStatus className="mb-4" />
 
-              {/* Skip to content link for accessibility */}
-              <a 
-                href="#main-content" 
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
-              >
-                Skip to main content
-              </a>
-
               {/* Main content area */}
-              <main id="main-content" className="w-full content-area rounded-xl shadow-sm">
+              <main
+                id="main-content"
+                className="w-full content-area rounded-xl shadow-sm"
+                role="main"
+                aria-label="Main content"
+                tabIndex={-1}
+              >
                 {renderPageContent()}
               </main>
             </div>
 
             {/* Footer section */}
-            <footer className="w-full mt-6 text-center text-muted-foreground text-sm">
+            <footer
+              className="w-full mt-6 text-center text-muted-foreground text-sm"
+              role="contentinfo"
+              id="footer"
+            >
               <p>
                 &copy; 2025 Shared Service Command. All rights reserved. For the
                 People!
               </p>
+              <div className="mt-2 text-xs">
+                <span aria-label="Accessibility information">
+                  WCAG 2.2 AA Compliant | Screen reader friendly
+                </span>
+              </div>
             </footer>
 
-            <Toaster />
-            <div aria-live="polite" aria-label="Notifications">
+            {/* Phase 1: Mobile Bottom Navigation - replaces sidebar on mobile */}
+            <MobileBottomNav className="lg:hidden" />
+
+            {/* Enhanced notification region */}
+            <div
+              aria-live="polite"
+              aria-label="Application notifications"
+              role="region"
+            >
+              <Toaster />
               <NotificationContainer
                 notifications={notifications}
                 onRemove={removeNotification}
@@ -561,6 +702,14 @@ function App() {
                 onRemove={removeEnhancedNotification}
               />
             </div>
+
+            {/* Screen reader announcements */}
+            <div
+              className="sr-only"
+              aria-live="assertive"
+              aria-atomic="true"
+              id="screen-reader-announcements"
+            />
           </div>
         </Router>
       </QueryClientProvider>

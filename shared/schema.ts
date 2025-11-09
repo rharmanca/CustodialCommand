@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgTableCreator } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -185,3 +185,81 @@ export type InsertCustodialNote = z.infer<typeof insertCustodialNoteSchema>;
 export type CustodialNote = typeof custodialNotes.$inferSelect;
 export type InsertMonthlyFeedback = z.infer<typeof insertMonthlyFeedbackSchema>;
 export type MonthlyFeedback = typeof monthlyFeedback.$inferSelect;
+
+// Photo capture enhancement tables
+export const inspectionPhotos = pgTable("inspection_photos", {
+  id: serial("id").primaryKey(),
+  inspectionId: integer("inspection_id").references(() => inspections.id, { onDelete: "cascade" }),
+  photoUrl: text("photo_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  locationLat: text("location_lat"), // Decimal(10,8) precision
+  locationLng: text("location_lng"), // Decimal(11,8) precision
+  locationAccuracy: text("location_accuracy"), // meters precision, stored as string
+  locationSource: text("location_source").default('gps'), // 'gps', 'wifi', 'cell', 'manual', 'qr'
+  buildingId: text("building_id"), // Reference to buildings table if available
+  floor: integer("floor"), // Floor number for indoor location
+  room: text("room"), // Room identifier for indoor location
+  capturedAt: timestamp("captured_at").defaultNow().notNull(),
+  notes: text("notes"),
+  syncStatus: text("sync_status").default('pending'), // 'pending', 'synced', 'failed'
+  fileSize: integer("file_size"), // File size in bytes
+  imageWidth: integer("image_width"), // Image width in pixels
+  imageHeight: integer("image_height"), // Image height in pixels
+  compressionRatio: text("compression_ratio"), // Compression ratio as decimal string
+  deviceInfo: text("device_info"), // JSON string with device info
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const syncQueue = pgTable("sync_queue", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'photo_upload', 'inspection_update'
+  photoId: integer("photo_id").references(() => inspectionPhotos.id, { onDelete: "cascade" }),
+  data: text("data").notNull(), // JSON string with sync data
+  retryCount: integer("retry_count").default(0),
+  nextRetryAt: timestamp("next_retry_at"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertInspectionPhotoSchema = createInsertSchema(inspectionPhotos).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  inspectionId: z.coerce.number().int(),
+  photoUrl: z.string().url("Invalid photo URL"),
+  thumbnailUrl: z.string().url().optional(),
+  locationLat: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
+  locationLng: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
+  locationAccuracy: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
+  locationSource: z.enum(['gps', 'wifi', 'cell', 'manual', 'qr']).default('gps'),
+  buildingId: z.string().uuid().nullable().optional(),
+  floor: z.number().int().min(0).max(100).nullable().optional(),
+  room: z.string().max(100).nullable().optional(),
+  capturedAt: z.date().optional(),
+  notes: z.string().max(5000).nullable().optional(),
+  syncStatus: z.enum(['pending', 'synced', 'failed']).default('pending'),
+  fileSize: z.number().int().positive().nullable().optional(),
+  imageWidth: z.number().int().positive().nullable().optional(),
+  imageHeight: z.number().int().positive().nullable().optional(),
+  compressionRatio: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
+  deviceInfo: z.string().max(1000).nullable().optional(),
+});
+
+export const insertSyncQueueSchema = createInsertSchema(syncQueue).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  type: z.enum(['photo_upload', 'inspection_update']),
+  photoId: z.coerce.number().int().nullable().optional(),
+  data: z.string(), // JSON string
+  retryCount: z.number().int().default(0),
+  nextRetryAt: z.date().nullable().optional(),
+  errorMessage: z.string().max(1000).nullable().optional(),
+});
+
+export type InsertInspectionPhoto = z.infer<typeof insertInspectionPhotoSchema>;
+export type InspectionPhoto = typeof inspectionPhotos.$inferSelect;
+export type InsertSyncQueue = z.infer<typeof insertSyncQueueSchema>;
+export type SyncQueue = typeof syncQueue.$inferSelect;

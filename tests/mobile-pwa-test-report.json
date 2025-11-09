@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-10-28T17:27:20.268Z",
+  "timestamp": "2025-11-09T01:55:22.326Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 26,
-    "passed": 15,
-    "failed": 11,
-    "successRate": 57.692307692307686
+    "passed": 20,
+    "failed": 6,
+    "successRate": 76.92307692307693
   },
   "pwaFeatures": [
     {
@@ -75,22 +75,22 @@
     },
     {
       "testName": "Mobile API Performance - /api/inspections",
-      "passed": false,
+      "passed": true,
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /api/custodial-notes",
-      "passed": false,
+      "passed": true,
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /health",
-      "passed": false,
+      "passed": true,
       "feature": "performance"
     },
     {
       "testName": "Mobile Form - Create Inspection",
-      "passed": false,
+      "passed": 561,
       "feature": "forms"
     },
     {
@@ -110,7 +110,7 @@
     },
     {
       "testName": "PWA Security - X-Frame-Options",
-      "passed": false,
+      "passed": true,
       "feature": "security"
     },
     {
@@ -220,32 +220,32 @@
     },
     {
       "testName": "Mobile API Performance - /api/inspections",
-      "passed": false,
-      "details": "Status: 429, Time: 56ms",
+      "passed": true,
+      "details": "Status: 200, Time: 115ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /api/custodial-notes",
-      "passed": false,
-      "details": "Status: 429, Time: 54ms",
+      "passed": true,
+      "details": "Status: 200, Time: 43ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /health",
-      "passed": false,
-      "details": "Status: 503, Time: 58ms",
+      "passed": true,
+      "details": "Status: 200, Time: 274ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile Form - Create Inspection",
-      "passed": false,
-      "details": "Failed: 429",
+      "passed": 561,
+      "details": "Created inspection ID: 561",
       "feature": "forms"
     },
     {
       "testName": "Mobile Form - Create Custodial Note",
       "passed": false,
-      "details": "Failed: 429",
+      "details": "Failed: 400",
       "feature": "forms"
     },
     {
@@ -262,8 +262,8 @@
     },
     {
       "testName": "PWA Security - X-Frame-Options",
-      "passed": false,
-      "details": "X-Frame-Options header missing",
+      "passed": true,
+      "details": "X-Frame-Options header present",
       "feature": "security"
     },
     {

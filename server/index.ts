@@ -9,6 +9,25 @@ import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, validateRequest, sanitizeInput, apiRateLimit, strictRateLimit } from "./security";
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
+import {
+  cacheMiddleware,
+  invalidateCache,
+  performanceMiddleware,
+  memoryMonitoring,
+  requestDeduplication,
+  apiCache
+} from "./cache";
+import { storage } from "./storage";
+import {
+  performanceErrorHandler,
+  asyncErrorHandler,
+  errorRecoveryMiddleware,
+  gracefulDegradation,
+  circuitBreakerMiddleware,
+  databaseCircuitBreaker,
+  cacheCircuitBreaker,
+  fileUploadCircuitBreaker
+} from "./performanceErrorHandler";
 
 
 
@@ -20,10 +39,20 @@ if (process.env.REPL_SLUG) {
   app.set('trust proxy', 1); // Trust first proxy only on Replit
 } else {
   app.set('trust proxy', false); // Disable in other environments
-  }
-  app.use(requestIdMiddleware);
-  app.use(performanceMonitor);
-  app.use(metricsMiddleware);
+}
+
+// Performance and monitoring middleware (order matters)
+app.use(requestIdMiddleware);
+app.use(performanceMiddleware);
+app.use(memoryMonitoring);
+app.use(metricsMiddleware);
+
+// Graceful degradation and circuit breaker protection
+app.use(gracefulDegradation);
+app.use(errorRecoveryMiddleware);
+
+// Request deduplication to prevent duplicate requests
+app.use(requestDeduplication);
 app.use(helmet({
   // Content Security Policy - disabled for development to allow inline styles
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
@@ -60,9 +89,12 @@ app.use(helmet({
   xssFilter: true
 }));
 app.use(compression({
-  // Compress all responses
+  // Enhanced compression settings
   level: 6, // Compression level (1-9, 6 is default)
   threshold: 1024, // Only compress responses larger than 1KB
+  chunkSize: 16 * 1024, // 16KB chunks for better compression
+  windowBits: 15,
+  memLevel: 8,
   // Compress only these content types
   filter: (req, res) => {
     if (req.headers['x-no-compression']) {
@@ -84,12 +116,26 @@ app.use(sanitizeInput);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
+// Performance optimization middleware
+app.use(cacheMiddleware); // Add caching for GET requests
+
 // Apply rate limiting to API routes with different limits for different endpoints
 app.use('/api/admin/login', strictRateLimit); // Strict rate limiting for auth
 app.use('/api/inspections', apiRateLimit); // Rate limiting for inspections with uploads
 app.use('/api/custodial-notes', apiRateLimit); // Rate limiting for notes with uploads
 app.use('/api/monthly-feedback', apiRateLimit); // Rate limiting for feedback with uploads
 app.use('/api', apiRateLimit); // Default rate limiting for other API routes
+
+// Add cache invalidation for mutation routes
+app.use('/api/inspections', invalidateCache(['inspections', 'scores']));
+app.use('/api/custodial-notes', invalidateCache(['custodialNotes', 'scores']));
+app.use('/api/monthly-feedback', invalidateCache(['monthlyFeedback']));
+
+// Add circuit breaker protection to critical routes
+app.use('/api/inspections', circuitBreakerMiddleware(databaseCircuitBreaker, 'inspections'));
+app.use('/api/custodial-notes', circuitBreakerMiddleware(databaseCircuitBreaker, 'custodial-notes'));
+app.use('/api/monthly-feedback', circuitBreakerMiddleware(fileUploadCircuitBreaker, 'monthly-feedback'));
+app.use('/api/scores', circuitBreakerMiddleware(cacheCircuitBreaker, 'scores'));
 
 // Debug: Log API requests with headers and body (after parsers)
 app.use('/api', (req: any, res: any, next: any) => {
@@ -206,10 +252,70 @@ if (process.env.REPL_SLUG) {
     app.get("/metrics", (req: any, res: any) => {
       res.json(metricsCollector.getMetrics());
     });
-    logger.info("Health check endpoints configured");
+
+    // Performance monitoring endpoints
+    app.get("/api/performance/stats", (req: any, res: any) => {
+      try {
+        const storageMetrics = storage.getPerformanceMetrics();
+        const cacheStats = apiCache.getStats();
+        const memUsage = process.memoryUsage();
+
+        res.json({
+          timestamp: new Date().toISOString(),
+          uptime: process.uptime(),
+          memory: {
+            heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
+            heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)}MB`,
+            external: `${(memUsage.external / 1024 / 1024).toFixed(2)}MB`,
+            rss: `${(memUsage.rss / 1024 / 1024).toFixed(2)}MB`
+          },
+          storage: storageMetrics,
+          cache: cacheStats,
+          database: {
+            connected: true // We'll add more detailed DB stats later
+          }
+        });
+      } catch (error) {
+        logger.error('Error fetching performance stats', { error });
+        res.status(500).json({ error: 'Failed to fetch performance stats' });
+      }
+    });
+
+    app.post("/api/performance/clear-cache", (req: any, res: any) => {
+      try {
+        const { pattern } = req.body;
+        if (pattern) {
+          storage.clearCache(pattern);
+          apiCache.invalidate(pattern);
+          res.json({ message: `Cache cleared for pattern: ${pattern}` });
+        } else {
+          storage.clearCache();
+          apiCache.clear();
+          res.json({ message: 'All caches cleared' });
+        }
+      } catch (error) {
+        logger.error('Error clearing cache', { error });
+        res.status(500).json({ error: 'Failed to clear cache' });
+      }
+    });
+
+    app.post("/api/performance/warm-cache", async (req: any, res: any) => {
+      try {
+        await storage.warmCache();
+        res.json({ message: 'Cache warming completed' });
+      } catch (error) {
+        logger.error('Error warming cache', { error });
+        res.status(500).json({ error: 'Failed to warm cache' });
+      }
+    });
+
+    logger.info("Health check and performance endpoints configured");
 
     await registerRoutes(app);
     logger.info("Routes registered successfully");
+
+    // Enhanced error handling middleware (must be before static serving)
+    app.use(performanceErrorHandler);
 
     // Apply cache control after routes are registered
     // TODO: cacheControl middleware not defined - need to create or remove

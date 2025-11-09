@@ -1,143 +1,13 @@
 {
-  "timestamp": "2025-10-28T17:27:18.697Z",
+  "timestamp": "2025-11-09T01:55:21.211Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
-    "passed": 8,
-    "failed": 37,
-    "successRate": 17.77777777777778
+    "passed": 38,
+    "failed": 7,
+    "successRate": 84.44444444444444
   },
   "vulnerabilities": [
-    {
-      "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
-      "severity": "high"
-    },
-    {
-      "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
-      "severity": "high"
-    },
-    {
-      "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
-      "severity": "high"
-    },
-    {
-      "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
-      "severity": "high"
-    },
-    {
-      "testName": "SQL Injection - Inspector Name: admin'--...",
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
-      "severity": "high"
-    },
-    {
-      "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
-      "severity": "high"
-    },
-    {
-      "testName": "XSS - Location Description: <script>alert('XSS')...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "XSS - Location Description: javascript:alert('XS...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "XSS - Location Description: <img src=x onerror=a...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "XSS - Location Description: <svg onload=alert('X...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "XSS - Location Description: ';alert('XSS');//...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "XSS - Location Description: <iframe src=javascri...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "NoSQL Injection - Inspector Name",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "NoSQL Injection - Inspector Name",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "NoSQL Injection - Inspector Name",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "NoSQL Injection - Inspector Name",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "NoSQL Injection - Inspector Name",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "Unauthorized Access - GET /api/admin/inspections",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "Unauthorized Access - DELETE /api/admin/inspections/1",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "Invalid Token - invalid_token...",
-      "details": "Status: 429",
-      "severity": "medium"
-    },
-    {
-      "testName": "Invalid Token - Bearer invalid_token...",
-      "details": "Status: 429",
-      "severity": "medium"
-    },
-    {
-      "testName": "Invalid Token - admin_token_fake...",
-      "details": "Status: 429",
-      "severity": "medium"
-    },
-    {
-      "testName": "Invalid Token - eyJhbGciOiJIUzI1NiIs...",
-      "details": "Status: 429",
-      "severity": "medium"
-    },
-    {
-      "testName": "Invalid Token - ...",
-      "details": "Status: 429",
-      "severity": "medium"
-    },
-    {
-      "testName": "Session Hijacking - Modified Token",
-      "details": "Could not obtain valid session",
-      "severity": "high"
-    },
-    {
-      "testName": "Large Payload Protection",
-      "details": "Status: 429",
-      "severity": "medium"
-    },
     {
       "testName": "Directory Traversal - ../../../etc/passwd...",
       "details": "Status: 200",
@@ -149,212 +19,192 @@
       "severity": "high"
     },
     {
-      "testName": "Directory Traversal - ....//....//....//et...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "Directory Traversal - %2e%2e%2f%2e%2e%2f%2...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "Directory Traversal - ..%252f..%252f..%252...",
-      "details": "Status: 429",
-      "severity": "high"
-    },
-    {
-      "testName": "Security Header - X-Frame-Options",
-      "details": "Missing or incorrect: not set",
-      "severity": "medium"
-    },
-    {
       "testName": "File Upload Security - malicious.php",
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.jsp",
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.exe",
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.sh",
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - Oversized File",
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "medium"
     }
   ],
   "details": [
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
-      "passed": false,
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
+      "passed": true,
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":548,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
-      "passed": false,
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
+      "passed": true,
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":549,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
-      "passed": false,
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
+      "passed": true,
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":550,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
-      "passed": false,
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
+      "passed": true,
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":551,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
-      "passed": false,
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
+      "passed": true,
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":552,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
-      "passed": false,
-      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\"}",
+      "passed": true,
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":553,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <script>alert('XSS')...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: javascript:alert('XS...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <img src=x onerror=a...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <svg onload=alert('X...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: ';alert('XSS');//...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <iframe src=javascri...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
       "testName": "Unauthorized Access - GET /api/admin/inspections",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "high"
     },
     {
       "testName": "Unauthorized Access - DELETE /api/admin/inspections/1",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "high"
     },
     {
       "testName": "Invalid Token - invalid_token...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - Bearer invalid_token...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - admin_token_fake...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - eyJhbGciOiJIUzI1NiIs...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - ...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "medium"
     },
     {
       "testName": "Session Hijacking - Modified Token",
-      "passed": false,
-      "details": "Could not obtain valid session",
+      "passed": true,
+      "details": "Status: 401",
       "severity": "high"
     },
     {
       "testName": "Rate Limiting - Rapid Requests",
       "passed": true,
-      "details": "20/20 successful, 20 rate limited",
+      "details": "20/20 successful, 0 rate limited",
       "severity": "medium"
     },
     {
       "testName": "Large Payload Protection",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 201",
       "severity": "medium"
     },
     {
@@ -383,20 +233,20 @@
     },
     {
       "testName": "Directory Traversal - ....//....//....//et...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 404",
       "severity": "high"
     },
     {
       "testName": "Directory Traversal - %2e%2e%2f%2e%2e%2f%2...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
       "testName": "Directory Traversal - ..%252f..%252f..%252...",
-      "passed": false,
-      "details": "Status: 429",
+      "passed": true,
+      "details": "Status: 400",
       "severity": "high"
     },
     {
@@ -407,8 +257,8 @@
     },
     {
       "testName": "Security Header - X-Frame-Options",
-      "passed": false,
-      "details": "Missing or incorrect: not set",
+      "passed": true,
+      "details": "Present: DENY",
       "severity": "medium"
     },
     {
@@ -420,49 +270,49 @@
     {
       "testName": "Security Header - Strict-Transport-Security",
       "passed": true,
-      "details": "Present: max-age=31536000; includeSubDomains",
+      "details": "Present: max-age=31536000; includeSubDomains; preload",
       "severity": "medium"
     },
     {
       "testName": "Security Header - Content-Security-Policy",
       "passed": true,
-      "details": "Present: frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app",
+      "details": "Present: default-src 'self';style-src 'self' 'unsafe-inline';script-src 'self';img-src 'self' data: https:;connect-src 'self';font-src 'self';object-src 'none';media-src 'self';frame-src 'none';base-uri 'self';form-action 'self';frame-ancestors 'self';script-src-attr 'none';upgrade-insecure-requests",
       "severity": "medium"
     },
     {
       "testName": "Security Header - Referrer-Policy",
       "passed": true,
-      "details": "Present: no-referrer",
+      "details": "Present: strict-origin-when-cross-origin",
       "severity": "medium"
     },
     {
       "testName": "File Upload Security - malicious.php",
       "passed": false,
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.jsp",
       "passed": false,
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.exe",
       "passed": false,
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.sh",
       "passed": false,
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - Oversized File",
       "passed": false,
-      "details": "Status: 429",
+      "details": "Status: 500",
       "severity": "medium"
     }
   ]
