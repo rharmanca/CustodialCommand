@@ -1,8 +1,12 @@
-const CACHE_NAME = 'custodial-command-v7';
+const CACHE_NAME = 'custodial-command-v8';
 const OFFLINE_FORMS_KEY = 'offline-forms';
+const PHOTO_QUEUE_KEY = 'photo-queue';
 const SYNC_QUEUE_KEY = 'sync-queue';
-const APP_VERSION = 'v7';
+const APP_VERSION = 'v8';
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+// Photo-specific cache name
+const PHOTO_CACHE_NAME = 'custodial-photos-v1';
 
 const urlsToCache = [
   '/',
@@ -10,6 +14,143 @@ const urlsToCache = [
   '/icon-192x192.svg',
   '/icon-512x512.svg'
 ];
+
+// Photo storage manager for offline photo handling
+class PhotoManager {
+  static dbName = 'CustodialCommandPhotos';
+  static dbVersion = 1;
+  static storeName = 'offline-photos';
+
+  static async openDB() {
+    return new Promise((resolve, reject) => {
+      if (!self.indexedDB) {
+        reject(new Error('IndexedDB not available'));
+        return;
+      }
+
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
+          store.createIndex('status', 'status', { unique: false });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+          store.createIndex('inspectionId', 'inspectionId', { unique: false });
+        }
+      };
+    });
+  }
+
+  static async storePhoto(photoData, metadata, location = null, inspectionId = null) {
+    const photoId = `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const photoRecord = {
+      id: photoId,
+      photoData: photoData,
+      metadata: metadata,
+      location: location,
+      inspectionId: inspectionId,
+      timestamp: new Date().toISOString(),
+      retryCount: 0,
+      status: 'pending'
+    };
+
+    try {
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+
+      await new Promise((resolve, reject) => {
+        const request = store.add(photoRecord);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Stored offline photo: ${photoId}`);
+      return photoId;
+    } catch (error) {
+      console.error('Failed to store photo offline:', error);
+      throw error;
+    }
+  }
+
+  static async getStoredPhotos() {
+    try {
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readonly');
+      const store = transaction.objectStore(this.storeName);
+
+      const photos = await new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      return photos;
+    } catch (error) {
+      console.error('Failed to get stored photos:', error);
+      return [];
+    }
+  }
+
+  static async updatePhotoStatus(photoId, status) {
+    try {
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+
+      const photo = await new Promise((resolve, reject) => {
+        const request = store.get(photoId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      if (photo) {
+        photo.status = status;
+        if (status === 'synced') {
+          photo.syncedAt = new Date().toISOString();
+        } else if (status === 'failed') {
+          photo.failedAt = new Date().toISOString();
+        }
+
+        await new Promise((resolve, reject) => {
+          const request = store.put(photo);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      db.close();
+    } catch (error) {
+      console.error('Failed to update photo status:', error);
+    }
+  }
+
+  static async removePhoto(photoId) {
+    try {
+      const db = await this.openDB();
+      const transaction = db.transaction([this.storeName], 'readwrite');
+      const store = transaction.objectStore(this.storeName);
+
+      await new Promise((resolve, reject) => {
+        const request = store.delete(photoId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+      console.log(`Removed offline photo: ${photoId}`);
+    } catch (error) {
+      console.error('Failed to remove photo:', error);
+    }
+  }
+}
 
 // Enhanced offline form storage using IndexedDB with Cache API fallback
 class OfflineFormManager {
@@ -237,11 +378,17 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Background sync for offline forms
+// Background sync for offline forms and photos
 self.addEventListener('sync', event => {
   if (event.tag === 'background-sync') {
     console.log('Background sync triggered');
-    event.waitUntil(syncOfflineForms());
+    event.waitUntil(Promise.all([
+      syncOfflineForms(),
+      syncOfflinePhotos()
+    ]));
+  } else if (event.tag === 'photo-sync') {
+    console.log('Photo background sync triggered');
+    event.waitUntil(syncOfflinePhotos());
   }
 });
 
@@ -297,6 +444,113 @@ async function syncOfflineForms() {
   }
 }
 
+// Sync offline photos when connection is restored
+async function syncOfflinePhotos() {
+  try {
+    const photos = await PhotoManager.getStoredPhotos();
+    const pendingPhotos = photos.filter(photo => photo.status === 'pending' && photo.retryCount < 3);
+
+    console.log(`Syncing ${pendingPhotos.length} offline photos`);
+
+    for (const photo of pendingPhotos) {
+      try {
+        // Create FormData for photo upload
+        const formData = new FormData();
+
+        // Convert base64 photo data back to blob
+        if (photo.photoData.startsWith('data:')) {
+          const response = await fetch(photo.photoData);
+          const blob = await response.blob();
+          formData.append('photo', blob, `photo_${photo.id}.jpg`);
+        } else {
+          // Handle direct blob data (if stored differently)
+          formData.append('photoData', photo.photoData);
+        }
+
+        // Add metadata
+        formData.append('metadata', JSON.stringify(photo.metadata));
+
+        // Add location data if available
+        if (photo.location) {
+          formData.append('location', JSON.stringify(photo.location));
+        }
+
+        // Add inspection ID if available
+        if (photo.inspectionId) {
+          formData.append('inspectionId', photo.inspectionId.toString());
+        }
+
+        // Upload to server
+        const uploadResponse = await fetch('/api/photos/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (uploadResponse.ok) {
+          const result = await uploadResponse.json();
+          console.log(`Successfully synced photo ${photo.id}:`, result);
+          await PhotoManager.updatePhotoStatus(photo.id, 'synced');
+
+          // Notify client of successful sync
+          const clients = await self.clients.matchAll();
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'PHOTO_SYNC_SUCCESS',
+              photoId: photo.id,
+              result: result
+            });
+          });
+        } else {
+          throw new Error(`Upload failed with status ${uploadResponse.status}`);
+        }
+      } catch (error) {
+        console.error(`Failed to sync photo ${photo.id}:`, error);
+
+        // Update retry count
+        const db = await PhotoManager.openDB();
+        const transaction = db.transaction(['offline-photos'], 'readwrite');
+        const store = transaction.objectStore('offline-photos');
+
+        const updatedPhoto = await new Promise((resolve, reject) => {
+          const request = store.get(photo.id);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+
+        if (updatedPhoto) {
+          updatedPhoto.retryCount++;
+          if (updatedPhoto.retryCount >= 3) {
+            updatedPhoto.status = 'failed';
+            updatedPhoto.failedAt = new Date().toISOString();
+            console.error(`Photo ${photo.id} failed after 3 retries`);
+          }
+
+          await new Promise((resolve, reject) => {
+            const request = store.put(updatedPhoto);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        }
+
+        db.close();
+
+        // Notify client of failed sync
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'PHOTO_SYNC_FAILED',
+            photoId: photo.id,
+            error: error.message,
+            retryCount: updatedPhoto.retryCount
+          });
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error during photo sync:', error);
+  }
+}
+
 // Enhanced fetch event with offline form handling
 self.addEventListener('fetch', event => {
   // Skip cross-origin requests
@@ -304,7 +558,76 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle API requests with offline form storage
+  // Handle photo upload requests with offline storage
+  if (event.request.url.includes('/api/photos/upload') && event.request.method === 'POST') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            return response;
+          }
+          throw new Error(`HTTP ${response.status}`);
+        })
+        .catch(async () => {
+          // Network failed, store photo for later sync
+          try {
+            const formData = await event.request.clone().formData();
+
+            // Extract photo data
+            const photoFile = formData.get('photo');
+            const metadata = JSON.parse(formData.get('metadata') || '{}');
+            const location = formData.get('location') ? JSON.parse(formData.get('location')) : null;
+            const inspectionId = formData.get('inspectionId');
+
+            // Convert photo to base64 for storage
+            let photoData;
+            if (photoFile instanceof Blob) {
+              photoData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(photoFile);
+              });
+            } else {
+              photoData = photoFile;
+            }
+
+            const photoId = await PhotoManager.storePhoto(photoData, metadata, location, inspectionId);
+
+            console.log(`Stored photo offline: ${photoId}`);
+
+            // Register for background sync
+            await self.registration.sync.register('photo-sync');
+
+            // Return success response to user
+            return new Response(JSON.stringify({
+              success: true,
+              message: 'Photo saved offline and will be uploaded when connection is restored',
+              offline: true,
+              photoId: photoId
+            }), {
+              status: 202,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+          } catch (error) {
+            console.error('Error storing photo offline:', error);
+            return new Response(JSON.stringify({
+              success: false,
+              message: 'Failed to save photo offline'
+            }), {
+              status: 503,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+          }
+        })
+    );
+    return;
+  }
+
+  // Handle other API requests with offline form storage
   if (event.request.url.includes('/api/') && event.request.method === 'POST') {
     event.respondWith(
       fetch(event.request)
@@ -319,12 +642,12 @@ self.addEventListener('fetch', event => {
           try {
             const formData = await event.request.clone().json();
             const formId = await OfflineFormManager.storeForm(formData, event.request.url);
-            
+
             console.log(`Stored form offline: ${formId}`);
-            
+
             // Register for background sync
             await self.registration.sync.register('background-sync');
-            
+
             // Return success response to user
             return new Response(JSON.stringify({
               success: true,
@@ -457,12 +780,39 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'GET_OFFLINE_FORMS') {
     OfflineFormManager.getStoredForms().then(forms => {
       event.ports[0].postMessage({
         type: 'OFFLINE_FORMS_RESPONSE',
         forms: forms
+      });
+    });
+  }
+
+  if (event.data && event.data.type === 'GET_OFFLINE_PHOTOS') {
+    PhotoManager.getStoredPhotos().then(photos => {
+      event.ports[0].postMessage({
+        type: 'OFFLINE_PHOTOS_RESPONSE',
+        photos: photos
+      });
+    });
+  }
+
+  if (event.data && event.data.type === 'FORCE_PHOTO_SYNC') {
+    syncOfflinePhotos().then(() => {
+      event.ports[0].postMessage({
+        type: 'PHOTO_SYNC_COMPLETED'
+      });
+    });
+  }
+
+  if (event.data && event.data.type === 'DELETE_OFFLINE_PHOTO') {
+    const photoId = event.data.photoId;
+    PhotoManager.removePhoto(photoId).then(() => {
+      event.ports[0].postMessage({
+        type: 'PHOTO_DELETED',
+        photoId: photoId
       });
     });
   }

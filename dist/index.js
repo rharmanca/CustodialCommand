@@ -13,19 +13,23 @@ var schema_exports = {};
 __export(schema_exports, {
   custodialNotes: () => custodialNotes,
   insertCustodialNoteSchema: () => insertCustodialNoteSchema,
+  insertInspectionPhotoSchema: () => insertInspectionPhotoSchema,
   insertInspectionSchema: () => insertInspectionSchema,
   insertMonthlyFeedbackSchema: () => insertMonthlyFeedbackSchema,
   insertRoomInspectionSchema: () => insertRoomInspectionSchema,
+  insertSyncQueueSchema: () => insertSyncQueueSchema,
   insertUserSchema: () => insertUserSchema,
+  inspectionPhotos: () => inspectionPhotos,
   inspections: () => inspections,
   monthlyFeedback: () => monthlyFeedback,
   roomInspections: () => roomInspections,
+  syncQueue: () => syncQueue,
   users: () => users
 });
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-var coerceNullableNumber, users, inspections, roomInspections, custodialNotes, monthlyFeedback, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema, insertMonthlyFeedbackSchema;
+var coerceNullableNumber, users, inspections, roomInspections, custodialNotes, monthlyFeedback, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema, insertMonthlyFeedbackSchema, inspectionPhotos, syncQueue, insertInspectionPhotoSchema, insertSyncQueueSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -196,6 +200,90 @@ var init_schema = __esm({
       uploadedBy: z.string().max(255).nullable().optional(),
       fileSize: z.number().int().positive().nullable().optional()
     });
+    inspectionPhotos = pgTable("inspection_photos", {
+      id: serial("id").primaryKey(),
+      inspectionId: integer("inspection_id").references(() => inspections.id, { onDelete: "cascade" }),
+      photoUrl: text("photo_url").notNull(),
+      thumbnailUrl: text("thumbnail_url"),
+      locationLat: text("location_lat"),
+      // Decimal(10,8) precision
+      locationLng: text("location_lng"),
+      // Decimal(11,8) precision
+      locationAccuracy: text("location_accuracy"),
+      // meters precision, stored as string
+      locationSource: text("location_source").default("gps"),
+      // 'gps', 'wifi', 'cell', 'manual', 'qr'
+      buildingId: text("building_id"),
+      // Reference to buildings table if available
+      floor: integer("floor"),
+      // Floor number for indoor location
+      room: text("room"),
+      // Room identifier for indoor location
+      capturedAt: timestamp("captured_at").defaultNow().notNull(),
+      notes: text("notes"),
+      syncStatus: text("sync_status").default("pending"),
+      // 'pending', 'synced', 'failed'
+      fileSize: integer("file_size"),
+      // File size in bytes
+      imageWidth: integer("image_width"),
+      // Image width in pixels
+      imageHeight: integer("image_height"),
+      // Image height in pixels
+      compressionRatio: text("compression_ratio"),
+      // Compression ratio as decimal string
+      deviceInfo: text("device_info"),
+      // JSON string with device info
+      createdAt: timestamp("created_at").defaultNow().notNull(),
+      updatedAt: timestamp("updated_at").defaultNow().notNull()
+    });
+    syncQueue = pgTable("sync_queue", {
+      id: serial("id").primaryKey(),
+      type: text("type").notNull(),
+      // 'photo_upload', 'inspection_update'
+      photoId: integer("photo_id").references(() => inspectionPhotos.id, { onDelete: "cascade" }),
+      data: text("data").notNull(),
+      // JSON string with sync data
+      retryCount: integer("retry_count").default(0),
+      nextRetryAt: timestamp("next_retry_at"),
+      errorMessage: text("error_message"),
+      createdAt: timestamp("created_at").defaultNow().notNull()
+    });
+    insertInspectionPhotoSchema = createInsertSchema(inspectionPhotos).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    }).extend({
+      inspectionId: z.coerce.number().int(),
+      photoUrl: z.string().url("Invalid photo URL"),
+      thumbnailUrl: z.string().url().optional(),
+      locationLat: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
+      locationLng: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
+      locationAccuracy: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
+      locationSource: z.enum(["gps", "wifi", "cell", "manual", "qr"]).default("gps"),
+      buildingId: z.string().uuid().nullable().optional(),
+      floor: z.number().int().min(0).max(100).nullable().optional(),
+      room: z.string().max(100).nullable().optional(),
+      capturedAt: z.date().optional(),
+      notes: z.string().max(5e3).nullable().optional(),
+      syncStatus: z.enum(["pending", "synced", "failed"]).default("pending"),
+      fileSize: z.number().int().positive().nullable().optional(),
+      imageWidth: z.number().int().positive().nullable().optional(),
+      imageHeight: z.number().int().positive().nullable().optional(),
+      compressionRatio: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
+      deviceInfo: z.string().max(1e3).nullable().optional()
+    });
+    insertSyncQueueSchema = createInsertSchema(syncQueue).omit({
+      id: true,
+      createdAt: true
+    }).extend({
+      type: z.enum(["photo_upload", "inspection_update"]),
+      photoId: z.coerce.number().int().nullable().optional(),
+      data: z.string(),
+      // JSON string
+      retryCount: z.number().int().default(0),
+      nextRetryAt: z.date().nullable().optional(),
+      errorMessage: z.string().max(1e3).nullable().optional()
+    });
   }
 });
 
@@ -261,7 +349,33 @@ import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon, neonConfig, Pool } from "@neondatabase/serverless";
 import ws from "ws";
-var sql, db, pool;
+async function initializeDatabase() {
+  const maxRetries = 5;
+  const retryDelay = 2e3;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await pool.query("SELECT 1");
+      logger.info("Database connection established successfully", {
+        poolSize: pool.totalCount,
+        attempt
+      });
+      return;
+    } catch (error) {
+      logger.error(`Database connection attempt ${attempt} failed`, {
+        error: error instanceof Error ? error.message : "Unknown error",
+        attempt,
+        maxRetries
+      });
+      if (attempt === maxRetries) {
+        logger.error("Failed to establish database connection after all retries");
+        throw error;
+      }
+      logger.info(`Retrying database connection in ${retryDelay}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+    }
+  }
+}
+var sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
@@ -269,17 +383,66 @@ var init_db = __esm({
     init_logger();
     config();
     neonConfig.fetchConnectionCache = true;
+    neonConfig.cacheAdapter = {
+      get: (key) => Promise.resolve(null),
+      // Implement proper cache if needed
+      set: (key, value, ttl) => Promise.resolve()
+    };
+    neonConfig.maxConnections = 20;
+    neonConfig.idleTimeoutMillis = 3e4;
+    neonConfig.connectionTimeoutMillis = 1e4;
     neonConfig.webSocketConstructor = ws;
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
     }
     sql = neon(process.env.DATABASE_URL);
     db = drizzle(sql, { schema: schema_exports });
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    pool.query("SELECT 1").then(() => {
-      logger.info("Database connection established successfully");
-    }).catch((error) => {
-      logger.error("Database connection failed", { error: error instanceof Error ? error.message : "Unknown error" });
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 20,
+      // Maximum number of connections in pool
+      min: 5,
+      // Minimum number of connections to maintain
+      idleTimeoutMillis: 3e4,
+      connectionTimeoutMillis: 1e4,
+      acquireTimeoutMillis: 6e4,
+      createTimeoutMillis: 3e4,
+      destroyTimeoutMillis: 5e3,
+      reapIntervalMillis: 1e3,
+      createRetryIntervalMillis: 200
+    });
+    connectionPoolErrors = 0;
+    MAX_POOL_ERRORS = 5;
+    pool.on("error", (err) => {
+      connectionPoolErrors++;
+      logger.error("Database pool error", { error: err.message, errorCount: connectionPoolErrors });
+      if (connectionPoolErrors >= MAX_POOL_ERRORS) {
+        logger.error("Too many database pool errors, restarting pool may be needed");
+      }
+    });
+    pool.on("connect", (client) => {
+      logger.debug("New database connection established", {
+        totalCount: pool.totalCount,
+        idleCount: pool.idleCount,
+        waitingCount: pool.waitingCount
+      });
+    });
+    pool.on("remove", (client) => {
+      logger.debug("Database connection removed", {
+        totalCount: pool.totalCount,
+        idleCount: pool.idleCount
+      });
+    });
+    initializeDatabase().catch((error) => {
+      logger.error("Fatal: Database initialization failed", { error });
+      process.exit(1);
+    });
+    process.on("SIGTERM", () => {
+      logger.info("Closing database connections...");
+      pool.end(() => {
+        logger.info("Database connections closed");
+        process.exit(0);
+      });
     });
   }
 });
@@ -299,191 +462,414 @@ import * as path3 from "path";
 init_db();
 init_schema();
 init_logger();
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
+var performanceMetrics = {
+  cacheHits: 0,
+  cacheMisses: 0,
+  slowQueries: 0,
+  totalQueries: 0
+};
+var cache = /* @__PURE__ */ new Map();
+var DEFAULT_TTL = 5 * 60 * 1e3;
+function getFromCache(key) {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < cached.ttl) {
+    performanceMetrics.cacheHits++;
+    return cached.data;
+  }
+  if (cached) {
+    cache.delete(key);
+  }
+  performanceMetrics.cacheMisses++;
+  return null;
+}
+function setCache(key, data, ttl = DEFAULT_TTL) {
+  if (cache.size > 100) {
+    const oldestKey = cache.keys().next().value;
+    cache.delete(oldestKey);
+  }
+  cache.set(key, { data, timestamp: Date.now(), ttl });
+}
+async function executeQuery(operation, queryFn, cacheKey, ttl) {
+  const startTime = Date.now();
+  performanceMetrics.totalQueries++;
+  try {
+    if (cacheKey) {
+      const cached = getFromCache(cacheKey);
+      if (cached !== null) {
+        logger.debug("Cache hit for operation", { operation, cacheKey });
+        return cached;
+      }
+    }
+    const result = await queryFn();
+    const duration = Date.now() - startTime;
+    if (duration > 1e3) {
+      performanceMetrics.slowQueries++;
+      logger.warn("Slow query detected", {
+        operation,
+        duration,
+        cacheKey
+      });
+    }
+    if (cacheKey && result) {
+      setCache(cacheKey, result, ttl);
+    }
+    logger.debug("Query completed", {
+      operation,
+      duration,
+      cacheHit: !!cacheKey && cache.has(cacheKey)
+    });
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error("Query failed", {
+      operation,
+      duration,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+    throw error;
+  }
+}
 var storage = {
   // Inspection methods
   async createInspection(data) {
-    try {
+    return executeQuery("createInspection", async () => {
       const [result] = await db.insert(inspections).values(data).returning();
       logger.info("Created inspection:", { id: result.id });
+      cache.delete("inspections:all");
       return result;
-    } catch (error) {
-      logger.error("Error creating inspection:", error);
-      throw error;
-    }
+    });
   },
-  async getInspections() {
-    try {
-      const result = await db.select().from(inspections);
-      logger.info(`Retrieved ${result.length} inspections`);
+  async getInspections(options) {
+    const cacheKey = `inspections:all:${JSON.stringify(options || {})}`;
+    return executeQuery("getInspections", async () => {
+      let query = db.select().from(inspections);
+      if (options?.startDate || options?.endDate) {
+        const conditions = [];
+        if (options.startDate) {
+          conditions.push(gte(inspections.date, options.startDate));
+        }
+        if (options.endDate) {
+          conditions.push(lte(inspections.date, options.endDate));
+        }
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
+        }
+      }
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+      if (options?.offset) {
+        query = query.offset(options.offset);
+      }
+      const result = await query;
+      logger.info(`Retrieved ${result.length} inspections`, { options });
       return result;
-    } catch (error) {
-      logger.error("Error getting inspections:", error);
-      throw error;
-    }
+    }, cacheKey, 6e4);
   },
   async getInspection(id) {
-    try {
+    const cacheKey = `inspection:${id}`;
+    return executeQuery("getInspection", async () => {
       const [result] = await db.select().from(inspections).where(eq(inspections.id, id));
       logger.info("Retrieved inspection:", { id });
       return result;
-    } catch (error) {
-      logger.error("Error getting inspection:", error);
-      throw error;
-    }
+    }, cacheKey, 3e5);
   },
   async updateInspection(id, data) {
-    try {
+    return executeQuery("updateInspection", async () => {
       const [result] = await db.update(inspections).set(data).where(eq(inspections.id, id)).returning();
       logger.info("Updated inspection:", { id });
+      cache.delete(`inspection:${id}`);
+      cache.delete("inspections:all");
       return result;
-    } catch (error) {
-      logger.error("Error updating inspection:", error);
-      throw error;
-    }
+    });
   },
   async deleteInspection(id) {
-    try {
+    return executeQuery("deleteInspection", async () => {
       await db.delete(inspections).where(eq(inspections.id, id));
       logger.info("Deleted inspection:", { id });
+      cache.delete(`inspection:${id}`);
+      cache.delete("inspections:all");
       return true;
-    } catch (error) {
-      logger.error("Error deleting inspection:", error);
-      return false;
-    }
+    });
   },
   // Custodial Notes methods
   async createCustodialNote(data) {
-    try {
+    return executeQuery("createCustodialNote", async () => {
       const [result] = await db.insert(custodialNotes).values(data).returning();
       logger.info("Created custodial note:", { id: result.id });
+      cache.delete("custodialNotes:all");
       return result;
-    } catch (error) {
-      logger.error("Error creating custodial note:", error);
-      throw error;
-    }
+    });
   },
-  async getCustodialNotes() {
-    try {
-      const result = await db.select().from(custodialNotes);
-      logger.info(`Retrieved ${result.length} custodial notes`);
+  async getCustodialNotes(options) {
+    const cacheKey = `custodialNotes:all:${JSON.stringify(options || {})}`;
+    return executeQuery("getCustodialNotes", async () => {
+      let query = db.select().from(custodialNotes);
+      if (options?.school) {
+        query = query.where(eq(custodialNotes.school, options.school));
+      }
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+      if (options?.offset) {
+        query = query.offset(options.offset);
+      }
+      const result = await query;
+      logger.info(`Retrieved ${result.length} custodial notes`, { options });
       return result;
-    } catch (error) {
-      logger.error("Error getting custodial notes:", error);
-      throw error;
-    }
+    }, cacheKey, 6e4);
   },
   async getCustodialNote(id) {
-    try {
+    const cacheKey = `custodialNote:${id}`;
+    return executeQuery("getCustodialNote", async () => {
       const [result] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
       logger.info("Retrieved custodial note:", { id });
       return result;
-    } catch (error) {
-      logger.error("Error getting custodial note:", error);
-      throw error;
-    }
+    }, cacheKey, 3e5);
   },
   async deleteCustodialNote(id) {
-    try {
+    return executeQuery("deleteCustodialNote", async () => {
       await db.delete(custodialNotes).where(eq(custodialNotes.id, id));
       logger.info("Deleted custodial note:", { id });
+      cache.delete(`custodialNote:${id}`);
+      cache.delete("custodialNotes:all");
       return true;
-    } catch (error) {
-      logger.error("Error deleting custodial note:", error);
-      return false;
-    }
+    });
   },
   // Room Inspections methods
   async createRoomInspection(data) {
-    try {
+    return executeQuery("createRoomInspection", async () => {
       const [result] = await db.insert(roomInspections).values(data).returning();
       logger.info("Created room inspection:", { id: result.id });
+      cache.delete("roomInspections:all");
       return result;
-    } catch (error) {
-      logger.error("Error creating room inspection:", error);
-      throw error;
-    }
+    });
   },
-  async getRoomInspections() {
-    try {
-      const result = await db.select().from(roomInspections);
-      logger.info(`Retrieved ${result.length} room inspections`);
-      return result;
-    } catch (error) {
-      logger.error("Error getting room inspections:", error);
-      throw error;
-    }
+  async getRoomInspections(buildingInspectionId) {
+    const cacheKey = `roomInspections:all:${buildingInspectionId || "all"}`;
+    return executeQuery("getRoomInspections", async () => {
+      if (buildingInspectionId) {
+        const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+        logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
+        return result;
+      } else {
+        const result = await db.select().from(roomInspections);
+        logger.info(`Retrieved ${result.length} room inspections`);
+        return result;
+      }
+    }, cacheKey, 6e4);
   },
   async getRoomInspection(id) {
-    try {
+    const cacheKey = `roomInspection:${id}`;
+    return executeQuery("getRoomInspection", async () => {
       const [result] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
       logger.info("Retrieved room inspection:", { id });
       return result;
-    } catch (error) {
-      logger.error("Error getting room inspection:", error);
-      throw error;
-    }
+    }, cacheKey, 3e5);
   },
   async getRoomInspectionsByBuildingId(buildingInspectionId) {
-    try {
-      const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
-      logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
-      return result;
-    } catch (error) {
-      logger.error("Error getting room inspections by building ID:", error);
-      throw error;
-    }
+    return this.getRoomInspections(buildingInspectionId);
   },
   // Monthly Feedback methods
   async createMonthlyFeedback(data) {
-    try {
+    return executeQuery("createMonthlyFeedback", async () => {
       const [result] = await db.insert(monthlyFeedback).values(data).returning();
       logger.info("Created monthly feedback:", { id: result.id, school: result.school });
+      cache.delete("monthlyFeedback:all");
       return result;
-    } catch (error) {
-      logger.error("Error creating monthly feedback:", error);
-      throw error;
-    }
+    });
   },
-  async getMonthlyFeedback() {
-    try {
-      const result = await db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
-      logger.info(`Retrieved ${result.length} monthly feedback documents`);
+  async getMonthlyFeedback(options) {
+    const cacheKey = `monthlyFeedback:all:${JSON.stringify(options || {})}`;
+    return executeQuery("getMonthlyFeedback", async () => {
+      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
+      if (options?.school) {
+        query = query.where(eq(monthlyFeedback.school, options.school));
+      }
+      if (options?.year) {
+        query = query.where(eq(monthlyFeedback.year, options.year));
+      }
+      if (options?.month) {
+        query = query.where(eq(monthlyFeedback.month, options.month));
+      }
+      const result = await query;
+      logger.info(`Retrieved ${result.length} monthly feedback documents`, { options });
       return result;
-    } catch (error) {
-      logger.error("Error getting monthly feedback:", error);
-      throw error;
-    }
+    }, cacheKey, 12e4);
   },
   async getMonthlyFeedbackById(id) {
-    try {
+    const cacheKey = `monthlyFeedback:${id}`;
+    return executeQuery("getMonthlyFeedbackById", async () => {
       const [result] = await db.select().from(monthlyFeedback).where(eq(monthlyFeedback.id, id));
       logger.info("Retrieved monthly feedback:", { id });
       return result;
-    } catch (error) {
-      logger.error("Error getting monthly feedback by id:", error);
-      throw error;
-    }
+    }, cacheKey, 3e5);
   },
   async deleteMonthlyFeedback(id) {
-    try {
+    return executeQuery("deleteMonthlyFeedback", async () => {
       await db.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
       logger.info("Deleted monthly feedback:", { id });
+      cache.delete(`monthlyFeedback:${id}`);
+      cache.delete("monthlyFeedback:all");
       return true;
-    } catch (error) {
-      logger.error("Error deleting monthly feedback:", error);
-      return false;
-    }
+    });
   },
   async updateMonthlyFeedbackNotes(id, notes) {
-    try {
+    return executeQuery("updateMonthlyFeedbackNotes", async () => {
       const [result] = await db.update(monthlyFeedback).set({ notes }).where(eq(monthlyFeedback.id, id)).returning();
       logger.info("Updated monthly feedback notes:", { id });
+      cache.delete(`monthlyFeedback:${id}`);
+      cache.delete("monthlyFeedback:all");
       return result;
-    } catch (error) {
-      logger.error("Error updating monthly feedback notes:", error);
-      throw error;
+    });
+  },
+  // Performance metrics and cache management
+  getPerformanceMetrics() {
+    return {
+      ...performanceMetrics,
+      cacheHitRate: performanceMetrics.totalQueries > 0 ? (performanceMetrics.cacheHits / performanceMetrics.totalQueries * 100).toFixed(2) + "%" : "0%",
+      slowQueryRate: performanceMetrics.totalQueries > 0 ? (performanceMetrics.slowQueries / performanceMetrics.totalQueries * 100).toFixed(2) + "%" : "0%",
+      cacheSize: cache.size,
+      poolStatus: {
+        totalCount: pool.totalCount,
+        idleCount: pool.idleCount,
+        waitingCount: pool.waitingCount
+      }
+    };
+  },
+  clearCache(pattern) {
+    if (pattern) {
+      const keysToDelete = Array.from(cache.keys()).filter((key) => key.includes(pattern));
+      keysToDelete.forEach((key) => cache.delete(key));
+      logger.info("Cleared cache entries matching pattern", { pattern, deletedCount: keysToDelete.length });
+    } else {
+      const size = cache.size;
+      cache.clear();
+      logger.info("Cleared entire cache", { deletedCount: size });
     }
+  },
+  // Cache warming for frequently accessed data
+  async warmCache() {
+    logger.info("Warming cache...");
+    try {
+      await this.getInspections({ limit: 50 });
+      await this.getCustodialNotes({ limit: 50 });
+      await this.getMonthlyFeedback();
+      logger.info("Cache warming completed");
+    } catch (error) {
+      logger.error("Cache warming failed", { error });
+    }
+  },
+  // Photo storage methods
+  async createInspectionPhoto(photoData) {
+    return executeQuery(
+      "createInspectionPhoto",
+      async () => {
+        const [photo] = await db.insert(inspectionPhotos).values(photoData).returning();
+        return photo;
+      },
+      `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    );
+  },
+  async getInspectionPhoto(photoId) {
+    return executeQuery(
+      "getInspectionPhoto",
+      async () => {
+        const [photo] = await db.select().from(inspectionPhotos).where(eq(inspectionPhotos.id, photoId)).limit(1);
+        return photo;
+      },
+      `inspection_photo_${photoId}`
+    );
+  },
+  async getInspectionPhotosByInspectionId(inspectionId) {
+    return executeQuery(
+      "getInspectionPhotosByInspectionId",
+      async () => {
+        const photos = await db.select().from(inspectionPhotos).where(eq(inspectionPhotos.inspectionId, inspectionId)).orderBy(desc(inspectionPhotos.createdAt));
+        return photos;
+      },
+      `photos_inspection_${inspectionId}`,
+      10 * 60 * 1e3
+      // 10 minute cache
+    );
+  },
+  async getAllInspectionPhotos() {
+    return executeQuery(
+      "getAllInspectionPhotos",
+      async () => {
+        const photos = await db.select().from(inspectionPhotos).orderBy(desc(inspectionPhotos.createdAt));
+        return photos;
+      },
+      "all_photos",
+      5 * 60 * 1e3
+      // 5 minute cache
+    );
+  },
+  async updateInspectionPhoto(photoId, updateData) {
+    return executeQuery(
+      "updateInspectionPhoto",
+      async () => {
+        const [photo] = await db.update(inspectionPhotos).set(updateData).where(eq(inspectionPhotos.id, photoId)).returning();
+        return photo;
+      },
+      `update_photo_${photoId}`
+    );
+  },
+  async deleteInspectionPhoto(photoId) {
+    return executeQuery(
+      "deleteInspectionPhoto",
+      async () => {
+        await db.delete(inspectionPhotos).where(eq(inspectionPhotos.id, photoId));
+      },
+      `delete_photo_${photoId}`
+    );
+  },
+  // Sync queue methods
+  async createSyncQueue(queueData) {
+    return executeQuery(
+      "createSyncQueue",
+      async () => {
+        const [queueItem] = await db.insert(syncQueue).values(queueData).returning();
+        return queueItem;
+      },
+      `sync_queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    );
+  },
+  async getSyncQueueItems(status) {
+    return executeQuery(
+      "getSyncQueueItems",
+      async () => {
+        let query = db.select().from(syncQueue).orderBy(desc(syncQueue.createdAt));
+        if (status) {
+          query = query.where(eq(syncQueue.type, status));
+        }
+        const items = await query;
+        return items;
+      },
+      `sync_queue_${status || "all"}`,
+      5 * 60 * 1e3
+      // 5 minute cache
+    );
+  },
+  async updateSyncQueue(queueId, updateData) {
+    return executeQuery(
+      "updateSyncQueue",
+      async () => {
+        const [queueItem] = await db.update(syncQueue).set(updateData).where(eq(syncQueue.id, queueId)).returning();
+        return queueItem;
+      },
+      `update_sync_queue_${queueId}`
+    );
+  },
+  async deleteSyncQueue(queueId) {
+    return executeQuery(
+      "deleteSyncQueue",
+      async () => {
+        await db.delete(syncQueue).where(eq(syncQueue.id, queueId));
+      },
+      `delete_sync_queue_${queueId}`
+    );
   }
 };
 
@@ -909,17 +1295,55 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/custodial-notes", upload.array("images"), async (req, res) => {
     logger.info("[POST] Custodial Notes submission started", {
-      body: req.body,
+      headers: req.headers,
+      contentType: req.headers["content-type"],
       files: req.files ? req.files.length : 0
     });
+    const contentType = req.headers["content-type"];
+    if (!contentType || !contentType.includes("multipart/form-data")) {
+      logger.warn("[POST] Invalid content type for multipart endpoint", {
+        contentType,
+        userAgent: req.headers["user-agent"]
+      });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid content type",
+        details: "This endpoint requires multipart/form-data. Please use the form to submit data.",
+        technical: "Expected multipart/form-data, got " + (contentType || "none")
+      });
+    }
     try {
       const { inspectorName, school, date, locationDescription, location, notes } = req.body;
-      const files = req.files;
+      const files = Array.isArray(req.files) ? req.files : [];
+      logger.info("[POST] Parsed form data", {
+        inspectorName,
+        school,
+        date,
+        location,
+        locationDescription,
+        notes: notes ? `${notes.substring(0, 50)}...` : "none",
+        fileCount: files.length
+      });
       if (!inspectorName || !school || !date || !location) {
-        logger.warn("[POST] Missing required fields", { inspectorName, school, date, location });
+        logger.warn("[POST] Missing required fields", {
+          received: { inspectorName, school, date, location },
+          validation: {
+            inspectorName: !!inspectorName,
+            school: !!school,
+            date: !!date,
+            location: !!location
+          }
+        });
         return res.status(400).json({
+          success: false,
           message: "Missing required fields",
-          details: { inspectorName: !!inspectorName, school: !!school, date: !!date, location: !!location }
+          details: {
+            inspectorName: !!inspectorName ? "\u2713" : "\u2717 required",
+            school: !!school ? "\u2713" : "\u2717 required",
+            date: !!date ? "\u2713" : "\u2717 required",
+            location: !!location ? "\u2713" : "\u2717 required"
+          },
+          receivedFields: { inspectorName, school, date, location }
         });
       }
       let imageUrls = [];
@@ -959,14 +1383,115 @@ async function registerRoutes(app2) {
       const custodialNoteResult = await storage.createCustodialNote(validatedData);
       logger.info("[POST] Custodial note created successfully", { id: custodialNoteResult.id });
       res.status(201).json({
+        success: true,
         message: "Custodial note submitted successfully",
         id: custodialNoteResult.id,
         imageCount: imageUrls.length
       });
     } catch (error) {
       logger.error("[POST] Error creating custodial note:", error);
-      res.status(500).json({ message: "Internal server error" });
+      if (error && error.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "File size too large",
+          details: "Maximum file size is 5MB per image"
+        });
+      }
+      if (error && error.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({
+          success: false,
+          message: "Too many files",
+          details: "Maximum 5 images allowed"
+        });
+      }
+      if (error && error.code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid file field",
+          details: "Only image files are allowed"
+        });
+      }
+      if (error instanceof z2.ZodError) {
+        logger.warn("[POST] Validation failed", { errors: error.errors });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid form data",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message
+          }))
+        });
+      }
+      if (error && error.message && error.message.includes("Unexpected end of form")) {
+        logger.error("[POST] FormData parsing error - likely malformed request", error);
+        return res.status(400).json({
+          success: false,
+          message: "Invalid form data format",
+          details: "The form data was not properly formatted. Please try again.",
+          technical: "FormData parsing failed"
+        });
+      }
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        details: process.env.NODE_ENV === "development" ? error instanceof Error ? error.message : "Unknown error" : "Please try again or contact support"
+      });
     }
+  });
+  app2.use("/api/custodial-notes", (err, req, res, next) => {
+    logger.error("[POST] Multipart error in custodial notes:", err);
+    if (err instanceof multer.MulterError) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "File size too large",
+          details: "Maximum file size is 5MB per image"
+        });
+      }
+      if (err.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({
+          success: false,
+          message: "Too many files",
+          details: "Maximum 5 images allowed"
+        });
+      }
+      if (err.code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid file field",
+          details: "Only image files are allowed"
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: "File upload error",
+        details: err.message
+      });
+    }
+    if (err && err.message) {
+      if (err.message.includes("Unexpected end of form") || err.message.includes("Multipart: Boundary not found") || err.message.includes("Malformed part header")) {
+        return res.status(400).json({
+          success: false,
+          message: "Form data is malformed",
+          details: "The request format was invalid. Please try submitting the form again.",
+          technical: "FormData parsing failed"
+        });
+      }
+      if (err.message.includes("Unexpected field") || err.message.includes("Error: Multipart") || req.headers["content-type"]?.includes("application/json")) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid content type",
+          details: "This endpoint requires multipart/form-data. Please use the form to submit data.",
+          technical: "Wrong content type for multipart endpoint"
+        });
+      }
+    }
+    return res.status(400).json({
+      success: false,
+      message: "Invalid request format",
+      details: "The request could not be processed. Please ensure you are submitting the form correctly.",
+      technical: "Multipart processing error"
+    });
   });
   app2.get("/api/custodial-notes", async (req, res) => {
     try {
@@ -1649,6 +2174,287 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to fetch school score" });
     }
   });
+  app2.post("/api/photos/upload", upload.single("photo"), async (req, res) => {
+    logger.info("[POST] Photo upload started", {
+      contentType: req.get("Content-Type"),
+      hasFile: !!req.file,
+      metadata: req.body.metadata,
+      hasLocation: !!req.body.location,
+      inspectionId: req.body.inspectionId
+    });
+    try {
+      if (!req.file) {
+        logger.warn("[POST] No photo file provided");
+        return res.status(400).json({
+          success: false,
+          message: "Photo file is required"
+        });
+      }
+      let metadata;
+      try {
+        metadata = JSON.parse(req.body.metadata || "{}");
+        if (!metadata.width || !metadata.height || !metadata.fileSize) {
+          logger.warn("[POST] Missing required metadata fields", { metadata });
+          return res.status(400).json({
+            success: false,
+            message: "Invalid metadata: missing required fields (width, height, fileSize)"
+          });
+        }
+        if (metadata.width <= 0 || metadata.height <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid image dimensions"
+          });
+        }
+        if (metadata.fileSize <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid file size"
+          });
+        }
+      } catch (parseError) {
+        logger.warn("[POST] Invalid metadata format", { error: parseError, metadata: req.body.metadata });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid metadata format"
+        });
+      }
+      let locationData;
+      try {
+        locationData = req.body.location ? JSON.parse(req.body.location) : null;
+        if (locationData) {
+          if (typeof locationData.latitude !== "number" || typeof locationData.longitude !== "number" || locationData.latitude < -90 || locationData.latitude > 90 || locationData.longitude < -180 || locationData.longitude > 180) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid location coordinates"
+            });
+          }
+          if (locationData.accuracy && (typeof locationData.accuracy !== "number" || locationData.accuracy < 0)) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid location accuracy"
+            });
+          }
+        }
+      } catch (locationError) {
+        logger.warn("[POST] Invalid location data format", { error: locationError, location: req.body.location });
+        locationData = null;
+      }
+      let inspectionId;
+      if (req.body.inspectionId) {
+        try {
+          inspectionId = parseInt(req.body.inspectionId, 10);
+          if (isNaN(inspectionId) || inspectionId <= 0) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid inspection ID"
+            });
+          }
+          const inspection = await storage.getInspection(inspectionId);
+          if (!inspection) {
+            return res.status(404).json({
+              success: false,
+              message: "Inspection not found"
+            });
+          }
+        } catch (inspectionError) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid inspection ID format"
+          });
+        }
+      }
+      const timestamp2 = Date.now();
+      const randomId = Math.round(Math.random() * 1e9);
+      const filename = `photos/${timestamp2}-${randomId}-${req.file.originalname}`;
+      logger.info("[POST] Uploading photo to object storage", {
+        filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+      const uploadResult = await objectStorageService.uploadLargeFile(
+        req.file.buffer,
+        filename,
+        req.file.mimetype
+      );
+      if (!uploadResult.success) {
+        logger.error("[POST] Failed to upload photo to object storage", {
+          filename,
+          error: uploadResult.error
+        });
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload photo"
+        });
+      }
+      const photoUrl = `/objects/${filename}`;
+      const photoData = {
+        inspectionId: inspectionId || null,
+        photoUrl,
+        locationLat: locationData ? locationData.latitude.toString() : null,
+        locationLng: locationData ? locationData.longitude.toString() : null,
+        locationAccuracy: locationData && locationData.accuracy ? locationData.accuracy.toString() : null,
+        locationSource: locationData ? locationData.source || "gps" : null,
+        buildingId: locationData?.buildingId || null,
+        floor: locationData?.floor || null,
+        room: locationData?.room || null,
+        capturedAt: metadata.capturedAt ? new Date(metadata.capturedAt) : /* @__PURE__ */ new Date(),
+        notes: metadata.notes || null,
+        syncStatus: "synced",
+        fileSize: metadata.fileSize,
+        imageWidth: metadata.width,
+        imageHeight: metadata.height,
+        compressionRatio: metadata.compressionRatio || null,
+        deviceInfo: metadata.deviceInfo ? JSON.stringify(metadata.deviceInfo) : null
+      };
+      const savedPhoto = await storage.createInspectionPhoto(photoData);
+      logger.info("[POST] Photo uploaded and saved successfully", {
+        photoId: savedPhoto.id,
+        photoUrl,
+        inspectionId
+      });
+      res.status(201).json({
+        success: true,
+        message: "Photo uploaded successfully",
+        photo: {
+          id: savedPhoto.id,
+          url: photoUrl,
+          metadata: {
+            width: metadata.width,
+            height: metadata.height,
+            fileSize: metadata.fileSize,
+            capturedAt: metadata.capturedAt
+          },
+          location: locationData ? {
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            accuracy: locationData.accuracy,
+            source: locationData.source
+          } : null,
+          inspectionId: inspectionId || null
+        }
+      });
+    } catch (error) {
+      logger.error("[POST] Error uploading photo:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error during photo upload"
+      });
+    }
+  });
+  app2.get("/api/photos/:inspectionId", async (req, res) => {
+    try {
+      const inspectionId = parseInt(req.params.inspectionId, 10);
+      if (isNaN(inspectionId) || inspectionId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid inspection ID"
+        });
+      }
+      const inspection = await storage.getInspection(inspectionId);
+      if (!inspection) {
+        return res.status(404).json({
+          success: false,
+          message: "Inspection not found"
+        });
+      }
+      const photos = await storage.getInspectionPhotosByInspectionId(inspectionId);
+      res.json({
+        success: true,
+        inspectionId,
+        photos: photos.map((photo) => ({
+          id: photo.id,
+          url: photo.photoUrl,
+          thumbnailUrl: photo.thumbnailUrl,
+          capturedAt: photo.capturedAt,
+          location: photo.locationLat && photo.locationLng ? {
+            latitude: parseFloat(photo.locationLat),
+            longitude: parseFloat(photo.locationLng),
+            accuracy: photo.locationAccuracy ? parseFloat(photo.locationAccuracy) : null,
+            source: photo.locationSource
+          } : null,
+          buildingId: photo.buildingId,
+          floor: photo.floor,
+          room: photo.room,
+          syncStatus: photo.syncStatus,
+          fileSize: photo.fileSize,
+          dimensions: photo.imageWidth && photo.imageHeight ? {
+            width: photo.imageWidth,
+            height: photo.imageHeight
+          } : null
+        }))
+      });
+    } catch (error) {
+      logger.error("[GET] Error fetching photos:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch photos"
+      });
+    }
+  });
+  app2.delete("/api/photos/:photoId", async (req, res) => {
+    try {
+      const photoId = parseInt(req.params.photoId, 10);
+      if (isNaN(photoId) || photoId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid photo ID"
+        });
+      }
+      const photo = await storage.getInspectionPhoto(photoId);
+      if (!photo) {
+        return res.status(404).json({
+          success: false,
+          message: "Photo not found"
+        });
+      }
+      if (photo.photoUrl && photo.photoUrl.startsWith("/objects/")) {
+        const filename = photo.photoUrl.replace("/objects/", "");
+        const deleteResult = await objectStorageService.deleteFile(filename);
+        if (!deleteResult.success) {
+          logger.warn("[DELETE] Failed to delete photo from object storage", {
+            filename,
+            error: deleteResult.error
+          });
+        }
+      }
+      await storage.deleteInspectionPhoto(photoId);
+      logger.info("[DELETE] Photo deleted successfully", { photoId });
+      res.json({
+        success: true,
+        message: "Photo deleted successfully"
+      });
+    } catch (error) {
+      logger.error("[DELETE] Error deleting photo:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete photo"
+      });
+    }
+  });
+  app2.get("/api/photos/sync-status", async (req, res) => {
+    try {
+      const photos = await storage.getAllInspectionPhotos();
+      const syncStats = {
+        total: photos.length,
+        pending: photos.filter((p) => p.syncStatus === "pending").length,
+        synced: photos.filter((p) => p.syncStatus === "synced").length,
+        failed: photos.filter((p) => p.syncStatus === "failed").length,
+        lastSyncTime: photos.length > 0 ? Math.max(...photos.map((p) => new Date(p.updatedAt).getTime())) : null
+      };
+      res.json({
+        success: true,
+        stats: syncStats
+      });
+    } catch (error) {
+      logger.error("[GET] Error fetching sync status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch sync status"
+      });
+    }
+  });
   app2.use("/api/*", (req, res) => {
     res.status(404).json({
       error: "API endpoint not found",
@@ -1662,7 +2468,11 @@ async function registerRoutes(app2) {
         "POST /api/custodial-notes",
         "POST /api/room-inspections",
         "GET /api/scores",
-        "GET /api/scores/:school"
+        "GET /api/scores/:school",
+        "POST /api/photos/upload",
+        "GET /api/photos/:inspectionId",
+        "DELETE /api/photos/:photoId",
+        "GET /api/photos/sync-status"
       ]
     });
   });
@@ -1805,38 +2615,6 @@ init_logger();
 
 // server/monitoring.ts
 init_logger();
-var performanceMonitor = (req, res, next) => {
-  const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    const method = req.method;
-    const url = req.originalUrl;
-    const statusCode = res.statusCode;
-    if (duration > 1e3) {
-      logger.warn("Slow request detected", {
-        method,
-        url,
-        duration,
-        statusCode
-      });
-    }
-    if (statusCode >= 400) {
-      logger.error("Request failed", {
-        method,
-        url,
-        statusCode,
-        duration
-      });
-    }
-    logger.debug("Request completed", {
-      method,
-      url,
-      statusCode,
-      duration
-    });
-  });
-  next();
-};
 var healthCheck = async (req, res) => {
   const startTime = Date.now();
   try {
@@ -1904,6 +2682,458 @@ var metricsMiddleware = (req, res, next) => {
   next();
 };
 
+// server/cache.ts
+init_logger();
+var APICache = class {
+  cache = /* @__PURE__ */ new Map();
+  maxSize = 1e3;
+  // Maximum number of cached entries
+  cleanupInterval = 6e4;
+  // Cleanup expired entries every minute
+  constructor() {
+    setInterval(() => this.cleanup(), this.cleanupInterval);
+  }
+  cleanup() {
+    const now = Date.now();
+    const keysToDelete = [];
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > entry.ttl) {
+        keysToDelete.push(key);
+      }
+    }
+    keysToDelete.forEach((key) => this.cache.delete(key));
+    if (keysToDelete.length > 0) {
+      logger.debug("Cache cleanup completed", { deletedCount: keysToDelete.length, remainingSize: this.cache.size });
+    }
+  }
+  getCacheKey(req) {
+    const url = req.originalUrl || req.url;
+    const method = req.method;
+    const queryString = new URLSearchParams(req.query).toString();
+    const key = method === "GET" ? `${method}:${url}:${queryString}` : `${method}:${url}`;
+    return key;
+  }
+  // Expose getCacheKey for middleware use
+  static getCacheKeyForRequest(req) {
+    const url = req.originalUrl || req.url;
+    const method = req.method;
+    const queryString = new URLSearchParams(req.query).toString();
+    return method === "GET" ? `${method}:${url}:${queryString}` : `${method}:${url}`;
+  }
+  shouldCacheRequest(req) {
+    if (req.method !== "GET") return false;
+    if (req.headers["cache-control"] === "no-cache") return false;
+    const noCachePatterns = [
+      "/api/admin/",
+      "/health",
+      "/metrics"
+    ];
+    return !noCachePatterns.some((pattern) => req.path.includes(pattern));
+  }
+  getCacheTTL(req) {
+    const path5 = req.path;
+    if (path5.includes("/api/inspections") || path5.includes("/api/custodial-notes")) {
+      return 6e4;
+    } else if (path5.includes("/api/scores")) {
+      return 3e5;
+    } else if (path5.includes("/api/monthly-feedback")) {
+      return 12e4;
+    } else if (path5.startsWith("/api/")) {
+      return 6e4;
+    } else {
+      return 3e5;
+    }
+  }
+  get(req) {
+    const key = this.getCacheKey(req);
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    logger.debug("Cache hit", { key, path: req.path });
+    return entry.data;
+  }
+  set(req, res, data) {
+    if (!this.shouldCacheRequest(req)) return;
+    const key = this.getCacheKey(req);
+    const ttl = this.getCacheTTL(req);
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
+    const headers = {};
+    const relevantHeaders = ["content-type", "etag", "last-modified"];
+    relevantHeaders.forEach((header) => {
+      const value = res.getHeader(header);
+      if (value) {
+        headers[header] = Array.isArray(value) ? value.join(", ") : String(value);
+      }
+    });
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl,
+      headers
+    });
+    logger.debug("Cache set", { key, path: req.path, ttl });
+  }
+  invalidate(pattern) {
+    const keysToDelete = [];
+    for (const key of this.cache.keys()) {
+      if (key.includes(pattern)) {
+        keysToDelete.push(key);
+      }
+    }
+    keysToDelete.forEach((key) => this.cache.delete(key));
+    logger.info("Cache invalidated", { pattern, deletedCount: keysToDelete.length });
+  }
+  getStats() {
+    const now = Date.now();
+    let expiredCount = 0;
+    let totalSize = 0;
+    for (const [key, entry] of this.cache.entries()) {
+      totalSize++;
+      if (now - entry.timestamp > entry.ttl) {
+        expiredCount++;
+      }
+    }
+    return {
+      size: this.cache.size,
+      maxSize: this.maxSize,
+      expiredCount,
+      totalSize,
+      hitRate: this.getHitRate()
+    };
+  }
+  hitRate = 0;
+  totalRequests = 0;
+  hits = 0;
+  recordRequest(hit) {
+    this.totalRequests++;
+    if (hit) this.hits++;
+    this.hitRate = this.totalRequests > 0 ? this.hits / this.totalRequests * 100 : 0;
+  }
+  getHitRate() {
+    return this.hitRate;
+  }
+  clear() {
+    this.cache.clear();
+    this.hits = 0;
+    this.totalRequests = 0;
+    this.hitRate = 0;
+    logger.info("Cache cleared");
+  }
+};
+var apiCache = new APICache();
+var cacheMiddleware = (req, res, next) => {
+  if (req.method === "GET") {
+    const cachedData = apiCache.get(req);
+    if (cachedData !== null) {
+      apiCache.recordRequest(true);
+      res.set("X-Cache", "HIT");
+      res.set("X-Cache-Hit-Rate", `${apiCache.getHitRate().toFixed(1)}%`);
+      const cacheKey = apiCache.getCacheKey ? apiCache.getCacheKey(req) : null;
+      if (cacheKey) {
+        res.set("Content-Type", "application/json");
+      }
+      return res.json(cachedData);
+    }
+  }
+  apiCache.recordRequest(false);
+  res.set("X-Cache", "MISS");
+  const originalJson = res.json;
+  res.json = function(data) {
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      apiCache.set(req, res, data);
+    }
+    return originalJson.call(this, data);
+  };
+  next();
+};
+var invalidateCache = (patterns) => {
+  return (req, res, next) => {
+    const originalSend = res.send;
+    res.send = function(data) {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        patterns.forEach((pattern) => apiCache.invalidate(pattern));
+      }
+      return originalSend.call(this, data);
+    };
+    next();
+  };
+};
+var performanceMiddleware = (req, res, next) => {
+  const startTime = process.hrtime.bigint();
+  res.on("finish", () => {
+    const endTime = process.hrtime.bigint();
+    const duration = Number(endTime - startTime) / 1e6;
+    if (duration > 1e3) {
+      logger.warn("Slow request detected", {
+        method: req.method,
+        url: req.originalUrl,
+        duration: `${duration.toFixed(2)}ms`,
+        statusCode: res.statusCode
+      });
+    }
+    res.set("X-Response-Time", `${duration.toFixed(2)}ms`);
+    logger.debug("Request completed", {
+      method: req.method,
+      url: req.originalUrl,
+      statusCode: res.statusCode,
+      duration: `${duration.toFixed(2)}ms`,
+      userAgent: req.headers["user-agent"],
+      ip: req.ip || req.connection.remoteAddress
+    });
+  });
+  next();
+};
+var memoryMonitoring = (req, res, next) => {
+  const memUsage = process.memoryUsage();
+  const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
+  const heapTotalMB = memUsage.heapTotal / 1024 / 1024;
+  if (heapUsedMB > 500) {
+    logger.warn("High memory usage detected", {
+      heapUsed: `${heapUsedMB.toFixed(2)}MB`,
+      heapTotal: `${heapTotalMB.toFixed(2)}MB`,
+      external: `${(memUsage.external / 1024 / 1024).toFixed(2)}MB`,
+      path: req.path
+    });
+  }
+  res.set("X-Memory-Used", `${heapUsedMB.toFixed(2)}MB`);
+  res.set("X-Memory-Total", `${heapTotalMB.toFixed(2)}MB`);
+  next();
+};
+var pendingRequests = /* @__PURE__ */ new Map();
+var requestDeduplication = (req, res, next) => {
+  if (req.method !== "GET") {
+    return next();
+  }
+  const key = `${req.method}:${req.originalUrl}`;
+  const existingRequest = pendingRequests.get(key);
+  if (existingRequest) {
+    logger.debug("Request deduplication: merging identical request", { key });
+    existingRequest.then((data) => {
+      res.set("X-Deduplicated", "true");
+      res.json(data);
+    }).catch((error) => {
+      next(error);
+    });
+    return;
+  }
+  const requestPromise = new Promise((resolve, reject) => {
+    const originalJson = res.json;
+    const originalSend = res.send;
+    res.json = function(data) {
+      resolve(data);
+      return originalJson.call(this, data);
+    };
+    res.send = function(data) {
+      resolve(data);
+      return originalSend.call(this, data);
+    };
+    res.on("error", reject);
+  });
+  pendingRequests.set(key, requestPromise);
+  res.on("finish", () => {
+    pendingRequests.delete(key);
+  });
+  res.on("error", () => {
+    pendingRequests.delete(key);
+  });
+  next();
+};
+
+// server/performanceErrorHandler.ts
+init_logger();
+var EnhancedError = class extends Error {
+  statusCode;
+  code;
+  context;
+  isOperational;
+  constructor(message, statusCode = 500, code = "INTERNAL_ERROR", context, isOperational = true) {
+    super(message);
+    this.name = this.constructor.name;
+    this.statusCode = statusCode;
+    this.code = code;
+    this.context = {
+      timestamp: Date.now(),
+      ...context
+    };
+    this.isOperational = isOperational;
+    Error.captureStackTrace(this, this.constructor);
+  }
+};
+var performanceErrorHandler = (error, req, res, next) => {
+  const startTime = process.hrtime.bigint();
+  if (!error.context) {
+    error.context = { timestamp: Date.now() };
+  }
+  error.context = {
+    ...error.context,
+    requestId: req.requestId,
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.headers["user-agent"],
+    method: req.method,
+    url: req.originalUrl || req.url
+  };
+  const duration = Number(process.hrtime.bigint() - startTime) / 1e6;
+  const errorLog = {
+    errorId: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    message: error.message,
+    statusCode: error.statusCode,
+    code: error.code,
+    context: error.context,
+    stack: error.stack,
+    duration: `${duration.toFixed(2)}ms`,
+    // Include performance metrics
+    memoryUsage: process.memoryUsage(),
+    uptime: process.uptime()
+  };
+  logger.error("Performance error occurred", errorLog);
+  metricsCollector.increment("errors_total");
+  metricsCollector.increment(`errors_${error.statusCode}`);
+  metricsCollector.increment(`errors_${error.code}`);
+  const errorResponse = {
+    success: false,
+    error: {
+      id: errorLog.errorId,
+      code: error.code,
+      message: getErrorMessage(error),
+      ...process.env.NODE_ENV === "development" && {
+        stack: error.stack,
+        context: error.context
+      }
+    },
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    // Add performance headers
+    "X-Error-Duration": `${duration.toFixed(2)}ms`
+  };
+  res.set({
+    "X-Error-Id": errorLog.errorId,
+    "X-Error-Code": error.code,
+    "X-Content-Type-Options": "nosniff"
+  });
+  res.status(error.statusCode).json(errorResponse);
+};
+function getErrorMessage(error) {
+  if (process.env.NODE_ENV === "production") {
+    if (error.statusCode >= 500) {
+      return "Internal server error";
+    }
+  }
+  return error.message || "An unexpected error occurred";
+}
+var errorRecoveryMiddleware = (req, res, next) => {
+  res.set({
+    "X-Retry-After": "5",
+    // Suggest retry after 5 seconds
+    "X-Error-Recovery": "true"
+  });
+  const originalJson = res.json;
+  res.json = function(data) {
+    if (res.statusCode >= 400) {
+      if (data && typeof data === "object") {
+        data.recovery = {
+          retryAfter: 5,
+          canRetry: res.statusCode < 500,
+          maxRetries: 3
+        };
+      }
+    }
+    return originalJson.call(this, data);
+  };
+  next();
+};
+var gracefulDegradation = (req, res, next) => {
+  const memUsage = process.memoryUsage();
+  const memoryPressure = memUsage.heapUsed / memUsage.heapTotal;
+  if (memoryPressure > 0.9) {
+    logger.warn("High memory pressure detected, enabling graceful degradation", {
+      memoryPressure: `${(memoryPressure * 100).toFixed(1)}%`,
+      path: req.path
+    });
+    res.set("X-Graceful-Degradation", "true");
+    if (req.path.startsWith("/api/") && !req.path.includes("/admin/")) {
+      req.query.simplified = "true";
+    }
+  }
+  next();
+};
+var CircuitBreaker = class {
+  failures = 0;
+  lastFailureTime = 0;
+  state = "CLOSED";
+  threshold;
+  timeout;
+  resetTimeout;
+  constructor(threshold = 5, timeout = 6e4, resetTimeout = 3e4) {
+    this.threshold = threshold;
+    this.timeout = timeout;
+    this.resetTimeout = resetTimeout;
+  }
+  async execute(operation, context) {
+    if (this.state === "OPEN") {
+      if (Date.now() - this.lastFailureTime > this.timeout) {
+        this.state = "HALF_OPEN";
+        logger.info("Circuit breaker entering HALF_OPEN state", { context });
+      } else {
+        throw new EnhancedError(
+          "Service temporarily unavailable",
+          503,
+          "CIRCUIT_BREAKER_OPEN",
+          { context, state: this.state }
+        );
+      }
+    }
+    try {
+      const result = await operation();
+      if (this.state === "HALF_OPEN") {
+        this.reset();
+        logger.info("Circuit breaker reset to CLOSED state", { context });
+      }
+      return result;
+    } catch (error) {
+      this.recordFailure(context);
+      throw error;
+    }
+  }
+  recordFailure(context) {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    if (this.failures >= this.threshold) {
+      this.state = "OPEN";
+      logger.warn("Circuit breaker opened", {
+        failures: this.failures,
+        threshold: this.threshold,
+        context
+      });
+    }
+  }
+  reset() {
+    this.failures = 0;
+    this.state = "CLOSED";
+  }
+  getState() {
+    return this.state;
+  }
+  getFailures() {
+    return this.failures;
+  }
+};
+var databaseCircuitBreaker = new CircuitBreaker(5, 6e4, 3e4);
+var cacheCircuitBreaker = new CircuitBreaker(10, 3e4, 1e4);
+var fileUploadCircuitBreaker = new CircuitBreaker(3, 12e4, 6e4);
+var circuitBreakerMiddleware = (circuitBreaker, operation) => {
+  return (req, res, next) => {
+    res.set("X-Circuit-Breaker-Status", circuitBreaker.getState());
+    res.set("X-Circuit-Breaker-Failures", circuitBreaker.getFailures().toString());
+    next();
+  };
+};
+
 // server/index.ts
 var app = express3();
 if (process.env.REPL_SLUG) {
@@ -1912,8 +3142,12 @@ if (process.env.REPL_SLUG) {
   app.set("trust proxy", false);
 }
 app.use(requestIdMiddleware);
-app.use(performanceMonitor);
+app.use(performanceMiddleware);
+app.use(memoryMonitoring);
 app.use(metricsMiddleware);
+app.use(gracefulDegradation);
+app.use(errorRecoveryMiddleware);
+app.use(requestDeduplication);
 app.use(helmet({
   // Content Security Policy - disabled for development to allow inline styles
   contentSecurityPolicy: process.env.NODE_ENV === "production" ? {
@@ -1951,11 +3185,15 @@ app.use(helmet({
   xssFilter: true
 }));
 app.use(compression({
-  // Compress all responses
+  // Enhanced compression settings
   level: 6,
   // Compression level (1-9, 6 is default)
   threshold: 1024,
   // Only compress responses larger than 1KB
+  chunkSize: 16 * 1024,
+  // 16KB chunks for better compression
+  windowBits: 15,
+  memLevel: 8,
   // Compress only these content types
   filter: (req, res) => {
     if (req.headers["x-no-compression"]) {
@@ -1973,11 +3211,19 @@ app.use(validateRequest);
 app.use(sanitizeInput);
 app.use(express3.json({ limit: "10mb" }));
 app.use(express3.urlencoded({ extended: false, limit: "10mb" }));
+app.use(cacheMiddleware);
 app.use("/api/admin/login", strictRateLimit);
 app.use("/api/inspections", apiRateLimit);
 app.use("/api/custodial-notes", apiRateLimit);
 app.use("/api/monthly-feedback", apiRateLimit);
 app.use("/api", apiRateLimit);
+app.use("/api/inspections", invalidateCache(["inspections", "scores"]));
+app.use("/api/custodial-notes", invalidateCache(["custodialNotes", "scores"]));
+app.use("/api/monthly-feedback", invalidateCache(["monthlyFeedback"]));
+app.use("/api/inspections", circuitBreakerMiddleware(databaseCircuitBreaker, "inspections"));
+app.use("/api/custodial-notes", circuitBreakerMiddleware(databaseCircuitBreaker, "custodial-notes"));
+app.use("/api/monthly-feedback", circuitBreakerMiddleware(fileUploadCircuitBreaker, "monthly-feedback"));
+app.use("/api/scores", circuitBreakerMiddleware(cacheCircuitBreaker, "scores"));
 app.use("/api", (req, res, next) => {
   try {
     const contentType = req.headers["content-type"];
@@ -2068,9 +3314,62 @@ if (process.env.REPL_SLUG) {
     app.get("/metrics", (req, res) => {
       res.json(metricsCollector.getMetrics());
     });
-    logger.info("Health check endpoints configured");
+    app.get("/api/performance/stats", (req, res) => {
+      try {
+        const storageMetrics = storage.getPerformanceMetrics();
+        const cacheStats = apiCache.getStats();
+        const memUsage = process.memoryUsage();
+        res.json({
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          uptime: process.uptime(),
+          memory: {
+            heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
+            heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)}MB`,
+            external: `${(memUsage.external / 1024 / 1024).toFixed(2)}MB`,
+            rss: `${(memUsage.rss / 1024 / 1024).toFixed(2)}MB`
+          },
+          storage: storageMetrics,
+          cache: cacheStats,
+          database: {
+            connected: true
+            // We'll add more detailed DB stats later
+          }
+        });
+      } catch (error) {
+        logger.error("Error fetching performance stats", { error });
+        res.status(500).json({ error: "Failed to fetch performance stats" });
+      }
+    });
+    app.post("/api/performance/clear-cache", (req, res) => {
+      try {
+        const { pattern } = req.body;
+        if (pattern) {
+          storage.clearCache(pattern);
+          apiCache.invalidate(pattern);
+          res.json({ message: `Cache cleared for pattern: ${pattern}` });
+        } else {
+          storage.clearCache();
+          apiCache.clear();
+          res.json({ message: "All caches cleared" });
+        }
+      } catch (error) {
+        logger.error("Error clearing cache", { error });
+        res.status(500).json({ error: "Failed to clear cache" });
+      }
+    });
+    app.post("/api/performance/warm-cache", async (req, res) => {
+      try {
+        await storage.warmCache();
+        res.json({ message: "Cache warming completed" });
+      } catch (error) {
+        logger.error("Error warming cache", { error });
+        res.status(500).json({ error: "Failed to warm cache" });
+      }
+    });
+    logger.info("Health check and performance endpoints configured");
     await registerRoutes(app);
     logger.info("Routes registered successfully");
+    app.use(performanceErrorHandler);
     serveStatic(app);
     logger.info("Static file serving configured");
     const server = createServer(app);

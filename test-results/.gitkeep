@@ -1,5 +1,0 @@
-# Test Results Directory
-# This directory will contain:
-# - logs/ - Test execution logs and responses
-# - exports/ - Downloaded files for validation  
-# - qa-created.json - Created test data for cleanup
