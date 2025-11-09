@@ -374,7 +374,25 @@ if (process.env.REPL_SLUG) {
     const server = createServer(app);
     logger.info("HTTP server created");
 
+    // Initialize database safely in production
+    async function initializeDatabase() {
+      try {
+        // Test database connection
+        await db.select().limit(1);
+        logger.info("Database connection successful");
+      } catch (error) {
+        logger.error("Database connection failed", { error: error instanceof Error ? error.message : 'Unknown error' });
+        // In production, we don't want to fail startup if DB is temporarily unavailable
+        if (process.env.NODE_ENV === 'production') {
+          logger.warn("Continuing startup despite database connection failure (production mode)");
+        } else {
+          throw error;
+        }
+      }
+    }
 
+    // Initialize database before starting server
+    await initializeDatabase();
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.

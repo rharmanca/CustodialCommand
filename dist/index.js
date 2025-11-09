@@ -342,7 +342,7 @@ var init_logger = __esm({
 // server/db.ts
 var db_exports = {};
 __export(db_exports, {
-  db: () => db,
+  db: () => db2,
   pool: () => pool
 });
 import { config } from "dotenv";
@@ -375,7 +375,7 @@ async function initializeDatabase() {
     }
   }
 }
-var isRailway, sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
+var isRailway, sql, db2, pool, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
@@ -405,7 +405,7 @@ var init_db = __esm({
       throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
     }
     sql = neon(process.env.DATABASE_URL);
-    db = drizzle(sql, { schema: schema_exports });
+    db2 = drizzle(sql, { schema: schema_exports });
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: 20,
@@ -975,7 +975,7 @@ var storage = {
   // Inspection methods
   async createInspection(data) {
     return executeQuery("createInspection", async () => {
-      const [result] = await db.insert(inspections).values(data).returning();
+      const [result] = await db2.insert(inspections).values(data).returning();
       logger.info("Created inspection:", { id: result.id });
       await CacheManager.clearPattern("inspections:all");
       return result;
@@ -984,7 +984,7 @@ var storage = {
   async getInspections(options) {
     const cacheKey = `inspections:all:${JSON.stringify(options || {})}`;
     return executeQuery("getInspections", async () => {
-      let query = db.select().from(inspections);
+      let query = db2.select().from(inspections);
       if (options?.startDate || options?.endDate) {
         const conditions = [];
         if (options.startDate) {
@@ -1011,14 +1011,14 @@ var storage = {
   async getInspection(id) {
     const cacheKey = `inspection:${id}`;
     return executeQuery("getInspection", async () => {
-      const [result] = await db.select().from(inspections).where(eq(inspections.id, id));
+      const [result] = await db2.select().from(inspections).where(eq(inspections.id, id));
       logger.info("Retrieved inspection:", { id });
       return result;
     }, cacheKey, 3e5);
   },
   async updateInspection(id, data) {
     return executeQuery("updateInspection", async () => {
-      const [result] = await db.update(inspections).set(data).where(eq(inspections.id, id)).returning();
+      const [result] = await db2.update(inspections).set(data).where(eq(inspections.id, id)).returning();
       logger.info("Updated inspection:", { id });
       await CacheManager.delete(`inspection:${id}`);
       await CacheManager.clearPattern("inspections:all");
@@ -1027,7 +1027,7 @@ var storage = {
   },
   async deleteInspection(id) {
     return executeQuery("deleteInspection", async () => {
-      await db.delete(inspections).where(eq(inspections.id, id));
+      await db2.delete(inspections).where(eq(inspections.id, id));
       logger.info("Deleted inspection:", { id });
       await CacheManager.delete(`inspection:${id}`);
       await CacheManager.clearPattern("inspections:all");
@@ -1037,7 +1037,7 @@ var storage = {
   // Custodial Notes methods
   async createCustodialNote(data) {
     return executeQuery("createCustodialNote", async () => {
-      const [result] = await db.insert(custodialNotes).values(data).returning();
+      const [result] = await db2.insert(custodialNotes).values(data).returning();
       logger.info("Created custodial note:", { id: result.id });
       await CacheManager.delete("custodialNotes:all");
       return result;
@@ -1046,7 +1046,7 @@ var storage = {
   async getCustodialNotes(options) {
     const cacheKey = `custodialNotes:all:${JSON.stringify(options || {})}`;
     return executeQuery("getCustodialNotes", async () => {
-      let query = db.select().from(custodialNotes);
+      let query = db2.select().from(custodialNotes);
       if (options?.school) {
         query = query.where(eq(custodialNotes.school, options.school));
       }
@@ -1064,14 +1064,14 @@ var storage = {
   async getCustodialNote(id) {
     const cacheKey = `custodialNote:${id}`;
     return executeQuery("getCustodialNote", async () => {
-      const [result] = await db.select().from(custodialNotes).where(eq(custodialNotes.id, id));
+      const [result] = await db2.select().from(custodialNotes).where(eq(custodialNotes.id, id));
       logger.info("Retrieved custodial note:", { id });
       return result;
     }, cacheKey, 3e5);
   },
   async deleteCustodialNote(id) {
     return executeQuery("deleteCustodialNote", async () => {
-      await db.delete(custodialNotes).where(eq(custodialNotes.id, id));
+      await db2.delete(custodialNotes).where(eq(custodialNotes.id, id));
       logger.info("Deleted custodial note:", { id });
       cache.delete(`custodialNote:${id}`);
       await CacheManager.delete("custodialNotes:all");
@@ -1081,7 +1081,7 @@ var storage = {
   // Room Inspections methods
   async createRoomInspection(data) {
     return executeQuery("createRoomInspection", async () => {
-      const [result] = await db.insert(roomInspections).values(data).returning();
+      const [result] = await db2.insert(roomInspections).values(data).returning();
       logger.info("Created room inspection:", { id: result.id });
       await CacheManager.delete("roomInspections:all");
       return result;
@@ -1091,11 +1091,11 @@ var storage = {
     const cacheKey = `roomInspections:all:${buildingInspectionId || "all"}`;
     return executeQuery("getRoomInspections", async () => {
       if (buildingInspectionId) {
-        const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+        const result = await db2.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
         logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
         return result;
       } else {
-        const result = await db.select().from(roomInspections);
+        const result = await db2.select().from(roomInspections);
         logger.info(`Retrieved ${result.length} room inspections`);
         return result;
       }
@@ -1104,7 +1104,7 @@ var storage = {
   async getRoomInspection(id) {
     const cacheKey = `roomInspection:${id}`;
     return executeQuery("getRoomInspection", async () => {
-      const [result] = await db.select().from(roomInspections).where(eq(roomInspections.id, id));
+      const [result] = await db2.select().from(roomInspections).where(eq(roomInspections.id, id));
       logger.info("Retrieved room inspection:", { id });
       return result;
     }, cacheKey, 3e5);
@@ -1114,7 +1114,7 @@ var storage = {
   },
   async updateRoomInspection(roomId, buildingInspectionId, data) {
     return executeQuery("updateRoomInspection", async () => {
-      const [result] = await db.update(roomInspections).set(data).where(
+      const [result] = await db2.update(roomInspections).set(data).where(
         and(
           eq(roomInspections.id, roomId),
           eq(roomInspections.buildingInspectionId, buildingInspectionId)
@@ -1134,7 +1134,7 @@ var storage = {
   // Monthly Feedback methods
   async createMonthlyFeedback(data) {
     return executeQuery("createMonthlyFeedback", async () => {
-      const [result] = await db.insert(monthlyFeedback).values(data).returning();
+      const [result] = await db2.insert(monthlyFeedback).values(data).returning();
       logger.info("Created monthly feedback:", { id: result.id, school: result.school });
       await CacheManager.delete("monthlyFeedback:all");
       return result;
@@ -1143,7 +1143,7 @@ var storage = {
   async getMonthlyFeedback(options) {
     const cacheKey = `monthlyFeedback:all:${JSON.stringify(options || {})}`;
     return executeQuery("getMonthlyFeedback", async () => {
-      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
+      let query = db2.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
       if (options?.school) {
         query = query.where(eq(monthlyFeedback.school, options.school));
       }
@@ -1161,14 +1161,14 @@ var storage = {
   async getMonthlyFeedbackById(id) {
     const cacheKey = `monthlyFeedback:${id}`;
     return executeQuery("getMonthlyFeedbackById", async () => {
-      const [result] = await db.select().from(monthlyFeedback).where(eq(monthlyFeedback.id, id));
+      const [result] = await db2.select().from(monthlyFeedback).where(eq(monthlyFeedback.id, id));
       logger.info("Retrieved monthly feedback:", { id });
       return result;
     }, cacheKey, 3e5);
   },
   async deleteMonthlyFeedback(id) {
     return executeQuery("deleteMonthlyFeedback", async () => {
-      await db.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
+      await db2.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
       logger.info("Deleted monthly feedback:", { id });
       cache.delete(`monthlyFeedback:${id}`);
       await CacheManager.delete("monthlyFeedback:all");
@@ -1177,7 +1177,7 @@ var storage = {
   },
   async updateMonthlyFeedbackNotes(id, notes) {
     return executeQuery("updateMonthlyFeedbackNotes", async () => {
-      const [result] = await db.update(monthlyFeedback).set({ notes }).where(eq(monthlyFeedback.id, id)).returning();
+      const [result] = await db2.update(monthlyFeedback).set({ notes }).where(eq(monthlyFeedback.id, id)).returning();
       logger.info("Updated monthly feedback notes:", { id });
       cache.delete(`monthlyFeedback:${id}`);
       await CacheManager.delete("monthlyFeedback:all");
@@ -1227,7 +1227,7 @@ var storage = {
     return executeQuery(
       "createInspectionPhoto",
       async () => {
-        const [photo] = await db.insert(inspectionPhotos).values(photoData).returning();
+        const [photo] = await db2.insert(inspectionPhotos).values(photoData).returning();
         return photo;
       },
       `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -1237,7 +1237,7 @@ var storage = {
     return executeQuery(
       "getInspectionPhoto",
       async () => {
-        const [photo] = await db.select().from(inspectionPhotos).where(eq(inspectionPhotos.id, photoId)).limit(1);
+        const [photo] = await db2.select().from(inspectionPhotos).where(eq(inspectionPhotos.id, photoId)).limit(1);
         return photo;
       },
       `inspection_photo_${photoId}`
@@ -1247,7 +1247,7 @@ var storage = {
     return executeQuery(
       "getInspectionPhotosByInspectionId",
       async () => {
-        const photos = await db.select().from(inspectionPhotos).where(eq(inspectionPhotos.inspectionId, inspectionId)).orderBy(desc(inspectionPhotos.createdAt));
+        const photos = await db2.select().from(inspectionPhotos).where(eq(inspectionPhotos.inspectionId, inspectionId)).orderBy(desc(inspectionPhotos.createdAt));
         return photos;
       },
       `photos_inspection_${inspectionId}`,
@@ -1259,7 +1259,7 @@ var storage = {
     return executeQuery(
       "getAllInspectionPhotos",
       async () => {
-        const photos = await db.select().from(inspectionPhotos).orderBy(desc(inspectionPhotos.createdAt));
+        const photos = await db2.select().from(inspectionPhotos).orderBy(desc(inspectionPhotos.createdAt));
         return photos;
       },
       "all_photos",
@@ -1271,7 +1271,7 @@ var storage = {
     return executeQuery(
       "updateInspectionPhoto",
       async () => {
-        const [photo] = await db.update(inspectionPhotos).set(updateData).where(eq(inspectionPhotos.id, photoId)).returning();
+        const [photo] = await db2.update(inspectionPhotos).set(updateData).where(eq(inspectionPhotos.id, photoId)).returning();
         return photo;
       },
       `update_photo_${photoId}`
@@ -1281,7 +1281,7 @@ var storage = {
     return executeQuery(
       "deleteInspectionPhoto",
       async () => {
-        await db.delete(inspectionPhotos).where(eq(inspectionPhotos.id, photoId));
+        await db2.delete(inspectionPhotos).where(eq(inspectionPhotos.id, photoId));
       },
       `delete_photo_${photoId}`
     );
@@ -1291,7 +1291,7 @@ var storage = {
     return executeQuery(
       "createSyncQueue",
       async () => {
-        const [queueItem] = await db.insert(syncQueue).values(queueData).returning();
+        const [queueItem] = await db2.insert(syncQueue).values(queueData).returning();
         return queueItem;
       },
       `sync_queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -1301,7 +1301,7 @@ var storage = {
     return executeQuery(
       "getSyncQueueItems",
       async () => {
-        let query = db.select().from(syncQueue).orderBy(desc(syncQueue.createdAt));
+        let query = db2.select().from(syncQueue).orderBy(desc(syncQueue.createdAt));
         if (status) {
           query = query.where(eq(syncQueue.type, status));
         }
@@ -1317,7 +1317,7 @@ var storage = {
     return executeQuery(
       "updateSyncQueue",
       async () => {
-        const [queueItem] = await db.update(syncQueue).set(updateData).where(eq(syncQueue.id, queueId)).returning();
+        const [queueItem] = await db2.update(syncQueue).set(updateData).where(eq(syncQueue.id, queueId)).returning();
         return queueItem;
       },
       `update_sync_queue_${queueId}`
@@ -1327,7 +1327,7 @@ var storage = {
     return executeQuery(
       "deleteSyncQueue",
       async () => {
-        await db.delete(syncQueue).where(eq(syncQueue.id, queueId));
+        await db2.delete(syncQueue).where(eq(syncQueue.id, queueId));
       },
       `delete_sync_queue_${queueId}`
     );
@@ -3773,8 +3773,8 @@ if (process.env.REPL_SLUG) {
       logger.warn("Generated temporary session secret");
     }
     try {
-      const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
-      await db2.select().limit(1);
+      const { db: db3 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      await db3.select().limit(1);
       logger.info("Database connection successful");
     } catch (error) {
       logger.error("Database connection failed", { error: error instanceof Error ? error.message : "Unknown error" });
@@ -3878,6 +3878,20 @@ if (process.env.REPL_SLUG) {
     app.use(performanceErrorHandler);
     const server = createServer(app);
     logger.info("HTTP server created");
+    async function initializeDatabase2() {
+      try {
+        await db.select().limit(1);
+        logger.info("Database connection successful");
+      } catch (error) {
+        logger.error("Database connection failed", { error: error instanceof Error ? error.message : "Unknown error" });
+        if (process.env.NODE_ENV === "production") {
+          logger.warn("Continuing startup despite database connection failure (production mode)");
+        } else {
+          throw error;
+        }
+      }
+    }
+    await initializeDatabase2();
     const PORT = parseInt(process.env.PORT || "5000", 10);
     const HOST = "0.0.0.0";
     logger.info(`About to listen on port ${PORT}...`);
