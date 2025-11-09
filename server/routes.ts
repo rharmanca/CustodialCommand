@@ -3,6 +3,7 @@ import * as express from "express";
 import * as path from "path";
 import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
+import { randomBytes } from "crypto";
 import { storage } from "./storage";
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema, insertMonthlyFeedbackSchema } from "../shared/schema";
 import { z } from "zod";
@@ -844,9 +845,9 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       if (username === adminUsername && password === adminPassword) {
-        // Generate a simple session token (in production, use JWT)
-        const sessionToken = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+        // Generate a cryptographically secure session token
+        const sessionToken = 'admin_' + randomBytes(32).toString('hex');
+
         // Store session (in production, use Redis or database)
         if (!global.adminSessions) {
           global.adminSessions = new Map();
@@ -1077,20 +1078,24 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.get('/api/monthly-feedback', async (req, res) => {
     try {
-      const { school, year, month } = req.query;
+      // Validate and sanitize query parameters
+      const school = typeof req.query.school === 'string' ? req.query.school.trim() : '';
+      const yearStr = typeof req.query.year === 'string' ? req.query.year.trim() : '';
+      const month = typeof req.query.month === 'string' ? req.query.month.trim() : '';
+
       let feedback = await storage.getMonthlyFeedback();
 
-      // Apply filters
-      if (school) {
+      // Apply filters with validated parameters
+      if (school && school.length > 0) {
         feedback = feedback.filter(f => f.school === school);
       }
-      if (year) {
-        const yearNum = parseInt(year as string);
-        if (!isNaN(yearNum)) {
+      if (yearStr) {
+        const yearNum = parseInt(yearStr, 10);
+        if (!isNaN(yearNum) && yearNum > 1900 && yearNum < 2100) {
           feedback = feedback.filter(f => f.year === yearNum);
         }
       }
-      if (month) {
+      if (month && month.length > 0) {
         feedback = feedback.filter(f => f.month === month);
       }
 
@@ -1173,9 +1178,16 @@ export async function registerRoutes(app: Express): Promise<void> {
   // GET /api/scores - Get scores for all schools
   app.get('/api/scores', async (req, res) => {
     try {
-      const { startDate, endDate } = req.query;
+      // Validate and sanitize query parameters
+      const startDate = typeof req.query.startDate === 'string' ? req.query.startDate.trim() : '';
+      const endDate = typeof req.query.endDate === 'string' ? req.query.endDate.trim() : '';
 
-      logger.info('[GET] Fetching building scores', { startDate, endDate });
+      // Validate date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const validStartDate = startDate && dateRegex.test(startDate) ? startDate : '';
+      const validEndDate = endDate && dateRegex.test(endDate) ? endDate : '';
+
+      logger.info('[GET] Fetching building scores', { startDate: validStartDate, endDate: validEndDate });
 
       // Fetch all inspections and notes
       const allInspections = await storage.getInspections();
@@ -1185,14 +1197,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       let filteredInspections = allInspections;
       let filteredNotes = allNotes;
 
-      if (startDate && typeof startDate === 'string') {
-        filteredInspections = filteredInspections.filter(i => i.date >= startDate);
-        filteredNotes = filteredNotes.filter(n => n.date >= startDate);
+      if (validStartDate) {
+        filteredInspections = filteredInspections.filter(i => i.date >= validStartDate);
+        filteredNotes = filteredNotes.filter(n => n.date >= validStartDate);
       }
 
-      if (endDate && typeof endDate === 'string') {
-        filteredInspections = filteredInspections.filter(i => i.date <= endDate);
-        filteredNotes = filteredNotes.filter(n => n.date <= endDate);
+      if (validEndDate) {
+        filteredInspections = filteredInspections.filter(i => i.date <= validEndDate);
+        filteredNotes = filteredNotes.filter(n => n.date <= validEndDate);
       }
 
       // Group by school
@@ -1239,10 +1251,22 @@ export async function registerRoutes(app: Express): Promise<void> {
   // GET /api/scores/:school - Get score for a specific school
   app.get('/api/scores/:school', async (req, res) => {
     try {
-      const { school } = req.params;
-      const { startDate, endDate } = req.query;
+      // Validate and sanitize parameters
+      const school = req.params.school ? req.params.school.trim() : '';
+      const startDate = typeof req.query.startDate === 'string' ? req.query.startDate.trim() : '';
+      const endDate = typeof req.query.endDate === 'string' ? req.query.endDate.trim() : '';
 
-      logger.info('[GET] Fetching score for school', { school, startDate, endDate });
+      // Validate school parameter
+      if (!school || school.length === 0) {
+        return res.status(400).json({ message: 'School parameter is required' });
+      }
+
+      // Validate date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const validStartDate = startDate && dateRegex.test(startDate) ? startDate : '';
+      const validEndDate = endDate && dateRegex.test(endDate) ? endDate : '';
+
+      logger.info('[GET] Fetching score for school', { school, startDate: validStartDate, endDate: validEndDate });
 
       // Fetch inspections and notes for this school
       const allInspections = await storage.getInspections();
@@ -1252,14 +1276,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       let notes = allNotes.filter(n => n.school === school);
 
       // Filter by date range if provided
-      if (startDate && typeof startDate === 'string') {
-        inspections = inspections.filter(i => i.date >= startDate);
-        notes = notes.filter(n => n.date >= startDate);
+      if (validStartDate) {
+        inspections = inspections.filter(i => i.date >= validStartDate);
+        notes = notes.filter(n => n.date >= validStartDate);
       }
 
-      if (endDate && typeof endDate === 'string') {
-        inspections = inspections.filter(i => i.date <= endDate);
-        notes = notes.filter(n => n.date <= endDate);
+      if (validEndDate) {
+        inspections = inspections.filter(i => i.date <= validEndDate);
+        notes = notes.filter(n => n.date <= validEndDate);
       }
 
       // Calculate score

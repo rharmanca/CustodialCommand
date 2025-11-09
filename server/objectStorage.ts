@@ -22,38 +22,69 @@ export class ObjectStorageService {
     }
   }
 
-  async uploadLargeFile(fileBuffer: Buffer, originalName: string, category: string = 'general') {
+  /**
+   * Validate that the requested file path is within the storage directory
+   * Prevents path traversal attacks
+   */
+  private validateFilePath(filename: string): { valid: boolean; resolvedPath?: string; error?: string } {
+    // Check for obvious path traversal attempts
+    if (filename.includes('..') || filename.startsWith('/') || filename.includes('\0')) {
+      logger.warn('Path traversal attempt detected', { filename });
+      return { valid: false, error: 'Invalid filename: path traversal detected' };
+    }
+
+    // Resolve the full path and normalize it
+    const requestedPath = path.resolve(this.storagePath, filename);
+    const normalizedStoragePath = path.resolve(this.storagePath);
+
+    // Ensure the resolved path is within the storage directory
+    if (!requestedPath.startsWith(normalizedStoragePath + path.sep) && requestedPath !== normalizedStoragePath) {
+      logger.warn('File access outside storage directory attempted', {
+        filename,
+        requestedPath,
+        storagePath: normalizedStoragePath
+      });
+      return { valid: false, error: 'Access denied: file outside storage directory' };
+    }
+
+    return { valid: true, resolvedPath: requestedPath };
+  }
+
+  async uploadLargeFile(fileBuffer: Buffer, filename: string, _mimetype?: string) {
     try {
-      // Sanitize category to avoid accidental folder traversal like "image/png"
-      const safeCategory = (category || 'general').replace(/[^a-zA-Z0-9_-]/g, '-');
+      // Parse the filename to extract category/directory structure
+      // The filename is expected to include the directory path (e.g., 'inspections/timestamp-file.jpg')
+      const parsedPath = path.parse(filename);
+      const categoryPath = parsedPath.dir || 'general';
+
+      // Sanitize the category path to prevent traversal
+      const safeCategoryPath = categoryPath.split(path.sep)
+        .map(segment => segment.replace(/[^a-zA-Z0-9_-]/g, '-'))
+        .join(path.sep);
 
       // Ensure category directory exists
-      const categoryDir = path.join(this.storagePath, safeCategory);
+      const categoryDir = path.join(this.storagePath, safeCategoryPath);
       await fs.mkdir(categoryDir, { recursive: true });
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substring(2, 15);
-      const extension = path.extname(originalName) || '.bin';
-      const filename = `${timestamp}-${randomId}${extension}`;
-
-      const filePath = path.join(categoryDir, filename);
+      // Use the provided filename or generate a unique one
+      const finalFilename = parsedPath.base || `${Date.now()}-${Math.random().toString(36).substring(2, 15)}${parsedPath.ext || '.bin'}`;
+      const filePath = path.join(categoryDir, finalFilename);
 
       // Write file
       await fs.writeFile(filePath, fileBuffer);
 
       // Generate public URL
-      const publicUrl = `/uploads/${safeCategory}/${filename}`;
-      
-      logger.info(`File uploaded: ${filename} (${fileBuffer.length} bytes)`);
-      
+      const publicUrl = `/uploads/${safeCategoryPath}/${finalFilename}`;
+
+      logger.info(`File uploaded: ${finalFilename} (${fileBuffer.length} bytes)`);
+
       return {
         success: true,
-        filename: `${safeCategory}/${filename}`,
+        filename: `${safeCategoryPath}/${finalFilename}`,
         filePath,
         publicUrl,
         size: fileBuffer.length,
-        originalName
+        originalName: filename
       };
     } catch (error) {
       logger.error('Error uploading file:', error);
@@ -66,8 +97,16 @@ export class ObjectStorageService {
 
   async getObjectFile(filename: string) {
     try {
-      const filePath = path.join(this.storagePath, filename);
-      const fileBuffer = await fs.readFile(filePath);
+      // Validate file path to prevent path traversal
+      const validation = this.validateFilePath(filename);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || 'Invalid file path'
+        };
+      }
+
+      const fileBuffer = await fs.readFile(validation.resolvedPath!);
 
       // Detect content type from filename
       const contentType = mime.lookup(filename) || 'application/octet-stream';
@@ -97,8 +136,17 @@ export class ObjectStorageService {
 
   async downloadObject(filename: string) {
     try {
-      const filePath = path.join(this.storagePath, filename);
-      const fileBuffer = await fs.readFile(filePath);
+      // Validate file path to prevent path traversal
+      const validation = this.validateFilePath(filename);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || 'Invalid file path',
+          data: null
+        };
+      }
+
+      const fileBuffer = await fs.readFile(validation.resolvedPath!);
 
       logger.info(`File downloaded: ${filename}`);
 
@@ -118,11 +166,19 @@ export class ObjectStorageService {
 
   async deleteFile(filename: string) {
     try {
-      const filePath = path.join(this.storagePath, filename);
-      await fs.unlink(filePath);
-      
+      // Validate file path to prevent path traversal
+      const validation = this.validateFilePath(filename);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || 'Invalid file path'
+        };
+      }
+
+      await fs.unlink(validation.resolvedPath!);
+
       logger.info(`File deleted: ${filename}`);
-      
+
       return {
         success: true
       };
