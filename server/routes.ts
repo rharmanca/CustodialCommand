@@ -3,6 +3,7 @@ import * as express from "express";
 import * as path from "path";
 import { createServer, type Server } from "http";
 import { Request, Response, NextFunction } from "express";
+import { randomBytes } from "crypto";
 import { storage } from "./storage";
 import { insertInspectionSchema, insertCustodialNoteSchema, insertRoomInspectionSchema, insertMonthlyFeedbackSchema } from "../shared/schema";
 import { z } from "zod";
@@ -145,31 +146,31 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  app.get("/api/inspections", async (req: any, res: any) => {
+  app.get("/api/inspections", async (req: Request, res: Response) => {
     try {
       const { type, incomplete } = req.query;
       let inspections;
 
       inspections = await storage.getInspections();
-      console.log(`[GET] Found ${inspections.length} total inspections`);
+      logger.info(`[GET] Found ${inspections.length} total inspections`);
 
       if (type === 'whole_building' && incomplete === 'true') {
         const beforeFilter = inspections.length;
         inspections = inspections.filter(inspection =>
           inspection.inspectionType === 'whole_building' && !inspection.isCompleted
         );
-        console.log(`[GET] Filtered whole_building incomplete: ${beforeFilter} → ${inspections.length} inspections`);
-        console.log(`[GET] Incomplete inspections:`, inspections.map(i => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
+        logger.info(`[GET] Filtered whole_building incomplete: ${beforeFilter} → ${inspections.length} inspections`);
+        logger.info(`[GET] Incomplete inspections:`, inspections.map(i => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
       }
 
       res.json(inspections);
     } catch (error) {
-      console.error("Error fetching inspections:", error);
+      logger.error("Error fetching inspections:", error);
       res.status(500).json({ error: "Failed to fetch inspections" });
     }
   });
 
-  app.get("/api/inspections/:id", async (req: any, res: any) => {
+  app.get("/api/inspections/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -182,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       res.json(inspection);
     } catch (error) {
-      console.error("Error fetching inspection:", error);
+      logger.error("Error fetching inspection:", error);
       res.status(500).json({ error: "Failed to fetch inspection" });
     }
   });
@@ -437,17 +438,17 @@ export async function registerRoutes(app: Express): Promise<void> {
     });
   });
 
-  app.get("/api/custodial-notes", async (req: any, res: any) => {
+  app.get("/api/custodial-notes", async (req: Request, res: Response) => {
     try {
       const custodialNotes = await storage.getCustodialNotes();
       res.json(custodialNotes);
     } catch (error) {
-      console.error("Error fetching custodial notes:", error);
+      logger.error("Error fetching custodial notes:", error);
       res.status(500).json({ error: "Failed to fetch custodial notes" });
     }
   });
 
-  app.get("/api/custodial-notes/:id", async (req: any, res: any) => {
+  app.get("/api/custodial-notes/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -460,13 +461,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       res.json(custodialNote);
     } catch (error) {
-      console.error("Error fetching custodial note:", error);
+      logger.error("Error fetching custodial note:", error);
       res.status(500).json({ error: "Failed to fetch custodial note" });
     }
   });
 
   // Update inspection (for marking building inspections as completed)
-  app.patch("/api/inspections/:id", async (req: any, res: any) => {
+  app.patch("/api/inspections/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -474,24 +475,24 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const updates = req.body;
-      console.log(`[PATCH] Updating inspection ${id} with:`, updates);
+      logger.info(`[PATCH] Updating inspection ${id} with:`, updates);
 
       const inspection = await storage.updateInspection(id, updates);
       if (!inspection) {
-        console.log(`[PATCH] Inspection ${id} not found`);
+        logger.info(`[PATCH] Inspection ${id} not found`);
         return res.status(404).json({ error: "Inspection not found" });
       }
 
-      console.log(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
+      logger.info(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
       res.json(inspection);
     } catch (error) {
-      console.error("Error updating inspection:", error);
+      logger.error("Error updating inspection:", error);
       res.status(500).json({ error: "Failed to update inspection" });
     }
   });
 
   // Delete inspection
-  app.delete("/api/inspections/:id", async (req: any, res: any) => {
+  app.delete("/api/inspections/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -504,13 +505,13 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       res.json({ message: "Inspection deleted successfully" });
     } catch (error) {
-      console.error("Error deleting inspection:", error);
+      logger.error("Error deleting inspection:", error);
       res.status(500).json({ error: "Failed to delete inspection" });
     }
   });
 
   // Update inspection (full update)
-  app.put("/api/inspections/:id", async (req: any, res: any) => {
+  app.put("/api/inspections/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -524,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       res.json(inspection);
     } catch (error) {
-      console.error("Error updating inspection:", error);
+      logger.error("Error updating inspection:", error);
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: "Invalid inspection data", details: error.errors });
       } else {
@@ -534,13 +535,13 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Submit building inspection endpoint (alias for POST /api/inspections)
-  app.post("/api/submit-building-inspection", async (req: any, res: any) => {
+  app.post("/api/submit-building-inspection", async (req: Request, res: Response) => {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     logger.info('Creating building inspection via submit endpoint', { requestId });
 
     try {
-      console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
-      console.log(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
+      logger.info(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
+      logger.info(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
 
       // Ensure we have a body
       if (!req.body) {
@@ -552,21 +553,21 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const validatedData = insertInspectionSchema.parse(req.body);
-      console.log(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
+      logger.info(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
 
       const result = await storage.createInspection(validatedData);
 
       logger.info('Building inspection created successfully', { requestId, inspectionId: result.id });
       const responsePayload = { success: true, id: result.id, ...result };
-      console.log(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
+      logger.info(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
       res.setHeader('Content-Type', 'application/json');
       return res.status(201).json(responsePayload);
     } catch (err) {
-      console.error(`[${requestId}] Failed to create building inspection:`, err);
+      logger.error(`[${requestId}] Failed to create building inspection:`, err);
       logger.error('Failed to create building inspection', { requestId, error: err });
 
       if (err instanceof z.ZodError) {
-        console.error(`[${requestId}] Validation errors:`, err.errors);
+        logger.error(`[${requestId}] Validation errors:`, err.errors);
         return res.status(400).json({
           error: 'Invalid building inspection data',
           details: err.errors,
@@ -580,14 +581,14 @@ export async function registerRoutes(app: Express): Promise<void> {
         message: 'An internal server error occurred. Please try again.',
         requestId
       };
-      console.log(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
+      logger.info(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
       res.setHeader('Content-Type', 'application/json');
       return res.status(500).json(errorPayload);
     }
   });
 
   // Get rooms for a specific building inspection
-  app.get("/api/inspections/:id/rooms", async (req: any, res: any) => {
+  app.get("/api/inspections/:id/rooms", async (req: Request, res: Response) => {
     try {
       const buildingInspectionId = parseInt(req.params.id);
       if (isNaN(buildingInspectionId)) {
@@ -597,34 +598,34 @@ export async function registerRoutes(app: Express): Promise<void> {
       const rooms = await storage.getRoomInspectionsByBuildingId(buildingInspectionId);
       res.json(rooms);
     } catch (error) {
-      console.error("Error fetching rooms for building inspection:", error);
+      logger.error("Error fetching rooms for building inspection:", error);
       res.status(500).json({ error: "Failed to fetch rooms" });
     }
   });
 
   // Room Inspection routes
-  app.post("/api/room-inspections", async (req: any, res: any) => {
+  app.post("/api/room-inspections", async (req: Request, res: Response) => {
     try {
-      console.log("[POST] Creating room inspection with data:", JSON.stringify(req.body, null, 2));
+      logger.info("[POST] Creating room inspection with data:", JSON.stringify(req.body, null, 2));
 
       const validatedData = insertRoomInspectionSchema.parse(req.body);
-      console.log("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
+      logger.info("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
 
       const roomInspection = await storage.createRoomInspection(validatedData);
-      console.log("[POST] Successfully created room inspection:", roomInspection.id);
+      logger.info("[POST] Successfully created room inspection:", roomInspection.id);
 
       res.status(201).json(roomInspection);
     } catch (error) {
-      console.error("Error creating room inspection:", error);
+      logger.error("Error creating room inspection:", error);
       if (error instanceof z.ZodError) {
-        console.error("Validation errors:", error.errors);
+        logger.error("Validation errors:", error.errors);
         res.status(400).json({
           error: "Invalid room inspection data",
           details: error.errors,
           message: "Please check that all required fields are properly filled."
         });
       } else {
-        console.error("Database or server error:", error);
+        logger.error("Database or server error:", error);
         res.status(500).json({
           error: "Failed to create room inspection",
           message: process.env.NODE_ENV === 'development' ?
@@ -635,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  app.get("/api/room-inspections", async (req: any, res: any) => {
+  app.get("/api/room-inspections", async (req: Request, res: Response) => {
     try {
       const buildingInspectionId = req.query.buildingInspectionId;
       const roomInspections = await storage.getRoomInspections();
@@ -649,12 +650,12 @@ export async function registerRoutes(app: Express): Promise<void> {
         res.json(roomInspections);
       }
     } catch (error) {
-      console.error("Error fetching room inspections:", error);
+      logger.error("Error fetching room inspections:", error);
       res.status(500).json({ error: "Failed to fetch room inspections" });
     }
   });
 
-  app.get("/api/room-inspections/:id", async (req: any, res: any) => {
+  app.get("/api/room-inspections/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -667,7 +668,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       res.json(roomInspection);
     } catch (error) {
-      console.error("Error fetching room inspection:", error);
+      logger.error("Error fetching room inspection:", error);
       res.status(500).json({ error: "Failed to fetch room inspection" });
     }
   });
@@ -762,7 +763,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Finalize building inspection
-  app.post("/api/inspections/:id/finalize", async (req: any, res: any) => {
+  app.post("/api/inspections/:id/finalize", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -775,7 +776,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
       res.json(inspection);
     } catch (error) {
-      console.error("Error finalizing inspection:", error);
+      logger.error("Error finalizing inspection:", error);
       res.status(500).json({ error: "Failed to finalize inspection" });
     }
   });
@@ -844,9 +845,9 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       if (username === adminUsername && password === adminPassword) {
-        // Generate a simple session token (in production, use JWT)
-        const sessionToken = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+        // Generate a cryptographically secure session token
+        const sessionToken = 'admin_' + randomBytes(32).toString('hex');
+
         // Store session (in production, use Redis or database)
         if (!global.adminSessions) {
           global.adminSessions = new Map();
@@ -1077,20 +1078,24 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.get('/api/monthly-feedback', async (req, res) => {
     try {
-      const { school, year, month } = req.query;
+      // Validate and sanitize query parameters
+      const school = typeof req.query.school === 'string' ? req.query.school.trim() : '';
+      const yearStr = typeof req.query.year === 'string' ? req.query.year.trim() : '';
+      const month = typeof req.query.month === 'string' ? req.query.month.trim() : '';
+
       let feedback = await storage.getMonthlyFeedback();
 
-      // Apply filters
-      if (school) {
+      // Apply filters with validated parameters
+      if (school && school.length > 0) {
         feedback = feedback.filter(f => f.school === school);
       }
-      if (year) {
-        const yearNum = parseInt(year as string);
-        if (!isNaN(yearNum)) {
+      if (yearStr) {
+        const yearNum = parseInt(yearStr, 10);
+        if (!isNaN(yearNum) && yearNum > 1900 && yearNum < 2100) {
           feedback = feedback.filter(f => f.year === yearNum);
         }
       }
-      if (month) {
+      if (month && month.length > 0) {
         feedback = feedback.filter(f => f.month === month);
       }
 
@@ -1173,9 +1178,16 @@ export async function registerRoutes(app: Express): Promise<void> {
   // GET /api/scores - Get scores for all schools
   app.get('/api/scores', async (req, res) => {
     try {
-      const { startDate, endDate } = req.query;
+      // Validate and sanitize query parameters
+      const startDate = typeof req.query.startDate === 'string' ? req.query.startDate.trim() : '';
+      const endDate = typeof req.query.endDate === 'string' ? req.query.endDate.trim() : '';
 
-      logger.info('[GET] Fetching building scores', { startDate, endDate });
+      // Validate date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const validStartDate = startDate && dateRegex.test(startDate) ? startDate : '';
+      const validEndDate = endDate && dateRegex.test(endDate) ? endDate : '';
+
+      logger.info('[GET] Fetching building scores', { startDate: validStartDate, endDate: validEndDate });
 
       // Fetch all inspections and notes
       const allInspections = await storage.getInspections();
@@ -1185,14 +1197,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       let filteredInspections = allInspections;
       let filteredNotes = allNotes;
 
-      if (startDate && typeof startDate === 'string') {
-        filteredInspections = filteredInspections.filter(i => i.date >= startDate);
-        filteredNotes = filteredNotes.filter(n => n.date >= startDate);
+      if (validStartDate) {
+        filteredInspections = filteredInspections.filter(i => i.date >= validStartDate);
+        filteredNotes = filteredNotes.filter(n => n.date >= validStartDate);
       }
 
-      if (endDate && typeof endDate === 'string') {
-        filteredInspections = filteredInspections.filter(i => i.date <= endDate);
-        filteredNotes = filteredNotes.filter(n => n.date <= endDate);
+      if (validEndDate) {
+        filteredInspections = filteredInspections.filter(i => i.date <= validEndDate);
+        filteredNotes = filteredNotes.filter(n => n.date <= validEndDate);
       }
 
       // Group by school
@@ -1239,10 +1251,22 @@ export async function registerRoutes(app: Express): Promise<void> {
   // GET /api/scores/:school - Get score for a specific school
   app.get('/api/scores/:school', async (req, res) => {
     try {
-      const { school } = req.params;
-      const { startDate, endDate } = req.query;
+      // Validate and sanitize parameters
+      const school = req.params.school ? req.params.school.trim() : '';
+      const startDate = typeof req.query.startDate === 'string' ? req.query.startDate.trim() : '';
+      const endDate = typeof req.query.endDate === 'string' ? req.query.endDate.trim() : '';
 
-      logger.info('[GET] Fetching score for school', { school, startDate, endDate });
+      // Validate school parameter
+      if (!school || school.length === 0) {
+        return res.status(400).json({ message: 'School parameter is required' });
+      }
+
+      // Validate date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const validStartDate = startDate && dateRegex.test(startDate) ? startDate : '';
+      const validEndDate = endDate && dateRegex.test(endDate) ? endDate : '';
+
+      logger.info('[GET] Fetching score for school', { school, startDate: validStartDate, endDate: validEndDate });
 
       // Fetch inspections and notes for this school
       const allInspections = await storage.getInspections();
@@ -1252,14 +1276,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       let notes = allNotes.filter(n => n.school === school);
 
       // Filter by date range if provided
-      if (startDate && typeof startDate === 'string') {
-        inspections = inspections.filter(i => i.date >= startDate);
-        notes = notes.filter(n => n.date >= startDate);
+      if (validStartDate) {
+        inspections = inspections.filter(i => i.date >= validStartDate);
+        notes = notes.filter(n => n.date >= validStartDate);
       }
 
-      if (endDate && typeof endDate === 'string') {
-        inspections = inspections.filter(i => i.date <= endDate);
-        notes = notes.filter(n => n.date <= endDate);
+      if (validEndDate) {
+        inspections = inspections.filter(i => i.date <= validEndDate);
+        notes = notes.filter(n => n.date <= validEndDate);
       }
 
       // Calculate score
@@ -1632,7 +1656,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Catch-all handler for unknown API routes (must be at the end)
-  app.use('/api/*', (req: any, res: any) => {
+  app.use('/api/*', (req: Request, res: Response) => {
     res.status(404).json({
       error: 'API endpoint not found',
       path: req.path,

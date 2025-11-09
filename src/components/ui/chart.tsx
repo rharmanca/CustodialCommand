@@ -78,6 +78,10 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   return (
     <style
+      // Safe to use dangerouslySetInnerHTML here:
+      // - All values come from hardcoded THEMES constant (light/dark)
+      // - colorConfig is derived from ChartConfig props, not user input
+      // - No external data or user-controlled strings
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(

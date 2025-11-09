@@ -327,10 +327,6 @@ if (process.env.REPL_SLUG) {
     // Enhanced error handling middleware (must be before static serving)
     app.use(performanceErrorHandler);
 
-    // Apply cache control after routes are registered
-    // TODO: cacheControl middleware not defined - need to create or remove
-    // app.use(cacheControl);
-
     // Use static file serving (frontend is already built) - MUST be last
     serveStatic(app);
     logger.info("Static file serving configured");
