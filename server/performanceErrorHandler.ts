@@ -114,15 +114,25 @@ export const performanceErrorHandler = (
     'X-Error-Duration': `${duration.toFixed(2)}ms`
   };
 
-  // Set appropriate headers
-  res.set({
-    'X-Error-Id': errorLog.errorId,
-    'X-Error-Code': error.code,
-    'X-Content-Type-Options': 'nosniff'
-  });
+  // Check if headers already sent before trying to send response
+  if (!res.headersSent) {
+    // Set appropriate headers
+    res.set({
+      'X-Error-Id': errorLog.errorId,
+      'X-Error-Code': error.code,
+      'X-Content-Type-Options': 'nosniff'
+    });
 
-  // Send error response
-  res.status(error.statusCode).json(errorResponse);
+    // Send error response
+    res.status(error.statusCode).json(errorResponse);
+  } else {
+    // Headers already sent - just log the error
+    logger.warn('Headers already sent in performance error handler', {
+      errorId: errorLog.errorId,
+      statusCode: error.statusCode,
+      path: req.path
+    });
+  }
 };
 
 // Optimized error message helper
@@ -221,16 +231,19 @@ export const errorRecoveryMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Add recovery headers
-  res.set({
-    'X-Retry-After': '5', // Suggest retry after 5 seconds
-    'X-Error-Recovery': 'true'
-  });
+  // Only add headers if not already sent
+  if (!res.headersSent) {
+    // Add recovery headers
+    res.set({
+      'X-Retry-After': '5', // Suggest retry after 5 seconds
+      'X-Error-Recovery': 'true'
+    });
+  }
 
   // Wrap res.json to add recovery information
   const originalJson = res.json;
   res.json = function(data: any) {
-    if (res.statusCode >= 400) {
+    if (res.statusCode >= 400 && !res.headersSent) {
       // Add recovery information to error responses
       if (data && typeof data === 'object') {
         data.recovery = {
@@ -263,8 +276,11 @@ export const gracefulDegradation = (
       path: req.path
     });
 
-    // Enable graceful degradation mode
-    res.set('X-Graceful-Degradation', 'true');
+    // Only set headers if not already sent
+    if (!res.headersSent) {
+      // Enable graceful degradation mode
+      res.set('X-Graceful-Degradation', 'true');
+    }
 
     // For non-critical requests, serve simplified responses
     if (req.path.startsWith('/api/') && !req.path.includes('/admin/')) {
@@ -360,9 +376,12 @@ export const circuitBreakerMiddleware = (
   operation: string
 ) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    // Add circuit breaker status to headers
-    res.set('X-Circuit-Breaker-Status', circuitBreaker.getState());
-    res.set('X-Circuit-Breaker-Failures', circuitBreaker.getFailures().toString());
+    // Only add headers if not already sent
+    if (!res.headersSent) {
+      // Add circuit breaker status to headers
+      res.set('X-Circuit-Breaker-Status', circuitBreaker.getState());
+      res.set('X-Circuit-Breaker-Failures', circuitBreaker.getFailures().toString());
+    }
 
     next();
   };
