@@ -276,6 +276,34 @@ export const storage = {
     return this.getRoomInspections(buildingInspectionId);
   },
 
+  async updateRoomInspection(roomId: number, buildingInspectionId: number, data: Partial<InsertRoomInspection>) {
+    return executeQuery('updateRoomInspection', async () => {
+      const [result] = await db.update(roomInspections)
+        .set(data)
+        .where(
+          and(
+            eq(roomInspections.id, roomId),
+            eq(roomInspections.buildingInspectionId, buildingInspectionId)
+          )
+        )
+        .returning();
+
+      if (!result) {
+        logger.warn('Room inspection not found for update:', { roomId, buildingInspectionId });
+        return null;
+      }
+
+      logger.info('Updated room inspection:', { roomId, buildingInspectionId });
+
+      // Invalidate relevant cache entries
+      cache.delete(`roomInspection:${roomId}`);
+      cache.delete(`roomInspections:all:${buildingInspectionId}`);
+      cache.delete('roomInspections:all:all');
+
+      return result;
+    });
+  },
+
   // Monthly Feedback methods
   async createMonthlyFeedback(data: InsertMonthlyFeedback) {
     return executeQuery('createMonthlyFeedback', async () => {

@@ -127,7 +127,7 @@
     "@types/dom-clipboard-api": "^1.0.2",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.2",
-    "@types/node": "^20.19.23",
+    "@types/node": "^20.19.24",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.26",

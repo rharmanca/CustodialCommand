@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { createHash } from 'crypto';
+import mime from 'mime-types';
 import { logger } from './logger';
 
 export class ObjectStorageService {
@@ -66,19 +68,50 @@ export class ObjectStorageService {
     try {
       const filePath = path.join(this.storagePath, filename);
       const fileBuffer = await fs.readFile(filePath);
-      
+
+      // Detect content type from filename
+      const contentType = mime.lookup(filename) || 'application/octet-stream';
+
+      // Generate ETag from file content
+      const hash = createHash('md5').update(fileBuffer).digest('hex');
+
       logger.info(`File retrieved: ${filename}`);
-      
+
       return {
         success: true,
         buffer: fileBuffer,
-        filename
+        filename,
+        httpMetadata: {
+          contentType
+        },
+        httpEtag: hash
       };
     } catch (error) {
       logger.error('Error retrieving file:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'File not found'
+      };
+    }
+  }
+
+  async downloadObject(filename: string) {
+    try {
+      const filePath = path.join(this.storagePath, filename);
+      const fileBuffer = await fs.readFile(filePath);
+
+      logger.info(`File downloaded: ${filename}`);
+
+      return {
+        success: true,
+        data: fileBuffer
+      };
+    } catch (error) {
+      logger.error('Error downloading file:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'File not found',
+        data: null
       };
     }
   }
