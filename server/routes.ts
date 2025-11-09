@@ -894,7 +894,7 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Admin session validation middleware
-  const validateAdminSession = (req: Request, res: Response, next: NextFunction) => {
+  const validateAdminSession = async (req: Request, res: Response, next: NextFunction) => {
     const sessionToken = req.headers.authorization?.replace('Bearer ', '');
     
     if (!sessionToken) {

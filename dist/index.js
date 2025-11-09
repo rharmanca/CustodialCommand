@@ -375,7 +375,7 @@ async function initializeDatabase() {
     }
   }
 }
-var sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
+var isRailway, sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
@@ -388,9 +388,18 @@ var init_db = __esm({
       // Implement proper cache if needed
       set: (key, value, ttl) => Promise.resolve()
     };
-    neonConfig.maxConnections = 20;
-    neonConfig.idleTimeoutMillis = 3e4;
-    neonConfig.connectionTimeoutMillis = 1e4;
+    isRailway = process.env.RAILWAY_ENVIRONMENT === "production" || process.env.RAILWAY_SERVICE_ID;
+    if (isRailway) {
+      neonConfig.maxConnections = 10;
+      neonConfig.idleTimeoutMillis = 1e4;
+      neonConfig.connectionTimeoutMillis = 5e3;
+      logger.info("Applying Railway-specific database configuration");
+    } else {
+      neonConfig.maxConnections = 20;
+      neonConfig.idleTimeoutMillis = 3e4;
+      neonConfig.connectionTimeoutMillis = 1e4;
+      logger.info("Applying local development database configuration");
+    }
     neonConfig.webSocketConstructor = ws;
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
@@ -464,6 +473,434 @@ init_db();
 init_schema();
 init_logger();
 import { eq, desc, and, gte, lte } from "drizzle-orm";
+
+// server/security.ts
+init_logger();
+import rateLimit from "express-rate-limit";
+import bcrypt from "bcrypt";
+import { createClient } from "redis";
+var createRateLimit = (windowMs, max) => {
+  return rateLimit({
+    windowMs,
+    max,
+    message: { error: "Too many requests, please try again later" },
+    standardHeaders: true,
+    legacyHeaders: false
+  });
+};
+var API_RATE_LIMIT = 1e4;
+var STRICT_RATE_LIMIT = 1e3;
+var apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: API_RATE_LIMIT,
+  message: { error: "Too many requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: false,
+  // Set to false to avoid trust proxy warnings on Replit
+  keyGenerator: (req) => {
+    return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
+  }
+});
+var strictRateLimit = createRateLimit(15 * 60 * 1e3, STRICT_RATE_LIMIT);
+var sanitizeInput = (req, res, next) => {
+  const sanitizeString = (str) => {
+    return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
+  };
+  const sanitizeObject = (obj) => {
+    if (typeof obj === "string") {
+      return sanitizeString(obj);
+    } else if (Array.isArray(obj)) {
+      return obj.map(sanitizeObject);
+    } else if (typeof obj === "object" && obj !== null) {
+      const sanitized = {};
+      for (const [key, value] of Object.entries(obj)) {
+        sanitized[key] = sanitizeObject(value);
+      }
+      return sanitized;
+    }
+    return obj;
+  };
+  if (req.body && typeof req.body === "object") {
+    req.body = sanitizeObject(req.body);
+  }
+  next();
+};
+var securityHeaders = (req, res, next) => {
+  const allowedOrigins = [
+    "http://localhost:5000",
+    "http://localhost:5173"
+  ];
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    allowedOrigins.push(
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+      `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
+      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
+    );
+  }
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+};
+var redisClient = null;
+async function initializeRedis() {
+  try {
+    if (!process.env.REDIS_URL) {
+      logger.warn("REDIS_URL not configured, falling back to memory storage (NOT RECOMMENDED FOR PRODUCTION)");
+      return;
+    }
+    redisClient = createClient({
+      url: process.env.REDIS_URL,
+      socket: {
+        connectTimeout: 5e3,
+        lazyConnect: true
+      }
+    });
+    redisClient.on("error", (err) => {
+      logger.error("Redis Client Error", { error: err.message });
+      redisClient = null;
+    });
+    redisClient.on("connect", () => {
+      logger.info("Redis client connected successfully");
+    });
+    await redisClient.connect();
+    logger.info("Redis initialized successfully");
+  } catch (error) {
+    logger.error("Failed to initialize Redis", { error: error instanceof Error ? error.message : "Unknown error" });
+    redisClient = null;
+  }
+}
+var PasswordManager = class {
+  static SALT_ROUNDS = 12;
+  /**
+   * Hash a password using bcrypt
+   */
+  static async hashPassword(password) {
+    try {
+      const salt = await bcrypt.genSalt(this.SALT_ROUNDS);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      logger.debug("Password hashed successfully");
+      return hashedPassword;
+    } catch (error) {
+      logger.error("Failed to hash password", { error: error instanceof Error ? error.message : "Unknown error" });
+      throw new Error("Password hashing failed");
+    }
+  }
+  /**
+   * Verify a password against its hash
+   */
+  static async verifyPassword(password, hashedPassword) {
+    try {
+      const isValid = await bcrypt.compare(password, hashedPassword);
+      logger.debug("Password verification completed", { isValid });
+      return isValid;
+    } catch (error) {
+      logger.error("Failed to verify password", { error: error instanceof Error ? error.message : "Unknown error" });
+      return false;
+    }
+  }
+  /**
+   * Generate a secure random password
+   */
+  static generateSecurePassword(length = 16) {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    return password;
+  }
+};
+var SessionManager = class {
+  static SESSION_PREFIX = "admin_session:";
+  static CACHE_PREFIX = "app_cache:";
+  static DEFAULT_TTL = 24 * 60 * 60;
+  // 24 hours in seconds
+  /**
+   * Store session data securely
+   */
+  static async setSession(sessionToken, sessionData, ttl = this.DEFAULT_TTL) {
+    try {
+      const key = this.SESSION_PREFIX + sessionToken;
+      const value = JSON.stringify({
+        ...sessionData,
+        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+        lastAccessed: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      if (redisClient) {
+        await redisClient.setEx(key, ttl, value);
+        logger.debug("Session stored in Redis", { sessionToken, ttl });
+      } else {
+        if (!global.adminSessions) {
+          global.adminSessions = /* @__PURE__ */ new Map();
+        }
+        const expiresAt = new Date(Date.now() + ttl * 1e3);
+        global.adminSessions.set(sessionToken, {
+          ...sessionData,
+          expiresAt
+        });
+        logger.warn("Session stored in memory (NOT SECURE FOR PRODUCTION)", { sessionToken });
+      }
+    } catch (error) {
+      logger.error("Failed to store session", { error: error instanceof Error ? error.message : "Unknown error" });
+      throw new Error("Session storage failed");
+    }
+  }
+  /**
+   * Retrieve session data
+   */
+  static async getSession(sessionToken) {
+    try {
+      const key = this.SESSION_PREFIX + sessionToken;
+      if (redisClient) {
+        const value = await redisClient.get(key);
+        if (!value) {
+          logger.debug("Session not found in Redis", { sessionToken });
+          return null;
+        }
+        const sessionData = JSON.parse(value);
+        sessionData.lastAccessed = (/* @__PURE__ */ new Date()).toISOString();
+        await redisClient.setEx(key, this.DEFAULT_TTL, JSON.stringify(sessionData));
+        logger.debug("Session retrieved from Redis", { sessionToken });
+        return sessionData;
+      } else {
+        if (!global.adminSessions) {
+          return null;
+        }
+        const sessionData = global.adminSessions.get(sessionToken);
+        if (!sessionData) {
+          return null;
+        }
+        if (sessionData.expiresAt && /* @__PURE__ */ new Date() > sessionData.expiresAt) {
+          global.adminSessions.delete(sessionToken);
+          return null;
+        }
+        sessionData.lastAccessed = (/* @__PURE__ */ new Date()).toISOString();
+        logger.debug("Session retrieved from memory", { sessionToken });
+        return sessionData;
+      }
+    } catch (error) {
+      logger.error("Failed to retrieve session", { error: error instanceof Error ? error.message : "Unknown error" });
+      return null;
+    }
+  }
+  /**
+   * Delete a session
+   */
+  static async deleteSession(sessionToken) {
+    try {
+      const key = this.SESSION_PREFIX + sessionToken;
+      if (redisClient) {
+        await redisClient.del(key);
+        logger.debug("Session deleted from Redis", { sessionToken });
+      } else {
+        if (global.adminSessions) {
+          global.adminSessions.delete(sessionToken);
+          logger.debug("Session deleted from memory", { sessionToken });
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to delete session", { error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  }
+  /**
+   * Clean up expired sessions
+   */
+  static async cleanupExpiredSessions() {
+    try {
+      if (redisClient) {
+        logger.debug("Redis handles automatic session expiration");
+        return;
+      }
+      if (!global.adminSessions) {
+        return;
+      }
+      const sessions = global.adminSessions;
+      const now = /* @__PURE__ */ new Date();
+      let cleanedCount = 0;
+      for (const [token, sessionData] of sessions.entries()) {
+        if (sessionData.expiresAt && now > sessionData.expiresAt) {
+          sessions.delete(token);
+          cleanedCount++;
+        }
+      }
+      if (cleanedCount > 0) {
+        logger.info("Cleaned up expired memory sessions", { count: cleanedCount });
+      }
+    } catch (error) {
+      logger.error("Failed to cleanup expired sessions", { error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  }
+};
+var CacheManager = class {
+  static DEFAULT_TTL = 5 * 60;
+  // 5 minutes in seconds
+  /**
+   * Set cache value
+   */
+  static async set(key, value, ttl = this.DEFAULT_TTL) {
+    try {
+      const cacheKey = SessionManager.CACHE_PREFIX + key;
+      const serializedValue = JSON.stringify(value);
+      if (redisClient) {
+        await redisClient.setEx(cacheKey, ttl, serializedValue);
+        logger.debug("Cache stored in Redis", { key, ttl });
+      } else {
+        if (!global.appCache) {
+          global.appCache = /* @__PURE__ */ new Map();
+        }
+        const cache2 = global.appCache;
+        const expiresAt = new Date(Date.now() + ttl * 1e3);
+        cache2.set(key, { data: value, expiresAt });
+        if (cache2.size > 100) {
+          const oldestKey = cache2.keys().next().value;
+          cache2.delete(oldestKey);
+        }
+        logger.debug("Cache stored in memory", { key, ttl });
+      }
+    } catch (error) {
+      logger.error("Failed to set cache", { error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  }
+  /**
+   * Get cache value
+   */
+  static async get(key) {
+    try {
+      const cacheKey = SessionManager.CACHE_PREFIX + key;
+      if (redisClient) {
+        const value = await redisClient.get(cacheKey);
+        if (!value) {
+          return null;
+        }
+        const parsedValue = JSON.parse(value);
+        logger.debug("Cache hit in Redis", { key });
+        return parsedValue;
+      } else {
+        if (!global.appCache) {
+          return null;
+        }
+        const cache2 = global.appCache;
+        const cached = cache2.get(key);
+        if (!cached) {
+          return null;
+        }
+        if (/* @__PURE__ */ new Date() > cached.expiresAt) {
+          cache2.delete(key);
+          return null;
+        }
+        logger.debug("Cache hit in memory", { key });
+        return cached.data;
+      }
+    } catch (error) {
+      logger.error("Failed to get cache", { error: error instanceof Error ? error.message : "Unknown error" });
+      return null;
+    }
+  }
+  /**
+   * Delete cache value
+   */
+  static async delete(key) {
+    try {
+      const cacheKey = SessionManager.CACHE_PREFIX + key;
+      if (redisClient) {
+        await redisClient.del(cacheKey);
+        logger.debug("Cache deleted from Redis", { key });
+      } else {
+        if (global.appCache) {
+          global.appCache.delete(key);
+          logger.debug("Cache deleted from memory", { key });
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to delete cache", { error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  }
+  /**
+   * Clear cache by pattern
+   */
+  static async clearPattern(pattern) {
+    try {
+      if (redisClient) {
+        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*" + pattern + "*");
+        if (keys.length > 0) {
+          await redisClient.del(keys);
+          logger.info("Cleared cache pattern in Redis", { pattern, count: keys.length });
+        }
+      } else {
+        if (!global.appCache) {
+          return;
+        }
+        const cache2 = global.appCache;
+        const keysToDelete = Array.from(cache2.keys()).filter((key) => key.includes(pattern));
+        let deletedCount = 0;
+        for (const key of keysToDelete) {
+          cache2.delete(key);
+          deletedCount++;
+        }
+        if (deletedCount > 0) {
+          logger.info("Cleared cache pattern in memory", { pattern, count: deletedCount });
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to clear cache pattern", { error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  }
+  /**
+   * Get cache statistics
+   */
+  static async getStats() {
+    try {
+      if (redisClient) {
+        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*");
+        return { size: keys.length, type: "Redis" };
+      } else {
+        const size = global.appCache ? global.appCache.size : 0;
+        return { size, type: "Memory (INSECURE)" };
+      }
+    } catch (error) {
+      logger.error("Failed to get cache stats", { error: error instanceof Error ? error.message : "Unknown error" });
+      return { size: 0, type: "Unknown" };
+    }
+  }
+};
+initializeRedis().catch(() => {
+  logger.warn("Security module initialized without Redis (falling back to insecure memory storage)");
+});
+setInterval(() => {
+  SessionManager.cleanupExpiredSessions().catch((error) => {
+    logger.error("Failed to cleanup expired sessions", { error });
+  });
+}, 10 * 60 * 1e3);
+var validateRequest = (req, res, next) => {
+  const contentLength = parseInt(req.headers["content-length"] || "0");
+  if (contentLength > 10 * 1024 * 1024) {
+    return res.status(413).json({ error: "Request too large" });
+  }
+  if (["POST", "PUT", "PATCH"].includes(req.method)) {
+    const contentType = req.headers["content-type"];
+    if (!contentType || !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
+      return res.status(400).json({ error: "Invalid content type" });
+    }
+  }
+  next();
+};
+
+// server/storage.ts
 var performanceMetrics = {
   cacheHits: 0,
   cacheMisses: 0,
@@ -472,31 +909,34 @@ var performanceMetrics = {
 };
 var cache = /* @__PURE__ */ new Map();
 var DEFAULT_TTL = 5 * 60 * 1e3;
-function getFromCache(key) {
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < cached.ttl) {
-    performanceMetrics.cacheHits++;
-    return cached.data;
+async function getFromCache(key) {
+  try {
+    const cached = await CacheManager.get(key);
+    if (cached !== null) {
+      performanceMetrics.cacheHits++;
+      return cached;
+    }
+    performanceMetrics.cacheMisses++;
+    return null;
+  } catch (error) {
+    logger.error("Cache retrieval failed", { error, key });
+    performanceMetrics.cacheMisses++;
+    return null;
   }
-  if (cached) {
-    cache.delete(key);
-  }
-  performanceMetrics.cacheMisses++;
-  return null;
 }
-function setCache(key, data, ttl = DEFAULT_TTL) {
-  if (cache.size > 100) {
-    const oldestKey = cache.keys().next().value;
-    cache.delete(oldestKey);
+async function setCache(key, data, ttl = DEFAULT_TTL) {
+  try {
+    await CacheManager.set(key, data, ttl / 1e3);
+  } catch (error) {
+    logger.error("Cache storage failed", { error, key });
   }
-  cache.set(key, { data, timestamp: Date.now(), ttl });
 }
 async function executeQuery(operation, queryFn, cacheKey, ttl) {
   const startTime = Date.now();
   performanceMetrics.totalQueries++;
   try {
     if (cacheKey) {
-      const cached = getFromCache(cacheKey);
+      const cached = await getFromCache(cacheKey);
       if (cached !== null) {
         logger.debug("Cache hit for operation", { operation, cacheKey });
         return cached;
@@ -513,7 +953,7 @@ async function executeQuery(operation, queryFn, cacheKey, ttl) {
       });
     }
     if (cacheKey && result) {
-      setCache(cacheKey, result, ttl);
+      await setCache(cacheKey, result, ttl);
     }
     logger.debug("Query completed", {
       operation,
@@ -537,7 +977,7 @@ var storage = {
     return executeQuery("createInspection", async () => {
       const [result] = await db.insert(inspections).values(data).returning();
       logger.info("Created inspection:", { id: result.id });
-      cache.delete("inspections:all");
+      await CacheManager.clearPattern("inspections:all");
       return result;
     });
   },
@@ -580,8 +1020,8 @@ var storage = {
     return executeQuery("updateInspection", async () => {
       const [result] = await db.update(inspections).set(data).where(eq(inspections.id, id)).returning();
       logger.info("Updated inspection:", { id });
-      cache.delete(`inspection:${id}`);
-      cache.delete("inspections:all");
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern("inspections:all");
       return result;
     });
   },
@@ -589,8 +1029,8 @@ var storage = {
     return executeQuery("deleteInspection", async () => {
       await db.delete(inspections).where(eq(inspections.id, id));
       logger.info("Deleted inspection:", { id });
-      cache.delete(`inspection:${id}`);
-      cache.delete("inspections:all");
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern("inspections:all");
       return true;
     });
   },
@@ -599,7 +1039,7 @@ var storage = {
     return executeQuery("createCustodialNote", async () => {
       const [result] = await db.insert(custodialNotes).values(data).returning();
       logger.info("Created custodial note:", { id: result.id });
-      cache.delete("custodialNotes:all");
+      await CacheManager.delete("custodialNotes:all");
       return result;
     });
   },
@@ -634,7 +1074,7 @@ var storage = {
       await db.delete(custodialNotes).where(eq(custodialNotes.id, id));
       logger.info("Deleted custodial note:", { id });
       cache.delete(`custodialNote:${id}`);
-      cache.delete("custodialNotes:all");
+      await CacheManager.delete("custodialNotes:all");
       return true;
     });
   },
@@ -643,7 +1083,7 @@ var storage = {
     return executeQuery("createRoomInspection", async () => {
       const [result] = await db.insert(roomInspections).values(data).returning();
       logger.info("Created room inspection:", { id: result.id });
-      cache.delete("roomInspections:all");
+      await CacheManager.delete("roomInspections:all");
       return result;
     });
   },
@@ -687,7 +1127,7 @@ var storage = {
       logger.info("Updated room inspection:", { roomId, buildingInspectionId });
       cache.delete(`roomInspection:${roomId}`);
       cache.delete(`roomInspections:all:${buildingInspectionId}`);
-      cache.delete("roomInspections:all:all");
+      await CacheManager.delete("roomInspections:all:all");
       return result;
     });
   },
@@ -696,7 +1136,7 @@ var storage = {
     return executeQuery("createMonthlyFeedback", async () => {
       const [result] = await db.insert(monthlyFeedback).values(data).returning();
       logger.info("Created monthly feedback:", { id: result.id, school: result.school });
-      cache.delete("monthlyFeedback:all");
+      await CacheManager.delete("monthlyFeedback:all");
       return result;
     });
   },
@@ -731,7 +1171,7 @@ var storage = {
       await db.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
       logger.info("Deleted monthly feedback:", { id });
       cache.delete(`monthlyFeedback:${id}`);
-      cache.delete("monthlyFeedback:all");
+      await CacheManager.delete("monthlyFeedback:all");
       return true;
     });
   },
@@ -740,7 +1180,7 @@ var storage = {
       const [result] = await db.update(monthlyFeedback).set({ notes }).where(eq(monthlyFeedback.id, id)).returning();
       logger.info("Updated monthly feedback notes:", { id });
       cache.delete(`monthlyFeedback:${id}`);
-      cache.delete("monthlyFeedback:all");
+      await CacheManager.delete("monthlyFeedback:all");
       return result;
     });
   },
@@ -758,15 +1198,16 @@ var storage = {
       }
     };
   },
-  clearCache(pattern) {
-    if (pattern) {
-      const keysToDelete = Array.from(cache.keys()).filter((key) => key.includes(pattern));
-      keysToDelete.forEach((key) => cache.delete(key));
-      logger.info("Cleared cache entries matching pattern", { pattern, deletedCount: keysToDelete.length });
-    } else {
-      const size = cache.size;
-      cache.clear();
-      logger.info("Cleared entire cache", { deletedCount: size });
+  async clearCache(pattern) {
+    try {
+      if (pattern) {
+        await CacheManager.clearPattern(pattern);
+        logger.info("Cleared cache entries matching pattern", { pattern });
+      } else {
+        logger.warn("Full cache clearing not implemented with Redis - use pattern-based clearing");
+      }
+    } catch (error) {
+      logger.error("Failed to clear cache", { error, pattern });
     }
   },
   // Cache warming for frequently accessed data
@@ -1909,16 +2350,22 @@ async function registerRoutes(app2) {
           message: "Server configuration error"
         });
       }
-      if (username === adminUsername && password === adminPassword) {
+      const hashedPassword = process.env.ADMIN_PASSWORD_HASH;
+      if (!hashedPassword) {
+        logger.error("ADMIN_PASSWORD_HASH environment variable not set - please run password setup");
+        return res.status(500).json({
+          success: false,
+          message: "Server configuration error - password not properly hashed"
+        });
+      }
+      const isValidPassword = await PasswordManager.verifyPassword(password, hashedPassword);
+      if (username === adminUsername && isValidPassword) {
         const sessionToken = "admin_" + randomBytes(32).toString("hex");
-        if (!global.adminSessions) {
-          global.adminSessions = /* @__PURE__ */ new Map();
-        }
-        global.adminSessions.set(sessionToken, {
+        await SessionManager.setSession(sessionToken, {
           username,
-          createdAt: /* @__PURE__ */ new Date(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1e3)
-          // 24 hours
+          loginTime: (/* @__PURE__ */ new Date()).toISOString(),
+          userAgent: req.headers["user-agent"],
+          ip: req.ip || req.connection.remoteAddress
         });
         logger.info("Admin login successful", { username });
         res.json({
@@ -1941,7 +2388,7 @@ async function registerRoutes(app2) {
       });
     }
   });
-  const validateAdminSession = (req, res, next) => {
+  const validateAdminSession = async (req, res, next) => {
     const sessionToken = req.headers.authorization?.replace("Bearer ", "");
     if (!sessionToken) {
       return res.status(401).json({
@@ -1949,24 +2396,11 @@ async function registerRoutes(app2) {
         message: "No session token provided"
       });
     }
-    if (!global.adminSessions) {
-      return res.status(401).json({
-        success: false,
-        message: "No active sessions"
-      });
-    }
-    const session = global.adminSessions.get(sessionToken);
+    const session = await SessionManager.getSession(sessionToken);
     if (!session) {
       return res.status(401).json({
         success: false,
         message: "Invalid session token"
-      });
-    }
-    if (/* @__PURE__ */ new Date() > session.expiresAt) {
-      global.adminSessions.delete(sessionToken);
-      return res.status(401).json({
-        success: false,
-        message: "Session expired"
       });
     }
     req.adminSession = session;
@@ -2623,98 +3057,6 @@ function serveStatic(app2) {
 function log(message, type = "info") {
   logger[type](message);
 }
-
-// server/security.ts
-import rateLimit from "express-rate-limit";
-var createRateLimit = (windowMs, max) => {
-  return rateLimit({
-    windowMs,
-    max,
-    message: { error: "Too many requests, please try again later" },
-    standardHeaders: true,
-    legacyHeaders: false
-  });
-};
-var API_RATE_LIMIT = 1e4;
-var STRICT_RATE_LIMIT = 1e3;
-var apiRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1e3,
-  // 15 minutes
-  max: API_RATE_LIMIT,
-  message: { error: "Too many requests, please try again later" },
-  standardHeaders: true,
-  legacyHeaders: false,
-  trustProxy: false,
-  // Set to false to avoid trust proxy warnings on Replit
-  keyGenerator: (req) => {
-    return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
-  }
-});
-var strictRateLimit = createRateLimit(15 * 60 * 1e3, STRICT_RATE_LIMIT);
-var sanitizeInput = (req, res, next) => {
-  const sanitizeString = (str) => {
-    return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
-  };
-  const sanitizeObject = (obj) => {
-    if (typeof obj === "string") {
-      return sanitizeString(obj);
-    } else if (Array.isArray(obj)) {
-      return obj.map(sanitizeObject);
-    } else if (typeof obj === "object" && obj !== null) {
-      const sanitized = {};
-      for (const [key, value] of Object.entries(obj)) {
-        sanitized[key] = sanitizeObject(value);
-      }
-      return sanitized;
-    }
-    return obj;
-  };
-  if (req.body && typeof req.body === "object") {
-    req.body = sanitizeObject(req.body);
-  }
-  next();
-};
-var securityHeaders = (req, res, next) => {
-  const allowedOrigins = [
-    "http://localhost:5000",
-    "http://localhost:5173"
-  ];
-  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-    allowedOrigins.push(
-      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
-      `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
-      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
-    );
-  }
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-};
-var validateRequest = (req, res, next) => {
-  const contentLength = parseInt(req.headers["content-length"] || "0");
-  if (contentLength > 10 * 1024 * 1024) {
-    return res.status(413).json({ error: "Request too large" });
-  }
-  if (["POST", "PUT", "PATCH"].includes(req.method)) {
-    const contentType = req.headers["content-type"];
-    if (!contentType || !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
-      return res.status(400).json({ error: "Invalid content type" });
-    }
-  }
-  next();
-};
 
 // server/index.ts
 init_logger();
@@ -3438,9 +3780,43 @@ if (process.env.REPL_SLUG) {
       logger.error("Database connection failed", { error: error instanceof Error ? error.message : "Unknown error" });
       process.exit(1);
     }
-    app.get("/health", healthCheck);
+    app.get("/health", async (req, res) => {
+      try {
+        if (process.env.RAILWAY_SERVICE_ID) {
+          res.set("X-Railway-Service-ID", process.env.RAILWAY_SERVICE_ID);
+          res.set("X-Railway-Environment", process.env.RAILWAY_ENVIRONMENT || "production");
+        }
+        const healthResult = await Promise.race([
+          healthCheck(req, res),
+          new Promise(
+            (_, reject) => setTimeout(() => reject(new Error("Health check timeout")), 25e3)
+          )
+        ]);
+        return healthResult;
+      } catch (error) {
+        logger.error("Health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
+        res.status(503).json({
+          status: "error",
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          uptime: process.uptime(),
+          error: "Health check failed"
+        });
+      }
+    });
     app.get("/metrics", (req, res) => {
-      res.json(metricsCollector.getMetrics());
+      try {
+        const metrics = metricsCollector.getMetrics();
+        metrics.railway = {
+          serviceId: process.env.RAILWAY_SERVICE_ID,
+          environment: process.env.RAILWAY_ENVIRONMENT,
+          region: process.env.RAILWAY_REGION,
+          projectId: process.env.RAILWAY_PROJECT_ID
+        };
+        res.json(metrics);
+      } catch (error) {
+        logger.error("Metrics endpoint failed", { error });
+        res.status(500).json({ error: "Failed to fetch metrics" });
+      }
     });
     app.get("/api/performance/stats", (req, res) => {
       try {

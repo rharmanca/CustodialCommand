@@ -37,46 +37,82 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Optimized manual chunks for better caching
-        manualChunks: {
+        manualChunks: (id) => {
           // Core React libraries
-          vendor: ["react", "react-dom"],
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'vendor';
+          }
 
           // UI components (grouped by usage patterns)
-          ui: [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-select",
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-popover",
-            "@radix-ui/react-toast",
-            "@radix-ui/react-alert-dialog"
-          ],
+          if (id.includes('@radix-ui')) {
+            return 'ui';
+          }
 
           // Form and input components
-          forms: [
-            "@hookform/resolvers",
-            "react-hook-form",
-            "zod"
-          ],
+          if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+            return 'forms';
+          }
 
-          // Chart and visualization libraries
-          charts: [
-            "recharts",
-            "html2canvas",
-            "jspdf",
-            "jspdf-autotable"
-          ],
+          // Chart and visualization libraries - SPLIT FURTHER
+          if (id.includes('recharts') || id.includes('html2canvas')) {
+            return 'charts-core';
+          }
+
+          if (id.includes('jspdf') || id.includes('jspdf-autotable')) {
+            return 'pdf-export';
+          }
 
           // Date and utility libraries
-          utils: [
-            "date-fns",
-            "clsx",
-            "tailwind-merge"
-          ],
+          if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+            return 'utils';
+          }
 
           // Icon libraries
-          icons: [
-            "lucide-react"
-          ]
+          if (id.includes('lucide-react')) {
+            return 'icons';
+          }
+
+          // Heavy utilities
+          if (id.includes('dompurify') || id.includes('xss')) {
+            return 'security';
+          }
+
+          // Page-specific chunks (based on route)
+          if (id.includes('custodial-inspection')) {
+            return 'inspection-pages';
+          }
+
+          if (id.includes('whole-building')) {
+            return 'building-inspection';
+          }
+
+          if (id.includes('custodial-notes')) {
+            return 'notes-pages';
+          }
+
+          if (id.includes('monthly-feedback')) {
+            return 'feedback-pages';
+          }
+
+          if (id.includes('inspection-data')) {
+            return 'data-pages';
+          }
+
+          if (id.includes('admin-inspections')) {
+            return 'admin-pages';
+          }
+
+          if (id.includes('scores-dashboard')) {
+            return 'dashboard-pages';
+          }
+
+          // Large third-party libraries
+          if (id.includes('node-fetch')) {
+            return 'networking';
+          }
+
+          // Default chunk for everything else
+          return 'misc';
         },
 
         // Optimized file naming with better cache busting
