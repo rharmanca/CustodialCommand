@@ -33,24 +33,37 @@ export function serveStatic(app: Express) {
 
   // Serve index.html for all non-API routes (SPA routing)
   app.get('*', (req, res, next) => {
-    // Skip API routes and uploads
-    if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/uploads')) {
+    // Skip API routes, health, uploads and static assets
+    if (req.path.startsWith('/api') ||
+        req.path.startsWith('/health') ||
+        req.path.startsWith('/uploads') ||
+        req.path.includes('.')) { // Skip files with extensions (static assets)
       return next();
     }
 
     const indexPath = path.join(staticPath, 'index.html');
 
-    // Set no-cache headers for index.html to prevent edge CDN caching
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+    // Check if headers already sent before setting headers
+    if (!res.headersSent) {
+      // Set no-cache headers for index.html to prevent edge CDN caching
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
 
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        logger.error('Error serving index.html:', err);
-        res.status(500).send('Server Error');
-      }
-    });
+    // Check if headers already sent before sending file
+    if (!res.headersSent) {
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          logger.error('Error serving index.html:', err);
+          if (!res.headersSent) {
+            res.status(500).send('Server Error');
+          }
+        }
+      });
+    } else {
+      logger.warn('Headers already sent when trying to serve index.html for path:', req.path);
+    }
   });
 
   logger.info(`Serving static files from: ${staticPath}`);
