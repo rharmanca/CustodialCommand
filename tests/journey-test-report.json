@@ -1,112 +1,37 @@
 {
-  "timestamp": "2025-11-09T01:54:44.782Z",
+  "timestamp": "2025-11-09T20:00:57.162Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
-    "total": 20,
-    "passed": 17,
-    "failed": 3,
-    "successRate": 85
+    "total": 5,
+    "passed": 0,
+    "failed": 5,
+    "successRate": 0
   },
   "details": [
     {
-      "testName": "Single Room Inspection Journey - Create",
-      "passed": true,
-      "details": "Created inspection ID: 543"
-    },
-    {
-      "testName": "Single Room Inspection Journey - Retrieve",
-      "passed": true,
-      "details": "Retrieved inspection 543"
-    },
-    {
-      "testName": "Single Room Inspection Journey - Data Integrity",
-      "passed": true,
-      "details": "All data matches"
-    },
-    {
-      "testName": "Single Room Inspection Journey - Update",
-      "passed": true,
-      "details": "Updated inspection 543"
-    },
-    {
-      "testName": "Single Room Inspection Journey - Update Verification",
-      "passed": true,
-      "details": "Update verified"
-    },
-    {
-      "testName": "Whole Building Journey - Create",
-      "passed": true,
-      "details": "Created building inspection ID: 544"
-    },
-    {
-      "testName": "Whole Building Journey - Create Room classroom",
-      "passed": true,
-      "details": "Created room ID: 102"
-    },
-    {
-      "testName": "Whole Building Journey - Create Room office",
-      "passed": true,
-      "details": "Created room ID: 103"
-    },
-    {
-      "testName": "Whole Building Journey - Create Room restroom",
-      "passed": true,
-      "details": "Created room ID: 104"
-    },
-    {
-      "testName": "Whole Building Journey - Retrieve Rooms",
-      "passed": true,
-      "details": "Retrieved 3 rooms"
-    },
-    {
-      "testName": "Whole Building Journey - Mark Complete",
-      "passed": true,
-      "details": "Marked building 544 as completed"
-    },
-    {
-      "testName": "Custodial Notes Journey - Create",
+      "testName": "Single Room Inspection Journey - Overall",
       "passed": false,
-      "details": "Failed to create note: 400"
+      "details": "Request timeout"
     },
     {
-      "testName": "Admin Journey - Login",
-      "passed": true,
-      "details": "Admin login successful"
-    },
-    {
-      "testName": "Admin Journey - Access Protected Data",
-      "passed": true,
-      "details": "Retrieved 161 inspections"
-    },
-    {
-      "testName": "Admin Journey - Unauthorized Access Blocked",
-      "passed": true,
-      "details": "Unauthorized access properly blocked"
-    },
-    {
-      "testName": "Data Consistency Journey - Create Building",
-      "passed": true,
-      "details": "Created building ID: 545"
-    },
-    {
-      "testName": "Data Consistency Journey - Create Room",
-      "passed": true,
-      "details": "Created room ID: 105"
-    },
-    {
-      "testName": "Data Consistency Journey - Relationship Integrity",
-      "passed": true,
-      "details": "Room properly linked to building"
-    },
-    {
-      "testName": "Data Consistency Journey - Create Note",
+      "testName": "Whole Building Journey - Overall",
       "passed": false,
-      "details": "Failed to create note: 400"
+      "details": "Request timeout"
     },
     {
-      "testName": "Data Consistency Journey - Cross-Reference Integrity",
+      "testName": "Custodial Notes Journey - Overall",
       "passed": false,
-      "details": "Found 5 inspections and 0 notes for school"
+      "details": "Request timeout"
+    },
+    {
+      "testName": "Admin Journey - Overall",
+      "passed": false,
+      "details": "Request timeout"
+    },
+    {
+      "testName": "Data Consistency Journey - Overall",
+      "passed": false,
+      "details": "Request timeout"
     }
   ]
 }

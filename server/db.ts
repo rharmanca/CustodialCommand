@@ -9,15 +9,29 @@ import { logger } from './logger';
 // Load environment variables from .env file
 config();
 
-// Configure Neon for Node.js environment with performance optimizations
+// Configure Neon for Node.js environment with Railway-specific optimizations
 neonConfig.fetchConnectionCache = true;
 neonConfig.cacheAdapter = {
   get: (key) => Promise.resolve(null), // Implement proper cache if needed
   set: (key, value, ttl) => Promise.resolve(),
 };
-neonConfig.maxConnections = 20; // Increased connection pool size
-neonConfig.idleTimeoutMillis = 30000; // Close idle connections after 30s
-neonConfig.connectionTimeoutMillis = 10000; // Connection timeout
+
+// Railway-optimized connection settings
+const isRailway = process.env.RAILWAY_ENVIRONMENT === 'production' || process.env.RAILWAY_SERVICE_ID;
+
+if (isRailway) {
+  // Railway-specific optimizations
+  neonConfig.maxConnections = 10; // Reduce for Railway's serverless environment
+  neonConfig.idleTimeoutMillis = 10000; // Faster cleanup for Railway
+  neonConfig.connectionTimeoutMillis = 5000; // Railway-optimized timeout
+  logger.info('Applying Railway-specific database configuration');
+} else {
+  // Local development settings
+  neonConfig.maxConnections = 20; // Increased connection pool size
+  neonConfig.idleTimeoutMillis = 30000; // Close idle connections after 30s
+  neonConfig.connectionTimeoutMillis = 10000; // Connection timeout
+  logger.info('Applying local development database configuration');
+}
 // Use ws package for WebSocket support in Node.js
 neonConfig.webSocketConstructor = ws;
 

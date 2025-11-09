@@ -1,0 +1,300 @@
+{
+  "metadata": {
+    "siteURL": "http://localhost:5000",
+    "testDate": "2025-11-09T19:49:28.521Z",
+    "totalTestTime": 9931,
+    "screenshotsTaken": 0
+  },
+  "summary": {
+    "totalTests": 20,
+    "passedTests": 0,
+    "failedTests": 20,
+    "categoryResults": {
+      "pwaInstallation": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "touchInteractions": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "responsiveDesign": {
+        "passed": 0,
+        "total": 6,
+        "score": 0
+      },
+      "offlineFunctionality": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "mobilePerformance": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "cameraIntegration": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "locationServices": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "backgroundSync": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "accessibilityMobile": {
+        "passed": 0,
+        "total": 1,
+        "score": 0
+      },
+      "deviceCompatibility": {
+        "passed": 0,
+        "total": 6,
+        "score": 0
+      }
+    },
+    "overallScore": 0
+  },
+  "results": {
+    "pwaInstallation": [
+      {
+        "testName": "PWA Installation Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "touchInteractions": [
+      {
+        "testName": "Touch Interactions Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "responsiveDesign": [
+      {
+        "deviceName": "iPhone SE",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "iPhone 12",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "iPhone 14 Pro Max",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "iPad",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "Android Mobile",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "Android Large",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "offlineFunctionality": [
+      {
+        "testName": "Offline Functionality Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "mobilePerformance": [
+      {
+        "testName": "Mobile Performance Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      }
+    ],
+    "cameraIntegration": [
+      {
+        "testName": "Camera Integration Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "locationServices": [
+      {
+        "testName": "Location Services Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "backgroundSync": [
+      {
+        "testName": "Background Sync Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "accessibilityMobile": [
+      {
+        "testName": "Mobile Accessibility Error",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"load\"\u001b[22m\n"
+      }
+    ],
+    "deviceCompatibility": [
+      {
+        "deviceName": "iPhone SE",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "iPhone 12",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "iPhone 14 Pro Max",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "iPad",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "Android Mobile",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      },
+      {
+        "deviceName": "Android Large",
+        "passed": false,
+        "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5000/\", waiting until \"networkidle\"\u001b[22m\n"
+      }
+    ]
+  },
+  "screenshots": {},
+  "recommendations": [
+    {
+      "category": "PWA Installation",
+      "priority": "High",
+      "issue": "PWA installation features incomplete",
+      "recommendation": "Add service worker registration, create proper manifest, implement install prompts",
+      "affectedTests": [
+        "PWA Installation Error"
+      ]
+    },
+    {
+      "category": "Touch Interactions",
+      "priority": "High",
+      "issue": "Touch interaction barriers detected",
+      "recommendation": "Ensure all touch targets are at least 44px x 44px, add proper touch feedback, implement mobile-specific gestures",
+      "affectedTests": [
+        "Touch Interactions Error"
+      ]
+    },
+    {
+      "category": "Responsive Design",
+      "priority": "High",
+      "issue": "Responsive design issues on mobile devices",
+      "recommendation": "Implement proper viewport meta tags, ensure readable font sizes, prevent horizontal scrolling",
+      "affectedTests": [
+        "iPhone SE (undefined)",
+        "iPhone 12 (undefined)",
+        "iPhone 14 Pro Max (undefined)",
+        "iPad (undefined)",
+        "Android Mobile (undefined)",
+        "Android Large (undefined)"
+      ]
+    },
+    {
+      "category": "Offline Functionality",
+      "priority": "Critical",
+      "issue": "Offline functionality limitations",
+      "recommendation": "Implement service worker caching, add offline form support, enable data persistence",
+      "affectedTests": [
+        "Offline Functionality Error"
+      ]
+    },
+    {
+      "category": "Mobile Performance",
+      "priority": "High",
+      "issue": "Mobile performance optimization needed",
+      "recommendation": "Optimize images for mobile, reduce JavaScript bundle size, implement lazy loading, improve Core Web Vitals",
+      "affectedTests": [
+        "Mobile Performance Error"
+      ]
+    },
+    {
+      "category": "Camera Integration",
+      "priority": "Medium",
+      "issue": "Camera integration incomplete",
+      "recommendation": "Add proper file input handling, implement image compression, add photo preview functionality",
+      "affectedTests": [
+        "Camera Integration Error"
+      ]
+    },
+    {
+      "category": "Location Services",
+      "priority": "Medium",
+      "issue": "Location services integration limited",
+      "recommendation": "Implement geolocation API integration, add indoor positioning fallbacks, enable location tagging",
+      "affectedTests": [
+        "Location Services Error"
+      ]
+    },
+    {
+      "category": "Background Sync",
+      "priority": "Medium",
+      "issue": "Background sync functionality missing",
+      "recommendation": "Implement background sync API, add offline data queuing, enable automatic sync on reconnection",
+      "affectedTests": [
+        "Background Sync Error"
+      ]
+    },
+    {
+      "category": "Mobile Accessibility",
+      "priority": "High",
+      "issue": "Mobile accessibility barriers detected",
+      "recommendation": "Improve touch target sizes, add proper ARIA labels, ensure keyboard navigation, check color contrast",
+      "affectedTests": [
+        "Mobile Accessibility Error"
+      ]
+    },
+    {
+      "category": "Device Compatibility",
+      "priority": "High",
+      "issue": "Device compatibility issues detected",
+      "recommendation": "Test on specific problematic devices, implement device-specific optimizations, ensure cross-platform compatibility",
+      "affectedTests": [
+        "iPhone SE (undefined)",
+        "iPhone 12 (undefined)",
+        "iPhone 14 Pro Max (undefined)",
+        "iPad (undefined)",
+        "Android Mobile (undefined)",
+        "Android Large (undefined)"
+      ]
+    },
+    {
+      "category": "Overall Mobile PWA Quality",
+      "priority": "Critical",
+      "issue": "Overall mobile PWA score is 0% (below 70%)",
+      "recommendation": "Comprehensive mobile optimization needed. Focus on PWA features, responsive design, and touch interactions.",
+      "affectedTests": [
+        "Overall mobile experience"
+      ]
+    }
+  ]
+}

@@ -257,10 +257,50 @@ if (process.env.REPL_SLUG) {
       process.exit(1);
     }
 
-    // Health check and monitoring endpoints (MUST be before routes and static serving)
-    app.get("/health", healthCheck);
+    // Enhanced health check with Railway-specific optimizations
+    app.get("/health", async (req: any, res: any) => {
+      try {
+        // Add Railway-specific headers
+        if (process.env.RAILWAY_SERVICE_ID) {
+          res.set('X-Railway-Service-ID', process.env.RAILWAY_SERVICE_ID);
+          res.set('X-Railway-Environment', process.env.RAILWAY_ENVIRONMENT || 'production');
+        }
+
+        // Extended timeout for Railway health checks
+        const healthResult = await Promise.race([
+          healthCheck(req, res),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Health check timeout')), 25000)
+          )
+        ]);
+
+        return healthResult;
+      } catch (error) {
+        logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+        res.status(503).json({
+          status: 'error',
+          timestamp: new Date().toISOString(),
+          uptime: process.uptime(),
+          error: 'Health check failed'
+        });
+      }
+    });
+
     app.get("/metrics", (req: any, res: any) => {
-      res.json(metricsCollector.getMetrics());
+      try {
+        const metrics = metricsCollector.getMetrics();
+        // Add Railway-specific metadata
+        metrics.railway = {
+          serviceId: process.env.RAILWAY_SERVICE_ID,
+          environment: process.env.RAILWAY_ENVIRONMENT,
+          region: process.env.RAILWAY_REGION,
+          projectId: process.env.RAILWAY_PROJECT_ID
+        };
+        res.json(metrics);
+      } catch (error) {
+        logger.error('Metrics endpoint failed', { error });
+        res.status(500).json({ error: 'Failed to fetch metrics' });
+      }
     });
 
     // Performance monitoring endpoints

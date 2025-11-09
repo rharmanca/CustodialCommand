@@ -450,13 +450,14 @@ var init_db = __esm({
 // server/index.ts
 import express3 from "express";
 import { createServer } from "http";
-import { randomBytes } from "crypto";
+import { randomBytes as randomBytes2 } from "crypto";
 import helmet from "helmet";
 import compression from "compression";
 
 // server/routes.ts
 import * as express from "express";
 import * as path3 from "path";
+import { randomBytes } from "crypto";
 
 // server/storage.ts
 init_db();
@@ -670,6 +671,25 @@ var storage = {
   },
   async getRoomInspectionsByBuildingId(buildingInspectionId) {
     return this.getRoomInspections(buildingInspectionId);
+  },
+  async updateRoomInspection(roomId, buildingInspectionId, data) {
+    return executeQuery("updateRoomInspection", async () => {
+      const [result] = await db.update(roomInspections).set(data).where(
+        and(
+          eq(roomInspections.id, roomId),
+          eq(roomInspections.buildingInspectionId, buildingInspectionId)
+        )
+      ).returning();
+      if (!result) {
+        logger.warn("Room inspection not found for update:", { roomId, buildingInspectionId });
+        return null;
+      }
+      logger.info("Updated room inspection:", { roomId, buildingInspectionId });
+      cache.delete(`roomInspection:${roomId}`);
+      cache.delete(`roomInspections:all:${buildingInspectionId}`);
+      cache.delete("roomInspections:all:all");
+      return result;
+    });
   },
   // Monthly Feedback methods
   async createMonthlyFeedback(data) {
@@ -930,6 +950,8 @@ var doclingService = new DoclingService();
 init_logger();
 import fs2 from "fs/promises";
 import path2 from "path";
+import { createHash } from "crypto";
+import mime from "mime-types";
 var ObjectStorageService = class {
   storagePath;
   constructor() {
@@ -944,26 +966,46 @@ var ObjectStorageService = class {
       logger.error("Failed to create storage directory:", error);
     }
   }
-  async uploadLargeFile(fileBuffer, originalName, category = "general") {
+  /**
+   * Validate that the requested file path is within the storage directory
+   * Prevents path traversal attacks
+   */
+  validateFilePath(filename) {
+    if (filename.includes("..") || filename.startsWith("/") || filename.includes("\0")) {
+      logger.warn("Path traversal attempt detected", { filename });
+      return { valid: false, error: "Invalid filename: path traversal detected" };
+    }
+    const requestedPath = path2.resolve(this.storagePath, filename);
+    const normalizedStoragePath = path2.resolve(this.storagePath);
+    if (!requestedPath.startsWith(normalizedStoragePath + path2.sep) && requestedPath !== normalizedStoragePath) {
+      logger.warn("File access outside storage directory attempted", {
+        filename,
+        requestedPath,
+        storagePath: normalizedStoragePath
+      });
+      return { valid: false, error: "Access denied: file outside storage directory" };
+    }
+    return { valid: true, resolvedPath: requestedPath };
+  }
+  async uploadLargeFile(fileBuffer, filename, _mimetype) {
     try {
-      const safeCategory = (category || "general").replace(/[^a-zA-Z0-9_-]/g, "-");
-      const categoryDir = path2.join(this.storagePath, safeCategory);
+      const parsedPath = path2.parse(filename);
+      const categoryPath = parsedPath.dir || "general";
+      const safeCategoryPath = categoryPath.split(path2.sep).map((segment) => segment.replace(/[^a-zA-Z0-9_-]/g, "-")).join(path2.sep);
+      const categoryDir = path2.join(this.storagePath, safeCategoryPath);
       await fs2.mkdir(categoryDir, { recursive: true });
-      const timestamp2 = Date.now();
-      const randomId = Math.random().toString(36).substring(2, 15);
-      const extension = path2.extname(originalName) || ".bin";
-      const filename = `${timestamp2}-${randomId}${extension}`;
-      const filePath = path2.join(categoryDir, filename);
+      const finalFilename = parsedPath.base || `${Date.now()}-${Math.random().toString(36).substring(2, 15)}${parsedPath.ext || ".bin"}`;
+      const filePath = path2.join(categoryDir, finalFilename);
       await fs2.writeFile(filePath, fileBuffer);
-      const publicUrl = `/uploads/${safeCategory}/${filename}`;
-      logger.info(`File uploaded: ${filename} (${fileBuffer.length} bytes)`);
+      const publicUrl = `/uploads/${safeCategoryPath}/${finalFilename}`;
+      logger.info(`File uploaded: ${finalFilename} (${fileBuffer.length} bytes)`);
       return {
         success: true,
-        filename: `${safeCategory}/${filename}`,
+        filename: `${safeCategoryPath}/${finalFilename}`,
         filePath,
         publicUrl,
         size: fileBuffer.length,
-        originalName
+        originalName: filename
       };
     } catch (error) {
       logger.error("Error uploading file:", error);
@@ -975,13 +1017,25 @@ var ObjectStorageService = class {
   }
   async getObjectFile(filename) {
     try {
-      const filePath = path2.join(this.storagePath, filename);
-      const fileBuffer = await fs2.readFile(filePath);
+      const validation = this.validateFilePath(filename);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || "Invalid file path"
+        };
+      }
+      const fileBuffer = await fs2.readFile(validation.resolvedPath);
+      const contentType = mime.lookup(filename) || "application/octet-stream";
+      const hash = createHash("md5").update(fileBuffer).digest("hex");
       logger.info(`File retrieved: ${filename}`);
       return {
         success: true,
         buffer: fileBuffer,
-        filename
+        filename,
+        httpMetadata: {
+          contentType
+        },
+        httpEtag: hash
       };
     } catch (error) {
       logger.error("Error retrieving file:", error);
@@ -991,10 +1045,41 @@ var ObjectStorageService = class {
       };
     }
   }
+  async downloadObject(filename) {
+    try {
+      const validation = this.validateFilePath(filename);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || "Invalid file path",
+          data: null
+        };
+      }
+      const fileBuffer = await fs2.readFile(validation.resolvedPath);
+      logger.info(`File downloaded: ${filename}`);
+      return {
+        success: true,
+        data: fileBuffer
+      };
+    } catch (error) {
+      logger.error("Error downloading file:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "File not found",
+        data: null
+      };
+    }
+  }
   async deleteFile(filename) {
     try {
-      const filePath = path2.join(this.storagePath, filename);
-      await fs2.unlink(filePath);
+      const validation = this.validateFilePath(filename);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error || "Invalid file path"
+        };
+      }
+      await fs2.unlink(validation.resolvedPath);
       logger.info(`File deleted: ${filename}`);
       return {
         success: true
@@ -1262,18 +1347,18 @@ async function registerRoutes(app2) {
       const { type, incomplete } = req.query;
       let inspections2;
       inspections2 = await storage.getInspections();
-      console.log(`[GET] Found ${inspections2.length} total inspections`);
+      logger.info(`[GET] Found ${inspections2.length} total inspections`);
       if (type === "whole_building" && incomplete === "true") {
         const beforeFilter = inspections2.length;
         inspections2 = inspections2.filter(
           (inspection) => inspection.inspectionType === "whole_building" && !inspection.isCompleted
         );
-        console.log(`[GET] Filtered whole_building incomplete: ${beforeFilter} \u2192 ${inspections2.length} inspections`);
-        console.log(`[GET] Incomplete inspections:`, inspections2.map((i) => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
+        logger.info(`[GET] Filtered whole_building incomplete: ${beforeFilter} \u2192 ${inspections2.length} inspections`);
+        logger.info(`[GET] Incomplete inspections:`, inspections2.map((i) => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
       }
       res.json(inspections2);
     } catch (error) {
-      console.error("Error fetching inspections:", error);
+      logger.error("Error fetching inspections:", error);
       res.status(500).json({ error: "Failed to fetch inspections" });
     }
   });
@@ -1289,7 +1374,7 @@ async function registerRoutes(app2) {
       }
       res.json(inspection);
     } catch (error) {
-      console.error("Error fetching inspection:", error);
+      logger.error("Error fetching inspection:", error);
       res.status(500).json({ error: "Failed to fetch inspection" });
     }
   });
@@ -1498,7 +1583,7 @@ async function registerRoutes(app2) {
       const custodialNotes2 = await storage.getCustodialNotes();
       res.json(custodialNotes2);
     } catch (error) {
-      console.error("Error fetching custodial notes:", error);
+      logger.error("Error fetching custodial notes:", error);
       res.status(500).json({ error: "Failed to fetch custodial notes" });
     }
   });
@@ -1514,7 +1599,7 @@ async function registerRoutes(app2) {
       }
       res.json(custodialNote);
     } catch (error) {
-      console.error("Error fetching custodial note:", error);
+      logger.error("Error fetching custodial note:", error);
       res.status(500).json({ error: "Failed to fetch custodial note" });
     }
   });
@@ -1525,16 +1610,16 @@ async function registerRoutes(app2) {
         return res.status(400).json({ error: "Invalid inspection ID" });
       }
       const updates = req.body;
-      console.log(`[PATCH] Updating inspection ${id} with:`, updates);
+      logger.info(`[PATCH] Updating inspection ${id} with:`, updates);
       const inspection = await storage.updateInspection(id, updates);
       if (!inspection) {
-        console.log(`[PATCH] Inspection ${id} not found`);
+        logger.info(`[PATCH] Inspection ${id} not found`);
         return res.status(404).json({ error: "Inspection not found" });
       }
-      console.log(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
+      logger.info(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
       res.json(inspection);
     } catch (error) {
-      console.error("Error updating inspection:", error);
+      logger.error("Error updating inspection:", error);
       res.status(500).json({ error: "Failed to update inspection" });
     }
   });
@@ -1550,7 +1635,7 @@ async function registerRoutes(app2) {
       }
       res.json({ message: "Inspection deleted successfully" });
     } catch (error) {
-      console.error("Error deleting inspection:", error);
+      logger.error("Error deleting inspection:", error);
       res.status(500).json({ error: "Failed to delete inspection" });
     }
   });
@@ -1567,7 +1652,7 @@ async function registerRoutes(app2) {
       }
       res.json(inspection);
     } catch (error) {
-      console.error("Error updating inspection:", error);
+      logger.error("Error updating inspection:", error);
       if (error instanceof z2.ZodError) {
         res.status(400).json({ error: "Invalid inspection data", details: error.errors });
       } else {
@@ -1579,8 +1664,8 @@ async function registerRoutes(app2) {
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     logger.info("Creating building inspection via submit endpoint", { requestId });
     try {
-      console.log(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
-      console.log(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
+      logger.info(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
+      logger.info(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
       if (!req.body) {
         logger.warn(`[${requestId}] No request body received`);
         return res.status(400).json({
@@ -1589,18 +1674,18 @@ async function registerRoutes(app2) {
         });
       }
       const validatedData = insertInspectionSchema.parse(req.body);
-      console.log(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
+      logger.info(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
       const result = await storage.createInspection(validatedData);
       logger.info("Building inspection created successfully", { requestId, inspectionId: result.id });
       const responsePayload = { success: true, id: result.id, ...result };
-      console.log(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
+      logger.info(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
       res.setHeader("Content-Type", "application/json");
       return res.status(201).json(responsePayload);
     } catch (err) {
-      console.error(`[${requestId}] Failed to create building inspection:`, err);
+      logger.error(`[${requestId}] Failed to create building inspection:`, err);
       logger.error("Failed to create building inspection", { requestId, error: err });
       if (err instanceof z2.ZodError) {
-        console.error(`[${requestId}] Validation errors:`, err.errors);
+        logger.error(`[${requestId}] Validation errors:`, err.errors);
         return res.status(400).json({
           error: "Invalid building inspection data",
           details: err.errors,
@@ -1612,7 +1697,7 @@ async function registerRoutes(app2) {
         message: "An internal server error occurred. Please try again.",
         requestId
       };
-      console.log(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
+      logger.info(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
       res.setHeader("Content-Type", "application/json");
       return res.status(500).json(errorPayload);
     }
@@ -1626,29 +1711,29 @@ async function registerRoutes(app2) {
       const rooms = await storage.getRoomInspectionsByBuildingId(buildingInspectionId);
       res.json(rooms);
     } catch (error) {
-      console.error("Error fetching rooms for building inspection:", error);
+      logger.error("Error fetching rooms for building inspection:", error);
       res.status(500).json({ error: "Failed to fetch rooms" });
     }
   });
   app2.post("/api/room-inspections", async (req, res) => {
     try {
-      console.log("[POST] Creating room inspection with data:", JSON.stringify(req.body, null, 2));
+      logger.info("[POST] Creating room inspection with data:", JSON.stringify(req.body, null, 2));
       const validatedData = insertRoomInspectionSchema.parse(req.body);
-      console.log("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
+      logger.info("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
       const roomInspection = await storage.createRoomInspection(validatedData);
-      console.log("[POST] Successfully created room inspection:", roomInspection.id);
+      logger.info("[POST] Successfully created room inspection:", roomInspection.id);
       res.status(201).json(roomInspection);
     } catch (error) {
-      console.error("Error creating room inspection:", error);
+      logger.error("Error creating room inspection:", error);
       if (error instanceof z2.ZodError) {
-        console.error("Validation errors:", error.errors);
+        logger.error("Validation errors:", error.errors);
         res.status(400).json({
           error: "Invalid room inspection data",
           details: error.errors,
           message: "Please check that all required fields are properly filled."
         });
       } else {
-        console.error("Database or server error:", error);
+        logger.error("Database or server error:", error);
         res.status(500).json({
           error: "Failed to create room inspection",
           message: process.env.NODE_ENV === "development" ? error instanceof Error ? error.message : "Unknown server error" : "Server error occurred. Please try again."
@@ -1669,7 +1754,7 @@ async function registerRoutes(app2) {
         res.json(roomInspections2);
       }
     } catch (error) {
-      console.error("Error fetching room inspections:", error);
+      logger.error("Error fetching room inspections:", error);
       res.status(500).json({ error: "Failed to fetch room inspections" });
     }
   });
@@ -1685,7 +1770,7 @@ async function registerRoutes(app2) {
       }
       res.json(roomInspection);
     } catch (error) {
-      console.error("Error fetching room inspection:", error);
+      logger.error("Error fetching room inspection:", error);
       res.status(500).json({ error: "Failed to fetch room inspection" });
     }
   });
@@ -1773,7 +1858,7 @@ async function registerRoutes(app2) {
       }
       res.json(inspection);
     } catch (error) {
-      console.error("Error finalizing inspection:", error);
+      logger.error("Error finalizing inspection:", error);
       res.status(500).json({ error: "Failed to finalize inspection" });
     }
   });
@@ -1825,7 +1910,7 @@ async function registerRoutes(app2) {
         });
       }
       if (username === adminUsername && password === adminPassword) {
-        const sessionToken = `admin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const sessionToken = "admin_" + randomBytes(32).toString("hex");
         if (!global.adminSessions) {
           global.adminSessions = /* @__PURE__ */ new Map();
         }
@@ -1949,16 +2034,16 @@ async function registerRoutes(app2) {
       file: req.file ? req.file.originalname : "none"
     });
     try {
-      const { school, month, year, notes, uploadedBy } = req.body;
+      const { school, month, year: year2, notes, uploadedBy } = req.body;
       const file = req.file;
-      if (!school || !month || !year || !file) {
+      if (!school || !month || !year2 || !file) {
         logger.warn("[POST] Missing required fields");
         return res.status(400).json({
           message: "Missing required fields",
-          details: { school: !!school, month: !!month, year: !!year, file: !!file }
+          details: { school: !!school, month: !!month, year: !!year2, file: !!file }
         });
       }
-      const yearNum = parseInt(year);
+      const yearNum = parseInt(year2);
       if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
         return res.status(400).json({ message: "Invalid year" });
       }
@@ -2015,18 +2100,20 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/monthly-feedback", async (req, res) => {
     try {
-      const { school, year, month } = req.query;
+      const school = typeof req.query.school === "string" ? req.query.school.trim() : "";
+      const yearStr = typeof req.query.year === "string" ? req.query.year.trim() : "";
+      const month = typeof req.query.month === "string" ? req.query.month.trim() : "";
       let feedback = await storage.getMonthlyFeedback();
-      if (school) {
+      if (school && school.length > 0) {
         feedback = feedback.filter((f) => f.school === school);
       }
-      if (year) {
-        const yearNum = parseInt(year);
-        if (!isNaN(yearNum)) {
+      if (yearStr) {
+        const yearNum = parseInt(yearStr, 10);
+        if (!isNaN(yearNum) && yearNum > 1900 && yearNum < 2100) {
           feedback = feedback.filter((f) => f.year === yearNum);
         }
       }
-      if (month) {
+      if (month && month.length > 0) {
         feedback = feedback.filter((f) => f.month === month);
       }
       logger.info("[GET] Retrieved filtered monthly feedback", {
@@ -2094,19 +2181,23 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/scores", async (req, res) => {
     try {
-      const { startDate, endDate } = req.query;
-      logger.info("[GET] Fetching building scores", { startDate, endDate });
+      const startDate = typeof req.query.startDate === "string" ? req.query.startDate.trim() : "";
+      const endDate = typeof req.query.endDate === "string" ? req.query.endDate.trim() : "";
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const validStartDate = startDate && dateRegex.test(startDate) ? startDate : "";
+      const validEndDate = endDate && dateRegex.test(endDate) ? endDate : "";
+      logger.info("[GET] Fetching building scores", { startDate: validStartDate, endDate: validEndDate });
       const allInspections = await storage.getInspections();
       const allNotes = await storage.getCustodialNotes();
       let filteredInspections = allInspections;
       let filteredNotes = allNotes;
-      if (startDate && typeof startDate === "string") {
-        filteredInspections = filteredInspections.filter((i) => i.date >= startDate);
-        filteredNotes = filteredNotes.filter((n) => n.date >= startDate);
+      if (validStartDate) {
+        filteredInspections = filteredInspections.filter((i) => i.date >= validStartDate);
+        filteredNotes = filteredNotes.filter((n) => n.date >= validStartDate);
       }
-      if (endDate && typeof endDate === "string") {
-        filteredInspections = filteredInspections.filter((i) => i.date <= endDate);
-        filteredNotes = filteredNotes.filter((n) => n.date <= endDate);
+      if (validEndDate) {
+        filteredInspections = filteredInspections.filter((i) => i.date <= validEndDate);
+        filteredNotes = filteredNotes.filter((n) => n.date <= validEndDate);
       }
       const inspectionsBySchool = {};
       const notesBySchool = {};
@@ -2142,20 +2233,27 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/scores/:school", async (req, res) => {
     try {
-      const { school } = req.params;
-      const { startDate, endDate } = req.query;
-      logger.info("[GET] Fetching score for school", { school, startDate, endDate });
+      const school = req.params.school ? req.params.school.trim() : "";
+      const startDate = typeof req.query.startDate === "string" ? req.query.startDate.trim() : "";
+      const endDate = typeof req.query.endDate === "string" ? req.query.endDate.trim() : "";
+      if (!school || school.length === 0) {
+        return res.status(400).json({ message: "School parameter is required" });
+      }
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const validStartDate = startDate && dateRegex.test(startDate) ? startDate : "";
+      const validEndDate = endDate && dateRegex.test(endDate) ? endDate : "";
+      logger.info("[GET] Fetching score for school", { school, startDate: validStartDate, endDate: validEndDate });
       const allInspections = await storage.getInspections();
       const allNotes = await storage.getCustodialNotes();
       let inspections2 = allInspections.filter((i) => i.school === school);
       let notes = allNotes.filter((n) => n.school === school);
-      if (startDate && typeof startDate === "string") {
-        inspections2 = inspections2.filter((i) => i.date >= startDate);
-        notes = notes.filter((n) => n.date >= startDate);
+      if (validStartDate) {
+        inspections2 = inspections2.filter((i) => i.date >= validStartDate);
+        notes = notes.filter((n) => n.date >= validStartDate);
       }
-      if (endDate && typeof endDate === "string") {
-        inspections2 = inspections2.filter((i) => i.date <= endDate);
-        notes = notes.filter((n) => n.date <= endDate);
+      if (validEndDate) {
+        inspections2 = inspections2.filter((i) => i.date <= validEndDate);
+        notes = notes.filter((n) => n.date <= validEndDate);
       }
       const scoringResult = calculateBuildingScore(inspections2, notes);
       const complianceStatus = getComplianceStatus(scoringResult.overallScore);
@@ -2498,19 +2596,27 @@ function serveStatic(app2) {
   });
   app2.use(express2.static(staticPath));
   app2.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api") || req.path.startsWith("/health") || req.path.startsWith("/uploads")) {
+    if (req.path.startsWith("/api") || req.path.startsWith("/health") || req.path.startsWith("/uploads") || req.path.includes(".")) {
       return next();
     }
     const indexPath = path4.join(staticPath, "index.html");
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        logger.error("Error serving index.html:", err);
-        res.status(500).send("Server Error");
-      }
-    });
+    if (!res.headersSent) {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    }
+    if (!res.headersSent) {
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          logger.error("Error serving index.html:", err);
+          if (!res.headersSent) {
+            res.status(500).send("Server Error");
+          }
+        }
+      });
+    } else {
+      logger.warn("Headers already sent when trying to serve index.html for path:", req.path);
+    }
   });
   logger.info(`Serving static files from: ${staticPath}`);
 }
@@ -3011,12 +3117,20 @@ var performanceErrorHandler = (error, req, res, next) => {
     // Add performance headers
     "X-Error-Duration": `${duration.toFixed(2)}ms`
   };
-  res.set({
-    "X-Error-Id": errorLog.errorId,
-    "X-Error-Code": error.code,
-    "X-Content-Type-Options": "nosniff"
-  });
-  res.status(error.statusCode).json(errorResponse);
+  if (!res.headersSent) {
+    res.set({
+      "X-Error-Id": errorLog.errorId,
+      "X-Error-Code": error.code,
+      "X-Content-Type-Options": "nosniff"
+    });
+    res.status(error.statusCode).json(errorResponse);
+  } else {
+    logger.warn("Headers already sent in performance error handler", {
+      errorId: errorLog.errorId,
+      statusCode: error.statusCode,
+      path: req.path
+    });
+  }
 };
 function getErrorMessage(error) {
   if (process.env.NODE_ENV === "production") {
@@ -3027,14 +3141,16 @@ function getErrorMessage(error) {
   return error.message || "An unexpected error occurred";
 }
 var errorRecoveryMiddleware = (req, res, next) => {
-  res.set({
-    "X-Retry-After": "5",
-    // Suggest retry after 5 seconds
-    "X-Error-Recovery": "true"
-  });
+  if (!res.headersSent) {
+    res.set({
+      "X-Retry-After": "5",
+      // Suggest retry after 5 seconds
+      "X-Error-Recovery": "true"
+    });
+  }
   const originalJson = res.json;
   res.json = function(data) {
-    if (res.statusCode >= 400) {
+    if (res.statusCode >= 400 && !res.headersSent) {
       if (data && typeof data === "object") {
         data.recovery = {
           retryAfter: 5,
@@ -3055,7 +3171,9 @@ var gracefulDegradation = (req, res, next) => {
       memoryPressure: `${(memoryPressure * 100).toFixed(1)}%`,
       path: req.path
     });
-    res.set("X-Graceful-Degradation", "true");
+    if (!res.headersSent) {
+      res.set("X-Graceful-Degradation", "true");
+    }
     if (req.path.startsWith("/api/") && !req.path.includes("/admin/")) {
       req.query.simplified = "true";
     }
@@ -3128,8 +3246,10 @@ var cacheCircuitBreaker = new CircuitBreaker(10, 3e4, 1e4);
 var fileUploadCircuitBreaker = new CircuitBreaker(3, 12e4, 6e4);
 var circuitBreakerMiddleware = (circuitBreaker, operation) => {
   return (req, res, next) => {
-    res.set("X-Circuit-Breaker-Status", circuitBreaker.getState());
-    res.set("X-Circuit-Breaker-Failures", circuitBreaker.getFailures().toString());
+    if (!res.headersSent) {
+      res.set("X-Circuit-Breaker-Status", circuitBreaker.getState());
+      res.set("X-Circuit-Breaker-Failures", circuitBreaker.getFailures().toString());
+    }
     next();
   };
 };
@@ -3307,8 +3427,16 @@ if (process.env.REPL_SLUG) {
       process.exit(1);
     }
     if (!process.env.SESSION_SECRET) {
-      process.env.SESSION_SECRET = randomBytes(32).toString("hex");
+      process.env.SESSION_SECRET = randomBytes2(32).toString("hex");
       logger.warn("Generated temporary session secret");
+    }
+    try {
+      const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      await db2.select().limit(1);
+      logger.info("Database connection successful");
+    } catch (error) {
+      logger.error("Database connection failed", { error: error instanceof Error ? error.message : "Unknown error" });
+      process.exit(1);
     }
     app.get("/health", healthCheck);
     app.get("/metrics", (req, res) => {
@@ -3369,9 +3497,9 @@ if (process.env.REPL_SLUG) {
     logger.info("Health check and performance endpoints configured");
     await registerRoutes(app);
     logger.info("Routes registered successfully");
-    app.use(performanceErrorHandler);
     serveStatic(app);
     logger.info("Static file serving configured");
+    app.use(performanceErrorHandler);
     const server = createServer(app);
     logger.info("HTTP server created");
     const PORT = parseInt(process.env.PORT || "5000", 10);

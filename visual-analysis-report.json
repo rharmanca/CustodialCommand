@@ -1,0 +1,168 @@
+{
+  "timestamp": "2025-11-09T19:42:53.103Z",
+  "url": "http://localhost:4173",
+  "designSystem": {
+    "colors": {
+      "background": "42 40% 96%",
+      "foreground": "25 18% 22%",
+      "primary": "355 60% 42%",
+      "secondary": "25 22% 32%",
+      "accent": "22 65% 52%"
+    },
+    "cssVariables": {},
+    "fonts": {
+      "body": "Inter, -apple-system, \"system-ui\", sans-serif",
+      "heading": "Inter, -apple-system, \"system-ui\", sans-serif",
+      "sizes": {
+        "base": "16px",
+        "heading": "16px"
+      }
+    },
+    "componentCounts": {
+      "buttons": 12,
+      "forms": 0,
+      "inputs": 0
+    },
+    "pageTitle": "Custodial Command",
+    "hasManifest": true,
+    "hasThemeColor": true,
+    "hasViewportMeta": true
+  },
+  "navigation": {
+    "navElementsCount": 1,
+    "navigationItems": [
+      {
+        "text": "Skip to main content",
+        "href": "http://localhost:4173/#main-content",
+        "type": "link"
+      },
+      {
+        "text": "Skip to navigation",
+        "href": "http://localhost:4173/#navigation",
+        "type": "link"
+      },
+      {
+        "text": "Skip to footer",
+        "href": "http://localhost:4173/#footer",
+        "type": "link"
+      },
+      {
+        "text": "Home",
+        "href": "http://localhost:4173/",
+        "type": "link"
+      },
+      {
+        "text": "Inspect",
+        "href": "http://localhost:4173/custodial-inspection",
+        "type": "link"
+      },
+      {
+        "text": "Building",
+        "href": "http://localhost:4173/whole-building-inspection",
+        "type": "link"
+      },
+      {
+        "text": "Data",
+        "href": "http://localhost:4173/inspection-data",
+        "type": "link"
+      },
+      {
+        "text": "Admin",
+        "href": "http://localhost:4173/admin-inspections",
+        "type": "link"
+      },
+      {
+        "text": "Home",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "Admin",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "A-Decrease text size",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "A+Increase text size",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "📱 Install on Your Mobile Device+",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "📝 Report A Custodial Concern",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "🔍 Single Area Inspection",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "🏢 Building Inspection",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "📈 Building Scores Dashboard",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "📊 View Data & Reports",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "📄 Monthly Feedback Reports",
+        "type": "button",
+        "hasOnClick": true
+      },
+      {
+        "text": "ℹ️ Rating Criteria Guide",
+        "type": "button",
+        "hasOnClick": true
+      }
+    ],
+    "hasMainNav": true
+  },
+  "accessibility": {
+    "hasSkipLinks": true,
+    "hasAltText": true,
+    "ariaLabelsCount": 12,
+    "semanticElementsCount": 4,
+    "hasFocusManagement": false,
+    "colors": {
+      "background": "rgba(0, 0, 0, 0)",
+      "text": "rgb(0, 0, 0)"
+    }
+  },
+  "pwa": {
+    "hasServiceWorker": true,
+    "hasManifest": true,
+    "hasThemeColor": true,
+    "hasAppleMeta": true,
+    "hasViewportMeta": true,
+    "isInstallable": false
+  },
+  "performance": {
+    "loadTime": 258.09999999403954,
+    "domContentLoaded": 253.69999998807907,
+    "firstPaint": 588,
+    "firstContentfulPaint": 588
+  },
+  "screenshots": {
+    "desktopFull": "homepage-desktop-full.png",
+    "desktopViewport": "homepage-desktop-viewport.png",
+    "tablet": "homepage-tablet.png",
+    "mobile": "homepage-mobile.png"
+  }
+}

@@ -1,0 +1,447 @@
+{
+  "timestamp": "2025-11-09T19:43:22.211Z",
+  "pages": [
+    {
+      "name": "homepage",
+      "url": "http://localhost:4173/",
+      "description": "Main landing page",
+      "screenshots": [],
+      "contentAnalysis": {
+        "title": "Custodial Command",
+        "headings": [
+          {
+            "tag": "H1",
+            "text": "CA Custodial Command"
+          },
+          {
+            "tag": "H2",
+            "text": "Submit Inspections"
+          },
+          {
+            "tag": "H2",
+            "text": "View & Reports"
+          }
+        ],
+        "buttonsCount": 12,
+        "linksCount": 8,
+        "imagesCount": 0,
+        "hasMainContent": true,
+        "buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Admin",
+            "disabled": false
+          },
+          {
+            "text": "A-Decrease text size",
+            "disabled": false
+          },
+          {
+            "text": "A+Increase text size",
+            "disabled": false
+          },
+          {
+            "text": "📱 Install on Your Mobile Device+",
+            "disabled": false
+          },
+          {
+            "text": "📝 Report A Custodial Concern",
+            "disabled": false
+          },
+          {
+            "text": "🔍 Single Area Inspection",
+            "disabled": false
+          },
+          {
+            "text": "🏢 Building Inspection",
+            "disabled": false
+          },
+          {
+            "text": "📈 Building Scores Dashboard",
+            "disabled": false
+          },
+          {
+            "text": "📊 View Data & Reports",
+            "disabled": false
+          }
+        ],
+        "images": []
+      },
+      "formAnalysis": null,
+      "accessibility": {
+        "hasSkipLinks": true,
+        "hasAltText": true,
+        "ariaLabelsCount": 12,
+        "semanticElementsCount": 4,
+        "focusableElementsCount": 20,
+        "hasProperHeadingStructure": true,
+        "headingsCount": 3,
+        "keyboardNavigationTest": "A: Skip to main content"
+      },
+      "performance": {
+        "loadTime": 183.09999999403954,
+        "domContentLoaded": 179.5,
+        "firstPaint": 400,
+        "firstContentfulPaint": 400
+      }
+    },
+    {
+      "name": "custodial-inspection",
+      "url": "http://localhost:4173/custodial-inspection",
+      "description": "Single room inspection form",
+      "screenshots": [],
+      "contentAnalysis": {
+        "title": "Custodial Command",
+        "headings": [
+          {
+            "tag": "H1",
+            "text": "CA Custodial Command"
+          },
+          {
+            "tag": "H2",
+            "text": "Submit Inspections"
+          },
+          {
+            "tag": "H2",
+            "text": "View & Reports"
+          }
+        ],
+        "buttonsCount": 12,
+        "linksCount": 8,
+        "imagesCount": 0,
+        "hasMainContent": true,
+        "buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Admin",
+            "disabled": false
+          },
+          {
+            "text": "A-Decrease text size",
+            "disabled": false
+          },
+          {
+            "text": "A+Increase text size",
+            "disabled": false
+          },
+          {
+            "text": "📱 Install on Your Mobile Device+",
+            "disabled": false
+          },
+          {
+            "text": "📝 Report A Custodial Concern",
+            "disabled": false
+          },
+          {
+            "text": "🔍 Single Area Inspection",
+            "disabled": false
+          },
+          {
+            "text": "🏢 Building Inspection",
+            "disabled": false
+          },
+          {
+            "text": "📈 Building Scores Dashboard",
+            "disabled": false
+          },
+          {
+            "text": "📊 View Data & Reports",
+            "disabled": false
+          }
+        ],
+        "images": []
+      },
+      "formAnalysis": null,
+      "accessibility": {
+        "hasSkipLinks": true,
+        "hasAltText": true,
+        "ariaLabelsCount": 12,
+        "semanticElementsCount": 4,
+        "focusableElementsCount": 20,
+        "hasProperHeadingStructure": true,
+        "headingsCount": 3,
+        "keyboardNavigationTest": "A: Skip to main content"
+      },
+      "performance": {
+        "loadTime": 83.09999999403954,
+        "domContentLoaded": 82.69999998807907,
+        "firstPaint": 160,
+        "firstContentfulPaint": 160
+      }
+    },
+    {
+      "name": "whole-building-inspection",
+      "url": "http://localhost:4173/whole-building-inspection",
+      "description": "Building inspection workflow",
+      "screenshots": [],
+      "contentAnalysis": {
+        "title": "Custodial Command",
+        "headings": [
+          {
+            "tag": "H1",
+            "text": "CA Custodial Command"
+          },
+          {
+            "tag": "H2",
+            "text": "Submit Inspections"
+          },
+          {
+            "tag": "H2",
+            "text": "View & Reports"
+          }
+        ],
+        "buttonsCount": 12,
+        "linksCount": 8,
+        "imagesCount": 0,
+        "hasMainContent": true,
+        "buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Admin",
+            "disabled": false
+          },
+          {
+            "text": "A-Decrease text size",
+            "disabled": false
+          },
+          {
+            "text": "A+Increase text size",
+            "disabled": false
+          },
+          {
+            "text": "📱 Install on Your Mobile Device+",
+            "disabled": false
+          },
+          {
+            "text": "📝 Report A Custodial Concern",
+            "disabled": false
+          },
+          {
+            "text": "🔍 Single Area Inspection",
+            "disabled": false
+          },
+          {
+            "text": "🏢 Building Inspection",
+            "disabled": false
+          },
+          {
+            "text": "📈 Building Scores Dashboard",
+            "disabled": false
+          },
+          {
+            "text": "📊 View Data & Reports",
+            "disabled": false
+          }
+        ],
+        "images": []
+      },
+      "formAnalysis": null,
+      "accessibility": {
+        "hasSkipLinks": true,
+        "hasAltText": true,
+        "ariaLabelsCount": 12,
+        "semanticElementsCount": 4,
+        "focusableElementsCount": 20,
+        "hasProperHeadingStructure": true,
+        "headingsCount": 3,
+        "keyboardNavigationTest": "A: Skip to main content"
+      },
+      "performance": {
+        "loadTime": 41,
+        "domContentLoaded": 40.900000005960464,
+        "firstPaint": 96,
+        "firstContentfulPaint": 96
+      }
+    },
+    {
+      "name": "inspection-data",
+      "url": "http://localhost:4173/inspection-data",
+      "description": "Data and reports dashboard",
+      "screenshots": [],
+      "contentAnalysis": {
+        "title": "Custodial Command",
+        "headings": [
+          {
+            "tag": "H1",
+            "text": "CA Custodial Command"
+          },
+          {
+            "tag": "H2",
+            "text": "Submit Inspections"
+          },
+          {
+            "tag": "H2",
+            "text": "View & Reports"
+          }
+        ],
+        "buttonsCount": 12,
+        "linksCount": 8,
+        "imagesCount": 0,
+        "hasMainContent": true,
+        "buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Admin",
+            "disabled": false
+          },
+          {
+            "text": "A-Decrease text size",
+            "disabled": false
+          },
+          {
+            "text": "A+Increase text size",
+            "disabled": false
+          },
+          {
+            "text": "📱 Install on Your Mobile Device+",
+            "disabled": false
+          },
+          {
+            "text": "📝 Report A Custodial Concern",
+            "disabled": false
+          },
+          {
+            "text": "🔍 Single Area Inspection",
+            "disabled": false
+          },
+          {
+            "text": "🏢 Building Inspection",
+            "disabled": false
+          },
+          {
+            "text": "📈 Building Scores Dashboard",
+            "disabled": false
+          },
+          {
+            "text": "📊 View Data & Reports",
+            "disabled": false
+          }
+        ],
+        "images": []
+      },
+      "formAnalysis": null,
+      "accessibility": {
+        "hasSkipLinks": true,
+        "hasAltText": true,
+        "ariaLabelsCount": 12,
+        "semanticElementsCount": 4,
+        "focusableElementsCount": 20,
+        "hasProperHeadingStructure": true,
+        "headingsCount": 3,
+        "keyboardNavigationTest": "A: Skip to main content"
+      },
+      "performance": {
+        "loadTime": 41.099999994039536,
+        "domContentLoaded": 40.69999998807907,
+        "firstPaint": 88,
+        "firstContentfulPaint": 88
+      }
+    },
+    {
+      "name": "admin-inspections",
+      "url": "http://localhost:4173/admin-inspections",
+      "description": "Admin inspection panel",
+      "screenshots": [],
+      "contentAnalysis": {
+        "title": "Custodial Command",
+        "headings": [
+          {
+            "tag": "H1",
+            "text": "CA Custodial Command"
+          },
+          {
+            "tag": "H2",
+            "text": "Submit Inspections"
+          },
+          {
+            "tag": "H2",
+            "text": "View & Reports"
+          }
+        ],
+        "buttonsCount": 12,
+        "linksCount": 8,
+        "imagesCount": 0,
+        "hasMainContent": true,
+        "buttons": [
+          {
+            "text": "Home",
+            "disabled": false
+          },
+          {
+            "text": "Admin",
+            "disabled": false
+          },
+          {
+            "text": "A-Decrease text size",
+            "disabled": false
+          },
+          {
+            "text": "A+Increase text size",
+            "disabled": false
+          },
+          {
+            "text": "📱 Install on Your Mobile Device+",
+            "disabled": false
+          },
+          {
+            "text": "📝 Report A Custodial Concern",
+            "disabled": false
+          },
+          {
+            "text": "🔍 Single Area Inspection",
+            "disabled": false
+          },
+          {
+            "text": "🏢 Building Inspection",
+            "disabled": false
+          },
+          {
+            "text": "📈 Building Scores Dashboard",
+            "disabled": false
+          },
+          {
+            "text": "📊 View Data & Reports",
+            "disabled": false
+          }
+        ],
+        "images": []
+      },
+      "formAnalysis": null,
+      "accessibility": {
+        "hasSkipLinks": true,
+        "hasAltText": true,
+        "ariaLabelsCount": 12,
+        "semanticElementsCount": 4,
+        "focusableElementsCount": 20,
+        "hasProperHeadingStructure": true,
+        "headingsCount": 3,
+        "keyboardNavigationTest": "A: Skip to main content"
+      },
+      "performance": {
+        "loadTime": 36.39999997615814,
+        "domContentLoaded": 36.29999998211861,
+        "firstPaint": 88,
+        "firstContentfulPaint": 88
+      }
+    }
+  ],
+  "crossPageAnalysis": {
+    "totalPages": 5,
+    "accessiblePages": 5,
+    "pagesWithForms": 0,
+    "pagesWithSemanticHTML": 5,
+    "averageLoadTime": 76.93999999165536
+  }
+}

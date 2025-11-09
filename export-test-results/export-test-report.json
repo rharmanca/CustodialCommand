@@ -1,0 +1,131 @@
+{
+  "startTime": "2025-11-09T20:09:06.667Z",
+  "tests": [
+    {
+      "name": "API Connectivity",
+      "status": "PASS",
+      "message": "Server is running with export features enabled",
+      "data": {
+        "uptime": 70.752983542,
+        "features": {
+          "excel_export": true,
+          "pdf_export": true,
+          "csv_export": true,
+          "data_filtering": true,
+          "mobile_reports": true
+        },
+        "testData": {
+          "inspections": 6,
+          "notes": 5
+        }
+      },
+      "timestamp": "2025-11-09T20:09:06.704Z"
+    },
+    {
+      "name": "Inspection Data",
+      "status": "PASS",
+      "message": "Retrieved 6 inspections",
+      "data": {
+        "count": 6,
+        "schools": 5,
+        "types": [
+          "single_room",
+          "whole_building"
+        ],
+        "dateRange": {
+          "earliest": "2025-01-15",
+          "latest": "2025-01-20"
+        }
+      },
+      "timestamp": "2025-11-09T20:09:06.706Z"
+    },
+    {
+      "name": "Custodial Notes",
+      "status": "PASS",
+      "message": "Retrieved 5 notes with 3 urgent items",
+      "data": {
+        "total": 5,
+        "urgent": 3,
+        "schools": 5
+      },
+      "timestamp": "2025-11-09T20:09:06.707Z"
+    },
+    {
+      "name": "Export Statistics",
+      "status": "PASS",
+      "message": "Export statistics available",
+      "data": {
+        "inspections": 6,
+        "notes": 5,
+        "problems": 3,
+        "urgent": 3,
+        "schools": 5
+      },
+      "timestamp": "2025-11-09T20:09:06.708Z"
+    },
+    {
+      "name": "Large Dataset Performance",
+      "status": "PASS",
+      "message": "Performance testing completed",
+      "data": [
+        {
+          "size": 100,
+          "duration": 2,
+          "recordsPerSecond": 50000
+        },
+        {
+          "size": 500,
+          "duration": 9,
+          "recordsPerSecond": 55556
+        },
+        {
+          "size": 1000,
+          "duration": 5,
+          "recordsPerSecond": 200000
+        }
+      ],
+      "timestamp": "2025-11-09T20:09:06.730Z"
+    },
+    {
+      "name": "Data Filtering",
+      "status": "PASS",
+      "message": "Data filtering working correctly",
+      "data": {
+        "schools": 5,
+        "problemsFiltered": 3,
+        "total": 6
+      },
+      "timestamp": "2025-11-09T20:09:06.733Z"
+    },
+    {
+      "name": "Export Formats",
+      "status": "PASS",
+      "message": "Export dependencies and utilities available",
+      "data": {
+        "dependencies": 3,
+        "utilityFiles": 3
+      },
+      "timestamp": "2025-11-09T20:09:06.734Z"
+    },
+    {
+      "name": "Mobile PWA Features",
+      "status": "PASS",
+      "message": "Mobile PWA features available",
+      "data": {
+        "manifest": true,
+        "serviceWorker": true,
+        "displayMode": "standalone",
+        "icons": 2
+      },
+      "timestamp": "2025-11-09T20:09:06.736Z"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "errors": []
+  },
+  "endTime": "2025-11-09T20:09:06.736Z",
+  "duration": 69
+}
