@@ -247,6 +247,16 @@ if (process.env.REPL_SLUG) {
       logger.warn('Generated temporary session secret');
     }
 
+    // Test database connection
+    try {
+      const { db } = await import('./db');
+      await db.select().limit(1);
+      logger.info('Database connection successful');
+    } catch (error) {
+      logger.error('Database connection failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+      process.exit(1);
+    }
+
     // Health check and monitoring endpoints (MUST be before routes and static serving)
     app.get("/health", healthCheck);
     app.get("/metrics", (req: any, res: any) => {
