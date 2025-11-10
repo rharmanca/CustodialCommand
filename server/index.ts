@@ -199,21 +199,24 @@ app.use((req, res, next) => {
 if (process.env.REPL_SLUG) {
   app.use((req: any, res: any, next: any) => {
     try {
-      // Remove headers that block embedding
-      res.removeHeader('X-Frame-Options');
-      res.removeHeader('Cross-Origin-Opener-Policy');
-      res.removeHeader('Cross-Origin-Embedder-Policy');
+      // Only modify headers if they haven't been sent yet
+      if (!res.headersSent) {
+        // Remove headers that block embedding
+        res.removeHeader('X-Frame-Options');
+        res.removeHeader('Cross-Origin-Opener-Policy');
+        res.removeHeader('Cross-Origin-Embedder-Policy');
 
-      // Ensure CSP allows Replit to embed this app in an iframe
-      const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
-      const current = res.getHeader('Content-Security-Policy');
-      if (!current) {
-        res.setHeader('Content-Security-Policy', fa);
-      } else {
-        const value = Array.isArray(current) ? current.join('; ') : String(current);
-        const re = /frame-ancestors[^;]*/i;
-        const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
-        res.setHeader('Content-Security-Policy', newVal);
+        // Ensure CSP allows Replit to embed this app in an iframe
+        const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
+        const current = res.getHeader('Content-Security-Policy');
+        if (!current) {
+          res.setHeader('Content-Security-Policy', fa);
+        } else {
+          const value = Array.isArray(current) ? current.join('; ') : String(current);
+          const re = /frame-ancestors[^;]*/i;
+          const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
+          res.setHeader('Content-Security-Policy', newVal);
+        }
       }
     } catch {}
     next();

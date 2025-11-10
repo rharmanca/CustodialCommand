@@ -3735,18 +3735,20 @@ app.use((req, res, next) => {
 if (process.env.REPL_SLUG) {
   app.use((req, res, next) => {
     try {
-      res.removeHeader("X-Frame-Options");
-      res.removeHeader("Cross-Origin-Opener-Policy");
-      res.removeHeader("Cross-Origin-Embedder-Policy");
-      const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
-      const current = res.getHeader("Content-Security-Policy");
-      if (!current) {
-        res.setHeader("Content-Security-Policy", fa);
-      } else {
-        const value = Array.isArray(current) ? current.join("; ") : String(current);
-        const re = /frame-ancestors[^;]*/i;
-        const newVal = re.test(value) ? value.replace(re, fa) : value ? value + "; " + fa : fa;
-        res.setHeader("Content-Security-Policy", newVal);
+      if (!res.headersSent) {
+        res.removeHeader("X-Frame-Options");
+        res.removeHeader("Cross-Origin-Opener-Policy");
+        res.removeHeader("Cross-Origin-Embedder-Policy");
+        const fa = "frame-ancestors 'self' https://replit.com https://*.replit.com https://*.replit.dev https://*.replit.app";
+        const current = res.getHeader("Content-Security-Policy");
+        if (!current) {
+          res.setHeader("Content-Security-Policy", fa);
+        } else {
+          const value = Array.isArray(current) ? current.join("; ") : String(current);
+          const re = /frame-ancestors[^;]*/i;
+          const newVal = re.test(value) ? value.replace(re, fa) : value ? value + "; " + fa : fa;
+          res.setHeader("Content-Security-Policy", newVal);
+        }
       }
     } catch {
     }
