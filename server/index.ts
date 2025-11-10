@@ -250,7 +250,8 @@ if (process.env.REPL_SLUG) {
     // Test database connection
     try {
       const { db } = await import('./db');
-      await db.select().limit(1);
+      // Use a simple raw SQL query to test connection
+      await db.execute('SELECT 1');
       logger.info('Database connection successful');
     } catch (error) {
       logger.error('Database connection failed', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -377,8 +378,9 @@ if (process.env.REPL_SLUG) {
     // Initialize database safely in production
     async function initializeDatabase() {
       try {
-        // Test database connection
-        await db.select().limit(1);
+        // Test database connection with a simple raw SQL query
+        const { db } = await import('./db');
+        await db.execute('SELECT 1');
         logger.info("Database connection successful");
       } catch (error) {
         logger.error("Database connection failed", { error: error instanceof Error ? error.message : 'Unknown error' });
