@@ -198,9 +198,10 @@ app.use((req, res, next) => {
 /** ALLOW_IFRAME_FROM_REPLIT (only on Replit) **/
 if (process.env.REPL_SLUG) {
   app.use((req: any, res: any, next: any) => {
-    try {
-      // Only modify headers if they haven't been sent yet
-      if (!res.headersSent) {
+    // Intercept writeHead to modify headers before they're sent
+    const originalWriteHead = res.writeHead;
+    res.writeHead = function(...args: any[]) {
+      try {
         // Remove headers that block embedding
         res.removeHeader('X-Frame-Options');
         res.removeHeader('Cross-Origin-Opener-Policy');
@@ -217,8 +218,11 @@ if (process.env.REPL_SLUG) {
           const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
           res.setHeader('Content-Security-Policy', newVal);
         }
+      } catch (err) {
+        // Silently fail if headers are already sent
       }
-    } catch {}
+      return originalWriteHead.apply(res, args);
+    };
     next();
   });
 }
@@ -271,16 +275,17 @@ if (process.env.REPL_SLUG) {
         }
 
         // Extended timeout for Railway health checks
+        // healthCheck sends the response, so we don't return or use the result
         await Promise.race([
           healthCheck(req, res),
           new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Health check timeout')), 25000)
           )
         ]);
-
-        // Don't return anything - healthCheck already sent the response
+        // Response already sent by healthCheck, don't do anything else
       } catch (error) {
         logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+        // Only send response if not already sent
         if (!res.headersSent) {
           res.status(503).json({
             status: 'error',

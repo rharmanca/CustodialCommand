@@ -260,18 +260,22 @@ export const invalidateCache = (patterns: string[]) => {
 export const performanceMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const startTime = process.hrtime.bigint();
 
-  // Intercept writeHead to set header BEFORE response is sent
+  // Intercept writeHead to add performance header before response is sent
   const originalWriteHead = res.writeHead;
-  res.writeHead = function(this: Response, statusCode: number, ...args: any[]) {
+  res.writeHead = function(...args: any[]) {
     const endTime = process.hrtime.bigint();
     const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
     
-    // Set performance header before sending response
-    if (!res.headersSent) {
-      res.setHeader('X-Response-Time', `${duration.toFixed(2)}ms`);
+    try {
+      // Add performance header before sending response
+      if (!res.headersSent) {
+        res.setHeader('X-Response-Time', `${duration.toFixed(2)}ms`);
+      }
+    } catch (err) {
+      // Silently fail if headers already sent
     }
     
-    return originalWriteHead.apply(this, [statusCode, ...args] as any);
+    return originalWriteHead.apply(res, args);
   };
 
   res.on('finish', () => {
@@ -288,7 +292,7 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
       });
     }
 
-    // Log request details for monitoring
+    // Log request details for monitoring (no header setting here)
     logger.debug('Request completed', {
       method: req.method,
       url: req.originalUrl,
@@ -319,15 +323,9 @@ export const memoryMonitoring = (req: Request, res: Response, next: NextFunction
     });
   }
 
-  // Intercept writeHead to set memory headers BEFORE response is sent
-  const originalWriteHead = res.writeHead;
-  res.writeHead = function(this: Response, statusCode: number, ...args: any[]) {
-    if (!res.headersSent) {
-      res.setHeader('X-Memory-Used', `${heapUsedMB.toFixed(2)}MB`);
-      res.setHeader('X-Memory-Total', `${heapTotalMB.toFixed(2)}MB`);
-    }
-    return originalWriteHead.apply(this, [statusCode, ...args] as any);
-  };
+  // Add memory headers for monitoring
+  res.set('X-Memory-Used', `${heapUsedMB.toFixed(2)}MB`);
+  res.set('X-Memory-Total', `${heapTotalMB.toFixed(2)}MB`);
 
   next();
 };
