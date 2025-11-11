@@ -3611,18 +3611,21 @@ app.use(gracefulDegradation);
 app.use(errorRecoveryMiddleware);
 app.use(requestDeduplication);
 app.use(helmet({
-  // Content Security Policy - disabled for development to allow inline styles
+  // Content Security Policy - configured to support Vite's ES modules
   contentSecurityPolicy: process.env.NODE_ENV === "production" ? {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcElem: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
+      fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"]
+      mediaSrc: ["'self'", "blob:"],
+      frameSrc: ["'none'"],
+      workerSrc: ["'self'", "blob:"],
+      childSrc: ["'self'", "blob:"]
     }
   } : false,
   crossOriginEmbedderPolicy: false,
