@@ -260,6 +260,24 @@ export const invalidateCache = (patterns: string[]) => {
 export const performanceMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const startTime = process.hrtime.bigint();
 
+  // Intercept writeHead to add performance header before response is sent
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function(...args: any[]) {
+    const endTime = process.hrtime.bigint();
+    const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
+    
+    try {
+      // Add performance header before sending response
+      if (!res.headersSent) {
+        res.setHeader('X-Response-Time', `${duration.toFixed(2)}ms`);
+      }
+    } catch (err) {
+      // Silently fail if headers already sent
+    }
+    
+    return originalWriteHead.apply(res, args);
+  };
+
   res.on('finish', () => {
     const endTime = process.hrtime.bigint();
     const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
@@ -274,10 +292,7 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
       });
     }
 
-    // Add performance headers
-    res.set('X-Response-Time', `${duration.toFixed(2)}ms`);
-
-    // Log request details for monitoring
+    // Log request details for monitoring (no header setting here)
     logger.debug('Request completed', {
       method: req.method,
       url: req.originalUrl,
