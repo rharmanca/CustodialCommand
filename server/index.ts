@@ -216,7 +216,9 @@ if (process.env.REPL_SLUG) {
           const value = Array.isArray(current) ? current.join('; ') : String(current);
           const re = /frame-ancestors[^;]*/i;
           const newVal = re.test(value) ? value.replace(re, fa) : (value ? value + '; ' + fa : fa);
-          res.setHeader('Content-Security-Policy', newVal);
+          if (!res.headersSent) {
+            res.setHeader('Content-Security-Policy', newVal);
+          }
         }
       } catch (err) {
         // Silently fail if headers are already sent
