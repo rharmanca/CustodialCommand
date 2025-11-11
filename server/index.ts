@@ -268,29 +268,32 @@ if (process.env.REPL_SLUG) {
     // Enhanced health check with Railway-specific optimizations
     app.get("/health", async (req: any, res: any) => {
       try {
-        // Add Railway-specific headers
-        if (process.env.RAILWAY_SERVICE_ID) {
+        // Add Railway-specific headers BEFORE calling healthCheck
+        if (process.env.RAILWAY_SERVICE_ID && !res.headersSent) {
           res.set('X-Railway-Service-ID', process.env.RAILWAY_SERVICE_ID);
           res.set('X-Railway-Environment', process.env.RAILWAY_ENVIRONMENT || 'production');
         }
 
         // Extended timeout for Railway health checks
-        const healthResult = await Promise.race([
+        // healthCheck sends the response, so we don't return or use the result
+        await Promise.race([
           healthCheck(req, res),
           new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Health check timeout')), 25000)
           )
         ]);
-
-        return healthResult;
+        // Response already sent by healthCheck, don't do anything else
       } catch (error) {
         logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
-        res.status(503).json({
-          status: 'error',
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          error: 'Health check failed'
-        });
+        // Only send response if not already sent
+        if (!res.headersSent) {
+          res.status(503).json({
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            error: 'Health check failed'
+          });
+        }
       }
     });
 
