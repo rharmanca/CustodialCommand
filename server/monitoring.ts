@@ -67,7 +67,12 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
     try {
       // Import the pool from your db.ts file
       const { pool } = await import('./db');
-      await pool.query('SELECT 1');
+      await Promise.race([
+        pool.query('SELECT 1'),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database query timeout')), 5000)
+        )
+      ]);
     } catch (error) {
       dbStatus = 'error';
       logger.error('Database health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
