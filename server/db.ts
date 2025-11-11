@@ -48,9 +48,9 @@ export const pool = new Pool({
   max: 20, // Maximum number of connections in pool
   min: 5,  // Minimum number of connections to maintain
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  acquireTimeoutMillis: 60000,
-  createTimeoutMillis: 30000,
+  connectionTimeoutMillis: isRailway ? 5000 : 10000,
+  acquireTimeoutMillis: isRailway ? 15000 : 60000,
+  createTimeoutMillis: isRailway ? 10000 : 30000,
   destroyTimeoutMillis: 5000,
   reapIntervalMillis: 1000,
   createRetryIntervalMillis: 200

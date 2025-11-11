@@ -281,7 +281,7 @@ if (process.env.REPL_SLUG) {
         await Promise.race([
           healthCheck(req, res),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Health check timeout')), 25000)
+            setTimeout(() => reject(new Error('Health check timeout')), 20000)
           )
         ]);
         // Response already sent by healthCheck, don't do anything else
