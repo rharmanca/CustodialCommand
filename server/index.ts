@@ -28,7 +28,7 @@ import {
   cacheCircuitBreaker,
   fileUploadCircuitBreaker
 } from "./performanceErrorHandler";
-
+ 
 
 
 const app = express();
@@ -59,7 +59,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // FIXED: Added 'unsafe-inline' for Vite compatibility
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -81,7 +81,7 @@ app.use(helmet({
   hidePoweredBy: true,
   // Prevent IE from executing downloads in site context
   ieNoOpen: true,
-  // Don't infer the MIME type
+  // Don't infer MIME type
   noSniff: true,
   // X-Frame-Options - already set in securityHeaders but keeping for consistency
   frameguard: { action: 'deny' },
@@ -399,7 +399,7 @@ if (process.env.REPL_SLUG) {
     // Initialize database before starting server
     await initializeDatabase();
 
-    // ALWAYS serve the app on the port specified in the environment variable PORT
+    // ALWAYS serve app on port specified in environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
     // this serves both the API and the client.
     // It is the only port that is not firewalled.
