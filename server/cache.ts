@@ -260,6 +260,20 @@ export const invalidateCache = (patterns: string[]) => {
 export const performanceMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const startTime = process.hrtime.bigint();
 
+  // Intercept writeHead to set header BEFORE response is sent
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function(this: Response, statusCode: number, ...args: any[]) {
+    const endTime = process.hrtime.bigint();
+    const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
+    
+    // Set performance header before sending response
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${duration.toFixed(2)}ms`);
+    }
+    
+    return originalWriteHead.apply(this, [statusCode, ...args] as any);
+  };
+
   res.on('finish', () => {
     const endTime = process.hrtime.bigint();
     const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
@@ -273,9 +287,6 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
         statusCode: res.statusCode
       });
     }
-
-    // Add performance headers
-    res.set('X-Response-Time', `${duration.toFixed(2)}ms`);
 
     // Log request details for monitoring
     logger.debug('Request completed', {
@@ -308,9 +319,15 @@ export const memoryMonitoring = (req: Request, res: Response, next: NextFunction
     });
   }
 
-  // Add memory headers for monitoring
-  res.set('X-Memory-Used', `${heapUsedMB.toFixed(2)}MB`);
-  res.set('X-Memory-Total', `${heapTotalMB.toFixed(2)}MB`);
+  // Intercept writeHead to set memory headers BEFORE response is sent
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function(this: Response, statusCode: number, ...args: any[]) {
+    if (!res.headersSent) {
+      res.setHeader('X-Memory-Used', `${heapUsedMB.toFixed(2)}MB`);
+      res.setHeader('X-Memory-Total', `${heapTotalMB.toFixed(2)}MB`);
+    }
+    return originalWriteHead.apply(this, [statusCode, ...args] as any);
+  };
 
   next();
 };
