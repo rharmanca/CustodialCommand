@@ -3326,7 +3326,6 @@ var performanceMiddleware = (req, res, next) => {
         statusCode: res.statusCode
       });
     }
-    res.set("X-Response-Time", `${duration.toFixed(2)}ms`);
     logger.debug("Request completed", {
       method: req.method,
       url: req.originalUrl,

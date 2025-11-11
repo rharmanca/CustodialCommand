@@ -274,9 +274,6 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
       });
     }
 
-    // Add performance headers
-    res.set('X-Response-Time', `${duration.toFixed(2)}ms`);
-
     // Log request details for monitoring
     logger.debug('Request completed', {
       method: req.method,
