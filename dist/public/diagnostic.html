@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnostic Page</title>
+</head>
+<body>
+    <h1>Diagnostic Test</h1>
+    <div id="test">Testing...</div>
+    <script>
+        document.getElementById('test').innerHTML = 'JavaScript is working!';
+        console.log('Diagnostic page loaded successfully');
+        
+        // Test if we can fetch the main JS bundle
+        fetch('/assets/index-C8lZs5ns-v6.js')
+            .then(r => {
+                console.log('Main bundle fetch status:', r.status);
+                document.getElementById('test').innerHTML += '<br>Main bundle status: ' + r.status;
+            })
+            .catch(e => {
+                console.error('Error fetching main bundle:', e);
+                document.getElementById('test').innerHTML += '<br>Error: ' + e.message;
+            });
+    </script>
+</body>
+</html>
