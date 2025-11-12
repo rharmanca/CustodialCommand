@@ -24,6 +24,7 @@
     <!-- Performance polyfill for React scheduler - MUST be before any React code -->
     <script>
       (function() {
+        // Ensure performance object exists
         if (typeof performance === 'undefined') {
           window.performance = {
             now: function() { return Date.now(); },
@@ -37,13 +38,35 @@
           };
         }
         
-        // Ensure performance object is extensible for React scheduler
+        // Make performance object extensible and writable
         try {
-          if (typeof performance !== 'undefined' && performance.now && !performance.unstable_now) {
-            performance.unstable_now = performance.now.bind(performance);
+          // Ensure we can add properties to performance
+          if (typeof performance !== 'undefined') {
+            // Test if we can write to performance
+            var testProp = '__test__';
+            performance[testProp] = true;
+            delete performance[testProp];
+            
+            // Add unstable_now if it doesn't exist
+            if (!performance.unstable_now) {
+              performance.unstable_now = performance.now.bind(performance);
+            }
           }
         } catch (e) {
-          console.warn('Performance polyfill warning:', e.message);
+          // If performance is frozen/sealed, create a new writable one
+          console.warn('Performance object not writable, creating new one');
+          var oldPerf = window.performance;
+          window.performance = {
+            now: oldPerf.now.bind(oldPerf),
+            mark: oldPerf.mark ? oldPerf.mark.bind(oldPerf) : function() {},
+            measure: oldPerf.measure ? oldPerf.measure.bind(oldPerf) : function() {},
+            getEntriesByName: oldPerf.getEntriesByName ? oldPerf.getEntriesByName.bind(oldPerf) : function() { return []; },
+            getEntriesByType: oldPerf.getEntriesByType ? oldPerf.getEntriesByType.bind(oldPerf) : function() { return []; },
+            clearMarks: oldPerf.clearMarks ? oldPerf.clearMarks.bind(oldPerf) : function() {},
+            clearMeasures: oldPerf.clearMeasures ? oldPerf.clearMeasures.bind(oldPerf) : function() {},
+            timeOrigin: oldPerf.timeOrigin || Date.now(),
+            unstable_now: oldPerf.now.bind(oldPerf)
+          };
         }
       })();
     </script>
