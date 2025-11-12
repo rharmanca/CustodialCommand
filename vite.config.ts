@@ -151,12 +151,11 @@ export default defineConfig({
       external: [],
     },
 
-    // ESBuild configuration for better minification
-    esbuildOptions: {
-      drop: ["console", "debugger"], // Remove console and debugger statements
-      minify: true,
-      treeShaking: true
-    },
+    // ESBuild configuration - keep it simple to avoid module issues
+    // esbuildOptions: {
+    //   minify: true,
+    //   treeShaking: true
+    // },
 
     // Chunk size warnings
     chunkSizeWarningLimit: 1000, // Warn for chunks > 1MB
@@ -165,11 +164,10 @@ export default defineConfig({
     assetsInlineLimit: 4096, // Inline assets smaller than 4KB
 
   
-    // Enable experimental features
-    experimentalRenderBuiltUrl: (filename: string) => {
-      // Add cache busting query parameter for dynamic imports
-      return { js: `/${filename}?v=${Date.now()}` };
-    }
+    // Disable experimental features that might cause issues
+    // experimentalRenderBuiltUrl: (filename: string) => {
+    //   return { js: `/${filename}?v=${Date.now()}` };
+    // }
   },
 
   // Define global constants for build optimization
@@ -191,6 +189,7 @@ export default defineConfig({
     include: [
       "react",
       "react-dom",
+      "react-dom/client",
       "@radix-ui/react-dialog",
       "@radix-ui/react-select"
     ],
@@ -199,6 +198,10 @@ export default defineConfig({
       "jspdf",
       "html2canvas",
       "recharts"
-    ]
+    ],
+    // Force optimization of scheduler
+    esbuildOptions: {
+      target: 'es2020'
+    }
   }
 });
