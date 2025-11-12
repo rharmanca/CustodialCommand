@@ -1,4 +1,17 @@
 
+// Polyfill performance object for React scheduler compatibility
+if (typeof performance === 'undefined') {
+  (globalThis as any).performance = {
+    now: () => Date.now(),
+    mark: () => {},
+    measure: () => {},
+    getEntriesByName: () => [],
+    getEntriesByType: () => [],
+    clearMarks: () => {},
+    clearMeasures: () => {}
+  };
+}
+
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
