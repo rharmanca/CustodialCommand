@@ -1,41 +1,4 @@
 
-// React scheduler polyfill - ensure performance object exists and is writable
-(function() {
-  if (typeof performance === 'undefined') {
-    const mockPerformance = {
-      now: function() { return Date.now(); },
-      mark: function() {},
-      measure: function() {},
-      getEntriesByName: function() { return []; },
-      getEntriesByType: function() { return []; },
-      clearMarks: function() {},
-      clearMeasures: function() {},
-      timeOrigin: Date.now()
-    };
-    
-    // Make it writable so React can add properties
-    Object.defineProperty(globalThis, 'performance', {
-      value: mockPerformance,
-      writable: true,
-      configurable: true
-    });
-  }
-  
-  // Ensure the performance object is extensible for React scheduler
-  if (typeof performance !== 'undefined' && !Object.isExtensible(performance)) {
-    try {
-      Object.defineProperty(performance, 'unstable_now', {
-        value: performance.now.bind(performance),
-        writable: true,
-        configurable: true
-      });
-    } catch (e) {
-      // Fallback if we can't modify performance object
-      console.warn('Could not extend performance object for React scheduler');
-    }
-  }
-})();
-
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";

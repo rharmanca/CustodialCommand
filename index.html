@@ -20,6 +20,33 @@
     <link rel="apple-touch-icon" href="/icon-192x192.svg" />
     
     <title>Custodial Command</title>
+    
+    <!-- Performance polyfill for React scheduler - MUST be before any React code -->
+    <script>
+      (function() {
+        if (typeof performance === 'undefined') {
+          window.performance = {
+            now: function() { return Date.now(); },
+            mark: function() {},
+            measure: function() {},
+            getEntriesByName: function() { return []; },
+            getEntriesByType: function() { return []; },
+            clearMarks: function() {},
+            clearMeasures: function() {},
+            timeOrigin: Date.now()
+          };
+        }
+        
+        // Ensure performance object is extensible for React scheduler
+        try {
+          if (typeof performance !== 'undefined' && performance.now && !performance.unstable_now) {
+            performance.unstable_now = performance.now.bind(performance);
+          }
+        } catch (e) {
+          console.warn('Performance polyfill warning:', e.message);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

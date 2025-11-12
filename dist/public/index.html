@@ -20,17 +20,44 @@
     <link rel="apple-touch-icon" href="/icon-192x192.svg" />
     
     <title>Custodial Command</title>
-    <script type="module" crossorigin src="/assets/index-DnVazmX1-v6.js"></script>
+    
+    <!-- Performance polyfill for React scheduler - MUST be before any React code -->
+    <script>
+      (function() {
+        if (typeof performance === 'undefined') {
+          window.performance = {
+            now: function() { return Date.now(); },
+            mark: function() {},
+            measure: function() {},
+            getEntriesByName: function() { return []; },
+            getEntriesByType: function() { return []; },
+            clearMarks: function() {},
+            clearMeasures: function() {},
+            timeOrigin: Date.now()
+          };
+        }
+        
+        // Ensure performance object is extensible for React scheduler
+        try {
+          if (typeof performance !== 'undefined' && performance.now && !performance.unstable_now) {
+            performance.unstable_now = performance.now.bind(performance);
+          }
+        } catch (e) {
+          console.warn('Performance polyfill warning:', e.message);
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-C8lZs5ns-v6.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/ui-BA32w1ww-v6.js">
-    <link rel="modulepreload" crossorigin href="/assets/forms-DvGd8G-R-v6.js">
+    <link rel="modulepreload" crossorigin href="/assets/forms-CNFAARkK-v6.js">
     <link rel="modulepreload" crossorigin href="/assets/utils-Cj9wHvoQ-v6.js">
-    <link rel="modulepreload" crossorigin href="/assets/charts-core-YxK7NrOY-v6.js">
-    <link rel="modulepreload" crossorigin href="/assets/pdf-export-BWVcVaVf-v6.js">
-    <link rel="modulepreload" crossorigin href="/assets/index-DnVazmX1-v6.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-D5PZd4ja-v6.js">
+    <link rel="modulepreload" crossorigin href="/assets/charts-core-D8EqI98c-v6.js">
+    <link rel="modulepreload" crossorigin href="/assets/pdf-export-Dc8H2mOq-v6.js">
+    <link rel="modulepreload" crossorigin href="/assets/index-C8lZs5ns-v6.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-DqhJe5ka-v6.js">
     <link rel="stylesheet" crossorigin href="/assets/css/index-DwqoedQJ-v6.css">
   </head>
   <body>
     <div id="root"></div>
   </body>
-</html><!-- Updated Tue Nov 11 20:44:22 CST 2025 -->
+</html>
