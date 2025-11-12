@@ -23,9 +23,10 @@ let content = fs.readFileSync(bundleFile, 'utf8');
 const originalSize = content.length;
 
 // Wrap the scheduler initialization in a safety check
+// Match the entire if-else block to avoid syntax errors
 content = content.replace(
-  /var p=typeof performance=="object"&&typeof performance\.now=="function";if\(p\){var g=performance;e\.unstable_now=function\(\){return g\.now\(\)}/g,
-  'var p=typeof performance=="object"&&typeof performance.now=="function";if(p){var g=performance;if(typeof e!=="undefined"){e.unstable_now=function(){return g.now()}}}'
+  /var p=typeof performance=="object"&&typeof performance\.now=="function";if\(p\){var g=performance;e\.unstable_now=function\(\){return g\.now\(\)}}else{/g,
+  'var p=typeof performance=="object"&&typeof performance.now=="function";if(p){var g=performance;if(typeof e!=="undefined"){e.unstable_now=function(){return g.now()}}}else{'
 );
 
 if (content.length !== originalSize) {
