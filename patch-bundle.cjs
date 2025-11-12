@@ -22,21 +22,30 @@ let content = fs.readFileSync(bundleFile, 'utf8');
 
 const originalSize = content.length;
 
-// Fix the scheduler module by adding the missing export parameter
-// The issue: Vite bundles the scheduler as (function(){...})() instead of (function(e){...})(exports)
-// Solution: Replace the IIFE wrapper to include the export parameter
+// Fix the scheduler module by adding the missing export parameter AND fixing the invocation
+// The issue: Vite bundles as (function(){...})()})(exports) instead of (function(e){...})(exports)
+// The inner () doesn't pass the export object to the function!
 
-// Find the scheduler module IIFE
+// Find and fix the scheduler module
 const schedulerPattern = /\(function\(\){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__!="undefined"&&typeof __REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart=="function"&&__REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart\(new Error\);/;
 
 if (schedulerPattern.test(content)) {
-  // Replace the IIFE to include export parameter 'e'
+  // Step 1: Add export parameter 'e' to function signature
   content = content.replace(
     /\(function\(\){(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__)/g,
     '(function(e){$1'
   );
   
-  console.log('✅ Added export parameter to scheduler IIFE');
+  // Step 2: Fix the invocation to pass the export object
+  // Change })()})(cf)) to })(cf))(cf))
+  // Actually, we need to find the pattern: })()})(something))
+  // And change it to: })(something))(something))
+  content = content.replace(
+    /}\)\(\)\}\)\(([a-z]+)\)\)/g,
+    '})($1))($1))'
+  );
+  
+  console.log('✅ Fixed scheduler IIFE signature and invocation');
 } else {
   console.log('⚠️  Scheduler pattern not found - trying alternative fix');
   
