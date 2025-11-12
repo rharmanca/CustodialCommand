@@ -25,7 +25,7 @@ const originalSize = content.length;
 // Wrap the scheduler initialization in a safety check
 content = content.replace(
   /var p=typeof performance=="object"&&typeof performance\.now=="function";if\(p\){var g=performance;e\.unstable_now=function\(\){return g\.now\(\)}/g,
-  'var p=typeof performance=="object"&&typeof performance.now=="function";if(p){var g=performance;if(typeof e!=="undefined"){e.unstable_now=function(){return g.now()}}else{window.__schedulerFallback=function(){return g.now()}}}'
+  'var p=typeof performance=="object"&&typeof performance.now=="function";if(p){var g=performance;if(typeof e!=="undefined"){e.unstable_now=function(){return g.now()}}}'
 );
 
 if (content.length !== originalSize) {
