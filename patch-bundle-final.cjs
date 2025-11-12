@@ -51,14 +51,13 @@ content = content.replace(/\(function\(\)\{typeof __REACT_DEVTOOLS_GLOBAL_HOOK__
 });
 
 // CRITICAL FIX 2: The scheduler IIFE is called incorrectly
-// Find: })()})(nm)),nm}
-// This means: (function(e){...})())(nm) - the IIFE is called with no args!
-// Replace with: })(nm)),nm}
-// This makes it: (function(e){...})(nm) - properly passing nm as argument
+// After fix 1, pattern is: Error)})()})(nm)),nm}
+// We need to remove: )()})
+// To get: Error})(nm)),nm}
 let schedulerCallFixed = false;
-content = content.replace(/\}\)\(\)\}\)\(nm\)\),nm\}/g, (match) => {
+content = content.replace(/Error\)\}\)\(\)\}\)\(nm\)\),nm\}/g, (match) => {
   schedulerCallFixed = true;
-  return '})(nm)),nm}';
+  return 'Error})(nm)),nm}';
 });
 
 // Add initialization at the very beginning
