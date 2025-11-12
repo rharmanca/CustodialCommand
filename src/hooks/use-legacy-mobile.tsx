@@ -87,7 +87,7 @@ export function useLegacyPerformance() {
       var isSlowDevice = false;
       
       // Check memory usage if available
-      if ((performance as any).memory) {
+      if (typeof performance !== 'undefined' && (performance as any).memory) {
         var memory = (performance as any).memory;
         memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
         isSlowDevice = memoryUsage > 0.7 || renderTime > 1000;
@@ -108,7 +108,7 @@ export function useLegacyPerformance() {
     
     // Periodic memory monitoring for low-end devices
     var interval = setInterval(function() {
-      if ((performance as any).memory) {
+      if (typeof performance !== 'undefined' && (performance as any).memory) {
         var memory = (performance as any).memory;
         var currentUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
         

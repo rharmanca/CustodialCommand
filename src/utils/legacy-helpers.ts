@@ -191,7 +191,7 @@ export function legacyPerformanceMonitor() {
       console.log('[Performance] ' + label + ': ' + (now - start) + 'ms');
       
       // Simple memory check
-      if ((performance as any).memory) {
+      if (typeof performance !== 'undefined' && (performance as any).memory) {
         var memory = (performance as any).memory;
         var memoryUsage = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
         
