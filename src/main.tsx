@@ -1,6 +1,14 @@
+import { optimizeForMobile } from '@/mobile';
+import '@/mobile/mobile.css';
+import { initPerformanceMonitoring, initSentry } from '@/monitoring';
 import welcome from '@/utils/welcome';
 
 import './index.css';
+
+// Initialize monitoring and mobile optimizations
+initSentry();
+initPerformanceMonitoring();
+optimizeForMobile();
 
 // `root` contains the main dependencies and providers of the base app
 //  - React, ReactDom, Jotai, ThemeProvider, etc.)

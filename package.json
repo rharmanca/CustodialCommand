@@ -1,16 +1,16 @@
 {
-  "name": "react-pwa",
-  "version": "3.0.0",
+  "name": "custodial-command",
+  "version": "1.0.0",
   "type": "module",
-  "description": "Starter kit for modern web applications",
-  "homepage": "https://react-pwa.surenatoyan.com/",
+  "description": "Professional custodial inspection and reporting system for educational facilities",
+  "homepage": "https://cacustodialcommand.up.railway.app/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/suren-atoyan/react-pwa.git"
+    "url": "https://github.com/custodial-command/custodial-command.git"
   },
   "bugs": {
-    "url": "https://github.com/suren-atoyan/react-pwa/issues",
-    "email": "contact@surenatoyan.com"
+    "url": "https://github.com/custodial-command/custodial-command/issues",
+    "email": "support@custodialcommand.com"
   },
   "license": "MIT",
   "scripts": {
@@ -31,6 +31,8 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
+    "@sentry/react": "^10.25.0",
+    "@sentry/vite-plugin": "^4.6.0",
     "@toolpad/core": "^0.12.1",
     "jotai": "^2.12.1",
     "react": "^19.0.0",
@@ -38,7 +40,8 @@
     "react-error-boundary": "^5.0.0",
     "react-hotkeys-hook": "^4.6.1",
     "react-router": "^7.2.0",
-    "usehooks-ts": "^3.1.1"
+    "usehooks-ts": "^3.1.1",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -56,6 +59,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.2",
+    "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",
@@ -71,14 +75,16 @@
     ]
   },
   "author": {
-    "name": "Suren Atoyan",
-    "email": "contact@surenatoyan.com",
-    "url": "http://surenatoyan.com/"
+    "name": "Custodial Command Team",
+    "email": "support@custodialcommand.com",
+    "url": "https://cacustodialcommand.up.railway.app/"
   },
   "keywords": [
     "react",
     "pwa",
-    "starter-kit",
-    "vite"
+    "custodial",
+    "inspection",
+    "facility-management",
+    "educational"
   ]
 }

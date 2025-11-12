@@ -2,6 +2,8 @@ import AddTaskIcon from '@mui/icons-material/AddTask';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HomeIcon from '@mui/icons-material/Home';
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+import SpeedIcon from '@mui/icons-material/Speed';
 import TerrainIcon from '@mui/icons-material/Terrain';
 
 import asyncComponentLoader from '@/utils/loader';
@@ -39,6 +41,23 @@ const routes: Routes = [
     title: 'Page 4',
     icon: BugReportIcon,
   },
+  // Development tools (development only)
+  ...(import.meta.env.DEV || import.meta.env.VITE_SHOW_PERFORMANCE_DASHBOARD === 'true'
+    ? [
+        {
+          component: asyncComponentLoader(() => import('@/monitoring/PerformanceDashboard')),
+          path: '/performance',
+          title: 'Performance',
+          icon: SpeedIcon,
+        },
+        {
+          component: asyncComponentLoader(() => import('@/mobile/MobileTestSuite')),
+          path: '/mobile-test',
+          title: 'Mobile Test',
+          icon: PhoneAndroidIcon,
+        },
+      ]
+    : []),
   {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),
     path: '*',
