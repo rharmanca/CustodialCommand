@@ -141,11 +141,12 @@ export default defineConfig({
       },
 
       // Additional Rollup optimizations
-      treeshake: {
-        moduleSideEffects: false,
-        propertyReadSideEffects: false,
-        unknownGlobalSideEffects: false
-      },
+      // Disabled aggressive treeshaking to fix React scheduler bundling
+      // treeshake: {
+      //   moduleSideEffects: false,
+      //   propertyReadSideEffects: false,
+      //   unknownGlobalSideEffects: false
+      // },
 
       // External dependencies to exclude from bundle
       external: [],
@@ -197,7 +198,9 @@ export default defineConfig({
       // Exclude large dependencies from pre-bundling
       "jspdf",
       "html2canvas",
-      "recharts"
+      "recharts",
+      // Exclude scheduler to prevent bundling issues
+      "scheduler"
     ],
     // Force optimization of scheduler
     esbuildOptions: {

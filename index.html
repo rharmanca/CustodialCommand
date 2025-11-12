@@ -23,81 +23,26 @@
     
     <!-- Performance and Scheduler polyfill for React - MUST be before any React code -->
     <script>
+      // Critical fix: Create a global exports object for React scheduler
+      // This prevents "Cannot set properties of undefined" errors
       (function() {
-        // Comprehensive polyfill for React scheduler compatibility
-        
-        // 1. Ensure performance object exists and is writable
+        // Ensure performance object exists
         if (typeof performance === 'undefined') {
-          window.performance = {};
-        }
-        
-        // 2. Create a writable performance object with all required methods
-        var perfMethods = {
-          now: function() { return Date.now(); },
-          mark: function() {},
-          measure: function() {},
-          getEntriesByName: function() { return []; },
-          getEntriesByType: function() { return []; },
-          clearMarks: function() {},
-          clearMeasures: function() {},
-          timeOrigin: Date.now(),
-          unstable_now: function() { return Date.now(); }
-        };
-        
-        // 3. Try to extend existing performance or replace it
-        try {
-          for (var key in perfMethods) {
-            if (!performance[key]) {
-              performance[key] = perfMethods[key];
+          window.performance = {
+            now: function() {
+              return Date.now();
+            },
+            timing: {
+              navigationStart: Date.now()
             }
-          }
-        } catch (e) {
-          // Performance object is sealed/frozen, replace it entirely
-          window.performance = perfMethods;
+          };
         }
         
-        // 4. CRITICAL: Ensure Scheduler object exists for React
-        // React's scheduler tries to access properties on an undefined object
-        if (typeof window.Scheduler === 'undefined') {
-          window.Scheduler = {};
-        }
+        // Create a global object to catch scheduler exports
+        // This is a workaround for Vite bundling the scheduler module incorrectly
+        window.__REACT_SCHEDULER_EXPORTS__ = {};
         
-        // 5. Add scheduler methods that React expects
-        var schedulerMethods = {
-          unstable_now: performance.now.bind(performance),
-          unstable_scheduleCallback: function(priority, callback) {
-            return setTimeout(callback, 0);
-          },
-          unstable_cancelCallback: function(id) {
-            clearTimeout(id);
-          },
-          unstable_shouldYield: function() {
-            return false;
-          },
-          unstable_requestPaint: function() {},
-          unstable_runWithPriority: function(priority, fn) {
-            return fn();
-          },
-          unstable_wrapCallback: function(callback) {
-            return callback;
-          },
-          unstable_getCurrentPriorityLevel: function() {
-            return 3; // NormalPriority
-          },
-          unstable_ImmediatePriority: 1,
-          unstable_UserBlockingPriority: 2,
-          unstable_NormalPriority: 3,
-          unstable_LowPriority: 4,
-          unstable_IdlePriority: 5
-        };
-        
-        for (var method in schedulerMethods) {
-          if (!window.Scheduler[method]) {
-            window.Scheduler[method] = schedulerMethods[method];
-          }
-        }
-        
-        console.log('[Polyfill] Performance and Scheduler objects initialized');
+        console.log('[Polyfill] Performance object and scheduler exports container initialized');
       })();
     </script>
   </head>

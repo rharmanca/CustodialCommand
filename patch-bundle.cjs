@@ -22,12 +22,30 @@ let content = fs.readFileSync(bundleFile, 'utf8');
 
 const originalSize = content.length;
 
-// Wrap the scheduler initialization in a safety check
-// Match the entire if-else block to avoid syntax errors
-content = content.replace(
-  /var p=typeof performance=="object"&&typeof performance\.now=="function";if\(p\){var g=performance;e\.unstable_now=function\(\){return g\.now\(\)}}else{/g,
-  'var p=typeof performance=="object"&&typeof performance.now=="function";if(p){var g=performance;if(typeof e!=="undefined"){e.unstable_now=function(){return g.now()}}}else{'
-);
+// Fix the scheduler module by adding the missing export parameter
+// The issue: Vite bundles the scheduler as (function(){...})() instead of (function(e){...})(exports)
+// Solution: Replace the IIFE wrapper to include the export parameter
+
+// Find the scheduler module IIFE
+const schedulerPattern = /\(function\(\){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__!="undefined"&&typeof __REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart=="function"&&__REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart\(new Error\);/;
+
+if (schedulerPattern.test(content)) {
+  // Replace the IIFE to include export parameter 'e'
+  content = content.replace(
+    /\(function\(\){(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__)/g,
+    '(function(e){$1'
+  );
+  
+  console.log('✅ Added export parameter to scheduler IIFE');
+} else {
+  console.log('⚠️  Scheduler pattern not found - trying alternative fix');
+  
+  // Alternative: wrap all e.unstable_* assignments in safety checks
+  content = content.replace(
+    /e\.unstable_/g,
+    '(typeof e!=="undefined"?e:window.__REACT_SCHEDULER_EXPORTS__).unstable_'
+  );
+}
 
 if (content.length !== originalSize) {
   fs.writeFileSync(bundleFile, content);
