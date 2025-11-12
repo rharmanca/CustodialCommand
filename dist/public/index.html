@@ -21,53 +21,83 @@
     
     <title>Custodial Command</title>
     
-    <!-- Performance polyfill for React scheduler - MUST be before any React code -->
+    <!-- Performance and Scheduler polyfill for React - MUST be before any React code -->
     <script>
       (function() {
-        // Ensure performance object exists
+        // Comprehensive polyfill for React scheduler compatibility
+        
+        // 1. Ensure performance object exists and is writable
         if (typeof performance === 'undefined') {
-          window.performance = {
-            now: function() { return Date.now(); },
-            mark: function() {},
-            measure: function() {},
-            getEntriesByName: function() { return []; },
-            getEntriesByType: function() { return []; },
-            clearMarks: function() {},
-            clearMeasures: function() {},
-            timeOrigin: Date.now()
-          };
+          window.performance = {};
         }
         
-        // Make performance object extensible and writable
+        // 2. Create a writable performance object with all required methods
+        var perfMethods = {
+          now: function() { return Date.now(); },
+          mark: function() {},
+          measure: function() {},
+          getEntriesByName: function() { return []; },
+          getEntriesByType: function() { return []; },
+          clearMarks: function() {},
+          clearMeasures: function() {},
+          timeOrigin: Date.now(),
+          unstable_now: function() { return Date.now(); }
+        };
+        
+        // 3. Try to extend existing performance or replace it
         try {
-          // Ensure we can add properties to performance
-          if (typeof performance !== 'undefined') {
-            // Test if we can write to performance
-            var testProp = '__test__';
-            performance[testProp] = true;
-            delete performance[testProp];
-            
-            // Add unstable_now if it doesn't exist
-            if (!performance.unstable_now) {
-              performance.unstable_now = performance.now.bind(performance);
+          for (var key in perfMethods) {
+            if (!performance[key]) {
+              performance[key] = perfMethods[key];
             }
           }
         } catch (e) {
-          // If performance is frozen/sealed, create a new writable one
-          console.warn('Performance object not writable, creating new one');
-          var oldPerf = window.performance;
-          window.performance = {
-            now: oldPerf.now.bind(oldPerf),
-            mark: oldPerf.mark ? oldPerf.mark.bind(oldPerf) : function() {},
-            measure: oldPerf.measure ? oldPerf.measure.bind(oldPerf) : function() {},
-            getEntriesByName: oldPerf.getEntriesByName ? oldPerf.getEntriesByName.bind(oldPerf) : function() { return []; },
-            getEntriesByType: oldPerf.getEntriesByType ? oldPerf.getEntriesByType.bind(oldPerf) : function() { return []; },
-            clearMarks: oldPerf.clearMarks ? oldPerf.clearMarks.bind(oldPerf) : function() {},
-            clearMeasures: oldPerf.clearMeasures ? oldPerf.clearMeasures.bind(oldPerf) : function() {},
-            timeOrigin: oldPerf.timeOrigin || Date.now(),
-            unstable_now: oldPerf.now.bind(oldPerf)
-          };
+          // Performance object is sealed/frozen, replace it entirely
+          window.performance = perfMethods;
         }
+        
+        // 4. CRITICAL: Ensure Scheduler object exists for React
+        // React's scheduler tries to access properties on an undefined object
+        if (typeof window.Scheduler === 'undefined') {
+          window.Scheduler = {};
+        }
+        
+        // 5. Add scheduler methods that React expects
+        var schedulerMethods = {
+          unstable_now: performance.now.bind(performance),
+          unstable_scheduleCallback: function(priority, callback) {
+            return setTimeout(callback, 0);
+          },
+          unstable_cancelCallback: function(id) {
+            clearTimeout(id);
+          },
+          unstable_shouldYield: function() {
+            return false;
+          },
+          unstable_requestPaint: function() {},
+          unstable_runWithPriority: function(priority, fn) {
+            return fn();
+          },
+          unstable_wrapCallback: function(callback) {
+            return callback;
+          },
+          unstable_getCurrentPriorityLevel: function() {
+            return 3; // NormalPriority
+          },
+          unstable_ImmediatePriority: 1,
+          unstable_UserBlockingPriority: 2,
+          unstable_NormalPriority: 3,
+          unstable_LowPriority: 4,
+          unstable_IdlePriority: 5
+        };
+        
+        for (var method in schedulerMethods) {
+          if (!window.Scheduler[method]) {
+            window.Scheduler[method] = schedulerMethods[method];
+          }
+        }
+        
+        console.log('[Polyfill] Performance and Scheduler objects initialized');
       })();
     </script>
     <script type="module" crossorigin src="/assets/index-C8lZs5ns-v6.js"></script>
@@ -83,4 +113,4 @@
   <body>
     <div id="root"></div>
   </body>
-</html><!-- Force 1762916051 -->
+</html>
