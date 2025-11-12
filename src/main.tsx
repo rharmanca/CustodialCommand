@@ -30,3 +30,4 @@ if (!container) {
 
 const root = createRoot(container);
 root.render(<App />);
+console.log('App initializing...');
