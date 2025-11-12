@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error Check</title>
+</head>
+<body>
+    <h1>Checking Production Site Errors</h1>
+    <div id="status">Loading...</div>
+    <script>
+        // Override console.error to capture errors
+        const originalError = console.error;
+        const errors = [];
+        console.error = function() {
+            errors.push(Array.from(arguments).join(' '));
+            originalError.apply(console, arguments);
+        };
+        
+        // Try to load the bundle
+        const script = document.createElement('script');
+        script.src = 'https://cacustodialcommand.up.railway.app/assets/index-Bmw8JvtW-v6.js';
+        script.onload = () => {
+            document.getElementById('status').innerHTML = 
+                '<p>Bundle loaded</p>' +
+                '<p>Errors captured: ' + errors.length + '</p>' +
+                '<pre>' + errors.join('\n') + '</pre>';
+        };
+        script.onerror = () => {
+            document.getElementById('status').innerHTML = 'Failed to load bundle';
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

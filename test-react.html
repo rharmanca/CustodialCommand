@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>React Test</title>
+    <script>
+        // Polyfill
+        window.__REACT_SCHEDULER_EXPORTS__ = {};
+        window.performance = window.performance || { now: () => Date.now() };
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="log"></div>
+    <script>
+        const log = (msg) => {
+            document.getElementById('log').innerHTML += msg + '<br>';
+        };
+        
+        // Monitor React
+        window.onerror = (msg, source, lineno, colno, error) => {
+            log('ERROR: ' + msg);
+            return true;
+        };
+        
+        log('Loading bundle...');
+    </script>
+    <script src="https://cacustodialcommand.up.railway.app/assets/index-Bmw8JvtW-v6.js" 
+            onload="log('Bundle loaded!')" 
+            onerror="log('Bundle failed to load!')"></script>
+</body>
+</html>
