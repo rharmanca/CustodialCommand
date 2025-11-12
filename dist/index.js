@@ -413,9 +413,9 @@ var init_db = __esm({
       min: 5,
       // Minimum number of connections to maintain
       idleTimeoutMillis: 3e4,
-      connectionTimeoutMillis: 1e4,
-      acquireTimeoutMillis: 6e4,
-      createTimeoutMillis: 3e4,
+      connectionTimeoutMillis: isRailway ? 5e3 : 1e4,
+      acquireTimeoutMillis: isRailway ? 15e3 : 6e4,
+      createTimeoutMillis: isRailway ? 1e4 : 3e4,
       destroyTimeoutMillis: 5e3,
       reapIntervalMillis: 1e3,
       createRetryIntervalMillis: 200
@@ -3069,7 +3069,12 @@ var healthCheck = async (req, res) => {
     let dbStatus = "connected";
     try {
       const { pool: pool2 } = await Promise.resolve().then(() => (init_db(), db_exports));
-      await pool2.query("SELECT 1");
+      await Promise.race([
+        pool2.query("SELECT 1"),
+        new Promise(
+          (_, reject) => setTimeout(() => reject(new Error("Database query timeout")), 5e3)
+        )
+      ]);
     } catch (error) {
       dbStatus = "error";
       logger.error("Database health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
@@ -3098,11 +3103,13 @@ var healthCheck = async (req, res) => {
     }
   } catch (error) {
     logger.error("Health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
-    res.status(500).json({
-      status: "error",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      message: "Health check failed"
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        status: "error",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        message: "Health check failed"
+      });
+    }
   }
 };
 var MetricsCollector = class {
@@ -3315,6 +3322,18 @@ var invalidateCache = (patterns) => {
 };
 var performanceMiddleware = (req, res, next) => {
   const startTime = process.hrtime.bigint();
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function(...args) {
+    const endTime = process.hrtime.bigint();
+    const duration = Number(endTime - startTime) / 1e6;
+    try {
+      if (!res.headersSent) {
+        res.setHeader("X-Response-Time", `${duration.toFixed(2)}ms`);
+      }
+    } catch (err) {
+    }
+    return originalWriteHead.apply(res, args);
+  };
   res.on("finish", () => {
     const endTime = process.hrtime.bigint();
     const duration = Number(endTime - startTime) / 1e6;
@@ -3326,7 +3345,6 @@ var performanceMiddleware = (req, res, next) => {
         statusCode: res.statusCode
       });
     }
-    res.set("X-Response-Time", `${duration.toFixed(2)}ms`);
     logger.debug("Request completed", {
       method: req.method,
       url: req.originalUrl,
@@ -3616,7 +3634,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      // FIXED: Added 'unsafe-inline' for Vite compatibility
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -3639,7 +3658,7 @@ app.use(helmet({
   hidePoweredBy: true,
   // Prevent IE from executing downloads in site context
   ieNoOpen: true,
-  // Don't infer the MIME type
+  // Don't infer MIME type
   noSniff: true,
   // X-Frame-Options - already set in securityHeaders but keeping for consistency
   frameguard: { action: "deny" },
@@ -3734,8 +3753,9 @@ app.use((req, res, next) => {
 });
 if (process.env.REPL_SLUG) {
   app.use((req, res, next) => {
-    try {
-      if (!res.headersSent) {
+    const originalWriteHead = res.writeHead;
+    res.writeHead = function(...args) {
+      try {
         res.removeHeader("X-Frame-Options");
         res.removeHeader("Cross-Origin-Opener-Policy");
         res.removeHeader("Cross-Origin-Embedder-Policy");
@@ -3747,11 +3767,14 @@ if (process.env.REPL_SLUG) {
           const value = Array.isArray(current) ? current.join("; ") : String(current);
           const re = /frame-ancestors[^;]*/i;
           const newVal = re.test(value) ? value.replace(re, fa) : value ? value + "; " + fa : fa;
-          res.setHeader("Content-Security-Policy", newVal);
+          if (!res.headersSent) {
+            res.setHeader("Content-Security-Policy", newVal);
+          }
         }
+      } catch (err) {
       }
-    } catch {
-    }
+      return originalWriteHead.apply(res, args);
+    };
     next();
   });
 }
@@ -3784,25 +3807,26 @@ if (process.env.REPL_SLUG) {
     }
     app.get("/health", async (req, res) => {
       try {
-        if (process.env.RAILWAY_SERVICE_ID) {
+        if (process.env.RAILWAY_SERVICE_ID && !res.headersSent) {
           res.set("X-Railway-Service-ID", process.env.RAILWAY_SERVICE_ID);
           res.set("X-Railway-Environment", process.env.RAILWAY_ENVIRONMENT || "production");
         }
-        const healthResult = await Promise.race([
+        await Promise.race([
           healthCheck(req, res),
           new Promise(
-            (_, reject) => setTimeout(() => reject(new Error("Health check timeout")), 25e3)
+            (_, reject) => setTimeout(() => reject(new Error("Health check timeout")), 2e4)
           )
         ]);
-        return healthResult;
       } catch (error) {
         logger.error("Health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
-        res.status(503).json({
-          status: "error",
-          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-          uptime: process.uptime(),
-          error: "Health check failed"
-        });
+        if (!res.headersSent) {
+          res.status(503).json({
+            status: "error",
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            uptime: process.uptime(),
+            error: "Health check failed"
+          });
+        }
       }
     });
     app.get("/metrics", (req, res) => {
