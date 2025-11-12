@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Polyfill Test</title>
+    <script>
+      (function() {
+        console.log('Before polyfill - performance exists:', typeof performance !== 'undefined');
+        
+        if (typeof performance === 'undefined') {
+          window.performance = {
+            now: function() { return Date.now(); },
+            mark: function() {},
+            measure: function() {},
+            getEntriesByName: function() { return []; },
+            getEntriesByType: function() { return []; },
+            clearMarks: function() {},
+            clearMeasures: function() {},
+            timeOrigin: Date.now()
+          };
+          console.log('Created performance polyfill');
+        }
+        
+        try {
+          if (typeof performance !== 'undefined' && performance.now && !performance.unstable_now) {
+            performance.unstable_now = performance.now.bind(performance);
+            console.log('Added unstable_now to performance');
+          }
+        } catch (e) {
+          console.error('Error adding unstable_now:', e);
+        }
+        
+        console.log('After polyfill - performance.now exists:', typeof performance.now === 'function');
+        console.log('After polyfill - performance.unstable_now exists:', typeof performance.unstable_now === 'function');
+      })();
+    </script>
+</head>
+<body>
+    <h1>Polyfill Test</h1>
+    <div id="root">Testing polyfill...</div>
+    <script>
+        console.log('Final check - performance object:', performance);
+        console.log('Can set property test:', (function() {
+            try {
+                performance.testProp = 'test';
+                return 'SUCCESS';
+            } catch (e) {
+                return 'FAILED: ' + e.message;
+            }
+        })());
+    </script>
+</body>
+</html>
