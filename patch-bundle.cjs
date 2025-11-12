@@ -26,28 +26,32 @@ const originalSize = content.length;
 // The issue: Vite bundles as (function(){...})()})(exports) instead of (function(e){...})(exports)
 // The inner () doesn't pass the export object to the function!
 
-// Find and fix the scheduler module
-const schedulerPattern = /\(function\(\){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__!="undefined"&&typeof __REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart=="function"&&__REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart\(new Error\);/;
+// Find and fix ALL scheduler modules (there can be multiple)
+const schedulerPattern = /\(function\(\){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__!="undefined"&&typeof __REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart=="function"&&__REACT_DEVTOOLS_GLOBAL_HOOK__\.registerInternalModuleStart\(new Error\);/g;
 
-if (schedulerPattern.test(content)) {
-  // Step 1: Add export parameter 'e' to function signature
-  content = content.replace(
-    /\(function\(\){(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__)/g,
-    '(function(e){$1'
-  );
-  
-  // Step 2: Fix the invocation to pass the export object
-  // Change })()})(cf)) to })(cf))(cf))
-  // Actually, we need to find the pattern: })()})(something))
-  // And change it to: })(something))(something))
-  content = content.replace(
-    /}\)\(\)\}\)\(([a-z]+)\)\)/g,
-    '})($1))($1))'
-  );
-  
-  console.log('✅ Fixed scheduler IIFE signature and invocation');
+let matchCount = 0;
+
+// Step 1: Add export parameter 'e' to ALL function signatures
+content = content.replace(
+  /\(function\(\){(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__)/g,
+  (match, captureGroup) => {
+    matchCount++;
+    return '(function(e){' + captureGroup; // Replace (function(){ with (function(e){
+  }
+);
+
+// Step 2: Fix ALL invocations to pass the export object
+// Change })()})(something)) to })(something))
+// This pattern can appear multiple times with different variable names
+content = content.replace(
+  /}\)\(\)\}\)\(([a-zA-Z_$][a-zA-Z0-9_$]*)\)\)/g,
+  '})($1))'
+);
+
+if (matchCount > 0) {
+  console.log(`✅ Fixed ${matchCount} scheduler IIFE(s) - signature and invocation`);
 } else {
-  console.log('⚠️  Scheduler pattern not found - trying alternative fix');
+  console.log('⚠️  No scheduler patterns found - trying alternative fix');
   
   // Alternative: wrap all e.unstable_* assignments in safety checks
   content = content.replace(
