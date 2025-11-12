@@ -41,11 +41,25 @@ content = content.replace(/\}\)\(cf\)/g, (match) => {
   return '})(typeof cf!=="undefined"?cf:window.__cf||{})';
 });
 
-// Ensure the scheduler IIFE has a parameter
-content = content.replace(
-  /\(function\(\)\{(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__)/g,
-  '(function(e){$1'
-);
+// CRITICAL FIX 1: The scheduler IIFE has no parameter
+// Find: (function(){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__
+// Replace with: (function(e){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__
+let schedulerParamFixed = false;
+content = content.replace(/\(function\(\)\{typeof __REACT_DEVTOOLS_GLOBAL_HOOK__/g, (match) => {
+  schedulerParamFixed = true;
+  return '(function(e){typeof __REACT_DEVTOOLS_GLOBAL_HOOK__';
+});
+
+// CRITICAL FIX 2: The scheduler IIFE is called incorrectly
+// Find: })()})(nm)),nm}
+// This means: (function(e){...})())(nm) - the IIFE is called with no args!
+// Replace with: })(nm)),nm}
+// This makes it: (function(e){...})(nm) - properly passing nm as argument
+let schedulerCallFixed = false;
+content = content.replace(/\}\)\(\)\}\)\(nm\)\),nm\}/g, (match) => {
+  schedulerCallFixed = true;
+  return '})(nm)),nm}';
+});
 
 // Add initialization at the very beginning
 const initCode = `
@@ -76,6 +90,8 @@ console.log('='.repeat(60));
 console.log('\n📊 Patches Applied:');
 console.log(`   ✅ Made cf global: ${globalCfFixed ? 'YES' : 'NO'}`);
 console.log(`   ✅ Fixed cf references: ${cfReferencesFixed}`);
+console.log(`   ✅ Fixed scheduler IIFE parameter: ${schedulerParamFixed ? 'YES' : 'NO'}`);
+console.log(`   ✅ Fixed scheduler IIFE call: ${schedulerCallFixed ? 'YES' : 'NO'}`);
 console.log(`   ✅ Added global init: YES`);
 console.log(`   Size change: ${sizeDiff > 0 ? '+' : ''}${sizeDiff} bytes`);
 
