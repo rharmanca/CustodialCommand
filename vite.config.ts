@@ -33,7 +33,7 @@ export default defineConfig({
     cssMinify: true,
     cssCodeSplit: true,
     minify: "esbuild", // Use esbuild instead of terser (faster)
-    target: "es2015", // Target modern browsers for better optimization
+    target: "es2020", // Target ES2020 for optional chaining support
     rollupOptions: {
       output: {
         // Optimized manual chunks for better caching
