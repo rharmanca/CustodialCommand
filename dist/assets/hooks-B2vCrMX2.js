@@ -1,0 +1,1 @@
+import{l as e,r as o}from"./vendor-react-CGMDEy-J.js";import{b as t}from"./vendor-state-mm2RE2vc.js";var r=(e=>(e.DARK="dark",e.LIGHT="light",e))(r||{});const s=t("theme-mode",r.DARK);function a(){const[t,a]=e(s);return{themeMode:t,toggle:o.useCallback((()=>a((e=>e===r.DARK?r.LIGHT:r.DARK))),[a]),setThemeMode:a,isDarkMode:t===r.DARK}}export{a as u};

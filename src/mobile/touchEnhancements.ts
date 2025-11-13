@@ -247,7 +247,8 @@ export const optimizeForMobile = () => {
   }
 
   // Optimize scrolling performance
-  (document.body.style as Record<string, string>).webkitOverflowScrolling = 'touch';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (document.body.style as any).webkitOverflowScrolling = 'touch';
 
   // Prevent zoom on input focus (iOS)
   const inputs = document.querySelectorAll('input, select, textarea');
@@ -258,8 +259,10 @@ export const optimizeForMobile = () => {
 
 // Touch feedback utilities
 export const addTouchFeedback = (element: HTMLElement) => {
-  (element.style as Record<string, string>).webkitTapHighlightColor = 'rgba(0, 0, 0, 0.1)';
-  (element.style as Record<string, string>).webkitUserSelect = 'none';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (element.style as any).webkitTapHighlightColor = 'rgba(0, 0, 0, 0.1)';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (element.style as any).webkitUserSelect = 'none';
   element.style.userSelect = 'none';
 
   const handleTouchStart = () => {

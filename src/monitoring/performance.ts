@@ -86,13 +86,12 @@ export const initPerformanceMonitoring = () => {
 
     // Monitor memory usage (if available)
     if ('memory' in performance) {
-      const memoryInfo = (
-        performance as PerformanceNavigationTiming & {
-          memory: { usedJSHeapSize: number; totalJSHeapSize: number };
-        }
-      ).memory;
-      setTag('memory.used', Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024).toString());
-      setTag('memory.total', Math.round(memoryInfo.totalJSHeapSize / 1024 / 1024).toString());
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const memoryInfo = (performance as any).memory;
+      if (memoryInfo && typeof memoryInfo === 'object') {
+        setTag('memory.used', Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024).toString());
+        setTag('memory.total', Math.round(memoryInfo.totalJSHeapSize / 1024 / 1024).toString());
+      }
     }
   }
 };

@@ -72,7 +72,8 @@ export const captureException = (error: Error, context?: Record<string, unknown>
   if (context) {
     Sentry.withScope((scope) => {
       Object.entries(context).forEach(([key, value]) => {
-        scope.setContext(key, value);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        scope.setContext(key, value as any);
       });
       Sentry.captureException(error);
     });
