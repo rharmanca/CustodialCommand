@@ -1,5 +1,6 @@
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import ErrorIcon from '@mui/icons-material/Error';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import HomeIcon from '@mui/icons-material/Home';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
@@ -55,6 +56,12 @@ const routes: Routes = [
           path: '/mobile-test',
           title: 'Mobile Test',
           icon: PhoneAndroidIcon,
+        },
+        {
+          component: asyncComponentLoader(() => import('@/pages/ErrorTest')),
+          path: '/error-test',
+          title: 'Error Handling',
+          icon: ErrorIcon,
         },
       ]
     : []),

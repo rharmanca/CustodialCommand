@@ -1,3 +1,4 @@
+import { initializeGlobalErrorHandler } from '@/error-handling/global-handler';
 import { optimizeForMobile } from '@/mobile';
 import '@/mobile/mobile.css';
 import { initPerformanceMonitoring, initSentry } from '@/monitoring';
@@ -9,6 +10,12 @@ import './index.css';
 initSentry();
 initPerformanceMonitoring();
 optimizeForMobile();
+
+// Initialize global error handling
+initializeGlobalErrorHandler({
+  enableConsoleLogging: import.meta.env.DEV,
+  enableSentryReporting: import.meta.env.PROD,
+});
 
 // `root` contains the main dependencies and providers of the base app
 //  - React, ReactDom, Jotai, ThemeProvider, etc.)
