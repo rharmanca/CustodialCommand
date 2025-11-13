@@ -31,7 +31,9 @@
     "build:analyze": "npm run build && npm run analyze:bundle",
     "ui:test": "npx --yes playwright test",
     "ui:test:headed": "npx --yes playwright test --headed",
-    "ui:test:report": "npx --yes playwright show-report"
+    "ui:test:report": "npx --yes playwright show-report",
+    "lighthouse": "lhci autorun",
+    "lighthouse:local": "npm run build && npm run start & npx wait-on http://localhost:5000 && lhci autorun && kill $(lsof -ti:5000)"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -128,6 +130,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.1.3",
