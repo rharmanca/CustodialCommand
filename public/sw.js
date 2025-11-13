@@ -1,8 +1,8 @@
-const CACHE_NAME = 'custodial-command-v9';
+const CACHE_NAME = 'custodial-command-v10';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const PHOTO_QUEUE_KEY = 'photo-queue';
 const SYNC_QUEUE_KEY = 'sync-queue';
-const APP_VERSION = 'v9';
+const APP_VERSION = 'v10';
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 // Photo-specific cache name
@@ -677,41 +677,50 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle other requests with cache-first strategy
+  // Handle other requests with network-first for HTML, cache-first for assets
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Return cached version if available
-        if (response) {
-          return response;
+    (async () => {
+      // For HTML/navigation requests, always try network first
+      if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+        try {
+          const networkResponse = await fetch(event.request);
+          // Cache the new HTML for offline use
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        } catch (error) {
+          // If network fails, fall back to cache
+          const cachedResponse = await caches.match(event.request);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Last resort: return cached index.html
+          return caches.match('/');
         }
+      }
+
+      // For assets (JS, CSS, images), use cache-first strategy
+      const cachedResponse = await caches.match(event.request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // Not in cache, fetch from network
+      try {
+        const networkResponse = await fetch(event.request);
         
-        // Otherwise fetch from network
-        return fetch(event.request)
-      .then(response => {
         // Check if we received a valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          // Clone and cache the response
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, networkResponse.clone());
         }
 
-        // Clone the response for caching
-        const responseToCache = response.clone();
-
-        caches.open(CACHE_NAME)
-          .then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-
-        return response;
-      })
-      .catch(() => {
-            // For navigation requests, return the cached index.html
-            if (event.request.mode === 'navigate') {
-              return caches.match('/');
-            }
-            
-            // Return offline page for other requests
-            return new Response(`
+        return networkResponse;
+      } catch (error) {
+        // Network failed
+        // Return offline page for other requests
+        return new Response(`
               <!DOCTYPE html>
               <html>
                 <head>
@@ -770,8 +779,8 @@ self.addEventListener('fetch', event => {
                 'Content-Type': 'text/html'
               })
             });
-          });
-      })
+      }
+    })()
   );
 });
 
