@@ -1,8 +1,8 @@
-const CACHE_NAME = 'custodial-command-v8';
+const CACHE_NAME = 'custodial-command-v9';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const PHOTO_QUEUE_KEY = 'photo-queue';
 const SYNC_QUEUE_KEY = 'sync-queue';
-const APP_VERSION = 'v8';
+const APP_VERSION = 'v9';
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 // Photo-specific cache name
