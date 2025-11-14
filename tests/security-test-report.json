@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-14T15:26:59.706Z",
+  "timestamp": "2025-11-14T22:34:53.082Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
@@ -53,37 +53,37 @@
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":648,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":687,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":649,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":688,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":650,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":689,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":651,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":690,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":652,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":691,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":653,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":692,\"imageCount\":0}",
       "severity": "high"
     },
     {
