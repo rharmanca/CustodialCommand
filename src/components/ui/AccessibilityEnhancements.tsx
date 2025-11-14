@@ -13,7 +13,9 @@ const SkipLink = ({ href, children, className }: SkipLinkProps) => {
     <a
       href={href}
       className={cn(
-        "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+        "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-3 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+        // AAA compliance: min 44x44px touch target
+        "min-w-[44px] min-h-[44px] inline-flex items-center justify-center",
         className
       )}
     >
