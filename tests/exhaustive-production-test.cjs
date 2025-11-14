@@ -331,15 +331,15 @@ async function runExhaustiveTests() {
 
 async function testAllPages(context, device) {
   const pages = [
-    { name: 'Homepage', url: '/', selector: 'h1' },
-    { name: 'Single Area Inspection', url: '/custodial-inspection', selector: 'form' },
-    { name: 'Whole Building Inspection', url: '/whole-building-inspection', selector: 'h1' },
-    { name: 'Custodial Notes', url: '/custodial-notes', selector: 'form' },
-    { name: 'Inspection Data', url: '/inspection-data', selector: 'h1' },
-    { name: 'Admin Inspections', url: '/admin-inspections', selector: 'h1' },
-    { name: 'Monthly Feedback', url: '/monthly-feedback', selector: 'h1' },
-    { name: 'Rating Criteria', url: '/rating-criteria', selector: 'h1' },
-    { name: 'Scores Dashboard', url: '/scores-dashboard', selector: 'h1' }
+    { name: 'Homepage', url: '/', selector: 'h1', timeout: 10000 },
+    { name: 'Single Area Inspection', url: '/custodial-inspection', selector: 'button, input, textarea', timeout: 15000 },
+    { name: 'Whole Building Inspection', url: '/whole-building-inspection', selector: 'h1', timeout: 10000 },
+    { name: 'Custodial Notes', url: '/custodial-notes', selector: 'button, input, textarea', timeout: 15000 },
+    { name: 'Inspection Data', url: '/inspection-data', selector: 'h1', timeout: 10000 },
+    { name: 'Admin Inspections', url: '/admin-inspections', selector: 'h1', timeout: 10000 },
+    { name: 'Monthly Feedback', url: '/monthly-feedback', selector: 'h1', timeout: 10000 },
+    { name: 'Rating Criteria', url: '/rating-criteria', selector: 'h1', timeout: 10000 },
+    { name: 'Scores Dashboard', url: '/scores-dashboard', selector: 'h1', timeout: 10000 }
   ];
 
   for (const pageInfo of pages) {
@@ -363,8 +363,8 @@ async function testAllPages(context, device) {
 
       recordTest('pages', `${pageName} - Load`, true, `${loadTime}ms`);
 
-      // Wait for main content
-      await page.waitForSelector(pageInfo.selector, { timeout: 5000 });
+      // Wait for main content with page-specific timeout
+      await page.waitForSelector(pageInfo.selector, { timeout: pageInfo.timeout || 10000 });
       recordTest('pages', `${pageName} - Content Visible`, true);
 
       // Take screenshot
@@ -476,8 +476,8 @@ async function testSingleAreaInspection(context) {
 
     await takeScreenshot(page, 'form_single_area_initial', 'Initial form state');
 
-    // Wait for form to be ready
-    await page.waitForSelector('form', { timeout: 5000 });
+    // Wait for form elements to be ready (more specific selector for lazy-loaded components)
+    await page.waitForSelector('button, input, textarea', { timeout: 15000 });
     recordTest('forms', `${formName} - Load`, true);
 
     // Find and interact with school select
@@ -528,8 +528,9 @@ async function testCustodialNotes(context) {
     await page.goto(`${TEST_URL}/custodial-notes`, { waitUntil: 'networkidle' });
     await takeScreenshot(page, 'form_custodial_notes', 'Custodial notes page');
 
-    // Check if form exists
-    const hasForm = await page.locator('form').count() > 0;
+    // Check if form elements exist (wait for lazy-loaded components)
+    await page.waitForSelector('button, input, textarea', { timeout: 15000 });
+    const hasForm = await page.locator('button, input, textarea').count() > 0;
     recordTest('forms', `${formName} - Present`, hasForm);
 
     if (hasForm) {

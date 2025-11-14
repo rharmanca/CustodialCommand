@@ -9,6 +9,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, validateRequest, sanitizeInput, apiRateLimit, strictRateLimit } from "./security";
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
+import { automatedMonitoring } from "./automated-monitoring";
 import {
   cacheMiddleware,
   invalidateCache,
@@ -46,6 +47,17 @@ app.use(requestIdMiddleware);
 app.use(performanceMiddleware);
 app.use(memoryMonitoring);
 app.use(metricsMiddleware);
+
+// Track requests for automated monitoring
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const isError = res.statusCode >= 400;
+    automatedMonitoring.trackRequest(duration, isError);
+  });
+  next();
+});
 
 // Graceful degradation and circuit breaker protection
 app.use(gracefulDegradation);
@@ -262,6 +274,10 @@ if (process.env.REPL_SLUG) {
       // Use a simple raw SQL query to test connection
       await db.execute('SELECT 1');
       logger.info('Database connection successful');
+
+      // Start automated health monitoring after successful database connection
+      automatedMonitoring.start();
+      logger.info('Automated health monitoring started');
     } catch (error) {
       logger.error('Database connection failed', { error: error instanceof Error ? error.message : 'Unknown error' });
       process.exit(1);
@@ -313,6 +329,50 @@ if (process.env.REPL_SLUG) {
       } catch (error) {
         logger.error('Metrics endpoint failed', { error });
         res.status(500).json({ error: 'Failed to fetch metrics' });
+      }
+    });
+
+    // Automated monitoring endpoints
+    app.get("/health/metrics", (req: any, res: any) => {
+      try {
+        const currentHealth = automatedMonitoring.getCurrentHealth();
+        if (!currentHealth) {
+          return res.status(503).json({
+            status: 'initializing',
+            message: 'Monitoring system is initializing'
+          });
+        }
+        res.json(currentHealth);
+      } catch (error) {
+        logger.error('Health metrics endpoint failed', { error });
+        res.status(500).json({ error: 'Failed to fetch health metrics' });
+      }
+    });
+
+    app.get("/health/history", (req: any, res: any) => {
+      try {
+        const limit = parseInt(req.query.limit || '20', 10);
+        const history = automatedMonitoring.getHealthHistory(limit);
+        res.json({
+          count: history.length,
+          history
+        });
+      } catch (error) {
+        logger.error('Health history endpoint failed', { error });
+        res.status(500).json({ error: 'Failed to fetch health history' });
+      }
+    });
+
+    app.get("/health/alerts", (req: any, res: any) => {
+      try {
+        const alerts = automatedMonitoring.getActiveAlerts();
+        res.json({
+          count: alerts.length,
+          alerts
+        });
+      } catch (error) {
+        logger.error('Health alerts endpoint failed', { error });
+        res.status(500).json({ error: 'Failed to fetch alerts' });
       }
     });
 

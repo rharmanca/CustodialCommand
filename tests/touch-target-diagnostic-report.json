@@ -269,7 +269,7 @@
       "selector": "a",
       "index": 0,
       "id": "",
-      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-3 rounded-md z-50 transition-all duration-200 hover:bg-blue-700 min-w-[44px] min-h-[44px] inline-flex items-center justify-center",
       "text": "Skip to main content",
       "ariaLabel": "",
       "dimensions": {
@@ -279,8 +279,8 @@
       "computed": {
         "minWidth": "44px",
         "minHeight": "44px",
-        "padding": "8.5px 17px",
-        "display": "block"
+        "padding": "12.75px 17px",
+        "display": "flex"
       },
       "position": {
         "top": -2,
@@ -291,7 +291,7 @@
       "selector": "a",
       "index": 1,
       "id": "",
-      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-3 rounded-md z-50 transition-all duration-200 hover:bg-blue-700 min-w-[44px] min-h-[44px] inline-flex items-center justify-center",
       "text": "Skip to navigation",
       "ariaLabel": "",
       "dimensions": {
@@ -301,8 +301,8 @@
       "computed": {
         "minWidth": "44px",
         "minHeight": "44px",
-        "padding": "8.5px 17px",
-        "display": "block"
+        "padding": "12.75px 17px",
+        "display": "flex"
       },
       "position": {
         "top": -2,
@@ -313,7 +313,7 @@
       "selector": "a",
       "index": 2,
       "id": "",
-      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-3 rounded-md z-50 transition-all duration-200 hover:bg-blue-700 min-w-[44px] min-h-[44px] inline-flex items-center justify-center",
       "text": "Skip to footer",
       "ariaLabel": "",
       "dimensions": {
@@ -323,8 +323,8 @@
       "computed": {
         "minWidth": "44px",
         "minHeight": "44px",
-        "padding": "8.5px 17px",
-        "display": "block"
+        "padding": "12.75px 17px",
+        "display": "flex"
       },
       "position": {
         "top": -2,
