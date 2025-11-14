@@ -1,0 +1,3024 @@
+{
+  "summary": {
+    "total": 276,
+    "passed": 273,
+    "failed": 3,
+    "startTime": "2025-11-14T15:26:29.264Z",
+    "endTime": "2025-11-14T15:27:57.464Z",
+    "duration": "88.2s",
+    "successRate": "98.9%"
+  },
+  "pages": {
+    "Homepage (desktop) - Load": {
+      "passed": true,
+      "details": "1340ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:31.196Z"
+    },
+    "Homepage (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:31.219Z"
+    },
+    "Homepage (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:32.363Z"
+    },
+    "Single Area Inspection (desktop) - Load": {
+      "passed": true,
+      "details": "773ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:33.284Z"
+    },
+    "Single Area Inspection (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:33.303Z"
+    },
+    "Single Area Inspection (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:34.424Z"
+    },
+    "Whole Building Inspection (desktop) - Load": {
+      "passed": true,
+      "details": "714ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:35.191Z"
+    },
+    "Whole Building Inspection (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:35.206Z"
+    },
+    "Whole Building Inspection (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:36.321Z"
+    },
+    "Custodial Notes (desktop) - Load": {
+      "passed": true,
+      "details": "707ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:37.092Z"
+    },
+    "Custodial Notes (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:37.109Z"
+    },
+    "Custodial Notes (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.237Z"
+    },
+    "Inspection Data (desktop) - Load": {
+      "passed": true,
+      "details": "709ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.994Z"
+    },
+    "Inspection Data (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:39.011Z"
+    },
+    "Inspection Data (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.140Z"
+    },
+    "Admin Inspections (desktop) - Load": {
+      "passed": true,
+      "details": "708ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.895Z"
+    },
+    "Admin Inspections (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.910Z"
+    },
+    "Admin Inspections (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.039Z"
+    },
+    "Monthly Feedback (desktop) - Load": {
+      "passed": true,
+      "details": "715ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.809Z"
+    },
+    "Monthly Feedback (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.827Z"
+    },
+    "Monthly Feedback (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:43.955Z"
+    },
+    "Rating Criteria (desktop) - Load": {
+      "passed": true,
+      "details": "706ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:44.726Z"
+    },
+    "Rating Criteria (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:44.743Z"
+    },
+    "Rating Criteria (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:45.874Z"
+    },
+    "Scores Dashboard (desktop) - Load": {
+      "passed": true,
+      "details": "705ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:46.634Z"
+    },
+    "Scores Dashboard (desktop) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:46.651Z"
+    },
+    "Scores Dashboard (desktop) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:47.755Z"
+    },
+    "Homepage (mobile) - Load": {
+      "passed": true,
+      "details": "1022ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:48.834Z"
+    },
+    "Homepage (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:48.852Z"
+    },
+    "Homepage (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:49.919Z"
+    },
+    "Single Area Inspection (mobile) - Load": {
+      "passed": true,
+      "details": "769ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:50.757Z"
+    },
+    "Single Area Inspection (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:50.773Z"
+    },
+    "Single Area Inspection (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:51.836Z"
+    },
+    "Whole Building Inspection (mobile) - Load": {
+      "passed": true,
+      "details": "704ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:52.592Z"
+    },
+    "Whole Building Inspection (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:52.613Z"
+    },
+    "Whole Building Inspection (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:53.690Z"
+    },
+    "Custodial Notes (mobile) - Load": {
+      "passed": true,
+      "details": "703ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:54.448Z"
+    },
+    "Custodial Notes (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:54.464Z"
+    },
+    "Custodial Notes (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:55.537Z"
+    },
+    "Inspection Data (mobile) - Load": {
+      "passed": true,
+      "details": "706ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:56.308Z"
+    },
+    "Inspection Data (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:56.325Z"
+    },
+    "Inspection Data (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:57.385Z"
+    },
+    "Admin Inspections (mobile) - Load": {
+      "passed": true,
+      "details": "702ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:58.131Z"
+    },
+    "Admin Inspections (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:58.154Z"
+    },
+    "Admin Inspections (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.218Z"
+    },
+    "Monthly Feedback (mobile) - Load": {
+      "passed": true,
+      "details": "709ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.977Z"
+    },
+    "Monthly Feedback (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.989Z"
+    },
+    "Monthly Feedback (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.049Z"
+    },
+    "Rating Criteria (mobile) - Load": {
+      "passed": true,
+      "details": "703ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.818Z"
+    },
+    "Rating Criteria (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.836Z"
+    },
+    "Rating Criteria (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:02.918Z"
+    },
+    "Scores Dashboard (mobile) - Load": {
+      "passed": true,
+      "details": "703ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:03.676Z"
+    },
+    "Scores Dashboard (mobile) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:03.694Z"
+    },
+    "Scores Dashboard (mobile) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:04.769Z"
+    },
+    "Homepage (tablet) - Load": {
+      "passed": true,
+      "details": "1039ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:05.863Z"
+    },
+    "Homepage (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:05.881Z"
+    },
+    "Homepage (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:06.996Z"
+    },
+    "Single Area Inspection (tablet) - Load": {
+      "passed": true,
+      "details": "806ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.868Z"
+    },
+    "Single Area Inspection (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.911Z"
+    },
+    "Single Area Inspection (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.012Z"
+    },
+    "Whole Building Inspection (tablet) - Load": {
+      "passed": true,
+      "details": "701ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.765Z"
+    },
+    "Whole Building Inspection (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.780Z"
+    },
+    "Whole Building Inspection (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:10.877Z"
+    },
+    "Custodial Notes (tablet) - Load": {
+      "passed": true,
+      "details": "702ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:11.634Z"
+    },
+    "Custodial Notes (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:11.647Z"
+    },
+    "Custodial Notes (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:12.742Z"
+    },
+    "Inspection Data (tablet) - Load": {
+      "passed": true,
+      "details": "703ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:13.495Z"
+    },
+    "Inspection Data (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:13.512Z"
+    },
+    "Inspection Data (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:14.613Z"
+    },
+    "Admin Inspections (tablet) - Load": {
+      "passed": true,
+      "details": "708ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:15.383Z"
+    },
+    "Admin Inspections (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:15.400Z"
+    },
+    "Admin Inspections (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:16.493Z"
+    },
+    "Monthly Feedback (tablet) - Load": {
+      "passed": true,
+      "details": "704ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:17.258Z"
+    },
+    "Monthly Feedback (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:17.275Z"
+    },
+    "Monthly Feedback (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:18.378Z"
+    },
+    "Rating Criteria (tablet) - Load": {
+      "passed": true,
+      "details": "698ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:19.126Z"
+    },
+    "Rating Criteria (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:19.143Z"
+    },
+    "Rating Criteria (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.244Z"
+    },
+    "Scores Dashboard (tablet) - Load": {
+      "passed": true,
+      "details": "700ms",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.992Z"
+    },
+    "Scores Dashboard (tablet) - Content Visible": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:21.010Z"
+    },
+    "Scores Dashboard (tablet) - Title": {
+      "passed": true,
+      "details": "Custodial Command",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:22.110Z"
+    }
+  },
+  "forms": {
+    "Single Area Inspection Form - Load": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:25.567Z"
+    },
+    "Single Area Inspection Form - Error": {
+      "passed": false,
+      "details": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[role=\"combobox\"]').first()\u001b[22m\n",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:55.569Z"
+    },
+    "Custodial Notes Form - Present": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:56.556Z"
+    },
+    "Custodial Notes Form - Text Areas": {
+      "passed": false,
+      "details": "0 text areas found",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:56.557Z"
+    },
+    "Whole Building Inspection - Load": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:57.445Z"
+    },
+    "Whole Building Inspection - Multi-Step": {
+      "passed": false,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:57.446Z"
+    }
+  },
+  "performance": {
+    "Homepage (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 1.1000000014901161,
+      "firstPaint": 744,
+      "firstContentfulPaint": 744,
+      "domInteractive": 285.70000000298023,
+      "domComplete": 621.2000000029802,
+      "transferSize": 1174,
+      "encodedBodySize": 874,
+      "decodedBodySize": 2275
+    },
+    "Homepage (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "744ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:31.361Z"
+    },
+    "Homepage (desktop) - Load Complete": {
+      "passed": true,
+      "details": "1ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:31.361Z"
+    },
+    "Single Area Inspection (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 256,
+      "firstContentfulPaint": 256,
+      "domInteractive": 75.10000000149012,
+      "domComplete": 219,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Single Area Inspection (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "256ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:33.422Z"
+    },
+    "Single Area Inspection (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:33.422Z"
+    },
+    "Whole Building Inspection (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 224,
+      "firstContentfulPaint": 224,
+      "domInteractive": 74.10000000149012,
+      "domComplete": 176.20000000298023,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Whole Building Inspection (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "224ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:35.319Z"
+    },
+    "Whole Building Inspection (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:35.319Z"
+    },
+    "Custodial Notes (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 216,
+      "firstContentfulPaint": 216,
+      "domInteractive": 73.89999999850988,
+      "domComplete": 176.5,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Custodial Notes (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "216ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:37.237Z"
+    },
+    "Custodial Notes (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:37.237Z"
+    },
+    "Inspection Data (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.29999999701976776,
+      "firstPaint": 220,
+      "firstContentfulPaint": 220,
+      "domInteractive": 73,
+      "domComplete": 178.10000000149012,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Inspection Data (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "220ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:39.137Z"
+    },
+    "Inspection Data (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:39.137Z"
+    },
+    "Admin Inspections (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.19999999552965164,
+      "firstPaint": 216,
+      "firstContentfulPaint": 216,
+      "domInteractive": 73,
+      "domComplete": 179.20000000298023,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Admin Inspections (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "216ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:41.036Z"
+    },
+    "Admin Inspections (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:41.036Z"
+    },
+    "Monthly Feedback (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 224,
+      "firstContentfulPaint": 224,
+      "domInteractive": 83.5,
+      "domComplete": 186.39999999850988,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Monthly Feedback (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "224ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.953Z"
+    },
+    "Monthly Feedback (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.953Z"
+    },
+    "Rating Criteria (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 216,
+      "firstContentfulPaint": 216,
+      "domInteractive": 74,
+      "domComplete": 177.79999999701977,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Rating Criteria (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "216ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:44.872Z"
+    },
+    "Rating Criteria (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:44.872Z"
+    },
+    "Scores Dashboard (desktop)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.20000000298023224,
+      "firstPaint": 216,
+      "firstContentfulPaint": 216,
+      "domInteractive": 75,
+      "domComplete": 177.10000000149012,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Scores Dashboard (desktop) - First Contentful Paint": {
+      "passed": true,
+      "details": "216ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:46.753Z"
+    },
+    "Scores Dashboard (desktop) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:46.753Z"
+    },
+    "Homepage (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 488,
+      "firstContentfulPaint": 488,
+      "domInteractive": 157.69999999552965,
+      "domComplete": 455.09999999403954,
+      "transferSize": 1174,
+      "encodedBodySize": 874,
+      "decodedBodySize": 2275
+    },
+    "Homepage (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "488ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:48.917Z"
+    },
+    "Homepage (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:48.917Z"
+    },
+    "Single Area Inspection (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 244,
+      "firstContentfulPaint": 244,
+      "domInteractive": 72.30000000447035,
+      "domComplete": 211,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Single Area Inspection (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "244ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:50.834Z"
+    },
+    "Single Area Inspection (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:50.834Z"
+    },
+    "Whole Building Inspection (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.4000000059604645,
+      "firstPaint": 220,
+      "firstContentfulPaint": 220,
+      "domInteractive": 73.5,
+      "domComplete": 175.09999999403954,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Whole Building Inspection (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "220ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:52.688Z"
+    },
+    "Whole Building Inspection (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:52.688Z"
+    },
+    "Custodial Notes (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 208,
+      "firstContentfulPaint": 208,
+      "domInteractive": 72.70000000298023,
+      "domComplete": 173.70000000298023,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Custodial Notes (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "208ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:54.534Z"
+    },
+    "Custodial Notes (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:54.534Z"
+    },
+    "Inspection Data (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 212,
+      "firstContentfulPaint": 212,
+      "domInteractive": 71.40000000596046,
+      "domComplete": 179.30000000447035,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Inspection Data (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "212ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:56.383Z"
+    },
+    "Inspection Data (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:56.383Z"
+    },
+    "Admin Inspections (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.3999999985098839,
+      "firstPaint": 208,
+      "firstContentfulPaint": 208,
+      "domInteractive": 72.59999999403954,
+      "domComplete": 172.79999999701977,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Admin Inspections (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "208ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:58.216Z"
+    },
+    "Admin Inspections (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:58.216Z"
+    },
+    "Monthly Feedback (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 216,
+      "firstContentfulPaint": 216,
+      "domInteractive": 76.59999999403954,
+      "domComplete": 180.79999999701977,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Monthly Feedback (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "216ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:00.048Z"
+    },
+    "Monthly Feedback (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:00.048Z"
+    },
+    "Rating Criteria (mobile)": {
+      "domContentLoaded": 0.10000000149011612,
+      "loadComplete": 0.09999999403953552,
+      "firstPaint": 208,
+      "firstContentfulPaint": 208,
+      "domInteractive": 75.79999999701977,
+      "domComplete": 176.60000000149012,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Rating Criteria (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "208ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.916Z"
+    },
+    "Rating Criteria (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.916Z"
+    },
+    "Scores Dashboard (mobile)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 208,
+      "firstContentfulPaint": 208,
+      "domInteractive": 73.20000000298023,
+      "domComplete": 175.79999999701977,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Scores Dashboard (mobile) - First Contentful Paint": {
+      "passed": true,
+      "details": "208ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:03.767Z"
+    },
+    "Scores Dashboard (mobile) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:03.767Z"
+    },
+    "Homepage (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.3999999985098839,
+      "firstPaint": 504,
+      "firstContentfulPaint": 504,
+      "domInteractive": 160.79999999701977,
+      "domComplete": 471.3999999985099,
+      "transferSize": 1174,
+      "encodedBodySize": 874,
+      "decodedBodySize": 2275
+    },
+    "Homepage (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "504ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:05.994Z"
+    },
+    "Homepage (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:05.994Z"
+    },
+    "Single Area Inspection (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 288,
+      "firstContentfulPaint": 288,
+      "domInteractive": 83.40000000596046,
+      "domComplete": 252.10000000149012,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Single Area Inspection (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "288ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:08.009Z"
+    },
+    "Single Area Inspection (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:08.009Z"
+    },
+    "Whole Building Inspection (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.09999999403953552,
+      "firstPaint": 220,
+      "firstContentfulPaint": 220,
+      "domInteractive": 72.39999999850988,
+      "domComplete": 175.20000000298023,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Whole Building Inspection (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "220ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.875Z"
+    },
+    "Whole Building Inspection (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.875Z"
+    },
+    "Custodial Notes (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.3999999985098839,
+      "firstPaint": 212,
+      "firstContentfulPaint": 212,
+      "domInteractive": 74.80000000447035,
+      "domComplete": 176.30000000447035,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Custodial Notes (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "212ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:11.741Z"
+    },
+    "Custodial Notes (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:11.741Z"
+    },
+    "Inspection Data (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 208,
+      "firstContentfulPaint": 208,
+      "domInteractive": 71.20000000298023,
+      "domComplete": 177.30000000447035,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Inspection Data (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "208ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:13.610Z"
+    },
+    "Inspection Data (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:13.610Z"
+    },
+    "Admin Inspections (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 212,
+      "firstContentfulPaint": 212,
+      "domInteractive": 73.70000000298023,
+      "domComplete": 181.29999999701977,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Admin Inspections (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "212ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:15.492Z"
+    },
+    "Admin Inspections (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:15.492Z"
+    },
+    "Monthly Feedback (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.29999999701976776,
+      "firstPaint": 216,
+      "firstContentfulPaint": 216,
+      "domInteractive": 73,
+      "domComplete": 177.70000000298023,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Monthly Feedback (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "216ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:17.377Z"
+    },
+    "Monthly Feedback (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:17.377Z"
+    },
+    "Rating Criteria (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 204,
+      "firstContentfulPaint": 204,
+      "domInteractive": 72.10000000149012,
+      "domComplete": 172,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Rating Criteria (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "204ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:19.241Z"
+    },
+    "Rating Criteria (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:19.241Z"
+    },
+    "Scores Dashboard (tablet)": {
+      "domContentLoaded": 0,
+      "loadComplete": 0.10000000149011612,
+      "firstPaint": 208,
+      "firstContentfulPaint": 208,
+      "domInteractive": 72.10000000149012,
+      "domComplete": 175.69999999552965,
+      "transferSize": 2575,
+      "encodedBodySize": 2275,
+      "decodedBodySize": 2275
+    },
+    "Scores Dashboard (tablet) - First Contentful Paint": {
+      "passed": true,
+      "details": "208ms (target: <2000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:21.109Z"
+    },
+    "Scores Dashboard (tablet) - Load Complete": {
+      "passed": true,
+      "details": "0ms (target: <3000ms)",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:21.109Z"
+    }
+  },
+  "accessibility": {
+    "Homepage (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:32.469Z"
+    },
+    "Homepage (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:32.469Z"
+    },
+    "Homepage (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:32.470Z"
+    },
+    "Homepage (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:32.470Z"
+    },
+    "Single Area Inspection (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:34.428Z"
+    },
+    "Single Area Inspection (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:34.428Z"
+    },
+    "Single Area Inspection (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:34.429Z"
+    },
+    "Single Area Inspection (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:34.429Z"
+    },
+    "Whole Building Inspection (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:36.325Z"
+    },
+    "Whole Building Inspection (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:36.325Z"
+    },
+    "Whole Building Inspection (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:36.326Z"
+    },
+    "Whole Building Inspection (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:36.327Z"
+    },
+    "Custodial Notes (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.240Z"
+    },
+    "Custodial Notes (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.240Z"
+    },
+    "Custodial Notes (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.241Z"
+    },
+    "Custodial Notes (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.241Z"
+    },
+    "Inspection Data (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.143Z"
+    },
+    "Inspection Data (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.143Z"
+    },
+    "Inspection Data (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.143Z"
+    },
+    "Inspection Data (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.144Z"
+    },
+    "Admin Inspections (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.043Z"
+    },
+    "Admin Inspections (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.043Z"
+    },
+    "Admin Inspections (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.043Z"
+    },
+    "Admin Inspections (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.044Z"
+    },
+    "Monthly Feedback (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:43.960Z"
+    },
+    "Monthly Feedback (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:43.960Z"
+    },
+    "Monthly Feedback (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:43.960Z"
+    },
+    "Monthly Feedback (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:43.961Z"
+    },
+    "Rating Criteria (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:45.877Z"
+    },
+    "Rating Criteria (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:45.878Z"
+    },
+    "Rating Criteria (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:45.878Z"
+    },
+    "Rating Criteria (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:45.879Z"
+    },
+    "Scores Dashboard (desktop) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:47.759Z"
+    },
+    "Scores Dashboard (desktop) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:47.759Z"
+    },
+    "Scores Dashboard (desktop) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:47.760Z"
+    },
+    "Scores Dashboard (desktop) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:47.760Z"
+    },
+    "Homepage (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:49.926Z"
+    },
+    "Homepage (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:49.926Z"
+    },
+    "Homepage (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:49.927Z"
+    },
+    "Homepage (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:49.927Z"
+    },
+    "Single Area Inspection (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:51.840Z"
+    },
+    "Single Area Inspection (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:51.840Z"
+    },
+    "Single Area Inspection (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:51.840Z"
+    },
+    "Single Area Inspection (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:51.841Z"
+    },
+    "Whole Building Inspection (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:53.694Z"
+    },
+    "Whole Building Inspection (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:53.694Z"
+    },
+    "Whole Building Inspection (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:53.695Z"
+    },
+    "Whole Building Inspection (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:53.696Z"
+    },
+    "Custodial Notes (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:55.543Z"
+    },
+    "Custodial Notes (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:55.543Z"
+    },
+    "Custodial Notes (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:55.543Z"
+    },
+    "Custodial Notes (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:55.544Z"
+    },
+    "Inspection Data (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:57.388Z"
+    },
+    "Inspection Data (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:57.388Z"
+    },
+    "Inspection Data (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:57.389Z"
+    },
+    "Inspection Data (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:57.389Z"
+    },
+    "Admin Inspections (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.221Z"
+    },
+    "Admin Inspections (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.221Z"
+    },
+    "Admin Inspections (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.222Z"
+    },
+    "Admin Inspections (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.222Z"
+    },
+    "Monthly Feedback (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.054Z"
+    },
+    "Monthly Feedback (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.054Z"
+    },
+    "Monthly Feedback (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.055Z"
+    },
+    "Monthly Feedback (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.055Z"
+    },
+    "Rating Criteria (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:02.923Z"
+    },
+    "Rating Criteria (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:02.923Z"
+    },
+    "Rating Criteria (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:02.923Z"
+    },
+    "Rating Criteria (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:02.924Z"
+    },
+    "Scores Dashboard (mobile) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:04.774Z"
+    },
+    "Scores Dashboard (mobile) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:04.775Z"
+    },
+    "Scores Dashboard (mobile) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:04.775Z"
+    },
+    "Scores Dashboard (mobile) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:04.776Z"
+    },
+    "Homepage (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.001Z"
+    },
+    "Homepage (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.001Z"
+    },
+    "Homepage (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.002Z"
+    },
+    "Homepage (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.002Z"
+    },
+    "Single Area Inspection (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.016Z"
+    },
+    "Single Area Inspection (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.016Z"
+    },
+    "Single Area Inspection (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.017Z"
+    },
+    "Single Area Inspection (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.017Z"
+    },
+    "Whole Building Inspection (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:10.881Z"
+    },
+    "Whole Building Inspection (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:10.881Z"
+    },
+    "Whole Building Inspection (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:10.882Z"
+    },
+    "Whole Building Inspection (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:10.882Z"
+    },
+    "Custodial Notes (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:12.746Z"
+    },
+    "Custodial Notes (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:12.746Z"
+    },
+    "Custodial Notes (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:12.746Z"
+    },
+    "Custodial Notes (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:12.747Z"
+    },
+    "Inspection Data (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:14.618Z"
+    },
+    "Inspection Data (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:14.618Z"
+    },
+    "Inspection Data (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:14.619Z"
+    },
+    "Inspection Data (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:14.623Z"
+    },
+    "Admin Inspections (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:16.496Z"
+    },
+    "Admin Inspections (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:16.497Z"
+    },
+    "Admin Inspections (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:16.497Z"
+    },
+    "Admin Inspections (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:16.497Z"
+    },
+    "Monthly Feedback (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:18.381Z"
+    },
+    "Monthly Feedback (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:18.381Z"
+    },
+    "Monthly Feedback (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:18.382Z"
+    },
+    "Monthly Feedback (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:18.383Z"
+    },
+    "Rating Criteria (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.247Z"
+    },
+    "Rating Criteria (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.247Z"
+    },
+    "Rating Criteria (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.247Z"
+    },
+    "Rating Criteria (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.248Z"
+    },
+    "Scores Dashboard (tablet) - Keyboard Navigation": {
+      "passed": true,
+      "details": "First tab focuses A",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:22.114Z"
+    },
+    "Scores Dashboard (tablet) - Focus Indicators": {
+      "passed": true,
+      "details": "Focus outline visible",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:22.114Z"
+    },
+    "Scores Dashboard (tablet) - Skip Links": {
+      "passed": true,
+      "details": "",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:22.115Z"
+    },
+    "Scores Dashboard (tablet) - ARIA Labels": {
+      "passed": true,
+      "details": "12/12 buttons have labels",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:22.115Z"
+    }
+  },
+  "network": {
+    "Homepage (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Homepage (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:32.470Z"
+    },
+    "Single Area Inspection (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Single Area Inspection (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:34.429Z"
+    },
+    "Whole Building Inspection (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Whole Building Inspection (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:36.327Z"
+    },
+    "Custodial Notes (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Custodial Notes (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:38.241Z"
+    },
+    "Inspection Data (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Inspection Data (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:40.144Z"
+    },
+    "Admin Inspections (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Admin Inspections (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:42.044Z"
+    },
+    "Monthly Feedback (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Monthly Feedback (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:43.961Z"
+    },
+    "Rating Criteria (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Rating Criteria (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:45.879Z"
+    },
+    "Scores Dashboard (desktop)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Scores Dashboard (desktop) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:47.760Z"
+    },
+    "Homepage (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Homepage (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:49.928Z"
+    },
+    "Single Area Inspection (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Single Area Inspection (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:51.841Z"
+    },
+    "Whole Building Inspection (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Whole Building Inspection (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:53.696Z"
+    },
+    "Custodial Notes (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Custodial Notes (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:55.544Z"
+    },
+    "Inspection Data (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Inspection Data (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:57.389Z"
+    },
+    "Admin Inspections (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Admin Inspections (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:26:59.222Z"
+    },
+    "Monthly Feedback (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Monthly Feedback (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:01.055Z"
+    },
+    "Rating Criteria (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Rating Criteria (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:02.924Z"
+    },
+    "Scores Dashboard (mobile)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Scores Dashboard (mobile) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:04.776Z"
+    },
+    "Homepage (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Homepage (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:07.002Z"
+    },
+    "Single Area Inspection (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Single Area Inspection (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:09.017Z"
+    },
+    "Whole Building Inspection (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Whole Building Inspection (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:10.882Z"
+    },
+    "Custodial Notes (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Custodial Notes (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:12.747Z"
+    },
+    "Inspection Data (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Inspection Data (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:14.623Z"
+    },
+    "Admin Inspections (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Admin Inspections (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:16.497Z"
+    },
+    "Monthly Feedback (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Monthly Feedback (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:18.383Z"
+    },
+    "Rating Criteria (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Rating Criteria (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:20.248Z"
+    },
+    "Scores Dashboard (tablet)": {
+      "totalRequests": 7,
+      "failedRequests": 0,
+      "requestsByType": {
+        "document": 1,
+        "script": 1,
+        "stylesheet": 1,
+        "font": 4
+      },
+      "failed": []
+    },
+    "Scores Dashboard (tablet) - Network Requests": {
+      "passed": true,
+      "details": "7 requests, 0 failed",
+      "data": null,
+      "timestamp": "2025-11-14T15:27:22.115Z"
+    }
+  },
+  "console": [
+    {
+      "page": "Homepage (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:30.142Z"
+    },
+    {
+      "page": "Homepage (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:30.479Z"
+    },
+    {
+      "page": "Homepage (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:30.733Z"
+    },
+    {
+      "page": "Single Area Inspection (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:32.588Z"
+    },
+    {
+      "page": "Single Area Inspection (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:32.732Z"
+    },
+    {
+      "page": "Single Area Inspection (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:32.744Z"
+    },
+    {
+      "page": "Whole Building Inspection (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:34.552Z"
+    },
+    {
+      "page": "Whole Building Inspection (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:34.654Z"
+    },
+    {
+      "page": "Whole Building Inspection (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:34.677Z"
+    },
+    {
+      "page": "Custodial Notes (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:36.461Z"
+    },
+    {
+      "page": "Custodial Notes (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:36.563Z"
+    },
+    {
+      "page": "Custodial Notes (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:36.574Z"
+    },
+    {
+      "page": "Inspection Data (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:38.358Z"
+    },
+    {
+      "page": "Inspection Data (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:38.463Z"
+    },
+    {
+      "page": "Inspection Data (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:38.477Z"
+    },
+    {
+      "page": "Admin Inspections (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:40.262Z"
+    },
+    {
+      "page": "Admin Inspections (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:40.367Z"
+    },
+    {
+      "page": "Admin Inspections (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:40.378Z"
+    },
+    {
+      "page": "Monthly Feedback (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:42.178Z"
+    },
+    {
+      "page": "Monthly Feedback (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:42.281Z"
+    },
+    {
+      "page": "Monthly Feedback (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:42.292Z"
+    },
+    {
+      "page": "Rating Criteria (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:44.096Z"
+    },
+    {
+      "page": "Rating Criteria (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:44.199Z"
+    },
+    {
+      "page": "Rating Criteria (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:44.211Z"
+    },
+    {
+      "page": "Scores Dashboard (desktop)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:46.004Z"
+    },
+    {
+      "page": "Scores Dashboard (desktop)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:46.107Z"
+    },
+    {
+      "page": "Scores Dashboard (desktop)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:46.119Z"
+    },
+    {
+      "page": "Homepage (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:47.970Z"
+    },
+    {
+      "page": "Homepage (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:48.268Z"
+    },
+    {
+      "page": "Homepage (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:48.338Z"
+    },
+    {
+      "page": "Single Area Inspection (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:50.062Z"
+    },
+    {
+      "page": "Single Area Inspection (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:50.200Z"
+    },
+    {
+      "page": "Single Area Inspection (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:50.225Z"
+    },
+    {
+      "page": "Whole Building Inspection (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:51.962Z"
+    },
+    {
+      "page": "Whole Building Inspection (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:52.064Z"
+    },
+    {
+      "page": "Whole Building Inspection (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:52.102Z"
+    },
+    {
+      "page": "Custodial Notes (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:53.819Z"
+    },
+    {
+      "page": "Custodial Notes (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:53.920Z"
+    },
+    {
+      "page": "Custodial Notes (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:53.947Z"
+    },
+    {
+      "page": "Inspection Data (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:55.674Z"
+    },
+    {
+      "page": "Inspection Data (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:55.782Z"
+    },
+    {
+      "page": "Inspection Data (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:55.807Z"
+    },
+    {
+      "page": "Admin Inspections (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:57.503Z"
+    },
+    {
+      "page": "Admin Inspections (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:57.603Z"
+    },
+    {
+      "page": "Admin Inspections (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:57.631Z"
+    },
+    {
+      "page": "Monthly Feedback (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:26:59.345Z"
+    },
+    {
+      "page": "Monthly Feedback (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:26:59.450Z"
+    },
+    {
+      "page": "Monthly Feedback (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:26:59.477Z"
+    },
+    {
+      "page": "Rating Criteria (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:01.192Z"
+    },
+    {
+      "page": "Rating Criteria (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:01.292Z"
+    },
+    {
+      "page": "Rating Criteria (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:01.317Z"
+    },
+    {
+      "page": "Scores Dashboard (mobile)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:03.048Z"
+    },
+    {
+      "page": "Scores Dashboard (mobile)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:03.150Z"
+    },
+    {
+      "page": "Scores Dashboard (mobile)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:03.175Z"
+    },
+    {
+      "page": "Homepage (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:04.985Z"
+    },
+    {
+      "page": "Homepage (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:05.296Z"
+    },
+    {
+      "page": "Homepage (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:05.371Z"
+    },
+    {
+      "page": "Single Area Inspection (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:07.148Z"
+    },
+    {
+      "page": "Single Area Inspection (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:07.315Z"
+    },
+    {
+      "page": "Single Area Inspection (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:07.340Z"
+    },
+    {
+      "page": "Whole Building Inspection (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:09.137Z"
+    },
+    {
+      "page": "Whole Building Inspection (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:09.240Z"
+    },
+    {
+      "page": "Whole Building Inspection (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:09.275Z"
+    },
+    {
+      "page": "Custodial Notes (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:11.007Z"
+    },
+    {
+      "page": "Custodial Notes (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:11.109Z"
+    },
+    {
+      "page": "Custodial Notes (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:11.133Z"
+    },
+    {
+      "page": "Inspection Data (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:12.865Z"
+    },
+    {
+      "page": "Inspection Data (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:12.970Z"
+    },
+    {
+      "page": "Inspection Data (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:12.994Z"
+    },
+    {
+      "page": "Admin Inspections (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:14.750Z"
+    },
+    {
+      "page": "Admin Inspections (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:14.857Z"
+    },
+    {
+      "page": "Admin Inspections (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:14.882Z"
+    },
+    {
+      "page": "Monthly Feedback (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:16.627Z"
+    },
+    {
+      "page": "Monthly Feedback (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:16.732Z"
+    },
+    {
+      "page": "Monthly Feedback (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:16.758Z"
+    },
+    {
+      "page": "Rating Criteria (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:18.501Z"
+    },
+    {
+      "page": "Rating Criteria (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:18.601Z"
+    },
+    {
+      "page": "Rating Criteria (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:18.625Z"
+    },
+    {
+      "page": "Scores Dashboard (tablet)",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:20.365Z"
+    },
+    {
+      "page": "Scores Dashboard (tablet)",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:20.468Z"
+    },
+    {
+      "page": "Scores Dashboard (tablet)",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:20.491Z"
+    },
+    {
+      "page": "Single Area Inspection Form",
+      "type": "log",
+      "text": "[Polyfill] Performance object and scheduler exports container initialized",
+      "timestamp": "2025-11-14T15:27:24.569Z"
+    },
+    {
+      "page": "Single Area Inspection Form",
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+      "timestamp": "2025-11-14T15:27:24.852Z"
+    },
+    {
+      "page": "Single Area Inspection Form",
+      "type": "log",
+      "text": "App initializing...",
+      "timestamp": "2025-11-14T15:27:24.873Z"
+    },
+    {
+      "page": "Single Area Inspection Form",
+      "type": "log",
+      "text": "Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+      "timestamp": "2025-11-14T15:27:24.949Z"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "Homepage_desktop",
+      "description": "desktop viewport",
+      "filename": "homepage_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/homepage_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:31.359Z"
+    },
+    {
+      "name": "Single Area Inspection_desktop",
+      "description": "desktop viewport",
+      "filename": "single_area_inspection_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/single_area_inspection_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:33.421Z"
+    },
+    {
+      "name": "Whole Building Inspection_desktop",
+      "description": "desktop viewport",
+      "filename": "whole_building_inspection_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/whole_building_inspection_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:35.318Z"
+    },
+    {
+      "name": "Custodial Notes_desktop",
+      "description": "desktop viewport",
+      "filename": "custodial_notes_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/custodial_notes_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:37.236Z"
+    },
+    {
+      "name": "Inspection Data_desktop",
+      "description": "desktop viewport",
+      "filename": "inspection_data_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/inspection_data_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:39.136Z"
+    },
+    {
+      "name": "Admin Inspections_desktop",
+      "description": "desktop viewport",
+      "filename": "admin_inspections_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/admin_inspections_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:41.035Z"
+    },
+    {
+      "name": "Monthly Feedback_desktop",
+      "description": "desktop viewport",
+      "filename": "monthly_feedback_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/monthly_feedback_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:42.952Z"
+    },
+    {
+      "name": "Rating Criteria_desktop",
+      "description": "desktop viewport",
+      "filename": "rating_criteria_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/rating_criteria_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:44.871Z"
+    },
+    {
+      "name": "Scores Dashboard_desktop",
+      "description": "desktop viewport",
+      "filename": "scores_dashboard_desktop_1763133989264.png",
+      "filepath": "tests/screenshots/scores_dashboard_desktop_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:46.752Z"
+    },
+    {
+      "name": "Homepage_mobile",
+      "description": "mobile viewport",
+      "filename": "homepage_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/homepage_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:48.916Z"
+    },
+    {
+      "name": "Single Area Inspection_mobile",
+      "description": "mobile viewport",
+      "filename": "single_area_inspection_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/single_area_inspection_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:50.833Z"
+    },
+    {
+      "name": "Whole Building Inspection_mobile",
+      "description": "mobile viewport",
+      "filename": "whole_building_inspection_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/whole_building_inspection_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:52.687Z"
+    },
+    {
+      "name": "Custodial Notes_mobile",
+      "description": "mobile viewport",
+      "filename": "custodial_notes_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/custodial_notes_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:54.533Z"
+    },
+    {
+      "name": "Inspection Data_mobile",
+      "description": "mobile viewport",
+      "filename": "inspection_data_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/inspection_data_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:56.382Z"
+    },
+    {
+      "name": "Admin Inspections_mobile",
+      "description": "mobile viewport",
+      "filename": "admin_inspections_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/admin_inspections_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:26:58.216Z"
+    },
+    {
+      "name": "Monthly Feedback_mobile",
+      "description": "mobile viewport",
+      "filename": "monthly_feedback_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/monthly_feedback_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:00.047Z"
+    },
+    {
+      "name": "Rating Criteria_mobile",
+      "description": "mobile viewport",
+      "filename": "rating_criteria_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/rating_criteria_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:01.916Z"
+    },
+    {
+      "name": "Scores Dashboard_mobile",
+      "description": "mobile viewport",
+      "filename": "scores_dashboard_mobile_1763133989264.png",
+      "filepath": "tests/screenshots/scores_dashboard_mobile_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:03.766Z"
+    },
+    {
+      "name": "Homepage_tablet",
+      "description": "tablet viewport",
+      "filename": "homepage_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/homepage_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:05.993Z"
+    },
+    {
+      "name": "Single Area Inspection_tablet",
+      "description": "tablet viewport",
+      "filename": "single_area_inspection_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/single_area_inspection_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:08.008Z"
+    },
+    {
+      "name": "Whole Building Inspection_tablet",
+      "description": "tablet viewport",
+      "filename": "whole_building_inspection_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/whole_building_inspection_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:09.874Z"
+    },
+    {
+      "name": "Custodial Notes_tablet",
+      "description": "tablet viewport",
+      "filename": "custodial_notes_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/custodial_notes_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:11.740Z"
+    },
+    {
+      "name": "Inspection Data_tablet",
+      "description": "tablet viewport",
+      "filename": "inspection_data_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/inspection_data_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:13.609Z"
+    },
+    {
+      "name": "Admin Inspections_tablet",
+      "description": "tablet viewport",
+      "filename": "admin_inspections_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/admin_inspections_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:15.491Z"
+    },
+    {
+      "name": "Monthly Feedback_tablet",
+      "description": "tablet viewport",
+      "filename": "monthly_feedback_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/monthly_feedback_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:17.376Z"
+    },
+    {
+      "name": "Rating Criteria_tablet",
+      "description": "tablet viewport",
+      "filename": "rating_criteria_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/rating_criteria_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:19.240Z"
+    },
+    {
+      "name": "Scores Dashboard_tablet",
+      "description": "tablet viewport",
+      "filename": "scores_dashboard_tablet_1763133989264.png",
+      "filepath": "tests/screenshots/scores_dashboard_tablet_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:21.108Z"
+    },
+    {
+      "name": "form_single_area_initial",
+      "description": "Initial form state",
+      "filename": "form_single_area_initial_1763133989264.png",
+      "filepath": "tests/screenshots/form_single_area_initial_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:25.563Z"
+    },
+    {
+      "name": "form_custodial_notes",
+      "description": "Custodial notes page",
+      "filename": "form_custodial_notes_1763133989264.png",
+      "filepath": "tests/screenshots/form_custodial_notes_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:56.546Z"
+    },
+    {
+      "name": "form_whole_building",
+      "description": "Whole building inspection page",
+      "filename": "form_whole_building_1763133989264.png",
+      "filepath": "tests/screenshots/form_whole_building_1763133989264.png",
+      "timestamp": "2025-11-14T15:27:57.444Z"
+    }
+  ],
+  "errors": [
+    {
+      "category": "page-error",
+      "page": "Single Area Inspection Form",
+      "error": "Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n1. You might have mismatching versions of React and the renderer (such as React DOM)\n2. You might be breaking the Rules of Hooks\n3. You might have more than one copy of React in the same app\nSee https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.",
+      "stack": "Error: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n1. You might have mismatching versions of React and the renderer (such as React DOM)\n2. You might be breaking the Rules of Hooks\n3. You might have more than one copy of React in the same app\nSee https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.\n    at Object.Fo (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:136:30)\n    at Object.Ot [as useCallback] (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:21:915)\n    at vSe (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:574:9732)\n    at https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:574:12656\n    at https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:1022:70070",
+      "timestamp": "2025-11-14T15:27:34.891Z"
+    },
+    {
+      "category": "page-error",
+      "page": "Single Area Inspection Form",
+      "error": "Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n1. You might have mismatching versions of React and the renderer (such as React DOM)\n2. You might be breaking the Rules of Hooks\n3. You might have more than one copy of React in the same app\nSee https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.",
+      "stack": "Error: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n1. You might have mismatching versions of React and the renderer (such as React DOM)\n2. You might be breaking the Rules of Hooks\n3. You might have more than one copy of React in the same app\nSee https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.\n    at Object.Fo (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:136:30)\n    at Object.Ot [as useCallback] (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:21:915)\n    at vSe (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:574:9732)\n    at https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:574:12656\n    at https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:1022:70070",
+      "timestamp": "2025-11-14T15:27:44.886Z"
+    },
+    {
+      "category": "page-error",
+      "page": "Single Area Inspection Form",
+      "error": "Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n1. You might have mismatching versions of React and the renderer (such as React DOM)\n2. You might be breaking the Rules of Hooks\n3. You might have more than one copy of React in the same app\nSee https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.",
+      "stack": "Error: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:\n1. You might have mismatching versions of React and the renderer (such as React DOM)\n2. You might be breaking the Rules of Hooks\n3. You might have more than one copy of React in the same app\nSee https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.\n    at Object.Fo (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:136:30)\n    at Object.Ot [as useCallback] (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:21:915)\n    at vSe (https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:574:9732)\n    at https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:574:12656\n    at https://cacustodialcommand.up.railway.app/assets/index-B3xln1S0.js:1022:70070",
+      "timestamp": "2025-11-14T15:27:54.887Z"
+    },
+    {
+      "category": "form-testing",
+      "form": "Single Area Inspection Form",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[role=\"combobox\"]').first()\u001b[22m\n",
+      "timestamp": "2025-11-14T15:27:55.569Z"
+    }
+  ]
+}
