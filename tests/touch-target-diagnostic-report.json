@@ -1,87 +1,5 @@
 {
-  "violations": [
-    {
-      "selector": "a",
-      "index": 0,
-      "id": "",
-      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
-      "text": "Skip to main content",
-      "ariaLabel": "",
-      "dimensions": {
-        "width": 34,
-        "height": 17
-      },
-      "computed": {
-        "minWidth": "0px",
-        "minHeight": "0px",
-        "padding": "8.5px 17px",
-        "display": "block"
-      },
-      "position": {
-        "top": -2,
-        "left": -2
-      },
-      "issue": "Both width and height too small",
-      "recommended": {
-        "width": 44,
-        "height": 44
-      }
-    },
-    {
-      "selector": "a",
-      "index": 1,
-      "id": "",
-      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
-      "text": "Skip to navigation",
-      "ariaLabel": "",
-      "dimensions": {
-        "width": 34,
-        "height": 17
-      },
-      "computed": {
-        "minWidth": "0px",
-        "minHeight": "0px",
-        "padding": "8.5px 17px",
-        "display": "block"
-      },
-      "position": {
-        "top": -2,
-        "left": -2
-      },
-      "issue": "Both width and height too small",
-      "recommended": {
-        "width": 44,
-        "height": 44
-      }
-    },
-    {
-      "selector": "a",
-      "index": 2,
-      "id": "",
-      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
-      "text": "Skip to footer",
-      "ariaLabel": "",
-      "dimensions": {
-        "width": 34,
-        "height": 17
-      },
-      "computed": {
-        "minWidth": "0px",
-        "minHeight": "0px",
-        "padding": "8.5px 17px",
-        "display": "block"
-      },
-      "position": {
-        "top": -2,
-        "left": -2
-      },
-      "issue": "Both width and height too small",
-      "recommended": {
-        "width": 44,
-        "height": 44
-      }
-    }
-  ],
+  "violations": [],
   "passing": [
     {
       "selector": "button",
@@ -349,6 +267,72 @@
     },
     {
       "selector": "a",
+      "index": 0,
+      "id": "",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "text": "Skip to main content",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 44,
+        "height": 44
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "8.5px 17px",
+        "display": "block"
+      },
+      "position": {
+        "top": -2,
+        "left": -2
+      }
+    },
+    {
+      "selector": "a",
+      "index": 1,
+      "id": "",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "text": "Skip to navigation",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 44,
+        "height": 44
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "8.5px 17px",
+        "display": "block"
+      },
+      "position": {
+        "top": -2,
+        "left": -2
+      }
+    },
+    {
+      "selector": "a",
+      "index": 2,
+      "id": "",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "text": "Skip to footer",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 44,
+        "height": 44
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "8.5px 17px",
+        "display": "block"
+      },
+      "position": {
+        "top": -2,
+        "left": -2
+      }
+    },
+    {
+      "selector": "a",
       "index": 3,
       "id": "",
       "className": "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation text-blue-600",
@@ -359,8 +343,8 @@
         "height": 59
       },
       "computed": {
-        "minWidth": "auto",
-        "minHeight": "auto",
+        "minWidth": "44px",
+        "minHeight": "44px",
         "padding": "8.5px 4.25px",
         "display": "flex"
       },
@@ -381,8 +365,8 @@
         "height": 59
       },
       "computed": {
-        "minWidth": "auto",
-        "minHeight": "auto",
+        "minWidth": "44px",
+        "minHeight": "44px",
         "padding": "8.5px 4.25px",
         "display": "flex"
       },
@@ -403,8 +387,8 @@
         "height": 59
       },
       "computed": {
-        "minWidth": "auto",
-        "minHeight": "auto",
+        "minWidth": "44px",
+        "minHeight": "44px",
         "padding": "8.5px 4.25px",
         "display": "flex"
       },
@@ -425,8 +409,8 @@
         "height": 59
       },
       "computed": {
-        "minWidth": "auto",
-        "minHeight": "auto",
+        "minWidth": "44px",
+        "minHeight": "44px",
         "padding": "8.5px 4.25px",
         "display": "flex"
       },
@@ -447,8 +431,8 @@
         "height": 59
       },
       "computed": {
-        "minWidth": "auto",
-        "minHeight": "auto",
+        "minWidth": "44px",
+        "minHeight": "44px",
         "padding": "8.5px 4.25px",
         "display": "flex"
       },
@@ -460,7 +444,7 @@
   ],
   "summary": {
     "total": 20,
-    "violations": 3,
-    "passing": 17
+    "violations": 0,
+    "passing": 20
   }
 }

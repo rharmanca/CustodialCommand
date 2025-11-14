@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-11-14T01:39:48.563Z",
+  "timestamp": "2025-11-14T02:25:15.944Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
-    "passed": 38,
-    "failed": 7,
-    "successRate": 84.44444444444444
+    "passed": 37,
+    "failed": 8,
+    "successRate": 82.22222222222221
   },
   "vulnerabilities": [
     {
@@ -42,43 +42,48 @@
       "testName": "File Upload Security - malicious.sh",
       "details": "Status: 500",
       "severity": "high"
+    },
+    {
+      "testName": "File Upload Security - Oversized File",
+      "details": "Status: 500",
+      "severity": "medium"
     }
   ],
   "details": [
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":610,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":629,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":611,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":630,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":612,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":631,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":613,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":632,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":614,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":633,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":615,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":634,\"imageCount\":0}",
       "severity": "high"
     },
     {
@@ -311,8 +316,8 @@
     },
     {
       "testName": "File Upload Security - Oversized File",
-      "passed": true,
-      "details": "File rejected: Upload timeout",
+      "passed": false,
+      "details": "Status: 500",
       "severity": "medium"
     }
   ]

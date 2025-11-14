@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-14T01:42:10.171Z",
+  "timestamp": "2025-11-14T02:25:16.764Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 26,
@@ -90,7 +90,7 @@
     },
     {
       "testName": "Mobile Form - Create Inspection",
-      "passed": 623,
+      "passed": 642,
       "feature": "forms"
     },
     {
@@ -221,25 +221,25 @@
     {
       "testName": "Mobile API Performance - /api/inspections",
       "passed": true,
-      "details": "Status: 200, Time: 403ms",
+      "details": "Status: 200, Time: 130ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /api/custodial-notes",
       "passed": true,
-      "details": "Status: 200, Time: 95ms",
+      "details": "Status: 200, Time: 34ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /health",
       "passed": true,
-      "details": "Status: 200, Time: 118ms",
+      "details": "Status: 200, Time: 66ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile Form - Create Inspection",
-      "passed": 623,
-      "details": "Created inspection ID: 623",
+      "passed": 642,
+      "details": "Created inspection ID: 642",
       "feature": "forms"
     },
     {
