@@ -1,3 +1,6 @@
+/* AAA Accessibility Enhancements - Non-destructive improvements */
+@import './styles/accessibility-aaa.css';
+
 /* Local Inter font files - Phase 1 CSP Fix */
 @font-face {
   font-family: 'Inter';

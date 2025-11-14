@@ -227,7 +227,7 @@ async function testWholeBuildingInspectionJourney() {
 
     for (let i = 0; i < roomTypes.length; i++) {
       const roomData = {
-        buildingInspectionId: buildingId,
+        buildingInspectionId: buildingId.toString(),
         roomType: roomTypes[i],
         roomIdentifier: `J${200 + i}`,
         floors: 4,

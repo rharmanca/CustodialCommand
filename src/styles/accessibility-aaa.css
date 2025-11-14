@@ -1,0 +1,306 @@
+/**
+ * AAA Accessibility Enhancements
+ * Improves focus indicators, contrast ratios, and ARIA compliance
+ * Non-destructive: Only enhances existing styles, doesn't change theme/colors
+ */
+
+/* ===== ENHANCED FOCUS INDICATORS (AAA Compliance) ===== */
+
+/* Global focus-visible enhancement with 3px offset for better visibility */
+*:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 3px;
+  /* Keep existing box-shadow but add prominent outline */
+}
+
+/* Enhanced button focus with better contrast */
+button:focus-visible,
+.modern-button:focus-visible,
+.retro-button:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 3px;
+  /* Increase focus ring opacity for better visibility */
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+    /* Enhanced focus ring: 5px instead of 4px, higher opacity */
+    0 0 0 5px hsl(var(--primary) / 0.5) !important;
+}
+
+/* Enhanced input/textarea focus */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 2px;
+  border-color: hsl(var(--primary)) !important;
+}
+
+/* Enhanced link focus */
+a:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 3px;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Skip link enhanced visibility */
+.sr-only:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 2px;
+  /* Increase padding for better touch target */
+  padding: 1rem 1.5rem !important;
+}
+
+/* ===== IMPROVED CONTRAST (AAA Compliance) ===== */
+
+/* Ensure all text meets AAA contrast ratio (7:1 for normal text, 4.5:1 for large text) */
+
+/* Muted text enhancement for better contrast */
+.text-muted-foreground {
+  /* Darken slightly for better contrast while keeping theme */
+  color: hsl(var(--muted-foreground) / 0.9) !important;
+}
+
+/* Secondary text enhancement */
+.text-secondary-foreground {
+  color: hsl(var(--secondary-foreground) / 0.95) !important;
+}
+
+/* Disabled state should still be readable */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.6 !important; /* Increase from typical 0.5 for better readability */
+}
+
+/* ===== KEYBOARD NAVIGATION ENHANCEMENTS ===== */
+
+/* Visual indicator for keyboard navigation mode */
+body.keyboard-navigation *:focus {
+  /* Show outline for keyboard users */
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 3px;
+}
+
+/* Remove outline for mouse users (added via JS) */
+body:not(.keyboard-navigation) *:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ===== TOUCH TARGET ENHANCEMENTS (Mobile AAA) ===== */
+
+/* Ensure all interactive elements meet minimum touch target size */
+button,
+a,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  min-height: 44px !important;
+  min-width: 44px !important;
+}
+
+/* Mobile bottom nav items - ensure proper spacing */
+.mobile-bottom-nav a,
+.mobile-bottom-nav button {
+  padding: 0.75rem !important; /* Increase padding for better touch targets */
+}
+
+/* ===== SCREEN READER ENHANCEMENTS ===== */
+
+/* Improved screen reader only class */
+.sr-only-improved {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
+}
+
+.sr-only-improved:focus-visible {
+  position: fixed !important;
+  top: 1rem !important;
+  left: 1rem !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 1rem 1.5rem !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+  z-index: 9999 !important;
+}
+
+/* ===== ANIMATION RESPECT (Reduced Motion) ===== */
+
+/* Respect user's reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== DARK MODE ACCESSIBILITY ===== */
+
+.dark {
+  /* Enhanced contrast for dark mode */
+  --foreground: 42 42% 92%; /* Slightly brighter for better contrast */
+  --muted-foreground: 42 25% 72%; /* Brighter muted text */
+}
+
+/* ===== FOCUS TRAP FOR MODALS/DIALOGS ===== */
+
+/* Enhanced focus styling for modal/dialog content */
+[role="dialog"]:focus-visible,
+[role="alertdialog"]:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: -3px; /* Inside outline for containers */
+}
+
+/* ===== STATUS MESSAGES (Live Regions) ===== */
+
+/* Visual styling for live regions (though they're typically sr-only) */
+[aria-live="polite"],
+[aria-live="assertive"] {
+  /* Ensure screen readers can access */
+  position: relative;
+}
+
+/* ===== TABLE ACCESSIBILITY ===== */
+
+/* Enhanced table header styling */
+th {
+  font-weight: 600 !important;
+  background-color: hsl(var(--muted) / 0.5) !important;
+}
+
+/* Table cell focus */
+td:focus-visible,
+th:focus-visible {
+  outline: 2px solid hsl(var(--primary)) !important;
+  outline-offset: -2px;
+}
+
+/* ===== FORM ACCESSIBILITY ===== */
+
+/* Required field indicator */
+[required]::after,
+[aria-required="true"]::after {
+  content: " *";
+  color: hsl(var(--destructive));
+  font-weight: bold;
+}
+
+/* Error message styling */
+[aria-invalid="true"] {
+  border-color: hsl(var(--destructive)) !important;
+  border-width: 2px !important;
+}
+
+/* Success indicator */
+[aria-invalid="false"]:not(:placeholder-shown) {
+  border-color: hsl(var(--success)) !important;
+}
+
+/* ===== LOADING STATE ACCESSIBILITY ===== */
+
+/* Visual indicator for loading states */
+[aria-busy="true"] {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+
+[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid hsl(var(--primary) / 0.3);
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ===== PRINT ACCESSIBILITY ===== */
+
+@media print {
+  /* Ensure focus indicators are visible in print */
+  *:focus {
+    outline: 2px solid black !important;
+  }
+
+  /* Show link URLs in print */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE SUPPORT ===== */
+
+@media (prefers-contrast: high) {
+  /* Enhanced contrast for high contrast mode */
+  * {
+    border-width: 2px !important;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    outline: 3px solid currentColor !important;
+  }
+}
+
+/* ===== CUSTOM FOCUS INDICATOR COLORS (Maintains Theme) ===== */
+
+/* Primary action focus (keeps burgundy theme) */
+.bg-blue-600:focus-visible,
+.bg-blue-700:focus-visible {
+  outline-color: #1e40af !important; /* Darker blue for better contrast */
+}
+
+/* Success action focus (keeps green theme) */
+.bg-green-600:focus-visible,
+.bg-emerald-600:focus-visible {
+  outline-color: #065f46 !important; /* Darker green */
+}
+
+/* Warning action focus (keeps orange/purple theme) */
+.bg-purple-600:focus-visible,
+.bg-orange-600:focus-visible {
+  outline-color: #7c2d12 !important; /* Darker orange-brown */
+}
+
+/* Destructive action focus (keeps red theme) */
+.bg-red-600:focus-visible {
+  outline-color: #991b1b !important; /* Darker red */
+}

@@ -9,6 +9,7 @@ import { EnhancedNotifications, useEnhancedNotifications } from "@/components/ui
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { initKeyboardNavigationDetector } from "@/utils/keyboardNavigationDetector";
 
 // Phase 1 Enhancement Components
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -144,6 +145,12 @@ function App() {
     showInfo,
     showOffline
   } = useEnhancedNotifications();
+
+  // Initialize keyboard navigation detector for enhanced accessibility
+  useEffect(() => {
+    const cleanup = initKeyboardNavigationDetector();
+    return cleanup;
+  }, []);
 
   // Phase 1: Announce page changes to screen readers
   useEffect(() => {

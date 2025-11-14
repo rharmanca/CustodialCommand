@@ -1146,7 +1146,7 @@ test.describe('Test Execution Summary', () => {
 // Helper utilities for test execution
 ensureTestAssets();
 
-export {
+module.exports = {
   TEST_CONFIG,
   // Export helper functions for use in other test files
   ensureTestAssets,
