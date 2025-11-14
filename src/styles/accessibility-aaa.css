@@ -46,12 +46,18 @@ a:focus-visible {
   text-decoration-thickness: 2px;
 }
 
-/* Skip link enhanced visibility */
-.sr-only:focus-visible {
+/* Skip link enhanced visibility with AAA touch target compliance */
+.sr-only:focus-visible,
+.sr-only:focus {
   outline: 3px solid hsl(var(--primary)) !important;
   outline-offset: 2px;
-  /* Increase padding for better touch target */
-  padding: 1rem 1.5rem !important;
+  /* Ensure 44x44px minimum touch target for AAA compliance */
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 0.75rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* ===== IMPROVED CONTRAST (AAA Compliance) ===== */

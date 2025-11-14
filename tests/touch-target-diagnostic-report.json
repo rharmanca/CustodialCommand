@@ -1,0 +1,466 @@
+{
+  "violations": [
+    {
+      "selector": "a",
+      "index": 0,
+      "id": "",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "text": "Skip to main content",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 34,
+        "height": 17
+      },
+      "computed": {
+        "minWidth": "0px",
+        "minHeight": "0px",
+        "padding": "8.5px 17px",
+        "display": "block"
+      },
+      "position": {
+        "top": -2,
+        "left": -2
+      },
+      "issue": "Both width and height too small",
+      "recommended": {
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "selector": "a",
+      "index": 1,
+      "id": "",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "text": "Skip to navigation",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 34,
+        "height": 17
+      },
+      "computed": {
+        "minWidth": "0px",
+        "minHeight": "0px",
+        "padding": "8.5px 17px",
+        "display": "block"
+      },
+      "position": {
+        "top": -2,
+        "left": -2
+      },
+      "issue": "Both width and height too small",
+      "recommended": {
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "selector": "a",
+      "index": 2,
+      "id": "",
+      "className": "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50 transition-all duration-200 hover:bg-blue-700",
+      "text": "Skip to footer",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 34,
+        "height": 17
+      },
+      "computed": {
+        "minWidth": "0px",
+        "minHeight": "0px",
+        "padding": "8.5px 17px",
+        "display": "block"
+      },
+      "position": {
+        "top": -2,
+        "left": -2
+      },
+      "issue": "Both width and height too small",
+      "recommended": {
+        "width": 44,
+        "height": 44
+      }
+    }
+  ],
+  "passing": [
+    {
+      "selector": "button",
+      "index": 0,
+      "id": "",
+      "className": "modern-button bg-primary/80",
+      "text": "Home",
+      "ariaLabel": "Home page, current page",
+      "dimensions": {
+        "width": 295,
+        "height": 54
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 184,
+        "left": 40
+      }
+    },
+    {
+      "selector": "button",
+      "index": 1,
+      "id": "",
+      "className": "modern-button bg-red-600 hover:bg-red-700 border-red-600 text-white",
+      "text": "Admin",
+      "ariaLabel": "Admin inspections panel",
+      "dimensions": {
+        "width": 295,
+        "height": 54
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 251,
+        "left": 40
+      }
+    },
+    {
+      "selector": "button",
+      "index": 2,
+      "id": "",
+      "className": "modern-button bg-secondary hover:bg-secondary/80",
+      "text": "A-Decrease text size",
+      "ariaLabel": "Decrease text size",
+      "dimensions": {
+        "width": 295,
+        "height": 54
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 377,
+        "left": 40
+      }
+    },
+    {
+      "selector": "button",
+      "index": 3,
+      "id": "",
+      "className": "modern-button bg-secondary hover:bg-secondary/80",
+      "text": "A+Increase text size",
+      "ariaLabel": "Increase text size",
+      "dimensions": {
+        "width": 295,
+        "height": 54
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 477,
+        "left": 40
+      }
+    },
+    {
+      "selector": "button",
+      "index": 4,
+      "id": "",
+      "className": "w-full p-4 bg-amber-100 border-2 border-amber-300 rounded-lg shadow-md hover:bg-amber-150 transition-colors flex items-center justify-between",
+      "text": "📱 Install on Your Mobile Device+",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 220,
+        "height": 89
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 640,
+        "left": 78
+      }
+    },
+    {
+      "selector": "button",
+      "index": 5,
+      "id": "",
+      "className": "modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow",
+      "text": "📝 Report A Custodial Concern",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 793,
+        "left": 95
+      }
+    },
+    {
+      "selector": "button",
+      "index": 6,
+      "id": "",
+      "className": "modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow",
+      "text": "🔍 Single Area Inspection",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 886,
+        "left": 95
+      }
+    },
+    {
+      "selector": "button",
+      "index": 7,
+      "id": "",
+      "className": "modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow",
+      "text": "🏢 Building Inspection",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 979,
+        "left": 95
+      }
+    },
+    {
+      "selector": "button",
+      "index": 8,
+      "id": "",
+      "className": "modern-button bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white shadow-md hover:shadow-lg transition-shadow",
+      "text": "📈 Building Scores Dashboard",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1111,
+        "left": 95
+      }
+    },
+    {
+      "selector": "button",
+      "index": 9,
+      "id": "",
+      "className": "modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white shadow-md hover:shadow-lg transition-shadow",
+      "text": "📊 View Data & Reports",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1204,
+        "left": 95
+      }
+    },
+    {
+      "selector": "button",
+      "index": 10,
+      "id": "",
+      "className": "modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white shadow-md hover:shadow-lg transition-shadow",
+      "text": "📄 Monthly Feedback Reports",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1297,
+        "left": 95
+      }
+    },
+    {
+      "selector": "button",
+      "index": 11,
+      "id": "",
+      "className": "modern-button bg-gray-600 hover:bg-gray-700 border-gray-600 text-white shadow-sm hover:shadow-md transition-shadow",
+      "text": "ℹ️ Rating Criteria Guide",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 186,
+        "height": 76
+      },
+      "computed": {
+        "minWidth": "44px",
+        "minHeight": "44px",
+        "padding": "12.75px 17px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1390,
+        "left": 95
+      }
+    },
+    {
+      "selector": "a",
+      "index": 3,
+      "id": "",
+      "className": "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation text-blue-600",
+      "text": "Home",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 375,
+        "height": 59
+      },
+      "computed": {
+        "minWidth": "auto",
+        "minHeight": "auto",
+        "padding": "8.5px 4.25px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1443,
+        "left": 0
+      }
+    },
+    {
+      "selector": "a",
+      "index": 4,
+      "id": "",
+      "className": "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation text-gray-600 hover:text-gray-900 active:scale-95",
+      "text": "Inspect",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 375,
+        "height": 59
+      },
+      "computed": {
+        "minWidth": "auto",
+        "minHeight": "auto",
+        "padding": "8.5px 4.25px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1519,
+        "left": 0
+      }
+    },
+    {
+      "selector": "a",
+      "index": 5,
+      "id": "",
+      "className": "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation text-gray-600 hover:text-gray-900 active:scale-95",
+      "text": "Building",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 375,
+        "height": 59
+      },
+      "computed": {
+        "minWidth": "auto",
+        "minHeight": "auto",
+        "padding": "8.5px 4.25px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1595,
+        "left": 0
+      }
+    },
+    {
+      "selector": "a",
+      "index": 6,
+      "id": "",
+      "className": "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation text-gray-600 hover:text-gray-900 active:scale-95",
+      "text": "Data",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 375,
+        "height": 59
+      },
+      "computed": {
+        "minWidth": "auto",
+        "minHeight": "auto",
+        "padding": "8.5px 4.25px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1672,
+        "left": 0
+      }
+    },
+    {
+      "selector": "a",
+      "index": 7,
+      "id": "",
+      "className": "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation text-gray-600 hover:text-gray-900 active:scale-95",
+      "text": "Admin",
+      "ariaLabel": "",
+      "dimensions": {
+        "width": 375,
+        "height": 59
+      },
+      "computed": {
+        "minWidth": "auto",
+        "minHeight": "auto",
+        "padding": "8.5px 4.25px",
+        "display": "flex"
+      },
+      "position": {
+        "top": 1748,
+        "left": 0
+      }
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "violations": 3,
+    "passing": 17
+  }
+}

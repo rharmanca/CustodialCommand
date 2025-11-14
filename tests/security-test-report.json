@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-09T01:55:21.211Z",
+  "timestamp": "2025-11-14T01:39:48.563Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
@@ -8,6 +8,11 @@
     "successRate": 84.44444444444444
   },
   "vulnerabilities": [
+    {
+      "testName": "Session Hijacking - Modified Token",
+      "details": "Could not obtain valid session",
+      "severity": "high"
+    },
     {
       "testName": "Directory Traversal - ../../../etc/passwd...",
       "details": "Status: 200",
@@ -37,48 +42,43 @@
       "testName": "File Upload Security - malicious.sh",
       "details": "Status: 500",
       "severity": "high"
-    },
-    {
-      "testName": "File Upload Security - Oversized File",
-      "details": "Status: 500",
-      "severity": "medium"
     }
   ],
   "details": [
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":548,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":610,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":549,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":611,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":550,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":612,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":551,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":613,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":552,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":614,\"imageCount\":0}",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
       "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":553,\"imageCount\":0}",
+      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":615,\"imageCount\":0}",
       "severity": "high"
     },
     {
@@ -191,8 +191,8 @@
     },
     {
       "testName": "Session Hijacking - Modified Token",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Could not obtain valid session",
       "severity": "high"
     },
     {
@@ -276,7 +276,7 @@
     {
       "testName": "Security Header - Content-Security-Policy",
       "passed": true,
-      "details": "Present: default-src 'self';style-src 'self' 'unsafe-inline';script-src 'self';img-src 'self' data: https:;connect-src 'self';font-src 'self';object-src 'none';media-src 'self';frame-src 'none';base-uri 'self';form-action 'self';frame-ancestors 'self';script-src-attr 'none';upgrade-insecure-requests",
+      "details": "Present: default-src 'self';style-src 'self' 'unsafe-inline';script-src 'self' 'unsafe-inline';img-src 'self' data: https:;connect-src 'self';font-src 'self';object-src 'none';media-src 'self';frame-src 'none';base-uri 'self';form-action 'self';frame-ancestors 'self';script-src-attr 'none';upgrade-insecure-requests",
       "severity": "medium"
     },
     {
@@ -311,8 +311,8 @@
     },
     {
       "testName": "File Upload Security - Oversized File",
-      "passed": false,
-      "details": "Status: 500",
+      "passed": true,
+      "details": "File rejected: Upload timeout",
       "severity": "medium"
     }
   ]
