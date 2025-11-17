@@ -46,7 +46,16 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
 
   const fetchFeedback = async () => {
     try {
-      const response = await fetch('/api/monthly-feedback');
+      // Add timeout to prevent hanging (15 second timeout)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch('/api/monthly-feedback', {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
       if (response.ok) {
         const data = await response.json();
         // Validate data is an array
@@ -57,18 +66,35 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
           toast({
             variant: "destructive",
             title: "Data Error",
-            description: "Received invalid data format from server."
+            description: "Received invalid data format from server.",
+            duration: 5000
           });
         }
       } else {
-        throw new Error('Failed to fetch feedback');
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(errorData.message || 'Failed to fetch feedback');
       }
     } catch (error) {
       console.error('Error fetching feedback:', error);
+
+      let errorTitle = "Failed to Load";
+      let errorDescription = "Unable to load monthly feedback. Please try again.";
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorTitle = "Request Timeout";
+          errorDescription = "The request took too long. Please check your connection and try again.";
+        } else if (error.message.includes('fetch')) {
+          errorTitle = "Connection Error";
+          errorDescription = "Unable to connect to the server. Please check your internet connection.";
+        }
+      }
+
       toast({
         variant: "destructive",
-        title: "Failed to Load",
-        description: "Unable to load monthly feedback. Please try again."
+        title: errorTitle,
+        description: errorDescription,
+        duration: 5000
       });
     } finally {
       setLoading(false);

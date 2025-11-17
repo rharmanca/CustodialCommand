@@ -328,10 +328,17 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
         formDataToSend.append('images', image);
       });
 
+      // Add timeout to prevent hanging indefinitely (30 second timeout)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch('/api/inspections', {
         method: 'POST',
         body: formDataToSend, // No Content-Type header - let browser set it for multipart
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         // Show success notification
@@ -370,12 +377,15 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       }
     } catch (error) {
       console.error('Error submitting inspection:', error);
-      
+
       let errorTitle = "Submission Failed";
       let errorMessage = "Unable to submit inspection. Please try again.";
 
       if (error instanceof Error) {
-        if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+        if (error.name === 'AbortError') {
+          errorTitle = "Request Timeout";
+          errorMessage = "The request took too long to complete. This might be due to slow internet connection or large file uploads. Please try again.";
+        } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
           errorTitle = "Network Error";
           errorMessage = "Unable to connect to the server. Please check your connection and try again.";
         } else if (error.message.includes('validation') || error.message.includes('Invalid')) {
@@ -684,17 +694,23 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
               <div>
                 <Label htmlFor="date">Inspection Date *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  {...register('date')}
-                  aria-describedby="date-help"
-                />
+                <div className="relative">
+                  <Input
+                    id="date"
+                    type="date"
+                    {...register('date')}
+                    aria-describedby="date-help"
+                    className="pr-10"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                </div>
                 {errors.date && (
                   <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>
                 )}
                 <p id="date-help" className="text-sm text-muted-foreground mt-1">
-                  Select the date when this inspection was conducted
+                  Click the field or calendar icon to select a date
                 </p>
               </div>
 
