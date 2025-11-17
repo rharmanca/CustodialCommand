@@ -93,22 +93,73 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
   const fetchData = async () => {
     try {
+      // Add timeout to prevent hanging (20 second timeout for both requests)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
       const [inspectionsResponse, notesResponse] = await Promise.all([
-        fetch('/api/inspections'),
-        fetch('/api/custodial-notes')
+        fetch('/api/inspections', { signal: controller.signal }),
+        fetch('/api/custodial-notes', { signal: controller.signal })
       ]);
-      
+
+      clearTimeout(timeoutId);
+
       if (inspectionsResponse.ok) {
         const inspectionsData = await inspectionsResponse.json();
-        setInspections(inspectionsData);
+        // Handle both array and paginated response formats
+        if (Array.isArray(inspectionsData)) {
+          setInspections(inspectionsData);
+        } else if (inspectionsData.data && Array.isArray(inspectionsData.data)) {
+          setInspections(inspectionsData.data);
+        } else {
+          console.error('Invalid inspections data format:', inspectionsData);
+          setInspections([]);
+        }
+      } else {
+        console.error('Failed to fetch inspections:', inspectionsResponse.status);
+        setInspections([]);
+        toast({
+          title: 'Warning',
+          description: 'Unable to load inspection data. Some features may be unavailable.',
+          variant: 'default',
+          duration: 5000
+        });
       }
-      
+
       if (notesResponse.ok) {
         const notesData = await notesResponse.json();
-        setCustodialNotes(notesData);
+        if (Array.isArray(notesData)) {
+          setCustodialNotes(notesData);
+        } else {
+          console.error('Invalid custodial notes data format:', notesData);
+          setCustodialNotes([]);
+        }
+      } else {
+        console.error('Failed to fetch custodial notes:', notesResponse.status);
+        setCustodialNotes([]);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+
+      let errorDescription = 'Unable to load inspection data. Please try again.';
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorDescription = 'Request timed out. Please check your connection and try again.';
+        } else if (error.message.includes('fetch')) {
+          errorDescription = 'Unable to connect to the server. Please check your internet connection.';
+        }
+      }
+
+      toast({
+        title: 'Error Loading Data',
+        description: errorDescription,
+        variant: 'destructive',
+        duration: 7000
+      });
+
+      // Set empty arrays so the page can still render
+      setInspections([]);
+      setCustodialNotes([]);
     } finally {
       setLoading(false);
     }

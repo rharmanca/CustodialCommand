@@ -112,6 +112,13 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
       }
 
+      // Helper function to parse numeric values properly (0 is valid, not null)
+      const parseNumericField = (value: any): number | null => {
+        if (value === null || value === undefined || value === '') return null;
+        const num = typeof value === 'string' ? parseInt(value, 10) : value;
+        return isNaN(num) ? null : num;
+      };
+
       const inspectionData = {
         inspectorName: inspectorName || "",
         school,
@@ -120,17 +127,17 @@ export async function registerRoutes(app: Express): Promise<void> {
         locationDescription: req.body.locationDescription || "",
         roomNumber: req.body.roomNumber || null,
         locationCategory: req.body.locationCategory || null,
-        floors: req.body.floors || null,
-        verticalHorizontalSurfaces: req.body.verticalHorizontalSurfaces || null,
-        ceiling: req.body.ceiling || null,
-        restrooms: req.body.restrooms || null,
-        customerSatisfaction: req.body.customerSatisfaction || null,
-        trash: req.body.trash || null,
-        projectCleaning: req.body.projectCleaning || null,
-        activitySupport: req.body.activitySupport || null,
-        safetyCompliance: req.body.safetyCompliance || null,
-        equipment: req.body.equipment || null,
-        monitoring: req.body.monitoring || null,
+        floors: parseNumericField(req.body.floors),
+        verticalHorizontalSurfaces: parseNumericField(req.body.verticalHorizontalSurfaces),
+        ceiling: parseNumericField(req.body.ceiling),
+        restrooms: parseNumericField(req.body.restrooms),
+        customerSatisfaction: parseNumericField(req.body.customerSatisfaction),
+        trash: parseNumericField(req.body.trash),
+        projectCleaning: parseNumericField(req.body.projectCleaning),
+        activitySupport: parseNumericField(req.body.activitySupport),
+        safetyCompliance: parseNumericField(req.body.safetyCompliance),
+        equipment: parseNumericField(req.body.equipment),
+        monitoring: parseNumericField(req.body.monitoring),
         notes: req.body.notes || null,
         images: imageUrls,
         verifiedRooms: [],

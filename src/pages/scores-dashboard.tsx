@@ -50,9 +50,19 @@ export default function ScoresDashboard({ onBack }: ScoresDashboardProps) {
       if (start) params.append('startDate', start);
       if (end) params.append('endDate', end);
 
-      const response = await fetch(`/api/scores?${params.toString()}`);
+      // Add timeout to prevent hanging (15 second timeout)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch(`/api/scores?${params.toString()}`, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch scores');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch scores' }));
+        throw new Error(errorData.message || 'Failed to fetch scores');
       }
 
       const data = await response.json();
@@ -60,10 +70,21 @@ export default function ScoresDashboard({ onBack }: ScoresDashboardProps) {
       setFilteredScores(data.scores || []);
     } catch (error) {
       console.error('Error fetching scores:', error);
+
+      let errorDescription = 'Failed to load building scores. Please try again.';
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorDescription = 'Request timed out. Please check your connection and try again.';
+        } else if (error.message.includes('fetch')) {
+          errorDescription = 'Unable to connect to the server. Please check your internet connection.';
+        }
+      }
+
       toast({
         title: 'Error',
-        description: 'Failed to load building scores. Please try again.',
+        description: errorDescription,
         variant: 'destructive',
+        duration: 5000
       });
     } finally {
       setLoading(false);
