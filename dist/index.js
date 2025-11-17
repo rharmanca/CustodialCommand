@@ -488,8 +488,8 @@ var createRateLimit = (windowMs, max) => {
     legacyHeaders: false
   });
 };
-var API_RATE_LIMIT = 1e4;
-var STRICT_RATE_LIMIT = 1e3;
+var API_RATE_LIMIT = process.env.RATE_LIMIT_MAX_REQUESTS ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) : 100;
+var STRICT_RATE_LIMIT = 20;
 var apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1e3,
   // 15 minutes
@@ -503,7 +503,10 @@ var apiRateLimit = rateLimit({
     return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
   }
 });
-var strictRateLimit = createRateLimit(15 * 60 * 1e3, STRICT_RATE_LIMIT);
+var strictRateLimit = createRateLimit(
+  15 * 60 * 1e3,
+  STRICT_RATE_LIMIT
+);
 var sanitizeInput = (req, res, next) => {
   const sanitizeString = (str) => {
     return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
@@ -528,10 +531,7 @@ var sanitizeInput = (req, res, next) => {
   next();
 };
 var securityHeaders = (req, res, next) => {
-  const allowedOrigins = [
-    "http://localhost:5000",
-    "http://localhost:5173"
-  ];
+  const allowedOrigins = ["http://localhost:5000", "http://localhost:5173"];
   if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
     allowedOrigins.push(
       `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
@@ -546,8 +546,14 @@ var securityHeaders = (req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, Content-Length, X-Requested-With"
+  );
   res.setHeader("Access-Control-Allow-Credentials", "true");
   if (req.method === "OPTIONS") {
     res.sendStatus(200);
@@ -559,7 +565,9 @@ var redisClient = null;
 async function initializeRedis() {
   try {
     if (!process.env.REDIS_URL) {
-      logger.warn("REDIS_URL not configured, falling back to memory storage (NOT RECOMMENDED FOR PRODUCTION)");
+      logger.warn(
+        "REDIS_URL not configured, falling back to memory storage (NOT RECOMMENDED FOR PRODUCTION)"
+      );
       return;
     }
     redisClient = createClient({
@@ -579,7 +587,9 @@ async function initializeRedis() {
     await redisClient.connect();
     logger.info("Redis initialized successfully");
   } catch (error) {
-    logger.error("Failed to initialize Redis", { error: error instanceof Error ? error.message : "Unknown error" });
+    logger.error("Failed to initialize Redis", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
     redisClient = null;
   }
 }
@@ -595,7 +605,9 @@ var PasswordManager = class {
       logger.debug("Password hashed successfully");
       return hashedPassword;
     } catch (error) {
-      logger.error("Failed to hash password", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to hash password", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
       throw new Error("Password hashing failed");
     }
   }
@@ -608,7 +620,9 @@ var PasswordManager = class {
       logger.debug("Password verification completed", { isValid });
       return isValid;
     } catch (error) {
-      logger.error("Failed to verify password", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to verify password", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
       return false;
     }
   }
@@ -653,10 +667,14 @@ var SessionManager = class {
           ...sessionData,
           expiresAt
         });
-        logger.warn("Session stored in memory (NOT SECURE FOR PRODUCTION)", { sessionToken });
+        logger.warn("Session stored in memory (NOT SECURE FOR PRODUCTION)", {
+          sessionToken
+        });
       }
     } catch (error) {
-      logger.error("Failed to store session", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to store session", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
       throw new Error("Session storage failed");
     }
   }
@@ -674,14 +692,20 @@ var SessionManager = class {
         }
         const sessionData = JSON.parse(value);
         sessionData.lastAccessed = (/* @__PURE__ */ new Date()).toISOString();
-        await redisClient.setEx(key, this.DEFAULT_TTL, JSON.stringify(sessionData));
+        await redisClient.setEx(
+          key,
+          this.DEFAULT_TTL,
+          JSON.stringify(sessionData)
+        );
         logger.debug("Session retrieved from Redis", { sessionToken });
         return sessionData;
       } else {
         if (!global.adminSessions) {
           return null;
         }
-        const sessionData = global.adminSessions.get(sessionToken);
+        const sessionData = global.adminSessions.get(
+          sessionToken
+        );
         if (!sessionData) {
           return null;
         }
@@ -694,7 +718,9 @@ var SessionManager = class {
         return sessionData;
       }
     } catch (error) {
-      logger.error("Failed to retrieve session", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to retrieve session", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
       return null;
     }
   }
@@ -714,7 +740,9 @@ var SessionManager = class {
         }
       }
     } catch (error) {
-      logger.error("Failed to delete session", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to delete session", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   }
   /**
@@ -739,10 +767,14 @@ var SessionManager = class {
         }
       }
       if (cleanedCount > 0) {
-        logger.info("Cleaned up expired memory sessions", { count: cleanedCount });
+        logger.info("Cleaned up expired memory sessions", {
+          count: cleanedCount
+        });
       }
     } catch (error) {
-      logger.error("Failed to cleanup expired sessions", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to cleanup expired sessions", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   }
 };
@@ -773,7 +805,9 @@ var CacheManager = class {
         logger.debug("Cache stored in memory", { key, ttl });
       }
     } catch (error) {
-      logger.error("Failed to set cache", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to set cache", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   }
   /**
@@ -807,7 +841,9 @@ var CacheManager = class {
         return cached.data;
       }
     } catch (error) {
-      logger.error("Failed to get cache", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to get cache", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
       return null;
     }
   }
@@ -827,7 +863,9 @@ var CacheManager = class {
         }
       }
     } catch (error) {
-      logger.error("Failed to delete cache", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to delete cache", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   }
   /**
@@ -836,28 +874,40 @@ var CacheManager = class {
   static async clearPattern(pattern) {
     try {
       if (redisClient) {
-        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*" + pattern + "*");
+        const keys = await redisClient.keys(
+          SessionManager.CACHE_PREFIX + "*" + pattern + "*"
+        );
         if (keys.length > 0) {
           await redisClient.del(keys);
-          logger.info("Cleared cache pattern in Redis", { pattern, count: keys.length });
+          logger.info("Cleared cache pattern in Redis", {
+            pattern,
+            count: keys.length
+          });
         }
       } else {
         if (!global.appCache) {
           return;
         }
         const cache2 = global.appCache;
-        const keysToDelete = Array.from(cache2.keys()).filter((key) => key.includes(pattern));
+        const keysToDelete = Array.from(cache2.keys()).filter(
+          (key) => key.includes(pattern)
+        );
         let deletedCount = 0;
         for (const key of keysToDelete) {
           cache2.delete(key);
           deletedCount++;
         }
         if (deletedCount > 0) {
-          logger.info("Cleared cache pattern in memory", { pattern, count: deletedCount });
+          logger.info("Cleared cache pattern in memory", {
+            pattern,
+            count: deletedCount
+          });
         }
       }
     } catch (error) {
-      logger.error("Failed to clear cache pattern", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to clear cache pattern", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   }
   /**
@@ -873,19 +923,26 @@ var CacheManager = class {
         return { size, type: "Memory (INSECURE)" };
       }
     } catch (error) {
-      logger.error("Failed to get cache stats", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.error("Failed to get cache stats", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
       return { size: 0, type: "Unknown" };
     }
   }
 };
 initializeRedis().catch(() => {
-  logger.warn("Security module initialized without Redis (falling back to insecure memory storage)");
+  logger.warn(
+    "Security module initialized without Redis (falling back to insecure memory storage)"
+  );
 });
-setInterval(() => {
-  SessionManager.cleanupExpiredSessions().catch((error) => {
-    logger.error("Failed to cleanup expired sessions", { error });
-  });
-}, 10 * 60 * 1e3);
+setInterval(
+  () => {
+    SessionManager.cleanupExpiredSessions().catch((error) => {
+      logger.error("Failed to cleanup expired sessions", { error });
+    });
+  },
+  10 * 60 * 1e3
+);
 var validateRequest = (req, res, next) => {
   const contentLength = parseInt(req.headers["content-length"] || "0");
   if (contentLength > 10 * 1024 * 1024) {
@@ -1706,7 +1763,10 @@ async function registerRoutes(app2) {
       const { inspectorName, school, inspectionType } = req.body;
       const files = req.files;
       if (!school || !inspectionType) {
-        logger.warn("[POST] Missing required fields", { school, inspectionType });
+        logger.warn("[POST] Missing required fields", {
+          school,
+          inspectionType
+        });
         return res.status(400).json({
           message: "Missing required fields",
           details: { school: !!school, inspectionType: !!inspectionType }
@@ -1714,7 +1774,9 @@ async function registerRoutes(app2) {
       }
       let imageUrls = [];
       if (files && files.length > 0) {
-        logger.info("[POST] Processing uploaded files with object storage", { count: files.length });
+        logger.info("[POST] Processing uploaded files with object storage", {
+          count: files.length
+        });
         for (const file of files) {
           try {
             const filename = `inspections/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
@@ -1725,12 +1787,21 @@ async function registerRoutes(app2) {
             );
             if (uploadResult.success) {
               imageUrls.push(`/objects/${filename}`);
-              logger.info("[POST] File uploaded to object storage", { filename, url: `/objects/${filename}` });
+              logger.info("[POST] File uploaded to object storage", {
+                filename,
+                url: `/objects/${filename}`
+              });
             } else {
-              logger.error("[POST] Failed to upload file to object storage", { filename, error: uploadResult.error });
+              logger.error("[POST] Failed to upload file to object storage", {
+                filename,
+                error: uploadResult.error
+              });
             }
           } catch (uploadError) {
-            logger.error("[POST] Error uploading file to object storage:", uploadError);
+            logger.error(
+              "[POST] Error uploading file to object storage:",
+              uploadError
+            );
           }
         }
       }
@@ -1762,7 +1833,9 @@ async function registerRoutes(app2) {
       try {
         const validatedData = insertInspectionSchema.parse(inspectionData);
         const newInspection = await storage.createInspection(validatedData);
-        logger.info("[POST] Building inspection created successfully", { id: newInspection.id });
+        logger.info("[POST] Building inspection created successfully", {
+          id: newInspection.id
+        });
         res.status(201).json({
           message: "Building inspection created successfully",
           id: newInspection.id,
@@ -1770,7 +1843,9 @@ async function registerRoutes(app2) {
         });
       } catch (validationError) {
         if (validationError instanceof z2.ZodError) {
-          logger.warn("[POST] Validation failed", { errors: validationError.errors });
+          logger.warn("[POST] Validation failed", {
+            errors: validationError.errors
+          });
           return res.status(400).json({
             message: "Invalid inspection data",
             details: validationError.errors
@@ -1785,19 +1860,42 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/inspections", async (req, res) => {
     try {
-      const { type, incomplete } = req.query;
+      const { type, incomplete, page = "1", limit = "50" } = req.query;
       let inspections2;
       inspections2 = await storage.getInspections();
       logger.info(`[GET] Found ${inspections2.length} total inspections`);
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      if (isNaN(pageNum) || pageNum < 1 || isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+        return res.status(400).json({
+          error: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100"
+          }
+        });
+      }
+      const totalCount = inspections2.length;
+      const offset = (pageNum - 1) * limitNum;
       if (type === "whole_building" && incomplete === "true") {
-        const beforeFilter = inspections2.length;
         inspections2 = inspections2.filter(
           (inspection) => inspection.inspectionType === "whole_building" && !inspection.isCompleted
         );
-        logger.info(`[GET] Filtered whole_building incomplete: ${beforeFilter} \u2192 ${inspections2.length} inspections`);
-        logger.info(`[GET] Incomplete inspections:`, inspections2.map((i) => ({ id: i.id, school: i.school, isCompleted: i.isCompleted })));
+        logger.info(
+          `[GET] Filtered whole_building incomplete: ${inspections2.length} \u2192 ${inspections2.length} inspections`
+        );
       }
-      res.json(inspections2);
+      const paginatedInspections = inspections2.slice(offset, offset + limitNum);
+      res.json({
+        data: paginatedInspections,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limitNum)
+        }
+      });
     } catch (error) {
       logger.error("Error fetching inspections:", error);
       res.status(500).json({ error: "Failed to fetch inspections" });
@@ -1839,7 +1937,14 @@ async function registerRoutes(app2) {
       });
     }
     try {
-      const { inspectorName, school, date, locationDescription, location, notes } = req.body;
+      const {
+        inspectorName,
+        school,
+        date,
+        locationDescription,
+        location,
+        notes
+      } = req.body;
       const files = Array.isArray(req.files) ? req.files : [];
       logger.info("[POST] Parsed form data", {
         inspectorName,
@@ -1874,7 +1979,9 @@ async function registerRoutes(app2) {
       }
       let imageUrls = [];
       if (files && files.length > 0) {
-        logger.info("[POST] Processing uploaded files with object storage", { count: files.length });
+        logger.info("[POST] Processing uploaded files with object storage", {
+          count: files.length
+        });
         for (const file of files) {
           try {
             const filename = `custodial-notes/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
@@ -1885,12 +1992,21 @@ async function registerRoutes(app2) {
             );
             if (uploadResult.success) {
               imageUrls.push(`/objects/${filename}`);
-              logger.info("[POST] File uploaded to object storage", { filename, url: `/objects/${filename}` });
+              logger.info("[POST] File uploaded to object storage", {
+                filename,
+                url: `/objects/${filename}`
+              });
             } else {
-              logger.error("[POST] Failed to upload file to object storage", { filename, error: uploadResult.error });
+              logger.error("[POST] Failed to upload file to object storage", {
+                filename,
+                error: uploadResult.error
+              });
             }
           } catch (uploadError) {
-            logger.error("[POST] Error uploading file to object storage:", uploadError);
+            logger.error(
+              "[POST] Error uploading file to object storage:",
+              uploadError
+            );
           }
         }
       }
@@ -1907,7 +2023,9 @@ async function registerRoutes(app2) {
       const validatedData = insertCustodialNoteSchema.parse(custodialNote);
       logger.info("[POST] Creating custodial note", { validatedData });
       const custodialNoteResult = await storage.createCustodialNote(validatedData);
-      logger.info("[POST] Custodial note created successfully", { id: custodialNoteResult.id });
+      logger.info("[POST] Custodial note created successfully", {
+        id: custodialNoteResult.id
+      });
       res.status(201).json({
         success: true,
         message: "Custodial note submitted successfully",
@@ -1949,7 +2067,10 @@ async function registerRoutes(app2) {
         });
       }
       if (error && error.message && error.message.includes("Unexpected end of form")) {
-        logger.error("[POST] FormData parsing error - likely malformed request", error);
+        logger.error(
+          "[POST] FormData parsing error - likely malformed request",
+          error
+        );
         return res.status(400).json({
           success: false,
           message: "Invalid form data format",
@@ -1964,61 +2085,64 @@ async function registerRoutes(app2) {
       });
     }
   });
-  app2.use("/api/custodial-notes", (err, req, res, next) => {
-    logger.error("[POST] Multipart error in custodial notes:", err);
-    if (err instanceof multer.MulterError) {
-      if (err.code === "LIMIT_FILE_SIZE") {
+  app2.use(
+    "/api/custodial-notes",
+    (err, req, res, next) => {
+      logger.error("[POST] Multipart error in custodial notes:", err);
+      if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(400).json({
+            success: false,
+            message: "File size too large",
+            details: "Maximum file size is 5MB per image"
+          });
+        }
+        if (err.code === "LIMIT_FILE_COUNT") {
+          return res.status(400).json({
+            success: false,
+            message: "Too many files",
+            details: "Maximum 5 images allowed"
+          });
+        }
+        if (err.code === "LIMIT_UNEXPECTED_FILE") {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid file field",
+            details: "Only image files are allowed"
+          });
+        }
         return res.status(400).json({
           success: false,
-          message: "File size too large",
-          details: "Maximum file size is 5MB per image"
+          message: "File upload error",
+          details: err.message
         });
       }
-      if (err.code === "LIMIT_FILE_COUNT") {
-        return res.status(400).json({
-          success: false,
-          message: "Too many files",
-          details: "Maximum 5 images allowed"
-        });
-      }
-      if (err.code === "LIMIT_UNEXPECTED_FILE") {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid file field",
-          details: "Only image files are allowed"
-        });
+      if (err && err.message) {
+        if (err.message.includes("Unexpected end of form") || err.message.includes("Multipart: Boundary not found") || err.message.includes("Malformed part header")) {
+          return res.status(400).json({
+            success: false,
+            message: "Form data is malformed",
+            details: "The request format was invalid. Please try submitting the form again.",
+            technical: "FormData parsing failed"
+          });
+        }
+        if (err.message.includes("Unexpected field") || err.message.includes("Error: Multipart") || req.headers["content-type"]?.includes("application/json")) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid content type",
+            details: "This endpoint requires multipart/form-data. Please use the form to submit data.",
+            technical: "Wrong content type for multipart endpoint"
+          });
+        }
       }
       return res.status(400).json({
         success: false,
-        message: "File upload error",
-        details: err.message
+        message: "Invalid request format",
+        details: "The request could not be processed. Please ensure you are submitting the form correctly.",
+        technical: "Multipart processing error"
       });
     }
-    if (err && err.message) {
-      if (err.message.includes("Unexpected end of form") || err.message.includes("Multipart: Boundary not found") || err.message.includes("Malformed part header")) {
-        return res.status(400).json({
-          success: false,
-          message: "Form data is malformed",
-          details: "The request format was invalid. Please try submitting the form again.",
-          technical: "FormData parsing failed"
-        });
-      }
-      if (err.message.includes("Unexpected field") || err.message.includes("Error: Multipart") || req.headers["content-type"]?.includes("application/json")) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid content type",
-          details: "This endpoint requires multipart/form-data. Please use the form to submit data.",
-          technical: "Wrong content type for multipart endpoint"
-        });
-      }
-    }
-    return res.status(400).json({
-      success: false,
-      message: "Invalid request format",
-      details: "The request could not be processed. Please ensure you are submitting the form correctly.",
-      technical: "Multipart processing error"
-    });
-  });
+  );
   app2.get("/api/custodial-notes", async (req, res) => {
     try {
       const custodialNotes2 = await storage.getCustodialNotes();
@@ -2057,7 +2181,9 @@ async function registerRoutes(app2) {
         logger.info(`[PATCH] Inspection ${id} not found`);
         return res.status(404).json({ error: "Inspection not found" });
       }
-      logger.info(`[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`);
+      logger.info(
+        `[PATCH] Successfully updated inspection ${id}. isCompleted: ${inspection.isCompleted}`
+      );
       res.json(inspection);
     } catch (error) {
       logger.error("Error updating inspection:", error);
@@ -2101,48 +2227,77 @@ async function registerRoutes(app2) {
       }
     }
   });
-  app2.post("/api/submit-building-inspection", async (req, res) => {
-    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    logger.info("Creating building inspection via submit endpoint", { requestId });
-    try {
-      logger.info(`[${requestId}] Raw building inspection request:`, JSON.stringify(req.body, null, 2));
-      logger.info(`[${requestId}] Headers:`, JSON.stringify(req.headers, null, 2));
-      if (!req.body) {
-        logger.warn(`[${requestId}] No request body received`);
-        return res.status(400).json({
-          error: "No request body received",
-          message: "Please ensure the request contains valid JSON data"
-        });
-      }
-      const validatedData = insertInspectionSchema.parse(req.body);
-      logger.info(`[${requestId}] Validated building inspection:`, JSON.stringify(validatedData, null, 2));
-      const result = await storage.createInspection(validatedData);
-      logger.info("Building inspection created successfully", { requestId, inspectionId: result.id });
-      const responsePayload = { success: true, id: result.id, ...result };
-      logger.info(`[${requestId}] Response (JSON):`, JSON.stringify(responsePayload, null, 2));
-      res.setHeader("Content-Type", "application/json");
-      return res.status(201).json(responsePayload);
-    } catch (err) {
-      logger.error(`[${requestId}] Failed to create building inspection:`, err);
-      logger.error("Failed to create building inspection", { requestId, error: err });
-      if (err instanceof z2.ZodError) {
-        logger.error(`[${requestId}] Validation errors:`, err.errors);
-        return res.status(400).json({
-          error: "Invalid building inspection data",
-          details: err.errors,
-          message: "Please check all required fields are filled correctly"
-        });
-      }
-      const errorPayload = {
-        error: "Failed to create building inspection",
-        message: "An internal server error occurred. Please try again.",
+  app2.post(
+    "/api/submit-building-inspection",
+    async (req, res) => {
+      const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      logger.info("Creating building inspection via submit endpoint", {
         requestId
-      };
-      logger.info(`[${requestId}] Response (ERROR JSON):`, JSON.stringify(errorPayload, null, 2));
-      res.setHeader("Content-Type", "application/json");
-      return res.status(500).json(errorPayload);
+      });
+      try {
+        logger.info(
+          `[${requestId}] Raw building inspection request:`,
+          JSON.stringify(req.body, null, 2)
+        );
+        logger.info(
+          `[${requestId}] Headers:`,
+          JSON.stringify(req.headers, null, 2)
+        );
+        if (!req.body) {
+          logger.warn(`[${requestId}] No request body received`);
+          return res.status(400).json({
+            error: "No request body received",
+            message: "Please ensure the request contains valid JSON data"
+          });
+        }
+        const validatedData = insertInspectionSchema.parse(req.body);
+        logger.info(
+          `[${requestId}] Validated building inspection:`,
+          JSON.stringify(validatedData, null, 2)
+        );
+        const result = await storage.createInspection(validatedData);
+        logger.info("Building inspection created successfully", {
+          requestId,
+          inspectionId: result.id
+        });
+        const responsePayload = { success: true, id: result.id, ...result };
+        logger.info(
+          `[${requestId}] Response (JSON):`,
+          JSON.stringify(responsePayload, null, 2)
+        );
+        res.setHeader("Content-Type", "application/json");
+        return res.status(201).json(responsePayload);
+      } catch (err) {
+        logger.error(
+          `[${requestId}] Failed to create building inspection:`,
+          err
+        );
+        logger.error("Failed to create building inspection", {
+          requestId,
+          error: err
+        });
+        if (err instanceof z2.ZodError) {
+          logger.error(`[${requestId}] Validation errors:`, err.errors);
+          return res.status(400).json({
+            error: "Invalid building inspection data",
+            details: err.errors,
+            message: "Please check all required fields are filled correctly"
+          });
+        }
+        const errorPayload = {
+          error: "Failed to create building inspection",
+          message: "An internal server error occurred. Please try again.",
+          requestId
+        };
+        logger.info(
+          `[${requestId}] Response (ERROR JSON):`,
+          JSON.stringify(errorPayload, null, 2)
+        );
+        res.setHeader("Content-Type", "application/json");
+        return res.status(500).json(errorPayload);
+      }
     }
-  });
+  );
   app2.get("/api/inspections/:id/rooms", async (req, res) => {
     try {
       const buildingInspectionId = parseInt(req.params.id);
@@ -2158,11 +2313,20 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/room-inspections", async (req, res) => {
     try {
-      logger.info("[POST] Creating room inspection with data:", JSON.stringify(req.body, null, 2));
+      logger.info(
+        "[POST] Creating room inspection with data:",
+        JSON.stringify(req.body, null, 2)
+      );
       const validatedData = insertRoomInspectionSchema.parse(req.body);
-      logger.info("[POST] Validated room inspection data:", JSON.stringify(validatedData, null, 2));
+      logger.info(
+        "[POST] Validated room inspection data:",
+        JSON.stringify(validatedData, null, 2)
+      );
       const roomInspection = await storage.createRoomInspection(validatedData);
-      logger.info("[POST] Successfully created room inspection:", roomInspection.id);
+      logger.info(
+        "[POST] Successfully created room inspection:",
+        roomInspection.id
+      );
       res.status(201).json(roomInspection);
     } catch (error) {
       logger.error("Error creating room inspection:", error);
@@ -2215,94 +2379,118 @@ async function registerRoutes(app2) {
       res.status(500).json({ error: "Failed to fetch room inspection" });
     }
   });
-  app2.post("/api/inspections/:id/rooms/:roomId/submit", upload.array("images"), async (req, res) => {
-    logger.info("[POST] Room inspection submission started", {
-      inspectionId: req.params.id,
-      roomId: req.params.roomId,
-      body: req.body,
-      files: req.files ? req.files.length : 0
-    });
-    try {
-      const inspectionId = parseInt(req.params.id);
-      const roomId = parseInt(req.params.roomId);
-      const { responses } = req.body;
-      const files = req.files;
-      if (!responses) {
-        logger.warn("[POST] Missing responses", { inspectionId, roomId });
-        return res.status(400).json({ message: "Missing responses data" });
-      }
-      let parsedResponses;
+  app2.post(
+    "/api/inspections/:id/rooms/:roomId/submit",
+    upload.array("images"),
+    async (req, res) => {
+      logger.info("[POST] Room inspection submission started", {
+        inspectionId: req.params.id,
+        roomId: req.params.roomId,
+        body: req.body,
+        files: req.files ? req.files.length : 0
+      });
       try {
-        parsedResponses = typeof responses === "string" ? JSON.parse(responses) : responses;
-      } catch (parseError) {
-        logger.error("[POST] Error parsing responses:", parseError);
-        return res.status(400).json({ message: "Invalid responses format" });
-      }
-      let imageUrls = [];
-      if (files && files.length > 0) {
-        logger.info("[POST] Processing uploaded files with object storage", { count: files.length });
-        for (const file of files) {
-          try {
-            const filename = `room-inspections/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
-            const uploadResult = await objectStorageService.uploadLargeFile(
-              file.buffer,
-              filename,
-              file.mimetype
-            );
-            if (uploadResult.success) {
-              imageUrls.push(`/objects/${filename}`);
-              logger.info("[POST] File uploaded to object storage", { filename, url: `/objects/${filename}` });
-            } else {
-              logger.error("[POST] Failed to upload file to object storage", { filename, error: uploadResult.error });
+        const inspectionId = parseInt(req.params.id);
+        const roomId = parseInt(req.params.roomId);
+        const { responses } = req.body;
+        const files = req.files;
+        if (!responses) {
+          logger.warn("[POST] Missing responses", { inspectionId, roomId });
+          return res.status(400).json({ message: "Missing responses data" });
+        }
+        let parsedResponses;
+        try {
+          parsedResponses = typeof responses === "string" ? JSON.parse(responses) : responses;
+        } catch (parseError) {
+          logger.error("[POST] Error parsing responses:", parseError);
+          return res.status(400).json({ message: "Invalid responses format" });
+        }
+        let imageUrls = [];
+        if (files && files.length > 0) {
+          logger.info("[POST] Processing uploaded files with object storage", {
+            count: files.length
+          });
+          for (const file of files) {
+            try {
+              const filename = `room-inspections/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
+              const uploadResult = await objectStorageService.uploadLargeFile(
+                file.buffer,
+                filename,
+                file.mimetype
+              );
+              if (uploadResult.success) {
+                imageUrls.push(`/objects/${filename}`);
+                logger.info("[POST] File uploaded to object storage", {
+                  filename,
+                  url: `/objects/${filename}`
+                });
+              } else {
+                logger.error("[POST] Failed to upload file to object storage", {
+                  filename,
+                  error: uploadResult.error
+                });
+              }
+            } catch (uploadError) {
+              logger.error(
+                "[POST] Error uploading file to object storage:",
+                uploadError
+              );
             }
-          } catch (uploadError) {
-            logger.error("[POST] Error uploading file to object storage:", uploadError);
           }
         }
+        const updatedRoom = await storage.updateRoomInspection(
+          roomId,
+          inspectionId,
+          {
+            responses: JSON.stringify(parsedResponses),
+            images: JSON.stringify(imageUrls),
+            updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+            isCompleted: true
+          }
+        );
+        if (!updatedRoom) {
+          logger.error("[POST] Room not found", { inspectionId, roomId });
+          return res.status(404).json({ message: "Room not found" });
+        }
+        logger.info("[POST] Room inspection completed successfully", {
+          inspectionId,
+          roomId,
+          responseCount: Object.keys(parsedResponses).length,
+          imageCount: imageUrls.length
+        });
+        res.status(200).json({
+          message: "Room inspection submitted successfully",
+          roomId: updatedRoom.id,
+          responseCount: Object.keys(parsedResponses).length,
+          imageCount: imageUrls.length
+        });
+      } catch (error) {
+        logger.error("[POST] Error submitting room inspection:", error);
+        res.status(500).json({ message: "Internal server error" });
       }
-      const updatedRoom = await storage.updateRoomInspection(roomId, inspectionId, {
-        responses: JSON.stringify(parsedResponses),
-        images: JSON.stringify(imageUrls),
-        updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-        isCompleted: true
-      });
-      if (!updatedRoom) {
-        logger.error("[POST] Room not found", { inspectionId, roomId });
-        return res.status(404).json({ message: "Room not found" });
-      }
-      logger.info("[POST] Room inspection completed successfully", {
-        inspectionId,
-        roomId,
-        responseCount: Object.keys(parsedResponses).length,
-        imageCount: imageUrls.length
-      });
-      res.status(200).json({
-        message: "Room inspection submitted successfully",
-        roomId: updatedRoom.id,
-        responseCount: Object.keys(parsedResponses).length,
-        imageCount: imageUrls.length
-      });
-    } catch (error) {
-      logger.error("[POST] Error submitting room inspection:", error);
-      res.status(500).json({ message: "Internal server error" });
     }
-  });
-  app2.post("/api/inspections/:id/finalize", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid inspection ID" });
+  );
+  app2.post(
+    "/api/inspections/:id/finalize",
+    async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+          return res.status(400).json({ error: "Invalid inspection ID" });
+        }
+        const inspection = await storage.updateInspection(id, {
+          isCompleted: true
+        });
+        if (!inspection) {
+          return res.status(404).json({ error: "Inspection not found" });
+        }
+        res.json(inspection);
+      } catch (error) {
+        logger.error("Error finalizing inspection:", error);
+        res.status(500).json({ error: "Failed to finalize inspection" });
       }
-      const inspection = await storage.updateInspection(id, { isCompleted: true });
-      if (!inspection) {
-        return res.status(404).json({ error: "Inspection not found" });
-      }
-      res.json(inspection);
-    } catch (error) {
-      logger.error("Error finalizing inspection:", error);
-      res.status(500).json({ error: "Failed to finalize inspection" });
     }
-  });
+  );
   app2.use("/uploads", express.static(path3.join(process.cwd(), "uploads")));
   app2.get("/objects/:filename(*)", async (req, res) => {
     try {
@@ -2315,7 +2503,10 @@ async function registerRoutes(app2) {
       }
       const downloadResult = await objectStorageService.downloadObject(filename);
       if (!downloadResult.success || !downloadResult.data) {
-        logger.error("[GET] Failed to download object", { filename, error: downloadResult.error });
+        logger.error("[GET] Failed to download object", {
+          filename,
+          error: downloadResult.error
+        });
         return res.status(500).json({ message: "Failed to serve file" });
       }
       res.set({
@@ -2323,10 +2514,13 @@ async function registerRoutes(app2) {
         "Content-Length": downloadResult.data.length.toString(),
         "Cache-Control": "public, max-age=31536000",
         // 1 year cache
-        "ETag": `"${objectFile.httpEtag}"`
+        ETag: `"${objectFile.httpEtag}"`
       });
       res.send(downloadResult.data);
-      logger.info("[GET] Object served successfully", { filename, size: downloadResult.data.length });
+      logger.info("[GET] Object served successfully", {
+        filename,
+        size: downloadResult.data.length
+      });
     } catch (error) {
       logger.error("[GET] Error serving object:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -2341,7 +2535,14 @@ async function registerRoutes(app2) {
           message: "Username and password are required"
         });
       }
-      const adminUsername = process.env.ADMIN_USERNAME || "admin";
+      const adminUsername = process.env.ADMIN_USERNAME;
+      if (!adminUsername) {
+        logger.error("ADMIN_USERNAME environment variable not set");
+        return res.status(500).json({
+          success: false,
+          message: "Server configuration error"
+        });
+      }
       const adminPassword = process.env.ADMIN_PASSWORD;
       if (!adminPassword) {
         logger.error("ADMIN_PASSWORD environment variable not set");
@@ -2352,13 +2553,18 @@ async function registerRoutes(app2) {
       }
       const hashedPassword = process.env.ADMIN_PASSWORD_HASH;
       if (!hashedPassword) {
-        logger.error("ADMIN_PASSWORD_HASH environment variable not set - please run password setup");
+        logger.error(
+          "ADMIN_PASSWORD_HASH environment variable not set - please run password setup"
+        );
         return res.status(500).json({
           success: false,
           message: "Server configuration error - password not properly hashed"
         });
       }
-      const isValidPassword = await PasswordManager.verifyPassword(password, hashedPassword);
+      const isValidPassword = await PasswordManager.verifyPassword(
+        password,
+        hashedPassword
+      );
       if (username === adminUsername && isValidPassword) {
         const sessionToken = "admin_" + randomBytes(32).toString("hex");
         await SessionManager.setSession(sessionToken, {
@@ -2415,37 +2621,51 @@ async function registerRoutes(app2) {
       res.status(500).json({ success: false, message: "Internal server error" });
     }
   });
-  app2.delete("/api/admin/inspections/:id", validateAdminSession, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteInspection(id);
-      if (success) {
-        res.json({ success: true, message: "Inspection deleted successfully" });
-      } else {
-        res.status(404).json({ success: false, message: "Inspection not found" });
+  app2.delete(
+    "/api/admin/inspections/:id",
+    validateAdminSession,
+    async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const success = await storage.deleteInspection(id);
+        if (success) {
+          res.json({
+            success: true,
+            message: "Inspection deleted successfully"
+          });
+        } else {
+          res.status(404).json({ success: false, message: "Inspection not found" });
+        }
+      } catch (error) {
+        logger.error("Error deleting admin inspection", { error });
+        res.status(500).json({ success: false, message: "Internal server error" });
       }
-    } catch (error) {
-      logger.error("Error deleting admin inspection", { error });
-      res.status(500).json({ success: false, message: "Internal server error" });
     }
-  });
-  app2.delete("/api/admin/custodial-notes/:id", validateAdminSession, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ success: false, message: "Invalid custodial note ID" });
+  );
+  app2.delete(
+    "/api/admin/custodial-notes/:id",
+    validateAdminSession,
+    async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+          return res.status(400).json({ success: false, message: "Invalid custodial note ID" });
+        }
+        const success = await storage.deleteCustodialNote(id);
+        if (success) {
+          res.json({
+            success: true,
+            message: "Custodial note deleted successfully"
+          });
+        } else {
+          res.status(404).json({ success: false, message: "Custodial note not found" });
+        }
+      } catch (error) {
+        logger.error("Error deleting custodial note", { error });
+        res.status(500).json({ success: false, message: "Internal server error" });
       }
-      const success = await storage.deleteCustodialNote(id);
-      if (success) {
-        res.json({ success: true, message: "Custodial note deleted successfully" });
-      } else {
-        res.status(404).json({ success: false, message: "Custodial note not found" });
-      }
-    } catch (error) {
-      logger.error("Error deleting custodial note", { error });
-      res.status(500).json({ success: false, message: "Internal server error" });
     }
-  });
+  );
   const pdfUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -2462,76 +2682,100 @@ async function registerRoutes(app2) {
       }
     }
   });
-  app2.post("/api/monthly-feedback", pdfUpload.single("pdf"), async (req, res) => {
-    logger.info("[POST] Monthly feedback upload started", {
-      body: req.body,
-      file: req.file ? req.file.originalname : "none"
-    });
-    try {
-      const { school, month, year: year2, notes, uploadedBy } = req.body;
-      const file = req.file;
-      if (!school || !month || !year2 || !file) {
-        logger.warn("[POST] Missing required fields");
-        return res.status(400).json({
-          message: "Missing required fields",
-          details: { school: !!school, month: !!month, year: !!year2, file: !!file }
-        });
-      }
-      const yearNum = parseInt(year2);
-      if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
-        return res.status(400).json({ message: "Invalid year" });
-      }
-      const filename = `monthly-feedback/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
-      const uploadResult = await objectStorageService.uploadLargeFile(
-        file.buffer,
-        filename,
-        file.mimetype
-      );
-      if (!uploadResult.success) {
-        logger.error("[POST] Failed to upload PDF", { error: uploadResult.error });
-        return res.status(500).json({ message: "Failed to upload PDF file" });
-      }
-      const pdfUrl = `/objects/${filename}`;
-      logger.info("[POST] PDF uploaded successfully", { filename, url: pdfUrl });
-      let extractedText = null;
-      try {
-        extractedText = await doclingService.extractTextFromPDF(file.buffer, file.originalname);
-        if (!extractedText) {
-          logger.warn("[POST] Docling returned empty content, continuing without text");
-        }
-      } catch (extractError) {
-        logger.error("[POST] Docling extraction failed, continuing without text:", extractError);
-      }
-      const feedbackData = {
-        school,
-        month,
-        year: yearNum,
-        pdfUrl,
-        pdfFileName: file.originalname,
-        extractedText,
-        notes: notes || null,
-        uploadedBy: uploadedBy || null,
-        fileSize: file.size
-      };
-      const validatedData = insertMonthlyFeedbackSchema.parse(feedbackData);
-      const newFeedback = await storage.createMonthlyFeedback(validatedData);
-      logger.info("[POST] Monthly feedback created successfully", { id: newFeedback.id });
-      res.status(201).json({
-        message: "Monthly feedback uploaded successfully",
-        id: newFeedback.id,
-        hasExtractedText: !!extractedText
+  app2.post(
+    "/api/monthly-feedback",
+    pdfUpload.single("pdf"),
+    async (req, res) => {
+      logger.info("[POST] Monthly feedback upload started", {
+        body: req.body,
+        file: req.file ? req.file.originalname : "none"
       });
-    } catch (error) {
-      logger.error("[POST] Error creating monthly feedback:", error);
-      if (error instanceof z2.ZodError) {
-        return res.status(400).json({
-          message: "Invalid data",
-          details: error.errors
+      try {
+        const { school, month, year: year2, notes, uploadedBy } = req.body;
+        const file = req.file;
+        if (!school || !month || !year2 || !file) {
+          logger.warn("[POST] Missing required fields");
+          return res.status(400).json({
+            message: "Missing required fields",
+            details: {
+              school: !!school,
+              month: !!month,
+              year: !!year2,
+              file: !!file
+            }
+          });
+        }
+        const yearNum = parseInt(year2);
+        if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
+          return res.status(400).json({ message: "Invalid year" });
+        }
+        const filename = `monthly-feedback/${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
+        const uploadResult = await objectStorageService.uploadLargeFile(
+          file.buffer,
+          filename,
+          file.mimetype
+        );
+        if (!uploadResult.success) {
+          logger.error("[POST] Failed to upload PDF", {
+            error: uploadResult.error
+          });
+          return res.status(500).json({ message: "Failed to upload PDF file" });
+        }
+        const pdfUrl = `/objects/${filename}`;
+        logger.info("[POST] PDF uploaded successfully", {
+          filename,
+          url: pdfUrl
         });
+        let extractedText = null;
+        try {
+          extractedText = await doclingService.extractTextFromPDF(
+            file.buffer,
+            file.originalname
+          );
+          if (!extractedText) {
+            logger.warn(
+              "[POST] Docling returned empty content, continuing without text"
+            );
+          }
+        } catch (extractError) {
+          logger.error(
+            "[POST] Docling extraction failed, continuing without text:",
+            extractError
+          );
+        }
+        const feedbackData = {
+          school,
+          month,
+          year: yearNum,
+          pdfUrl,
+          pdfFileName: file.originalname,
+          extractedText,
+          notes: notes || null,
+          uploadedBy: uploadedBy || null,
+          fileSize: file.size
+        };
+        const validatedData = insertMonthlyFeedbackSchema.parse(feedbackData);
+        const newFeedback = await storage.createMonthlyFeedback(validatedData);
+        logger.info("[POST] Monthly feedback created successfully", {
+          id: newFeedback.id
+        });
+        res.status(201).json({
+          message: "Monthly feedback uploaded successfully",
+          id: newFeedback.id,
+          hasExtractedText: !!extractedText
+        });
+      } catch (error) {
+        logger.error("[POST] Error creating monthly feedback:", error);
+        if (error instanceof z2.ZodError) {
+          return res.status(400).json({
+            message: "Invalid data",
+            details: error.errors
+          });
+        }
+        res.status(500).json({ message: "Internal server error" });
       }
-      res.status(500).json({ message: "Internal server error" });
     }
-  });
+  );
   app2.get("/api/monthly-feedback", async (req, res) => {
     try {
       const school = typeof req.query.school === "string" ? req.query.school.trim() : "";
@@ -2576,23 +2820,27 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to fetch feedback" });
     }
   });
-  app2.delete("/api/monthly-feedback/:id", validateAdminSession, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid feedback ID" });
+  app2.delete(
+    "/api/monthly-feedback/:id",
+    validateAdminSession,
+    async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+          return res.status(400).json({ message: "Invalid feedback ID" });
+        }
+        const success = await storage.deleteMonthlyFeedback(id);
+        if (success) {
+          res.json({ message: "Monthly feedback deleted successfully" });
+        } else {
+          res.status(404).json({ message: "Feedback not found" });
+        }
+      } catch (error) {
+        logger.error("[DELETE] Error deleting monthly feedback:", error);
+        res.status(500).json({ message: "Failed to delete feedback" });
       }
-      const success = await storage.deleteMonthlyFeedback(id);
-      if (success) {
-        res.json({ message: "Monthly feedback deleted successfully" });
-      } else {
-        res.status(404).json({ message: "Feedback not found" });
-      }
-    } catch (error) {
-      logger.error("[DELETE] Error deleting monthly feedback:", error);
-      res.status(500).json({ message: "Failed to delete feedback" });
     }
-  });
+  );
   app2.patch("/api/monthly-feedback/:id/notes", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -2620,17 +2868,24 @@ async function registerRoutes(app2) {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       const validStartDate = startDate && dateRegex.test(startDate) ? startDate : "";
       const validEndDate = endDate && dateRegex.test(endDate) ? endDate : "";
-      logger.info("[GET] Fetching building scores", { startDate: validStartDate, endDate: validEndDate });
+      logger.info("[GET] Fetching building scores", {
+        startDate: validStartDate,
+        endDate: validEndDate
+      });
       const allInspections = await storage.getInspections();
       const allNotes = await storage.getCustodialNotes();
       let filteredInspections = allInspections;
       let filteredNotes = allNotes;
       if (validStartDate) {
-        filteredInspections = filteredInspections.filter((i) => i.date >= validStartDate);
+        filteredInspections = filteredInspections.filter(
+          (i) => i.date >= validStartDate
+        );
         filteredNotes = filteredNotes.filter((n) => n.date >= validStartDate);
       }
       if (validEndDate) {
-        filteredInspections = filteredInspections.filter((i) => i.date <= validEndDate);
+        filteredInspections = filteredInspections.filter(
+          (i) => i.date <= validEndDate
+        );
         filteredNotes = filteredNotes.filter((n) => n.date <= validEndDate);
       }
       const inspectionsBySchool = {};
@@ -2676,7 +2931,11 @@ async function registerRoutes(app2) {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       const validStartDate = startDate && dateRegex.test(startDate) ? startDate : "";
       const validEndDate = endDate && dateRegex.test(endDate) ? endDate : "";
-      logger.info("[GET] Fetching score for school", { school, startDate: validStartDate, endDate: validEndDate });
+      logger.info("[GET] Fetching score for school", {
+        school,
+        startDate: validStartDate,
+        endDate: validEndDate
+      });
       const allInspections = await storage.getInspections();
       const allNotes = await storage.getCustodialNotes();
       let inspections2 = allInspections.filter((i) => i.school === school);
@@ -2697,8 +2956,8 @@ async function registerRoutes(app2) {
         score: scoringResult,
         complianceStatus,
         dateRange: {
-          start: startDate || (inspections2[0]?.date || notes[0]?.date),
-          end: endDate || (inspections2[inspections2.length - 1]?.date || notes[notes.length - 1]?.date)
+          start: startDate || inspections2[0]?.date || notes[0]?.date,
+          end: endDate || inspections2[inspections2.length - 1]?.date || notes[notes.length - 1]?.date
         }
       });
     } catch (error) {
@@ -2745,7 +3004,10 @@ async function registerRoutes(app2) {
           });
         }
       } catch (parseError) {
-        logger.warn("[POST] Invalid metadata format", { error: parseError, metadata: req.body.metadata });
+        logger.warn("[POST] Invalid metadata format", {
+          error: parseError,
+          metadata: req.body.metadata
+        });
         return res.status(400).json({
           success: false,
           message: "Invalid metadata format"
@@ -2769,7 +3031,10 @@ async function registerRoutes(app2) {
           }
         }
       } catch (locationError) {
-        logger.warn("[POST] Invalid location data format", { error: locationError, location: req.body.location });
+        logger.warn("[POST] Invalid location data format", {
+          error: locationError,
+          location: req.body.location
+        });
         locationData = null;
       }
       let inspectionId;
