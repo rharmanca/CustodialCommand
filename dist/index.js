@@ -2696,21 +2696,21 @@ async function registerRoutes(app2) {
         file: req.file ? req.file.originalname : "none"
       });
       try {
-        const { school, month, year: year2, notes, uploadedBy } = req.body;
+        const { school, month, year, notes, uploadedBy } = req.body;
         const file = req.file;
-        if (!school || !month || !year2 || !file) {
+        if (!school || !month || !year || !file) {
           logger.warn("[POST] Missing required fields");
           return res.status(400).json({
             message: "Missing required fields",
             details: {
               school: !!school,
               month: !!month,
-              year: !!year2,
+              year: !!year,
               file: !!file
             }
           });
         }
-        const yearNum = parseInt(year2);
+        const yearNum = parseInt(year);
         if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
           return res.status(400).json({ message: "Invalid year" });
         }
@@ -2801,7 +2801,7 @@ async function registerRoutes(app2) {
       }
       logger.info("[GET] Retrieved filtered monthly feedback", {
         total: feedback.length,
-        filters: { school, year, month }
+        filters: { school, year: yearStr, month }
       });
       res.json(feedback);
     } catch (error) {

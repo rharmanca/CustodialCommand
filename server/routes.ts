@@ -1363,7 +1363,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       logger.info("[GET] Retrieved filtered monthly feedback", {
         total: feedback.length,
-        filters: { school, year, month },
+        filters: { school, year: yearStr, month },
       });
 
       res.json(feedback);
