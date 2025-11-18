@@ -36,26 +36,9 @@ export default defineConfig({
     target: "es2020", // Target ES2020 for optional chaining support
     rollupOptions: {
       output: {
-        // Smart code splitting for better performance
-        manualChunks: {
-          // Separate vendor libraries
-          vendor: ['react', 'react-dom'],
-
-          // UI library chunks
-          ui: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-select',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-radio-group'
-          ],
-
-          // Heavy utilities
-          utils: ['recharts', 'jspdf', 'xlsx', 'html2canvas'],
-
-          // Form and validation
-          forms: ['react-hook-form', '@hookform/resolvers', 'zod']
-        },
+        // Conservative code splitting - let Vite handle chunking automatically
+        // This prevents deployment issues while maintaining lazy loading benefits
+        manualChunks: undefined,
 
         // Keep file naming for cache busting
         entryFileNames: `assets/[name]-[hash].js`,
