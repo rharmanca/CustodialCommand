@@ -1805,6 +1805,11 @@ async function registerRoutes(app2) {
           }
         }
       }
+      const parseNumericField = (value) => {
+        if (value === null || value === void 0 || value === "") return null;
+        const num = typeof value === "string" ? parseInt(value, 10) : value;
+        return isNaN(num) ? null : num;
+      };
       const inspectionData = {
         inspectorName: inspectorName || "",
         school,
@@ -1813,17 +1818,17 @@ async function registerRoutes(app2) {
         locationDescription: req.body.locationDescription || "",
         roomNumber: req.body.roomNumber || null,
         locationCategory: req.body.locationCategory || null,
-        floors: req.body.floors || null,
-        verticalHorizontalSurfaces: req.body.verticalHorizontalSurfaces || null,
-        ceiling: req.body.ceiling || null,
-        restrooms: req.body.restrooms || null,
-        customerSatisfaction: req.body.customerSatisfaction || null,
-        trash: req.body.trash || null,
-        projectCleaning: req.body.projectCleaning || null,
-        activitySupport: req.body.activitySupport || null,
-        safetyCompliance: req.body.safetyCompliance || null,
-        equipment: req.body.equipment || null,
-        monitoring: req.body.monitoring || null,
+        floors: parseNumericField(req.body.floors),
+        verticalHorizontalSurfaces: parseNumericField(req.body.verticalHorizontalSurfaces),
+        ceiling: parseNumericField(req.body.ceiling),
+        restrooms: parseNumericField(req.body.restrooms),
+        customerSatisfaction: parseNumericField(req.body.customerSatisfaction),
+        trash: parseNumericField(req.body.trash),
+        projectCleaning: parseNumericField(req.body.projectCleaning),
+        activitySupport: parseNumericField(req.body.activitySupport),
+        safetyCompliance: parseNumericField(req.body.safetyCompliance),
+        equipment: parseNumericField(req.body.equipment),
+        monitoring: parseNumericField(req.body.monitoring),
         notes: req.body.notes || null,
         images: imageUrls,
         verifiedRooms: [],
@@ -3293,7 +3298,21 @@ function serveStatic(app2) {
     }
     next();
   });
-  app2.use(express2.static(staticPath));
+  app2.use(express2.static(staticPath, {
+    maxAge: "1y",
+    // Cache static assets for 1 year
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, path5) => {
+      if (path5.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      }
+    }
+  }));
   app2.get("*", (req, res, next) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/health") || req.path.startsWith("/uploads") || req.path.includes(".")) {
       return next();

@@ -20,7 +20,8 @@
       "Bash(git push:*)",
       "Bash(cat:*)",
       "Bash(npm audit:*)",
-      "Bash(npm run analyze:bundle:*)"
+      "Bash(npm run analyze:bundle:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
