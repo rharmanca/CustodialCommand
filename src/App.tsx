@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect } from "react";
 import { useIsMobile } from "./hooks/use-mobile";
 import { useCustomNotifications } from "@/hooks/use-custom-notifications";
 import SafeLocalStorage from "@/utils/SafeLocalStorage";
@@ -27,15 +27,15 @@ import {
 import custodialDutyImage from "./assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp";
 import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp";
 
-// Lazy loaded pages for better performance
-const CustodialInspectionPage = lazy(() => import("./pages/custodial-inspection"));
-const InspectionDataPage = lazy(() => import("./pages/inspection-data"));
-const CustodialNotesPage = lazy(() => import("./pages/custodial-notes"));
-const WholeBuildingInspectionPage = lazy(() => import("./pages/whole-building-inspection"));
-const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
-const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
-const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
-const ScoresDashboard = lazy(() => import("./pages/scores-dashboard"));
+// Direct imports for stability (temporary fix for chunk loading issues)
+import CustodialInspectionPage from "./pages/custodial-inspection";
+import InspectionDataPage from "./pages/inspection-data";
+import CustodialNotesPage from "./pages/custodial-notes";
+import WholeBuildingInspectionPage from "./pages/whole-building-inspection";
+import RatingCriteriaPage from "./pages/rating-criteria";
+import AdminInspectionsPage from "./pages/admin-inspections";
+import MonthlyFeedbackPage from "./pages/monthly-feedback";
+import ScoresDashboard from "./pages/scores-dashboard";
 
 // Loading skeleton component
 const PageLoadingSkeleton = () => (
@@ -474,55 +474,39 @@ function App() {
           );
         case "Custodial Inspection":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <CustodialInspectionPage
-                onBack={() => setCurrentPage("Custodial")}
-              />
-            </Suspense>
+            <CustodialInspectionPage
+              onBack={() => setCurrentPage("Custodial")}
+            />
           );
         case "Inspection Data":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <InspectionDataPage onBack={() => setCurrentPage("Custodial")} />
-            </Suspense>
+            <InspectionDataPage onBack={() => setCurrentPage("Custodial")} />
           );
         case "Custodial Notes":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <CustodialNotesPage onBack={() => setCurrentPage("Custodial")} />
-            </Suspense>
+            <CustodialNotesPage onBack={() => setCurrentPage("Custodial")} />
           );
         case "Whole Building Inspection":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <WholeBuildingInspectionPage
-                onBack={() => setCurrentPage("Custodial")}
-              />
-            </Suspense>
+            <WholeBuildingInspectionPage
+              onBack={() => setCurrentPage("Custodial")}
+            />
           );
         case "Rating Criteria":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <RatingCriteriaPage onBack={() => setCurrentPage("Custodial")} />
-            </Suspense>
+            <RatingCriteriaPage onBack={() => setCurrentPage("Custodial")} />
           );
         case "admin-inspections":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
-            </Suspense>
+            <AdminInspectionsPage onBack={() => setCurrentPage("Custodial")} />
           );
         case "Monthly Feedback":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <MonthlyFeedbackPage onBack={() => setCurrentPage("Custodial")} />
-            </Suspense>
+            <MonthlyFeedbackPage onBack={() => setCurrentPage("Custodial")} />
           );
         case "Scores Dashboard":
           return (
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <ScoresDashboard onBack={() => setCurrentPage("Custodial")} />
-            </Suspense>
+            <ScoresDashboard onBack={() => setCurrentPage("Custodial")} />
           );
         default:
           return (
