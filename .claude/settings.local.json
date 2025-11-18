@@ -14,7 +14,13 @@
       "Bash(curl:*)",
       "Bash(npm search:*)",
       "Bash(\"/c/Users/Rob/.vscode/extensions/anthropic.claude-code-2.0.42-win32-x64/resources/native-binary/claude.exe\":*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git config:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(cat:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm run analyze:bundle:*)"
     ],
     "deny": [],
     "ask": []

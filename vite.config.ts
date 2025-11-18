@@ -36,9 +36,26 @@ export default defineConfig({
     target: "es2020", // Target ES2020 for optional chaining support
     rollupOptions: {
       output: {
-        // SIMPLIFIED: Let Vite handle chunking automatically
-        // This prevents the React scheduler bundling issue
-        manualChunks: undefined,
+        // Smart code splitting for better performance
+        manualChunks: {
+          // Separate vendor libraries
+          vendor: ['react', 'react-dom'],
+
+          // UI library chunks
+          ui: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-radio-group'
+          ],
+
+          // Heavy utilities
+          utils: ['recharts', 'jspdf', 'xlsx', 'html2canvas'],
+
+          // Form and validation
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod']
+        },
 
         // Keep file naming for cache busting
         entryFileNames: `assets/[name]-[hash].js`,
@@ -90,10 +107,14 @@ export default defineConfig({
       "@radix-ui/react-select"
     ],
     exclude: [
-      // Exclude large dependencies from pre-bundling
+      // Exclude large dependencies from pre-bundling for better chunking
       "jspdf",
       "html2canvas",
       "recharts",
+      "xlsx",
+      "date-fns",
+      "framer-motion",
+      "lucide-react",
       // Exclude scheduler to prevent bundling issues
       "scheduler"
     ],

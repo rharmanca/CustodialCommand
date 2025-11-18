@@ -29,7 +29,23 @@ export function serveStatic(app: Express) {
     next();
   });
 
-  app.use(express.static(staticPath));
+  // Serve static files with aggressive caching for performance
+  app.use(express.static(staticPath, {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, path) => {
+      // Don't cache HTML files
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      } else {
+        // Aggressive caching for JS, CSS, images, fonts
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
+  }));
 
   // Serve index.html for all non-API routes (SPA routing)
   app.get('*', (req, res, next) => {
