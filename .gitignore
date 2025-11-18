@@ -98,3 +98,12 @@ test-*.py
 run-*test*.sh
 PHASE_*_ENHANCEMENT_PLAN.md
 .taskmaster/
+
+# macOS
+._*
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+.Spotlight-V100
+.Trashes

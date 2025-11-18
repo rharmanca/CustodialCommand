@@ -1,7 +1,7 @@
 {
-  "timestamp": "2025-11-14T22:34:55.285Z",
+  "timestamp": "2025-11-18T17:08:22.456Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
-  "duration": 51226,
+  "duration": 39596,
   "summary": {
     "overallSuccess": true,
     "criticalIssues": 0,
@@ -12,58 +12,58 @@
     {
       "name": "End-to-End User Journey Tests",
       "description": "Complete user workflows and business processes",
-      "startTime": "2025-11-14T22:34:04.061Z",
-      "endTime": "2025-11-14T22:34:08.103Z",
+      "startTime": "2025-11-18T17:07:42.860Z",
+      "endTime": "2025-11-18T17:07:44.934Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 4042,
+      "duration": 2074,
       "errors": [],
-      "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
+      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Performance Tests",
       "description": "Response times, load handling, and system performance",
-      "startTime": "2025-11-14T22:34:08.104Z",
-      "endTime": "2025-11-14T22:34:43.805Z",
+      "startTime": "2025-11-18T17:07:44.937Z",
+      "endTime": "2025-11-18T17:08:18.493Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 35701,
+      "duration": 33556,
       "errors": [],
-      "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
+      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Security Tests",
       "description": "Input validation, authentication, and security vulnerabilities",
-      "startTime": "2025-11-14T22:34:43.806Z",
-      "endTime": "2025-11-14T22:34:53.097Z",
+      "startTime": "2025-11-18T17:08:18.494Z",
+      "endTime": "2025-11-18T17:08:21.276Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 9291,
+      "duration": 2782,
       "errors": [],
-      "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
+      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Mobile and PWA Tests",
       "description": "Progressive Web App functionality and mobile responsiveness",
-      "startTime": "2025-11-14T22:34:53.097Z",
-      "endTime": "2025-11-14T22:34:55.284Z",
+      "startTime": "2025-11-18T17:08:21.276Z",
+      "endTime": "2025-11-18T17:08:22.454Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 2187,
+      "duration": 1178,
       "errors": [],
-      "reportFile": "/Users/rharman/CustodialCommand/tests/test-report.json"
+      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     }
   ],
   "overallStats": {

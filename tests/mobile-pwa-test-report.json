@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-11-14T22:34:55.279Z",
+  "timestamp": "2025-11-18T17:08:22.430Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 26,
-    "passed": 20,
-    "failed": 6,
-    "successRate": 76.92307692307693
+    "passed": 18,
+    "failed": 8,
+    "successRate": 69.23076923076923
   },
   "pwaFeatures": [
     {
@@ -75,7 +75,7 @@
     },
     {
       "testName": "Mobile API Performance - /api/inspections",
-      "passed": true,
+      "passed": false,
       "feature": "performance"
     },
     {
@@ -90,7 +90,7 @@
     },
     {
       "testName": "Mobile Form - Create Inspection",
-      "passed": 700,
+      "passed": false,
       "feature": "forms"
     },
     {
@@ -220,32 +220,32 @@
     },
     {
       "testName": "Mobile API Performance - /api/inspections",
-      "passed": true,
-      "details": "Status: 200, Time: 269ms",
+      "passed": false,
+      "details": "Status: 429, Time: 62ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /api/custodial-notes",
       "passed": true,
-      "details": "Status: 200, Time: 75ms",
+      "details": "Status: 200, Time: 63ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /health",
       "passed": true,
-      "details": "Status: 200, Time: 83ms",
+      "details": "Status: 200, Time: 101ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile Form - Create Inspection",
-      "passed": 700,
-      "details": "Created inspection ID: 700",
+      "passed": false,
+      "details": "Failed: 429",
       "feature": "forms"
     },
     {
       "testName": "Mobile Form - Create Custodial Note",
       "passed": false,
-      "details": "Failed: 400",
+      "details": "Failed: 429",
       "feature": "forms"
     },
     {

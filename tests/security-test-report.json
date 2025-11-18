@@ -1,17 +1,142 @@
 {
-  "timestamp": "2025-11-14T22:34:53.082Z",
+  "timestamp": "2025-11-18T17:08:21.254Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
-    "passed": 37,
-    "failed": 8,
-    "successRate": 82.22222222222221
+    "passed": 14,
+    "failed": 31,
+    "successRate": 31.11111111111111
   },
   "vulnerabilities": [
+    {
+      "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
+      "severity": "high"
+    },
+    {
+      "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
+      "severity": "high"
+    },
+    {
+      "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
+      "severity": "high"
+    },
+    {
+      "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
+      "severity": "high"
+    },
+    {
+      "testName": "SQL Injection - Inspector Name: admin'--...",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
+      "severity": "high"
+    },
+    {
+      "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
+      "severity": "high"
+    },
+    {
+      "testName": "XSS - Location Description: <script>alert('XSS')...",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "XSS - Location Description: javascript:alert('XS...",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "XSS - Location Description: <img src=x onerror=a...",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "XSS - Location Description: <svg onload=alert('X...",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "XSS - Location Description: ';alert('XSS');//...",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "XSS - Location Description: <iframe src=javascri...",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "NoSQL Injection - Inspector Name",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "NoSQL Injection - Inspector Name",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "NoSQL Injection - Inspector Name",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "NoSQL Injection - Inspector Name",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "NoSQL Injection - Inspector Name",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "Unauthorized Access - GET /api/admin/inspections",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "Unauthorized Access - DELETE /api/admin/inspections/1",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "Invalid Token - invalid_token...",
+      "details": "Status: 429",
+      "severity": "medium"
+    },
+    {
+      "testName": "Invalid Token - Bearer invalid_token...",
+      "details": "Status: 429",
+      "severity": "medium"
+    },
+    {
+      "testName": "Invalid Token - admin_token_fake...",
+      "details": "Status: 429",
+      "severity": "medium"
+    },
+    {
+      "testName": "Invalid Token - eyJhbGciOiJIUzI1NiIs...",
+      "details": "Status: 429",
+      "severity": "medium"
+    },
+    {
+      "testName": "Invalid Token - ...",
+      "details": "Status: 429",
+      "severity": "medium"
+    },
     {
       "testName": "Session Hijacking - Modified Token",
       "details": "Could not obtain valid session",
       "severity": "high"
+    },
+    {
+      "testName": "Large Payload Protection",
+      "details": "Status: 429",
+      "severity": "medium"
     },
     {
       "testName": "Directory Traversal - ../../../etc/passwd...",
@@ -24,174 +149,164 @@
       "severity": "high"
     },
     {
-      "testName": "File Upload Security - malicious.php",
-      "details": "Status: 500",
+      "testName": "Directory Traversal - ....//....//....//et...",
+      "details": "Status: 429",
       "severity": "high"
     },
     {
-      "testName": "File Upload Security - malicious.jsp",
-      "details": "Status: 500",
+      "testName": "Directory Traversal - %2e%2e%2f%2e%2e%2f%2...",
+      "details": "Status: 429",
       "severity": "high"
     },
     {
-      "testName": "File Upload Security - malicious.exe",
-      "details": "Status: 500",
+      "testName": "Directory Traversal - ..%252f..%252f..%252...",
+      "details": "Status: 429",
       "severity": "high"
-    },
-    {
-      "testName": "File Upload Security - malicious.sh",
-      "details": "Status: 500",
-      "severity": "high"
-    },
-    {
-      "testName": "File Upload Security - Oversized File",
-      "details": "Status: 500",
-      "severity": "medium"
     }
   ],
   "details": [
     {
       "testName": "SQL Injection - Inspector Name: '; DROP TABLE inspec...",
-      "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":687,\"imageCount\":0}",
+      "passed": false,
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR '1'='1...",
-      "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":688,\"imageCount\":0}",
+      "passed": false,
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: '; INSERT INTO inspe...",
-      "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":689,\"imageCount\":0}",
+      "passed": false,
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: 1' UNION SELECT * FR...",
-      "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":690,\"imageCount\":0}",
+      "passed": false,
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: admin'--...",
-      "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":691,\"imageCount\":0}",
+      "passed": false,
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
       "severity": "high"
     },
     {
       "testName": "SQL Injection - Inspector Name: ' OR 1=1 --...",
-      "passed": true,
-      "details": "Status: 201, Response: {\"message\":\"Building inspection created successfully\",\"id\":692,\"imageCount\":0}",
+      "passed": false,
+      "details": "Status: 429, Response: {\"error\":\"Too many requests, please try again later\",\"recovery\":{\"retryAfter\":5,\"canRetry\":true,\"max",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <script>alert('XSS')...",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: javascript:alert('XS...",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <img src=x onerror=a...",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <svg onload=alert('X...",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: ';alert('XSS');//...",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "XSS - Location Description: <iframe src=javascri...",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "NoSQL Injection - Inspector Name",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "Unauthorized Access - GET /api/admin/inspections",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "Unauthorized Access - DELETE /api/admin/inspections/1",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "Invalid Token - invalid_token...",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - Bearer invalid_token...",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - admin_token_fake...",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - eyJhbGciOiJIUzI1NiIs...",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     },
     {
       "testName": "Invalid Token - ...",
-      "passed": true,
-      "details": "Status: 401",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     },
     {
@@ -203,13 +318,13 @@
     {
       "testName": "Rate Limiting - Rapid Requests",
       "passed": true,
-      "details": "20/20 successful, 0 rate limited",
+      "details": "20/20 successful, 20 rate limited",
       "severity": "medium"
     },
     {
       "testName": "Large Payload Protection",
-      "passed": true,
-      "details": "Status: 201",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     },
     {
@@ -238,20 +353,20 @@
     },
     {
       "testName": "Directory Traversal - ....//....//....//et...",
-      "passed": true,
-      "details": "Status: 404",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "Directory Traversal - %2e%2e%2f%2e%2e%2f%2...",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "Directory Traversal - ..%252f..%252f..%252...",
-      "passed": true,
-      "details": "Status: 400",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
@@ -292,32 +407,32 @@
     },
     {
       "testName": "File Upload Security - malicious.php",
-      "passed": false,
-      "details": "Status: 500",
+      "passed": true,
+      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.jsp",
-      "passed": false,
-      "details": "Status: 500",
+      "passed": true,
+      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.exe",
-      "passed": false,
-      "details": "Status: 500",
+      "passed": true,
+      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.sh",
-      "passed": false,
-      "details": "Status: 500",
+      "passed": true,
+      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - Oversized File",
-      "passed": false,
-      "details": "Status: 500",
+      "passed": true,
+      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
       "severity": "medium"
     }
   ]

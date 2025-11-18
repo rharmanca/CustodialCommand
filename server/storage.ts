@@ -323,7 +323,7 @@ export const storage = {
   async getMonthlyFeedback(options?: { school?: string; year?: number; month?: string }) {
     const cacheKey = `monthlyFeedback:all:${JSON.stringify(options || {})}`;
     return executeQuery('getMonthlyFeedback', async () => {
-      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.created_at));
+      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
 
       if (options?.school) {
         query = query.where(eq(monthlyFeedback.school, options.school));

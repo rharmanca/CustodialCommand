@@ -1200,7 +1200,7 @@ var storage = {
   async getMonthlyFeedback(options) {
     const cacheKey = `monthlyFeedback:all:${JSON.stringify(options || {})}`;
     return executeQuery("getMonthlyFeedback", async () => {
-      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.created_at));
+      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
       if (options?.school) {
         query = query.where(eq(monthlyFeedback.school, options.school));
       }
