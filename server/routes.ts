@@ -1369,7 +1369,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.json(feedback);
     } catch (error) {
       logger.error("[GET] Error fetching monthly feedback:", error);
-      res.status(500).json({ message: "Failed to fetch monthly feedback" });
+      // Include error details in development/debugging
+      const errorDetails = {
+        message: "Failed to fetch monthly feedback",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        details: error instanceof Error ? error.message : String(error)
+      };
+      res.status(500).json(errorDetails);
     }
   });
 
@@ -1389,6 +1396,37 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       logger.error("[GET] Error fetching feedback by ID:", error);
       res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
+  // Diagnostic endpoint for Monthly Feedback debugging
+  app.get("/api/monthly-feedback-diagnostic", async (req, res) => {
+    try {
+      const diagnostic = {
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database_url_exists: !!process.env.DATABASE_URL,
+        database_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'NOT SET',
+      };
+
+      // Test basic database connection
+      try {
+        const testQuery = await storage.getMonthlyFeedback();
+        diagnostic.query_success = true;
+        diagnostic.records_count = testQuery ? testQuery.length : 0;
+        diagnostic.query_result = testQuery;
+      } catch (queryError) {
+        diagnostic.query_success = false;
+        diagnostic.query_error = queryError instanceof Error ? queryError.message : String(queryError);
+        diagnostic.query_stack = queryError instanceof Error ? queryError.stack : undefined;
+      }
+
+      res.json(diagnostic);
+    } catch (error) {
+      res.status(500).json({
+        message: "Diagnostic failed",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

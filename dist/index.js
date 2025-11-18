@@ -2806,7 +2806,13 @@ async function registerRoutes(app2) {
       res.json(feedback);
     } catch (error) {
       logger.error("[GET] Error fetching monthly feedback:", error);
-      res.status(500).json({ message: "Failed to fetch monthly feedback" });
+      const errorDetails = {
+        message: "Failed to fetch monthly feedback",
+        error: process.env.NODE_ENV === "development" ? error.message : void 0,
+        stack: process.env.NODE_ENV === "development" ? error.stack : void 0,
+        details: error instanceof Error ? error.message : String(error)
+      };
+      res.status(500).json(errorDetails);
     }
   });
   app2.get("/api/monthly-feedback/:id", async (req, res) => {
@@ -2823,6 +2829,32 @@ async function registerRoutes(app2) {
     } catch (error) {
       logger.error("[GET] Error fetching feedback by ID:", error);
       res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+  app2.get("/api/monthly-feedback-diagnostic", async (req, res) => {
+    try {
+      const diagnostic = {
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        environment: process.env.NODE_ENV,
+        database_url_exists: !!process.env.DATABASE_URL,
+        database_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + "..." : "NOT SET"
+      };
+      try {
+        const testQuery = await storage.getMonthlyFeedback();
+        diagnostic.query_success = true;
+        diagnostic.records_count = testQuery ? testQuery.length : 0;
+        diagnostic.query_result = testQuery;
+      } catch (queryError) {
+        diagnostic.query_success = false;
+        diagnostic.query_error = queryError instanceof Error ? queryError.message : String(queryError);
+        diagnostic.query_stack = queryError instanceof Error ? queryError.stack : void 0;
+      }
+      res.json(diagnostic);
+    } catch (error) {
+      res.status(500).json({
+        message: "Diagnostic failed",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   app2.delete(
