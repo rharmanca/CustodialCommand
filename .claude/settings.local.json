@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp add:*)",
+      "Bash(\"/c/Users/Rob/.vscode/extensions/anthropic.claude-code-2.0.42-win32-x64/resources/native-binary/claude.exe\" --help)",
+      "Bash(\"/c/Users/Rob/.vscode/extensions/anthropic.claude-code-2.0.42-win32-x64/resources/native-binary/claude.exe\" mcp list)",
+      "Bash(node:*)",
+      "Bash(npm --version:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run validate-env:*)",
+      "Bash(npm run dev)",
+      "Bash(set:*)",
+      "Bash(where serena)",
+      "Bash(curl:*)",
+      "Bash(npm search:*)",
+      "Bash(\"/c/Users/Rob/.vscode/extensions/anthropic.claude-code-2.0.42-win32-x64/resources/native-binary/claude.exe\":*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
