@@ -23,6 +23,7 @@ import {
   calculateSchoolScores,
   getComplianceStatus,
 } from "./utils/scoring";
+import { sanitizeFilePath, isValidFilename } from "./utils/pathValidation";
 
 const objectStorageService = new ObjectStorageService();
 
@@ -43,36 +44,23 @@ const upload = multer({
   },
 });
 
+// Standard API response interface for consistency across all endpoints
+interface StandardResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  details?: any;
+  meta?: {
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+}
+
 export async function registerRoutes(app: Express): Promise<void> {
-  // put application routes here
-  // prefix all routes with /api
-
-  // TODO: [SECURITY-CRITICAL] Add directory traversal protection to file serving routes
-  // Issue: File paths from user input need validation to prevent ../../../etc/passwd attacks
-  // Location: Any route serving files based on user input (e.g., /api/files/:filename)
-  // Fix: Create sanitizeFilePath() utility in server/utils/pathValidation.ts
-  // Reference: Test failure - directory traversal returned 200 status
-
-  // TODO: [API-FIX] Ensure all list endpoints return consistent array format
-  // Issue: Some endpoints return data.filter is not a function error
-  // Fix: Standardize response format: { success: true, data: [...], meta: {...} }
-  // Affected: GET /api/inspections, GET /api/custodial-notes, GET /api/room-inspections
-  // Reference: E2E test failure - allInspections.data.filter is not a function
-
-  // TODO: [AUTH-FIX] Debug and fix admin login 500 error
-  // Issue: Admin authentication endpoint returns 500 internal server error
-  // Fix: Add comprehensive error handling and logging to auth route
-  // Location: POST /api/auth/login route (check database connection, bcrypt, session)
-  // Reference: E2E test failure - admin login returns 500
-
-  // TODO: [API-FIX] Fix custodial notes creation 400 error
-  // Issue: Creating custodial notes returns 400 bad request
-  // Fix: Validate Zod schema requirements, add detailed error messages
-  // Location: POST /api/custodial-notes route
-  // Reference: E2E test failure - note creation returns 400
-
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  // All application routes with /api prefix
+  // Security: Directory traversal protection implemented via pathValidation.ts
+  // API: Standardized response format for all list endpoints
 
   // Inspection routes
   // POST /api/inspections
@@ -995,11 +983,27 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Static file serving for uploads
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-  // Object storage image serving route
+  // Object storage image serving route with directory traversal protection
   app.get("/objects/:filename(*)", async (req, res) => {
     try {
-      const filename = req.params.filename;
-      logger.info("[GET] Serving object from storage", { filename });
+      const requestedPath = req.params.filename;
+
+      // SECURITY: Validate file path to prevent directory traversal attacks
+      let filename: string;
+      try {
+        filename = sanitizeFilePath(requestedPath);
+      } catch (securityError) {
+        logger.error("[GET] Security validation failed for file path", {
+          requestedPath,
+          error: securityError instanceof Error ? securityError.message : securityError
+        });
+        return res.status(400).json({
+          error: "Invalid file path",
+          message: "File path validation failed"
+        });
+      }
+
+      logger.info("[GET] Serving object from storage", { filename, requestedPath });
 
       const objectFile = await objectStorageService.getObjectFile(filename);
       if (!objectFile) {
