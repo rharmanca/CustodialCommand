@@ -5,6 +5,16 @@
  * Orchestrates all test suites and generates comprehensive reports
  */
 
+// TODO: [TEST-CONFIG] Create test environment configuration system
+// Issue: All tests hardcoded to run against production Railway deployment
+// Fix: Create tests/config.js with local/staging/production configurations
+// Implementation:
+//   - Add TEST_ENV environment variable (local|staging|production)
+//   - Support localhost:5000 for local testing
+//   - Add rate limit bypass token for local testing
+// New scripts: npm run test:local, npm run test:production
+// Reference: Cannot debug issues locally, all tests hitting production
+
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');

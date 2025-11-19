@@ -47,6 +47,30 @@ export async function registerRoutes(app: Express): Promise<void> {
   // put application routes here
   // prefix all routes with /api
 
+  // TODO: [SECURITY-CRITICAL] Add directory traversal protection to file serving routes
+  // Issue: File paths from user input need validation to prevent ../../../etc/passwd attacks
+  // Location: Any route serving files based on user input (e.g., /api/files/:filename)
+  // Fix: Create sanitizeFilePath() utility in server/utils/pathValidation.ts
+  // Reference: Test failure - directory traversal returned 200 status
+
+  // TODO: [API-FIX] Ensure all list endpoints return consistent array format
+  // Issue: Some endpoints return data.filter is not a function error
+  // Fix: Standardize response format: { success: true, data: [...], meta: {...} }
+  // Affected: GET /api/inspections, GET /api/custodial-notes, GET /api/room-inspections
+  // Reference: E2E test failure - allInspections.data.filter is not a function
+
+  // TODO: [AUTH-FIX] Debug and fix admin login 500 error
+  // Issue: Admin authentication endpoint returns 500 internal server error
+  // Fix: Add comprehensive error handling and logging to auth route
+  // Location: POST /api/auth/login route (check database connection, bcrypt, session)
+  // Reference: E2E test failure - admin login returns 500
+
+  // TODO: [API-FIX] Fix custodial notes creation 400 error
+  // Issue: Creating custodial notes returns 400 bad request
+  // Fix: Validate Zod schema requirements, add detailed error messages
+  // Location: POST /api/custodial-notes route
+  // Reference: E2E test failure - note creation returns 400
+
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 

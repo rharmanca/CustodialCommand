@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-18T17:08:22.430Z",
+  "timestamp": "2025-11-19T00:40:53.963Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 26,
@@ -221,19 +221,19 @@
     {
       "testName": "Mobile API Performance - /api/inspections",
       "passed": false,
-      "details": "Status: 429, Time: 62ms",
+      "details": "Status: 429, Time: 38ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /api/custodial-notes",
       "passed": true,
-      "details": "Status: 200, Time: 63ms",
+      "details": "Status: 200, Time: 37ms",
       "feature": "performance"
     },
     {
       "testName": "Mobile API Performance - /health",
       "passed": true,
-      "details": "Status: 200, Time: 101ms",
+      "details": "Status: 200, Time: 71ms",
       "feature": "performance"
     },
     {

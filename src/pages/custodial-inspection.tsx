@@ -1,3 +1,24 @@
+// TODO: [ACCESSIBILITY-CRITICAL] Add proper labels to all form inputs
+// Issue: 0/1 accessibility test passing - no form labels found
+// Fix: Ensure all <Input>, <Select>, <Textarea> components have associated <Label>:
+//   - Use htmlFor attribute on Label matching input id
+//   - Required fields should have aria-required="true"
+//   - Error messages linked with aria-describedby
+//   - Radio buttons and checkboxes in <fieldset> with <legend>
+// Files: This file and all other form pages (whole-building-inspection.tsx, custodial-notes.tsx)
+// Reference: PWA Accessibility test - form labels test failed
+// NOTE: Do not change form functionality, validation, or visual design
+
+// TODO: [ACCESSIBILITY-CRITICAL] Add alt text to all inspection photo uploads
+// Issue: 0/1 accessibility test passing - no alt text for images
+// Fix: Add meaningful alt attributes to all <img> tags:
+//   - Inspection photos: alt="Inspection photo of {roomType} showing {description}"
+//   - Icon images: alt="" with role="presentation" if decorative
+//   - Logo/branding: alt="Custodial Command Logo"
+// Files: This file and components displaying inspection photos
+// Reference: PWA Accessibility test - alt text test failed
+// NOTE: Do not change image display, styling, or upload functionality
+
 import { useState, useEffect, memo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

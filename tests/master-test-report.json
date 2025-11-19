@@ -1,77 +1,82 @@
 {
-  "timestamp": "2025-11-18T17:08:22.456Z",
+  "timestamp": "2025-11-19T00:40:53.973Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
-  "duration": 39596,
+  "duration": 36649,
   "summary": {
     "overallSuccess": true,
-    "criticalIssues": 0,
+    "criticalIssues": 2,
     "warnings": 0,
-    "recommendations": []
+    "recommendations": [
+      "Address failures in Security Tests",
+      "Address security vulnerabilities immediately - input validation or authentication issues detected"
+    ]
   },
   "suiteResults": [
     {
       "name": "End-to-End User Journey Tests",
       "description": "Complete user workflows and business processes",
-      "startTime": "2025-11-18T17:07:42.860Z",
-      "endTime": "2025-11-18T17:07:44.934Z",
+      "startTime": "2025-11-19T00:40:17.326Z",
+      "endTime": "2025-11-19T00:40:18.545Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 2074,
+      "duration": 1219,
       "errors": [],
       "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Performance Tests",
       "description": "Response times, load handling, and system performance",
-      "startTime": "2025-11-18T17:07:44.937Z",
-      "endTime": "2025-11-18T17:08:18.493Z",
+      "startTime": "2025-11-19T00:40:18.546Z",
+      "endTime": "2025-11-19T00:40:50.713Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 33556,
+      "duration": 32167,
       "errors": [],
       "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     },
     {
       "name": "Security Tests",
       "description": "Input validation, authentication, and security vulnerabilities",
-      "startTime": "2025-11-18T17:08:18.494Z",
-      "endTime": "2025-11-18T17:08:21.276Z",
-      "success": true,
-      "totalTests": 6,
-      "passedTests": 6,
+      "startTime": "2025-11-19T00:40:50.714Z",
+      "endTime": "2025-11-19T00:40:53.144Z",
+      "success": false,
+      "totalTests": 0,
+      "passedTests": 0,
       "failedTests": 0,
-      "successRate": 100,
-      "duration": 2782,
-      "errors": [],
-      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
+      "successRate": 0,
+      "duration": 2430,
+      "errors": [
+        "Command failed: node \"/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs\"\nnode:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19)\nEmitted 'error' event on TLSSocket instance at:\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v25.1.0\n"
+      ],
+      "reportFile": null
     },
     {
       "name": "Mobile and PWA Tests",
       "description": "Progressive Web App functionality and mobile responsiveness",
-      "startTime": "2025-11-18T17:08:21.276Z",
-      "endTime": "2025-11-18T17:08:22.454Z",
+      "startTime": "2025-11-19T00:40:53.144Z",
+      "endTime": "2025-11-19T00:40:53.972Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 1178,
+      "duration": 828,
       "errors": [],
       "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
     }
   ],
   "overallStats": {
     "totalSuites": 4,
-    "passedSuites": 4,
-    "failedSuites": 0,
-    "totalTests": 24,
-    "passedTests": 24,
+    "passedSuites": 3,
+    "failedSuites": 1,
+    "totalTests": 18,
+    "passedTests": 18,
     "failedTests": 0,
     "overallSuccessRate": 100
   }

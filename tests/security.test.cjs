@@ -5,6 +5,19 @@
  * Tests input validation, authentication, authorization, and security vulnerabilities
  */
 
+// TODO: [TEST-FIX] Add error handling for EPIPE and TLS socket errors
+// Issue: Test suite crashes with "Error: write EPIPE" on TLS socket
+// Fix: Implement fetchWithRetry() wrapper with exponential backoff
+// Impact: Security tests fail to complete, blocking security validation
+// Reference: Test suite crash at node:internal/stream_base_commons:87:19
+
+// TODO: [TEST-FIX] Add rate limit handling with delays between test batches
+// Issue: 36/45 tests "fail" with 429 status (rate limiting working correctly)
+// Fix: Add delays between security exploit attempts, respect rate limits
+// Implementation: Add 1-2 second delays between test batches
+// Note: 429 errors are EXPECTED - rate limiter is protecting production API
+// Reference: 90%+ of tests returning 429 (this is a security win, not failure)
+
 const https = require('https');
 const http = require('http');
 const fs = require('fs');

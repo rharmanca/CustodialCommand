@@ -1,3 +1,25 @@
+// TODO: [ACCESSIBILITY-CRITICAL] Add semantic HTML structure throughout application
+// Issue: 0/4 accessibility tests passing - no semantic HTML elements found
+// Fix: Replace <div> soup with proper semantic elements:
+//   - Use <header>, <nav>, <main>, <section>, <article>, <aside>, <footer>
+//   - Ensure proper heading hierarchy (h1 → h2 → h3, never skip levels)
+//   - Use <button> for clickable actions, <a> for navigation
+// Files: App.tsx, all pages in src/pages/*, all components with layout
+// Reference: PWA Accessibility test - semantic HTML test failed
+// NOTE: Do not change styling, theme, colors, or visual appearance
+
+// TODO: [ACCESSIBILITY-CRITICAL] Add ARIA labels to all interactive elements
+// Issue: 0/1 accessibility test passing - no ARIA labels found
+// Fix: Add ARIA attributes to interactive components without visible text:
+//   - Icon buttons: aria-label="descriptive action"
+//   - Navigation regions: aria-label="primary navigation"
+//   - Search inputs: aria-label="search inspections"
+//   - Loading states: role="status" aria-live="polite"
+//   - Modals/dialogs: aria-labelledby, aria-describedby
+// Files: All components with icons, buttons, navigation, search
+// Reference: PWA Accessibility test - ARIA labels test failed
+// NOTE: Do not change functionality or visual design
+
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "./hooks/use-mobile";
 import { useCustomNotifications } from "@/hooks/use-custom-notifications";

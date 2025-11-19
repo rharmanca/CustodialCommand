@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-11-18T17:08:21.254Z",
+  "timestamp": "2025-11-19T00:41:10.712Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 45,
-    "passed": 14,
-    "failed": 31,
-    "successRate": 31.11111111111111
+    "passed": 9,
+    "failed": 36,
+    "successRate": 20
   },
   "vulnerabilities": [
     {
@@ -162,6 +162,31 @@
       "testName": "Directory Traversal - ..%252f..%252f..%252...",
       "details": "Status: 429",
       "severity": "high"
+    },
+    {
+      "testName": "File Upload Security - malicious.php",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "File Upload Security - malicious.jsp",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "File Upload Security - malicious.exe",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "File Upload Security - malicious.sh",
+      "details": "Status: 429",
+      "severity": "high"
+    },
+    {
+      "testName": "File Upload Security - Oversized File",
+      "details": "Status: 429",
+      "severity": "medium"
     }
   ],
   "details": [
@@ -407,32 +432,32 @@
     },
     {
       "testName": "File Upload Security - malicious.php",
-      "passed": true,
-      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.jsp",
-      "passed": true,
-      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.exe",
-      "passed": true,
-      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - malicious.sh",
-      "passed": true,
-      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "high"
     },
     {
       "testName": "File Upload Security - Oversized File",
-      "passed": true,
-      "details": "File rejected: Cannot find module 'form-data'\nRequire stack:\n- /Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs",
+      "passed": false,
+      "details": "Status: 429",
       "severity": "medium"
     }
   ]

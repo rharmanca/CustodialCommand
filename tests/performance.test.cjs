@@ -5,6 +5,17 @@
  * Tests response times, load handling, and system performance
  */
 
+// TODO: [PERFORMANCE-MONITORING] Add performance degradation investigation
+// Issue: 381% performance degradation detected (32ms → 154ms under sustained load)
+// Fix: Add server-side performance monitoring middleware to track:
+//   - Request duration per endpoint
+//   - Memory usage trends
+//   - Database query performance
+//   - Endpoint-specific degradation patterns
+// Location: Create server/middleware/performanceMonitor.ts
+// Reference: Performance test - degradation from 32ms to 154ms (381%)
+// NOTE: Do not change existing functionality, only add monitoring
+
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
