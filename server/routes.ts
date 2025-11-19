@@ -1063,16 +1063,6 @@ export async function registerRoutes(app: Express): Promise<void> {
           message: "Server configuration error",
         });
       }
-      const adminPassword = process.env.ADMIN_PASSWORD;
-
-      if (!adminPassword) {
-        logger.error("ADMIN_PASSWORD environment variable not set");
-        return res.status(500).json({
-          success: false,
-          message: "Server configuration error",
-        });
-      }
-
       // Secure password verification using bcrypt
       const hashedPassword = process.env.ADMIN_PASSWORD_HASH;
 
