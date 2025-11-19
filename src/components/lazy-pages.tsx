@@ -7,14 +7,8 @@ export const LazyCustodialInspection = lazy(() =>
   }))
 );
 
-export const LazyWholeBuildingInspection = lazy(() => 
+export const LazyWholeBuildingInspection = lazy(() =>
   import('@/pages/whole-building-inspection').then(module => ({
-    default: module.default
-  }))
-);
-
-export const LazyWholeBuildingInspectionRefactored = lazy(() => 
-  import('@/pages/whole-building-inspection-refactored').then(module => ({
     default: module.default
   }))
 );
