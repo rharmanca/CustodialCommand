@@ -1,3 +1,5 @@
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from './csrf';
+
 interface ApiResponse<T = any> {
   data?: T;
   error?: string;
@@ -20,12 +22,30 @@ export async function apiRequest<T = any>(
   options: RequestInit = {}
 ): Promise<T> {
   try {
+    // Build headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    // Add CSRF token for state-changing operations
+    const method = (options.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      // Refresh token if needed
+      await refreshCsrfTokenIfNeeded();
+
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        headers['x-csrf-token'] = csrfToken;
+      } else {
+        // Log warning but don't block request (backend may not support CSRF yet)
+        console.warn('[CSRF] No token available for', method, url);
+      }
+    }
+
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     });
 
     if (!response.ok) {
