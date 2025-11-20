@@ -128,6 +128,9 @@ export const storage = {
         }
       }
 
+      // Order by date descending (most recent first)
+      query = query.orderBy(desc(inspections.date));
+
       if (options?.limit) {
         query = query.limit(options.limit);
       }
@@ -199,6 +202,9 @@ export const storage = {
         query = query.where(eq(custodialNotes.school, options.school));
       }
 
+      // Order by creation date descending (most recent first)
+      query = query.orderBy(desc(custodialNotes.createdAt));
+
       if (options?.limit) {
         query = query.limit(options.limit);
       }
@@ -254,11 +260,14 @@ export const storage = {
       if (buildingInspectionId) {
         const result = await db.select()
           .from(roomInspections)
-          .where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+          .where(eq(roomInspections.buildingInspectionId, buildingInspectionId))
+          .orderBy(desc(roomInspections.createdAt));
         logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
         return result;
       } else {
-        const result = await db.select().from(roomInspections);
+        const result = await db.select()
+          .from(roomInspections)
+          .orderBy(desc(roomInspections.createdAt));
         logger.info(`Retrieved ${result.length} room inspections`);
         return result;
       }

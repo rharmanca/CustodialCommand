@@ -250,11 +250,47 @@ export interface SessionData {
   expiresAt?: Date;
 }
 
+// Priority queue for efficient session expiration tracking (memory-based only)
+class SessionExpirationQueue {
+  private queue: Array<{ token: string; expiresAt: number }> = [];
+
+  add(token: string, expiresAt: Date) {
+    const expiryTime = expiresAt.getTime();
+    this.queue.push({ token, expiresAt: expiryTime });
+    // Keep queue sorted by expiration time (ascending)
+    this.queue.sort((a, b) => a.expiresAt - b.expiresAt);
+  }
+
+  getExpired(now: number): string[] {
+    const expired: string[] = [];
+    while (this.queue.length > 0 && this.queue[0].expiresAt <= now) {
+      const item = this.queue.shift();
+      if (item) {
+        expired.push(item.token);
+      }
+    }
+    return expired;
+  }
+
+  remove(token: string) {
+    const index = this.queue.findIndex((item) => item.token === token);
+    if (index !== -1) {
+      this.queue.splice(index, 1);
+    }
+  }
+
+  size(): number {
+    return this.queue.length;
+  }
+}
+
 // Secure session management
 export class SessionManager {
   private static readonly SESSION_PREFIX = "admin_session:";
   private static readonly CACHE_PREFIX = "app_cache:";
   private static readonly DEFAULT_TTL = 24 * 60 * 60; // 24 hours in seconds
+  private static readonly INACTIVE_SESSION_TTL = 30 * 60; // 30 minutes of inactivity
+  private static expirationQueue = new SessionExpirationQueue();
 
   /**
    * Store session data securely
@@ -281,10 +317,15 @@ export class SessionManager {
           global.adminSessions = new Map();
         }
         const expiresAt = new Date(Date.now() + ttl * 1000);
-        (global.adminSessions as Map<string, any>).set(sessionToken, {
+        const sessionWithExpiry = {
           ...sessionData,
           expiresAt,
-        });
+        };
+        (global.adminSessions as Map<string, any>).set(sessionToken, sessionWithExpiry);
+
+        // Add to expiration queue for efficient cleanup
+        this.expirationQueue.add(sessionToken, expiresAt);
+
         logger.warn("Session stored in memory (NOT SECURE FOR PRODUCTION)", {
           sessionToken,
         });
@@ -312,9 +353,22 @@ export class SessionManager {
         }
 
         const sessionData = JSON.parse(value);
+        const now = new Date();
+        const lastAccessed = sessionData.lastAccessed ? new Date(sessionData.lastAccessed) : now;
+
+        // Check for inactivity timeout (30 minutes)
+        const inactivityMs = now.getTime() - lastAccessed.getTime();
+        if (inactivityMs > this.INACTIVE_SESSION_TTL * 1000) {
+          logger.info("Session expired due to inactivity", {
+            sessionToken,
+            inactivityMinutes: Math.floor(inactivityMs / 60000),
+          });
+          await this.deleteSession(sessionToken);
+          return null;
+        }
 
         // Update last accessed time
-        sessionData.lastAccessed = new Date().toISOString();
+        sessionData.lastAccessed = now.toISOString();
         await redisClient.setEx(
           key,
           this.DEFAULT_TTL,
@@ -370,6 +424,8 @@ export class SessionManager {
         // Fallback to memory storage
         if (global.adminSessions) {
           (global.adminSessions as Map<string, any>).delete(sessionToken);
+          // Remove from expiration queue
+          this.expirationQueue.remove(sessionToken);
           logger.debug("Session deleted from memory", { sessionToken });
         }
       }
@@ -381,28 +437,31 @@ export class SessionManager {
   }
 
   /**
-   * Clean up expired sessions
+   * Clean up expired sessions (optimized with priority queue for memory sessions)
    */
   static async cleanupExpiredSessions(): Promise<void> {
     try {
       if (redisClient) {
-        // Redis automatically handles TTL expiration
-        logger.debug("Redis handles automatic session expiration");
+        // For Redis, scan for sessions and check inactive ones
+        // This helps reclaim memory even though TTL auto-expires
+        await this.cleanupInactiveSessions();
         return;
       }
 
-      // Clean up memory sessions
+      // Clean up memory sessions using priority queue
       if (!global.adminSessions) {
         return;
       }
 
       const sessions = global.adminSessions as Map<string, any>;
-      const now = new Date();
-      let cleanedCount = 0;
+      const now = Date.now();
 
-      for (const [token, sessionData] of sessions.entries()) {
-        if (sessionData.expiresAt && now > sessionData.expiresAt) {
-          sessions.delete(token);
+      // Get expired tokens from priority queue (O(k) where k = expired count)
+      const expiredTokens = this.expirationQueue.getExpired(now);
+
+      let cleanedCount = 0;
+      for (const token of expiredTokens) {
+        if (sessions.delete(token)) {
           cleanedCount++;
         }
       }
@@ -410,6 +469,8 @@ export class SessionManager {
       if (cleanedCount > 0) {
         logger.info("Cleaned up expired memory sessions", {
           count: cleanedCount,
+          remainingSessions: sessions.size,
+          queueSize: this.expirationQueue.size(),
         });
       }
     } catch (error) {
@@ -418,98 +479,256 @@ export class SessionManager {
       });
     }
   }
+
+  /**
+   * Clean up inactive sessions in Redis (even if not expired, reclaim memory)
+   */
+  private static async cleanupInactiveSessions(): Promise<void> {
+    if (!redisClient) return;
+
+    try {
+      // Use SCAN to iterate through session keys without blocking
+      const pattern = `${this.SESSION_PREFIX}*`;
+      let cursor = 0;
+      let cleanedCount = 0;
+      const now = new Date();
+
+      do {
+        const result = await redisClient.scan(cursor, {
+          MATCH: pattern,
+          COUNT: 100, // Process 100 keys at a time
+        });
+
+        cursor = result.cursor;
+        const keys = result.keys;
+
+        for (const key of keys) {
+          const value = await redisClient.get(key);
+          if (!value) continue;
+
+          const sessionData = JSON.parse(value);
+          const lastAccessed = sessionData.lastAccessed
+            ? new Date(sessionData.lastAccessed)
+            : new Date(sessionData.createdAt || 0);
+
+          // Delete sessions inactive for more than 30 minutes
+          const inactivityMs = now.getTime() - lastAccessed.getTime();
+          if (inactivityMs > this.INACTIVE_SESSION_TTL * 1000) {
+            await redisClient.del(key);
+            cleanedCount++;
+          }
+        }
+      } while (cursor !== 0);
+
+      if (cleanedCount > 0) {
+        logger.info("Cleaned up inactive Redis sessions", {
+          count: cleanedCount,
+        });
+      }
+    } catch (error) {
+      logger.error("Failed to cleanup inactive Redis sessions", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+}
+
+// Circuit breaker for cache operations
+class CacheCircuitBreaker {
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private state: "closed" | "open" | "half-open" = "closed";
+  private readonly threshold = 5; // Open circuit after 5 failures
+  private readonly timeout = 60000; // Try again after 60 seconds
+  private readonly resetTime = 300000; // Reset failure count after 5 minutes of success
+
+  recordSuccess() {
+    if (this.state === "half-open") {
+      this.state = "closed";
+      this.failureCount = 0;
+      logger.info("Cache circuit breaker closed - Redis recovered");
+    } else if (this.state === "closed" && this.failureCount > 0) {
+      // Reset failure count after successful operation
+      const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+      if (timeSinceLastFailure > this.resetTime) {
+        this.failureCount = 0;
+      }
+    }
+  }
+
+  recordFailure() {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+
+    if (this.failureCount >= this.threshold && this.state === "closed") {
+      this.state = "open";
+      logger.warn("Cache circuit breaker opened - too many Redis failures", {
+        failureCount: this.failureCount,
+      });
+    }
+  }
+
+  canAttempt(): boolean {
+    if (this.state === "closed") {
+      return true;
+    }
+
+    if (this.state === "open") {
+      const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+      if (timeSinceLastFailure >= this.timeout) {
+        this.state = "half-open";
+        logger.info("Cache circuit breaker half-open - attempting Redis connection");
+        return true;
+      }
+      return false;
+    }
+
+    // half-open state
+    return true;
+  }
+
+  getState(): string {
+    return this.state;
+  }
 }
 
 // Secure cache management (replacing in-memory Map)
 export class CacheManager {
   private static readonly DEFAULT_TTL = 5 * 60; // 5 minutes in seconds
+  private static circuitBreaker = new CacheCircuitBreaker();
+  private static cacheStats = {
+    hits: 0,
+    misses: 0,
+    errors: 0,
+    fallbacks: 0,
+  };
 
   /**
-   * Set cache value
+   * Set cache value with graceful degradation
    */
   static async set(
     key: string,
     value: any,
     ttl: number = this.DEFAULT_TTL,
   ): Promise<void> {
-    try {
-      const cacheKey = SessionManager.CACHE_PREFIX + key;
-      const serializedValue = JSON.stringify(value);
+    const cacheKey = SessionManager.CACHE_PREFIX + key;
+    const serializedValue = JSON.stringify(value);
 
-      if (redisClient) {
+    // Try Redis if available and circuit breaker allows
+    if (redisClient && this.circuitBreaker.canAttempt()) {
+      try {
         await redisClient.setEx(cacheKey, ttl, serializedValue);
+        this.circuitBreaker.recordSuccess();
         logger.debug("Cache stored in Redis", { key, ttl });
-      } else {
-        // Fallback to memory storage
-        if (!global.appCache) {
-          global.appCache = new Map();
-        }
-
-        const cache = global.appCache as Map<
-          string,
-          { data: any; expiresAt: Date }
-        >;
-        const expiresAt = new Date(Date.now() + ttl * 1000);
-        cache.set(key, { data: value, expiresAt });
-
-        // Implement LRU eviction if cache gets too large
-        if (cache.size > 100) {
-          const oldestKey = cache.keys().next().value;
-          cache.delete(oldestKey);
-        }
-
-        logger.debug("Cache stored in memory", { key, ttl });
+        return;
+      } catch (error) {
+        this.cacheStats.errors++;
+        this.circuitBreaker.recordFailure();
+        logger.warn("Redis cache set failed, falling back to memory", {
+          key,
+          error: error instanceof Error ? error.message : "Unknown error",
+          circuitState: this.circuitBreaker.getState(),
+        });
+        // Continue to memory fallback
       }
+    }
+
+    // Fallback to memory storage
+    try {
+      this.cacheStats.fallbacks++;
+      if (!global.appCache) {
+        global.appCache = new Map();
+      }
+
+      const cache = global.appCache as Map<
+        string,
+        { data: any; expiresAt: Date }
+      >;
+      const expiresAt = new Date(Date.now() + ttl * 1000);
+      cache.set(key, { data: value, expiresAt });
+
+      // Implement LRU eviction if cache gets too large (limit to 500 items)
+      if (cache.size > 500) {
+        const keysToDelete = Array.from(cache.keys()).slice(0, 100);
+        keysToDelete.forEach((k) => cache.delete(k));
+        logger.debug("Memory cache LRU eviction", { evicted: keysToDelete.length });
+      }
+
+      logger.debug("Cache stored in memory", { key, ttl });
     } catch (error) {
-      logger.error("Failed to set cache", {
+      this.cacheStats.errors++;
+      logger.error("Failed to set cache in both Redis and memory", {
+        key,
         error: error instanceof Error ? error.message : "Unknown error",
       });
+      // Silent failure - cache is optional
     }
   }
 
   /**
-   * Get cache value
+   * Get cache value with graceful degradation
    */
   static async get(key: string): Promise<any | null> {
-    try {
-      const cacheKey = SessionManager.CACHE_PREFIX + key;
+    const cacheKey = SessionManager.CACHE_PREFIX + key;
 
-      if (redisClient) {
+    // Try Redis if available and circuit breaker allows
+    if (redisClient && this.circuitBreaker.canAttempt()) {
+      try {
         const value = await redisClient.get(cacheKey);
-        if (!value) {
-          return null;
+        if (value) {
+          this.circuitBreaker.recordSuccess();
+          this.cacheStats.hits++;
+          const parsedValue = JSON.parse(value);
+          logger.debug("Cache hit in Redis", { key });
+          return parsedValue;
         }
-
-        const parsedValue = JSON.parse(value);
-        logger.debug("Cache hit in Redis", { key });
-        return parsedValue;
-      } else {
-        // Fallback to memory storage
-        if (!global.appCache) {
-          return null;
-        }
-
-        const cache = global.appCache as Map<
-          string,
-          { data: any; expiresAt: Date }
-        >;
-        const cached = cache.get(key);
-
-        if (!cached) {
-          return null;
-        }
-
-        // Check expiration
-        if (new Date() > cached.expiresAt) {
-          cache.delete(key);
-          return null;
-        }
-
-        logger.debug("Cache hit in memory", { key });
-        return cached.data;
+        // Not found in Redis, try memory fallback
+      } catch (error) {
+        this.cacheStats.errors++;
+        this.circuitBreaker.recordFailure();
+        logger.warn("Redis cache get failed, trying memory fallback", {
+          key,
+          error: error instanceof Error ? error.message : "Unknown error",
+          circuitState: this.circuitBreaker.getState(),
+        });
+        // Continue to memory fallback
       }
+    }
+
+    // Fallback to memory storage
+    try {
+      if (!global.appCache) {
+        this.cacheStats.misses++;
+        return null;
+      }
+
+      const cache = global.appCache as Map<
+        string,
+        { data: any; expiresAt: Date }
+      >;
+      const cached = cache.get(key);
+
+      if (!cached) {
+        this.cacheStats.misses++;
+        return null;
+      }
+
+      // Check expiration
+      if (new Date() > cached.expiresAt) {
+        cache.delete(key);
+        this.cacheStats.misses++;
+        return null;
+      }
+
+      this.cacheStats.hits++;
+      this.cacheStats.fallbacks++;
+      logger.debug("Cache hit in memory", { key });
+      return cached.data;
     } catch (error) {
-      logger.error("Failed to get cache", {
+      this.cacheStats.errors++;
+      this.cacheStats.misses++;
+      logger.error("Failed to get cache from both Redis and memory", {
+        key,
         error: error instanceof Error ? error.message : "Unknown error",
       });
       return null;
@@ -517,24 +736,40 @@ export class CacheManager {
   }
 
   /**
-   * Delete cache value
+   * Delete cache value with graceful degradation
    */
   static async delete(key: string): Promise<void> {
-    try {
-      const cacheKey = SessionManager.CACHE_PREFIX + key;
+    const cacheKey = SessionManager.CACHE_PREFIX + key;
+    let redisSuccess = false;
 
-      if (redisClient) {
+    // Try Redis if available and circuit breaker allows
+    if (redisClient && this.circuitBreaker.canAttempt()) {
+      try {
         await redisClient.del(cacheKey);
+        this.circuitBreaker.recordSuccess();
         logger.debug("Cache deleted from Redis", { key });
-      } else {
-        // Fallback to memory storage
-        if (global.appCache) {
-          (global.appCache as Map<string, any>).delete(key);
+        redisSuccess = true;
+      } catch (error) {
+        this.cacheStats.errors++;
+        this.circuitBreaker.recordFailure();
+        logger.warn("Redis cache delete failed, will try memory", {
+          key,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+
+    // Also delete from memory (even if Redis succeeded, for consistency)
+    try {
+      if (global.appCache) {
+        (global.appCache as Map<string, any>).delete(key);
+        if (!redisSuccess) {
           logger.debug("Cache deleted from memory", { key });
         }
       }
     } catch (error) {
-      logger.error("Failed to delete cache", {
+      logger.error("Failed to delete cache from memory", {
+        key,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -588,24 +823,68 @@ export class CacheManager {
   }
 
   /**
-   * Get cache statistics
+   * Get comprehensive cache statistics
    */
-  static async getStats(): Promise<{ size: number; type: string }> {
+  static async getStats(): Promise<{
+    size: number;
+    type: string;
+    hits: number;
+    misses: number;
+    errors: number;
+    fallbacks: number;
+    hitRate: string;
+    circuitBreakerState: string;
+  }> {
     try {
-      if (redisClient) {
-        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*");
-        return { size: keys.length, type: "Redis" };
+      let size = 0;
+      let type = "Unknown";
+
+      if (redisClient && this.circuitBreaker.canAttempt()) {
+        try {
+          const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*");
+          size = keys.length;
+          type = "Redis";
+        } catch (error) {
+          // Fallback to memory stats
+          size = global.appCache ? (global.appCache as Map<string, any>).size : 0;
+          type = "Memory (Redis unavailable)";
+        }
       } else {
-        const size = global.appCache
-          ? (global.appCache as Map<string, any>).size
-          : 0;
-        return { size, type: "Memory (INSECURE)" };
+        size = global.appCache ? (global.appCache as Map<string, any>).size : 0;
+        type = this.circuitBreaker.getState() === "open"
+          ? "Memory (Circuit breaker open)"
+          : "Memory (INSECURE)";
       }
+
+      const totalRequests = this.cacheStats.hits + this.cacheStats.misses;
+      const hitRate = totalRequests > 0
+        ? ((this.cacheStats.hits / totalRequests) * 100).toFixed(2) + "%"
+        : "N/A";
+
+      return {
+        size,
+        type,
+        hits: this.cacheStats.hits,
+        misses: this.cacheStats.misses,
+        errors: this.cacheStats.errors,
+        fallbacks: this.cacheStats.fallbacks,
+        hitRate,
+        circuitBreakerState: this.circuitBreaker.getState(),
+      };
     } catch (error) {
       logger.error("Failed to get cache stats", {
         error: error instanceof Error ? error.message : "Unknown error",
       });
-      return { size: 0, type: "Unknown" };
+      return {
+        size: 0,
+        type: "Unknown",
+        hits: this.cacheStats.hits,
+        misses: this.cacheStats.misses,
+        errors: this.cacheStats.errors,
+        fallbacks: this.cacheStats.fallbacks,
+        hitRate: "N/A",
+        circuitBreakerState: "unknown",
+      };
     }
   }
 }
