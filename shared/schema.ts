@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, pgTableCreator } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgTableCreator, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -42,7 +42,12 @@ export const inspections = pgTable("inspections", {
   verifiedRooms: text("verified_rooms").array(), // For tracking completed room types in building inspections
   isCompleted: boolean("is_completed").default(false), // For whole building inspections
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  schoolIdx: index("inspections_school_idx").on(table.school),
+  dateIdx: index("inspections_date_idx").on(table.date),
+  schoolDateIdx: index("inspections_school_date_idx").on(table.school, table.date),
+  inspectionTypeIdx: index("inspections_type_idx").on(table.inspectionType),
+}));
 
 // New table for individual room inspections within a building inspection
 export const roomInspections = pgTable("room_inspections", {
@@ -77,7 +82,11 @@ export const custodialNotes = pgTable("custodial_notes", {
   notes: text("notes").notNull(),
   images: text("images").array().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  schoolIdx: index("custodial_notes_school_idx").on(table.school),
+  dateIdx: index("custodial_notes_date_idx").on(table.date),
+  schoolDateIdx: index("custodial_notes_school_date_idx").on(table.school, table.date),
+}));
 
 export const monthlyFeedback = pgTable("monthly_feedback", {
   id: serial("id").primaryKey(),
@@ -91,7 +100,12 @@ export const monthlyFeedback = pgTable("monthly_feedback", {
   uploadedBy: text("uploaded_by"),
   fileSize: integer("file_size"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  schoolIdx: index("monthly_feedback_school_idx").on(table.school),
+  yearIdx: index("monthly_feedback_year_idx").on(table.year),
+  schoolYearIdx: index("monthly_feedback_school_year_idx").on(table.school, table.year),
+  schoolYearMonthIdx: index("monthly_feedback_school_year_month_idx").on(table.school, table.year, table.month),
+}));
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -209,7 +223,10 @@ export const inspectionPhotos = pgTable("inspection_photos", {
   deviceInfo: text("device_info"), // JSON string with device info
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  inspectionIdIdx: index("inspection_photos_inspection_id_idx").on(table.inspectionId),
+  syncStatusIdx: index("inspection_photos_sync_status_idx").on(table.syncStatus),
+}));
 
 export const syncQueue = pgTable("sync_queue", {
   id: serial("id").primaryKey(),
@@ -228,13 +245,19 @@ export const insertInspectionPhotoSchema = createInsertSchema(inspectionPhotos).
   updatedAt: true,
 }).extend({
   inspectionId: z.coerce.number().int(),
-  photoUrl: z.string().url("Invalid photo URL"),
-  thumbnailUrl: z.string().url().optional(),
+  photoUrl: z.string().min(1, "Photo URL is required").refine(
+    (val) => val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://'),
+    "Photo URL must be a relative path (starting with /) or a full URL"
+  ),
+  thumbnailUrl: z.string().refine(
+    (val) => val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://'),
+    "Thumbnail URL must be a relative path or full URL"
+  ).optional(),
   locationLat: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
   locationLng: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
   locationAccuracy: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
   locationSource: z.enum(['gps', 'wifi', 'cell', 'manual', 'qr']).default('gps'),
-  buildingId: z.string().uuid().nullable().optional(),
+  buildingId: z.string().max(100).nullable().optional(),
   floor: z.number().int().min(0).max(100).nullable().optional(),
   room: z.string().max(100).nullable().optional(),
   capturedAt: z.date().optional(),

@@ -164,7 +164,13 @@ export class ObjectStorageService {
     }
   }
 
-  async deleteFile(filename: string) {
+  /**
+   * Delete a file from storage
+   * NOTE: Caller should verify file is not referenced in database before calling this method
+   * @param filename - Path to the file relative to storage directory
+   * @param skipReferenceCheck - If true, skip checking if file is still referenced (use with caution)
+   */
+  async deleteFile(filename: string, skipReferenceCheck = false) {
     try {
       // Validate file path to prevent path traversal
       const validation = this.validateFilePath(filename);
@@ -175,9 +181,14 @@ export class ObjectStorageService {
         };
       }
 
+      // Log warning if reference check is skipped
+      if (skipReferenceCheck) {
+        logger.warn('File deletion without reference check', { filename });
+      }
+
       await fs.unlink(validation.resolvedPath!);
 
-      logger.info(`File deleted: ${filename}`);
+      logger.info(`File deleted: ${filename}`, { skipReferenceCheck });
 
       return {
         success: true

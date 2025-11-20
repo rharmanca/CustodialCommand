@@ -6,7 +6,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { securityHeaders, validateRequest, sanitizeInput, apiRateLimit, strictRateLimit } from "./security";
+import { securityHeaders, validateRequest, sanitizeInput, apiRateLimit, strictRateLimit, healthCheckRateLimit } from "./security";
 import { logger, requestIdMiddleware } from "./logger";
 import { performanceMonitor, healthCheck, errorHandler, metricsMiddleware, metricsCollector } from "./monitoring";
 import { automatedMonitoring } from "./automated-monitoring";
@@ -47,6 +47,23 @@ app.use(requestIdMiddleware);
 app.use(performanceMiddleware);
 app.use(memoryMonitoring);
 app.use(metricsMiddleware);
+
+// Global request timeout (120 seconds for all requests)
+app.use((req: any, res: any, next: any) => {
+  // Set timeout for all requests except health checks
+  if (!req.path.startsWith('/health')) {
+    req.setTimeout(120000, () => {
+      logger.warn('Request timeout', { path: req.path, method: req.method });
+      if (!res.headersSent) {
+        res.status(408).json({ error: 'Request timeout' });
+      }
+    });
+    res.setTimeout(120000, () => {
+      logger.warn('Response timeout', { path: req.path, method: req.method });
+    });
+  }
+  next();
+});
 
 // Track requests for automated monitoring
 app.use((req, res, next) => {
@@ -254,18 +271,36 @@ if (process.env.REPL_SLUG) {
       });
     }
 
-    // Add environment validation and session secret generation
-    const requiredEnvVars = ['DATABASE_URL'];
-    const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    // Add environment validation for required environment variables
+    const requiredEnvVars = ['DATABASE_URL', 'SESSION_SECRET'];
+    const requiredProdEnvVars = process.env.NODE_ENV === 'production'
+      ? ['ADMIN_USERNAME', 'ADMIN_PASSWORD_HASH']
+      : [];
+
+    const allRequiredVars = [...requiredEnvVars, ...requiredProdEnvVars];
+    const missingEnvVars = allRequiredVars.filter(varName => !process.env[varName]);
 
     if (missingEnvVars.length > 0) {
-      logger.error('Missing required environment variables', { missing: missingEnvVars });
+      logger.error('Missing required environment variables', {
+        missing: missingEnvVars,
+        environment: process.env.NODE_ENV || 'development'
+      });
+
+      // Provide helpful error messages
+      if (missingEnvVars.includes('SESSION_SECRET')) {
+        logger.error('SESSION_SECRET is required. Generate one with: openssl rand -hex 32');
+      }
+      if (missingEnvVars.includes('ADMIN_PASSWORD_HASH')) {
+        logger.error('ADMIN_PASSWORD_HASH is required for production. Hash a password using bcrypt.');
+      }
+
       process.exit(1);
     }
 
-    if (!process.env.SESSION_SECRET) {
-      process.env.SESSION_SECRET = randomBytes(32).toString('hex');
-      logger.warn('Generated temporary session secret');
+    // Validate SESSION_SECRET strength (at least 32 characters)
+    if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length < 32) {
+      logger.error('SESSION_SECRET must be at least 32 characters long');
+      process.exit(1);
     }
 
     // Test database connection
@@ -284,7 +319,7 @@ if (process.env.REPL_SLUG) {
     }
 
     // Enhanced health check with Railway-specific optimizations
-    app.get("/health", async (req: any, res: any) => {
+    app.get("/health", healthCheckRateLimit, async (req: any, res: any) => {
       try {
         // Add Railway-specific headers BEFORE calling healthCheck
         if (process.env.RAILWAY_SERVICE_ID && !res.headersSent) {
@@ -292,12 +327,12 @@ if (process.env.REPL_SLUG) {
           res.set('X-Railway-Environment', process.env.RAILWAY_ENVIRONMENT || 'production');
         }
 
-        // Extended timeout for Railway health checks
+        // Extended timeout for Railway health checks (30s to match railway.json)
         // healthCheck sends the response, so we don't return or use the result
         await Promise.race([
           healthCheck(req, res),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Health check timeout')), 20000)
+            setTimeout(() => reject(new Error('Health check timeout')), 30000)
           )
         ]);
         // Response already sent by healthCheck, don't do anything else
@@ -315,7 +350,7 @@ if (process.env.REPL_SLUG) {
       }
     });
 
-    app.get("/metrics", (req: any, res: any) => {
+    app.get("/metrics", healthCheckRateLimit, (req: any, res: any) => {
       try {
         const metrics = metricsCollector.getMetrics();
         // Add Railway-specific metadata
@@ -333,7 +368,7 @@ if (process.env.REPL_SLUG) {
     });
 
     // Automated monitoring endpoints
-    app.get("/health/metrics", (req: any, res: any) => {
+    app.get("/health/metrics", healthCheckRateLimit, (req: any, res: any) => {
       try {
         const currentHealth = automatedMonitoring.getCurrentHealth();
         if (!currentHealth) {
@@ -349,7 +384,7 @@ if (process.env.REPL_SLUG) {
       }
     });
 
-    app.get("/health/history", (req: any, res: any) => {
+    app.get("/health/history", healthCheckRateLimit, (req: any, res: any) => {
       try {
         const limit = parseInt(req.query.limit || '20', 10);
         const history = automatedMonitoring.getHealthHistory(limit);
@@ -363,7 +398,7 @@ if (process.env.REPL_SLUG) {
       }
     });
 
-    app.get("/health/alerts", (req: any, res: any) => {
+    app.get("/health/alerts", healthCheckRateLimit, (req: any, res: any) => {
       try {
         const alerts = automatedMonitoring.getActiveAlerts();
         res.json({
@@ -377,9 +412,9 @@ if (process.env.REPL_SLUG) {
     });
 
     // Performance monitoring endpoints
-    app.get("/api/performance/stats", (req: any, res: any) => {
+    app.get("/api/performance/stats", async (req: any, res: any) => {
       try {
-        const storageMetrics = storage.getPerformanceMetrics();
+        const storageMetrics = await storage.getPerformanceMetrics();
         const cacheStats = apiCache.getStats();
         const memUsage = process.memoryUsage();
 

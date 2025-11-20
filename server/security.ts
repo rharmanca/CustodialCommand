@@ -18,8 +18,9 @@ export const createRateLimit = (windowMs: number, max: number) => {
 // API rate limiter - production-ready limits
 const API_RATE_LIMIT = process.env.RATE_LIMIT_MAX_REQUESTS
   ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10)
-  : 100; // 100 requests per 15 minutes for production
-const STRICT_RATE_LIMIT = 20; // 20 requests per 15 minutes for auth endpoints
+  : (process.env.NODE_ENV === 'production' ? 60 : 100); // Stricter in production
+const STRICT_RATE_LIMIT = process.env.NODE_ENV === 'production' ? 10 : 20; // Stricter auth limits in production
+const HEALTH_CHECK_RATE_LIMIT = 100; // 100 requests per 15 minutes for health checks
 
 export const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -43,6 +44,26 @@ export const strictRateLimit = createRateLimit(
   15 * 60 * 1000,
   STRICT_RATE_LIMIT,
 );
+
+// Health check rate limiter to prevent abuse
+export const healthCheckRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: HEALTH_CHECK_RATE_LIMIT,
+  message: { error: "Too many health check requests" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for Railway health checks (identified by headers)
+    return !!(req.headers['x-railway-service-id'] || req.headers['user-agent']?.includes('Railway'));
+  },
+  keyGenerator: (req) => {
+    return (
+      req.headers["x-forwarded-for"] ||
+      req.connection.remoteAddress ||
+      "anonymous"
+    );
+  },
+});
 
 // Improved input sanitization
 export const sanitizeInput = (
@@ -622,12 +643,21 @@ export const validateRequest = (
   // Validate content type for POST/PUT/PATCH
   if (["POST", "PUT", "PATCH"].includes(req.method)) {
     const contentType = req.headers["content-type"];
-    if (
-      !contentType ||
-      (!contentType.includes("application/json") &&
-        !contentType.includes("multipart/form-data"))
-    ) {
-      return res.status(400).json({ error: "Invalid content type" });
+    if (!contentType) {
+      return res.status(400).json({ error: "Content-Type header is required" });
+    }
+
+    // Extract base content type (remove charset and other parameters)
+    const baseContentType = contentType.split(';')[0].trim().toLowerCase();
+
+    // Check if base content type is valid
+    const validTypes = ["application/json", "multipart/form-data"];
+    if (!validTypes.some(type => baseContentType === type || baseContentType.startsWith(type))) {
+      return res.status(400).json({
+        error: "Invalid content type",
+        received: baseContentType,
+        expected: validTypes
+      });
     }
   }
 
