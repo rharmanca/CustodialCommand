@@ -610,6 +610,47 @@ export class CacheManager {
   }
 }
 
+/**
+ * Get Redis connection status and health
+ */
+export async function getRedisHealth(): Promise<{
+  connected: boolean;
+  type: "redis" | "memory";
+  error?: string;
+}> {
+  if (!redisClient) {
+    return {
+      connected: false,
+      type: "memory",
+      error: "Redis not configured (using memory storage)",
+    };
+  }
+
+  try {
+    // Ping Redis to check if it's alive
+    const pingResult = await redisClient.ping();
+    const isConnected = pingResult === "PONG";
+
+    return {
+      connected: isConnected,
+      type: "redis",
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      type: "redis",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Get Redis client (for internal use)
+ */
+export function getRedisClient() {
+  return redisClient;
+}
+
 // Initialize Redis on module import
 initializeRedis().catch(() => {
   logger.warn(
