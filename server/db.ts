@@ -19,18 +19,35 @@ neonConfig.cacheAdapter = {
 // Railway-optimized connection settings
 const isRailway = process.env.RAILWAY_ENVIRONMENT === 'production' || process.env.RAILWAY_SERVICE_ID;
 
+// Unified connection pool settings based on environment
+const POOL_CONFIG = isRailway ? {
+  maxConnections: 10,
+  minConnections: 2,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 5000,
+  acquireTimeoutMillis: 15000,
+  createTimeoutMillis: 10000,
+} : {
+  maxConnections: 20,
+  minConnections: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+  acquireTimeoutMillis: 60000,
+  createTimeoutMillis: 30000,
+};
+
 if (isRailway) {
   // Railway-specific optimizations
-  neonConfig.maxConnections = 10; // Reduce for Railway's serverless environment
-  neonConfig.idleTimeoutMillis = 10000; // Faster cleanup for Railway
-  neonConfig.connectionTimeoutMillis = 5000; // Railway-optimized timeout
-  logger.info('Applying Railway-specific database configuration');
+  neonConfig.maxConnections = POOL_CONFIG.maxConnections;
+  neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
+  neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
+  logger.info('Applying Railway-specific database configuration', POOL_CONFIG);
 } else {
   // Local development settings
-  neonConfig.maxConnections = 20; // Increased connection pool size
-  neonConfig.idleTimeoutMillis = 30000; // Close idle connections after 30s
-  neonConfig.connectionTimeoutMillis = 10000; // Connection timeout
-  logger.info('Applying local development database configuration');
+  neonConfig.maxConnections = POOL_CONFIG.maxConnections;
+  neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
+  neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
+  logger.info('Applying local development database configuration', POOL_CONFIG);
 }
 // Use ws package for WebSocket support in Node.js
 neonConfig.webSocketConstructor = ws;
@@ -42,15 +59,15 @@ if (!process.env.DATABASE_URL) {
 const sql = neon(process.env.DATABASE_URL);
 export const db = drizzle(sql, { schema });
 
-// Create optimized connection pool
+// Create optimized connection pool with unified configuration
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20, // Maximum number of connections in pool
-  min: 5,  // Minimum number of connections to maintain
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: isRailway ? 5000 : 10000,
-  acquireTimeoutMillis: isRailway ? 15000 : 60000,
-  createTimeoutMillis: isRailway ? 10000 : 30000,
+  max: POOL_CONFIG.maxConnections,
+  min: POOL_CONFIG.minConnections,
+  idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
+  connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
+  acquireTimeoutMillis: POOL_CONFIG.acquireTimeoutMillis,
+  createTimeoutMillis: POOL_CONFIG.createTimeoutMillis,
   destroyTimeoutMillis: 5000,
   reapIntervalMillis: 1000,
   createRetryIntervalMillis: 200

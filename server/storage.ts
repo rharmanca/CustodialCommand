@@ -13,8 +13,6 @@ const performanceMetrics = {
   totalQueries: 0
 };
 
-// Simple in-memory cache with TTL
-const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
 async function getFromCache(key: string): Promise<any | null> {
@@ -229,8 +227,8 @@ export const storage = {
       logger.info('Deleted custodial note:', { id });
 
       // Invalidate relevant cache entries
-      cache.delete(`custodialNote:${id}`);
-      await CacheManager.delete('custodialNotes:all');
+      await CacheManager.delete(`custodialNote:${id}`);
+      await CacheManager.clearPattern('custodialNotes:all');
 
       return true;
     });
@@ -299,9 +297,9 @@ export const storage = {
       logger.info('Updated room inspection:', { roomId, buildingInspectionId });
 
       // Invalidate relevant cache entries
-      cache.delete(`roomInspection:${roomId}`);
-      cache.delete(`roomInspections:all:${buildingInspectionId}`);
-      await CacheManager.delete('roomInspections:all:all');
+      await CacheManager.delete(`roomInspection:${roomId}`);
+      await CacheManager.delete(`roomInspections:all:${buildingInspectionId}`);
+      await CacheManager.clearPattern('roomInspections:all');
 
       return result;
     });
@@ -359,8 +357,8 @@ export const storage = {
       logger.info('Deleted monthly feedback:', { id });
 
       // Invalidate relevant cache entries
-      cache.delete(`monthlyFeedback:${id}`);
-      await CacheManager.delete('monthlyFeedback:all');
+      await CacheManager.delete(`monthlyFeedback:${id}`);
+      await CacheManager.clearPattern('monthlyFeedback:all');
 
       return true;
     });
@@ -375,15 +373,16 @@ export const storage = {
       logger.info('Updated monthly feedback notes:', { id });
 
       // Invalidate relevant cache entries
-      cache.delete(`monthlyFeedback:${id}`);
-      await CacheManager.delete('monthlyFeedback:all');
+      await CacheManager.delete(`monthlyFeedback:${id}`);
+      await CacheManager.clearPattern('monthlyFeedback:all');
 
       return result;
     });
   },
 
   // Performance metrics and cache management
-  getPerformanceMetrics() {
+  async getPerformanceMetrics() {
+    const cacheStats = await CacheManager.getStats();
     return {
       ...performanceMetrics,
       cacheHitRate: performanceMetrics.totalQueries > 0
@@ -392,7 +391,8 @@ export const storage = {
       slowQueryRate: performanceMetrics.totalQueries > 0
         ? (performanceMetrics.slowQueries / performanceMetrics.totalQueries * 100).toFixed(2) + '%'
         : '0%',
-      cacheSize: cache.size,
+      cacheSize: cacheStats.size,
+      cacheType: cacheStats.type,
       poolStatus: {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount,

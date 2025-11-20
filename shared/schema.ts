@@ -228,13 +228,19 @@ export const insertInspectionPhotoSchema = createInsertSchema(inspectionPhotos).
   updatedAt: true,
 }).extend({
   inspectionId: z.coerce.number().int(),
-  photoUrl: z.string().url("Invalid photo URL"),
-  thumbnailUrl: z.string().url().optional(),
+  photoUrl: z.string().min(1, "Photo URL is required").refine(
+    (val) => val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://'),
+    "Photo URL must be a relative path (starting with /) or a full URL"
+  ),
+  thumbnailUrl: z.string().refine(
+    (val) => val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://'),
+    "Thumbnail URL must be a relative path or full URL"
+  ).optional(),
   locationLat: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
   locationLng: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
   locationAccuracy: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
   locationSource: z.enum(['gps', 'wifi', 'cell', 'manual', 'qr']).default('gps'),
-  buildingId: z.string().uuid().nullable().optional(),
+  buildingId: z.string().max(100).nullable().optional(),
   floor: z.number().int().min(0).max(100).nullable().optional(),
   room: z.string().max(100).nullable().optional(),
   capturedAt: z.date().optional(),

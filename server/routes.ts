@@ -566,8 +566,47 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.get("/api/custodial-notes", async (req: Request, res: Response) => {
     try {
-      const custodialNotes = await storage.getCustodialNotes();
-      res.json(custodialNotes);
+      const { page = "1", limit = "50", school } = req.query;
+
+      // Validate pagination parameters
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+
+      if (
+        isNaN(pageNum) ||
+        pageNum < 1 ||
+        isNaN(limitNum) ||
+        limitNum < 1 ||
+        limitNum > 100
+      ) {
+        return res.status(400).json({
+          error: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100",
+          },
+        });
+      }
+
+      const offset = (pageNum - 1) * limitNum;
+
+      const allNotes = await storage.getCustodialNotes({
+        school: school as string,
+      });
+
+      const totalCount = allNotes.length;
+      const paginatedNotes = allNotes.slice(offset, offset + limitNum);
+
+      res.json({
+        data: paginatedNotes,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limitNum),
+        },
+      });
     } catch (error) {
       logger.error("Error fetching custodial notes:", error);
       res.status(500).json({ error: "Failed to fetch custodial notes" });
@@ -1386,12 +1425,15 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       res.json(feedback);
     } catch (error) {
-      logger.error("[GET] Error fetching monthly feedback:", error);
+      logger.error("[GET] Error fetching monthly feedback:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       // Include error details in development/debugging
       const errorDetails = {
         message: "Failed to fetch monthly feedback",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined,
         details: error instanceof Error ? error.message : String(error)
       };
       res.status(500).json(errorDetails);
