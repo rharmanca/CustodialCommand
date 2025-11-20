@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { randomBytes } from "crypto";
 import helmet from "helmet";
 import compression from "compression";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { securityHeaders, validateRequest, sanitizeInput, apiRateLimit, strictRateLimit, healthCheckRateLimit } from "./security";
@@ -29,6 +30,7 @@ import {
   cacheCircuitBreaker,
   fileUploadCircuitBreaker
 } from "./performanceErrorHandler";
+import { csrfProtection, getCsrfToken, getCsrfStats } from "./csrf";
  
 
 
@@ -144,6 +146,9 @@ app.use(sanitizeInput);
 // Body parsing middleware - CRITICAL: Must be before routes
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
+
+// Cookie parsing middleware - Required for CSRF protection
+app.use(cookieParser());
 
 // Performance optimization middleware
 app.use(cacheMiddleware); // Add caching for GET requests
@@ -468,6 +473,24 @@ if (process.env.REPL_SLUG) {
     });
 
     logger.info("Health check and performance endpoints configured");
+
+    // CSRF Protection - Get token endpoint (must be before CSRF middleware)
+    app.get("/api/csrf-token", getCsrfToken);
+    logger.info("CSRF token endpoint configured");
+
+    // CSRF Protection middleware - Apply to all API routes with state-changing operations
+    app.use('/api', csrfProtection);
+    logger.info("CSRF protection enabled for API routes");
+
+    // CSRF stats endpoint for monitoring
+    app.get("/api/csrf-stats", (req, res) => {
+      try {
+        res.json(getCsrfStats());
+      } catch (error) {
+        logger.error("Failed to get CSRF stats", { error });
+        res.status(500).json({ error: "Failed to get CSRF stats" });
+      }
+    });
 
     await registerRoutes(app);
     logger.info("Routes registered successfully");

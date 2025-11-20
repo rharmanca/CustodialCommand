@@ -1,4 +1,4 @@
-import { db, pool } from './db';
+import { db, pool, withDatabaseReconnection } from './db';
 import { inspections, custodialNotes, roomInspections, monthlyFeedback, inspectionPhotos, syncQueue } from '../shared/schema';
 import type { InsertInspection, InsertCustodialNote, InsertRoomInspection, InsertMonthlyFeedback, InsertInspectionPhoto, InsertSyncQueue } from '../shared/schema';
 import { eq, desc, and, gte, lte } from 'drizzle-orm';
@@ -39,7 +39,7 @@ async function setCache(key: string, data: any, ttl: number = DEFAULT_TTL): Prom
   }
 }
 
-// Query performance wrapper
+// Query performance wrapper with database reconnection
 async function executeQuery<T>(
   operation: string,
   queryFn: () => Promise<T>,
@@ -59,7 +59,8 @@ async function executeQuery<T>(
       }
     }
 
-    const result = await queryFn();
+    // Wrap database operation with reconnection logic
+    const result = await withDatabaseReconnection(queryFn, operation);
     const duration = Date.now() - startTime;
 
     // Log slow queries
@@ -80,7 +81,7 @@ async function executeQuery<T>(
     logger.debug('Query completed', {
       operation,
       duration,
-      cacheHit: !!cacheKey && cache.has(cacheKey)
+      cacheHit: false
     });
 
     return result;
