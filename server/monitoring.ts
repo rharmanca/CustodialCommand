@@ -8,6 +8,11 @@ interface HealthCheck {
   version: string;
   environment: string;
   database: 'connected' | 'disconnected' | 'error';
+  redis?: {
+    connected: boolean;
+    type: "redis" | "memory";
+    error?: string;
+  };
   memory: {
     used: number;
     total: number;
@@ -60,7 +65,7 @@ export const performanceMonitor = (req: Request, res: Response, next: NextFuncti
 // Health check endpoint handler
 export const healthCheck = async (req: Request, res: Response): Promise<void> => {
   const startTime = Date.now();
-  
+
   try {
     // Check database connection
     let dbStatus: HealthCheck['database'] = 'connected';
@@ -77,7 +82,21 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
       dbStatus = 'error';
       logger.error('Database health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
     }
-    
+
+    // Check Redis connection
+    let redisHealth;
+    try {
+      const { getRedisHealth } = await import('./security');
+      redisHealth = await getRedisHealth();
+    } catch (error) {
+      redisHealth = {
+        connected: false,
+        type: "memory" as const,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+      logger.error('Redis health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+
     // Memory usage
     const memUsage = process.memoryUsage();
     const memory = {
@@ -85,7 +104,7 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
       total: Math.round(memUsage.heapTotal / 1024 / 1024),
       percentage: Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100)
     };
-    
+
     const health: HealthCheck = {
       status: dbStatus === 'error' ? 'error' : 'ok',
       timestamp: new Date().toISOString(),
@@ -93,18 +112,19 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
       version: '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       database: dbStatus,
+      redis: redisHealth,
       memory
     };
-    
+
     const responseTime = Date.now() - startTime;
     res.setHeader('X-Response-Time', `${responseTime}ms`);
-    
+
     if (health.status === 'error') {
       res.status(503).json(health);
     } else {
       res.json(health);
     }
-    
+
   } catch (error) {
     logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
     if (!res.headersSent) {

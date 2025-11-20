@@ -138,6 +138,65 @@ initializeDatabase().catch((error) => {
   process.exit(1);
 });
 
+// Database reconnection wrapper
+export async function withDatabaseReconnection<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  maxRetries: number = 3
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Check if error is connection-related
+      const isConnectionError =
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ENOTFOUND") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("Connection terminated") ||
+        errorMessage.includes("connection_lost") ||
+        errorMessage.includes("PROTOCOL_CONNECTION_LOST") ||
+        errorMessage.includes("ECONNRESET");
+
+      if (!isConnectionError) {
+        // Not a connection error, don't retry
+        throw error;
+      }
+
+      logger.warn(`Database connection error on attempt ${attempt}/${maxRetries}`, {
+        operation: operationName,
+        error: errorMessage,
+        attempt,
+      });
+
+      if (attempt === maxRetries) {
+        logger.error(`Database operation failed after ${maxRetries} attempts`, {
+          operation: operationName,
+          error: errorMessage,
+        });
+        throw error;
+      }
+
+      // Exponential backoff: 100ms, 200ms, 400ms
+      const delay = Math.min(100 * Math.pow(2, attempt - 1), 1000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      logger.info(`Retrying database operation`, {
+        operation: operationName,
+        attempt: attempt + 1,
+        delay,
+      });
+    }
+  }
+
+  throw lastError || new Error("Database operation failed");
+}
+
 // Graceful shutdown for database connections
 process.on('SIGTERM', () => {
   logger.info('Closing database connections...');
