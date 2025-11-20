@@ -2013,21 +2013,25 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
 
+      // Delete from database first (so if file deletion fails, we don't have orphaned DB records)
+      await storage.deleteInspectionPhoto(photoId);
+
       // Delete from object storage if it's a valid URL
+      // Note: We use skipReferenceCheck=true because we just deleted the DB record
       if (photo.photoUrl && photo.photoUrl.startsWith("/objects/")) {
         const filename = photo.photoUrl.replace("/objects/", "");
-        const deleteResult = await objectStorageService.deleteFile(filename);
+        const deleteResult = await objectStorageService.deleteFile(filename, true);
 
         if (!deleteResult.success) {
           logger.warn("[DELETE] Failed to delete photo from object storage", {
+            photoId,
             filename,
             error: deleteResult.error,
+            note: "Database record already deleted, file may be orphaned"
           });
+          // Continue anyway - database record is already gone
         }
       }
-
-      // Delete from database
-      await storage.deleteInspectionPhoto(photoId);
 
       logger.info("[DELETE] Photo deleted successfully", { photoId });
 
