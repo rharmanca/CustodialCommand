@@ -1,9 +1,9 @@
 {
   "testRun": {
     "url": "https://cacustodialcommand.up.railway.app",
-    "timestamp": "2025-11-14T18:50:49.628Z",
+    "timestamp": "2025-11-19T21:33:32.251Z",
     "testMarker": "[TEST]",
-    "testDate": "2025-11-14"
+    "testDate": "2025-11-19"
   },
   "results": {
     "passed": 7,
@@ -14,85 +14,85 @@
         "name": "Homepage loads successfully",
         "passed": true,
         "details": "",
-        "timestamp": "2025-11-14T18:50:15.522Z"
+        "timestamp": "2025-11-19T21:32:57.320Z"
       },
       {
         "name": "Page has title",
         "passed": true,
         "details": "Title: \"Custodial Command\"",
-        "timestamp": "2025-11-14T18:50:15.716Z"
+        "timestamp": "2025-11-19T21:32:57.401Z"
       },
       {
         "name": "Main heading visible",
         "passed": true,
         "details": "Heading: \"CA Custodial Command\"",
-        "timestamp": "2025-11-14T18:50:15.771Z"
+        "timestamp": "2025-11-19T21:32:57.543Z"
       },
       {
         "name": "Navigation: \"Single Area Inspection\" button visible",
         "passed": true,
         "details": "",
-        "timestamp": "2025-11-14T18:50:15.784Z"
+        "timestamp": "2025-11-19T21:32:57.568Z"
       },
       {
         "name": "Navigation: \"Whole Building Inspection\" button visible",
         "passed": false,
         "details": "",
-        "timestamp": "2025-11-14T18:50:15.787Z"
+        "timestamp": "2025-11-19T21:32:57.579Z"
       },
       {
         "name": "Navigation: \"Custodial Notes\" button visible",
         "passed": false,
         "details": "",
-        "timestamp": "2025-11-14T18:50:15.791Z"
+        "timestamp": "2025-11-19T21:32:57.585Z"
       },
       {
         "name": "Navigation: \"View Inspection Data\" button visible",
         "passed": false,
         "details": "",
-        "timestamp": "2025-11-14T18:50:15.795Z"
+        "timestamp": "2025-11-19T21:32:57.588Z"
       },
       {
         "name": "Navigation: \"Rating Criteria Reference\" button visible",
         "passed": false,
         "details": "",
-        "timestamp": "2025-11-14T18:50:15.796Z"
+        "timestamp": "2025-11-19T21:32:57.631Z"
       },
       {
         "name": "Keyboard navigation: First Tab focuses element",
         "passed": true,
         "details": "",
-        "timestamp": "2025-11-14T18:50:16.623Z"
+        "timestamp": "2025-11-19T21:32:58.349Z"
       },
       {
         "name": "Focus indicators visible",
         "passed": true,
         "details": "",
-        "timestamp": "2025-11-14T18:50:16.623Z"
+        "timestamp": "2025-11-19T21:32:58.353Z"
       },
       {
         "name": "Touch targets ≥44x44px",
         "passed": false,
         "details": "20 elements checked, 5 violations",
-        "timestamp": "2025-11-14T18:50:16.632Z"
+        "timestamp": "2025-11-19T21:32:58.358Z"
       },
       {
         "name": "Accessibility CSS loaded",
         "passed": true,
         "details": "",
-        "timestamp": "2025-11-14T18:50:16.673Z"
+        "timestamp": "2025-11-19T21:32:58.367Z"
       },
       {
         "name": "Single Area Inspection page loads",
         "passed": false,
         "details": "",
-        "timestamp": "2025-11-14T18:50:19.474Z"
+        "timestamp": "2025-11-19T21:33:00.813Z"
       },
       {
         "name": "Test suite execution",
         "passed": false,
         "details": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"schoolName\"], input[placeholder*=\"school\"], input[placeholder*=\"School\"]').first()\u001b[22m\n",
-        "timestamp": "2025-11-14T18:50:49.490Z"
+        "timestamp": "2025-11-19T21:33:31.817Z"
       }
     ]
   },
