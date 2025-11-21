@@ -65,6 +65,51 @@ export const healthCheckRateLimit = rateLimit({
   },
 });
 
+/**
+ * Rate limiter for photo upload endpoint
+ * Stricter limits to prevent storage exhaustion attacks
+ */
+export const photoUploadRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit to 10 uploads per 15-minute window per IP
+  message: 'Too many photo upload requests from this IP. Please try again after 15 minutes.',
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false,  // Disable `X-RateLimit-*` headers
+
+  // Custom handler for rate limit exceeded
+  handler: (req, res) => {
+    logger.warn('Photo upload rate limit exceeded', {
+      ip: req.ip || req.connection.remoteAddress,
+      path: req.path,
+      method: req.method,
+      userAgent: req.get('User-Agent'),
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(429).json({
+      success: false,
+      message: 'Too many photo upload requests from this IP. Please try again after 15 minutes.',
+      retryAfter: Math.ceil((req.rateLimit?.resetTime?.getTime() ?? Date.now()) / 1000) // Seconds until reset
+    });
+  },
+
+  keyGenerator: (req) => {
+    // Use forwarded IP or fallback to connection IP
+    return (
+      req.headers["x-forwarded-for"] ||
+      req.connection.remoteAddress ||
+      "anonymous"
+    );
+  },
+
+  // Skip rate limiting for trusted IPs (optional)
+  skip: (req) => {
+    const trustedIPs = process.env.TRUSTED_IPS?.split(',') || [];
+    const clientIP = req.ip || req.connection.remoteAddress || '';
+    return trustedIPs.includes(clientIP);
+  }
+});
+
 // Improved input sanitization
 export const sanitizeInput = (
   req: Request,

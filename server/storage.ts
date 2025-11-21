@@ -110,22 +110,40 @@ export const storage = {
     });
   },
 
-  async getInspections(options?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) {
+  async getInspections(options?: {
+    limit?: number;
+    offset?: number;
+    startDate?: string;
+    endDate?: string;
+    school?: string;
+    inspectionType?: 'single_room' | 'whole_building';
+  }) {
     const cacheKey = `inspections:all:${JSON.stringify(options || {})}`;
     return executeQuery('getInspections', async () => {
       let query = db.select().from(inspections);
 
-      if (options?.startDate || options?.endDate) {
-        const conditions = [];
-        if (options.startDate) {
-          conditions.push(gte(inspections.date, options.startDate));
-        }
-        if (options.endDate) {
-          conditions.push(lte(inspections.date, options.endDate));
-        }
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
+      // Build filter conditions
+      const conditions = [];
+
+      if (options?.startDate) {
+        conditions.push(gte(inspections.date, options.startDate));
+      }
+
+      if (options?.endDate) {
+        conditions.push(lte(inspections.date, options.endDate));
+      }
+
+      if (options?.school) {
+        conditions.push(eq(inspections.school, options.school));
+      }
+
+      if (options?.inspectionType) {
+        conditions.push(eq(inspections.inspectionType, options.inspectionType));
+      }
+
+      // Apply all conditions if any exist
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
       }
 
       // Order by date descending (most recent first)
@@ -193,13 +211,35 @@ export const storage = {
     });
   },
 
-  async getCustodialNotes(options?: { limit?: number; offset?: number; school?: string }) {
+  async getCustodialNotes(options?: {
+    limit?: number;
+    offset?: number;
+    school?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
     const cacheKey = `custodialNotes:all:${JSON.stringify(options || {})}`;
     return executeQuery('getCustodialNotes', async () => {
       let query = db.select().from(custodialNotes);
 
+      // Build filter conditions
+      const conditions = [];
+
       if (options?.school) {
-        query = query.where(eq(custodialNotes.school, options.school));
+        conditions.push(eq(custodialNotes.school, options.school));
+      }
+
+      if (options?.startDate) {
+        conditions.push(gte(custodialNotes.date, options.startDate));
+      }
+
+      if (options?.endDate) {
+        conditions.push(lte(custodialNotes.date, options.endDate));
+      }
+
+      // Apply all conditions if any exist
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
       }
 
       // Order by creation date descending (most recent first)
@@ -328,26 +368,87 @@ export const storage = {
     });
   },
 
-  async getMonthlyFeedback(options?: { school?: string; year?: number; month?: string }) {
+  async getMonthlyFeedback(options?: {
+    school?: string;
+    year?: number;
+    month?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    data: any[];
+    totalCount: number;
+    pagination: {
+      currentPage: number;
+      pageSize: number;
+      totalPages: number;
+      totalRecords: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  }> {
     const cacheKey = `monthlyFeedback:all:${JSON.stringify(options || {})}`;
     return executeQuery('getMonthlyFeedback', async () => {
-      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
+      // Build filter conditions
+      const conditions = [];
 
       if (options?.school) {
-        query = query.where(eq(monthlyFeedback.school, options.school));
+        conditions.push(eq(monthlyFeedback.school, options.school));
       }
 
       if (options?.year) {
-        query = query.where(eq(monthlyFeedback.year, options.year));
+        conditions.push(eq(monthlyFeedback.year, options.year));
       }
 
       if (options?.month) {
-        query = query.where(eq(monthlyFeedback.month, options.month));
+        conditions.push(eq(monthlyFeedback.month, options.month));
       }
 
-      const result = await query;
-      logger.info(`Retrieved ${result.length} monthly feedback documents`, { options });
-      return result;
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // Pagination parameters with defaults and validation
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100
+        ? options.limit
+        : 50; // Default 50 records per page, max 100
+
+      const offset = (page - 1) * limit;
+
+      // Execute queries in parallel for performance
+      const [feedbackData, totalCountResult] = await Promise.all([
+        // Fetch paginated data
+        db.select()
+          .from(monthlyFeedback)
+          .where(whereClause)
+          .orderBy(desc(monthlyFeedback.year), desc(monthlyFeedback.month))
+          .limit(limit)
+          .offset(offset),
+
+        // Fetch total count for pagination metadata
+        db.select({ count: db.$count(monthlyFeedback.id) })
+          .from(monthlyFeedback)
+          .where(whereClause)
+      ]);
+
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      logger.info(`Retrieved ${feedbackData.length} monthly feedback documents (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+
+      return {
+        data: feedbackData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
     }, cacheKey, 120000); // 2 minutes cache for feedback queries
   },
 
