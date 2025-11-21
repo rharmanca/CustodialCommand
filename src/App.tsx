@@ -136,6 +136,16 @@ function App() {
   const hasScreenReader = useScreenReaderDetection();
   const { meetsWCAGAA } = useColorContrast();
 
+  // Initialize CSRF protection on app load
+  useEffect(() => {
+    // Dynamically import to avoid circular dependencies
+    import('@/utils/csrf').then(({ initializeCsrf }) => {
+      initializeCsrf().catch((error) => {
+        console.warn('[App] CSRF initialization failed:', error);
+      });
+    });
+  }, []);
+
   // Development: Run accessibility audit in development mode
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
