@@ -11,7 +11,7 @@ import {
   insertRoomInspectionSchema,
   insertMonthlyFeedbackSchema,
 } from "../shared/schema";
-import { PasswordManager, SessionManager } from "./security";
+import { PasswordManager, SessionManager, photoUploadRateLimit } from "./security";
 import { z } from "zod";
 import multer from "multer";
 import { logger } from "./logger";
@@ -1096,10 +1096,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Check credentials against environment variables (more secure)
       const adminUsername = process.env.ADMIN_USERNAME;
       if (!adminUsername) {
-        logger.error("ADMIN_USERNAME environment variable not set");
+        logger.error("ADMIN_USERNAME environment variable not set. Admin login unavailable.", {
+          endpoint: "/api/admin/login",
+          timestamp: new Date().toISOString(),
+          attemptedFrom: req.ip || req.connection.remoteAddress,
+          userAgent: req.headers["user-agent"]
+        });
         return res.status(500).json({
           success: false,
-          message: "Server configuration error",
+          message: "Internal server error. Please try again later.",
         });
       }
       // Secure password verification using bcrypt
@@ -1108,10 +1113,16 @@ export async function registerRoutes(app: Express): Promise<void> {
       if (!hashedPassword) {
         logger.error(
           "ADMIN_PASSWORD_HASH environment variable not set - please run password setup",
+          {
+            endpoint: "/api/admin/login",
+            timestamp: new Date().toISOString(),
+            attemptedFrom: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers["user-agent"]
+          }
         );
         return res.status(500).json({
           success: false,
-          message: "Server configuration error - password not properly hashed",
+          message: "Internal server error. Please try again later.",
         });
       }
 
@@ -1140,7 +1151,12 @@ export async function registerRoutes(app: Express): Promise<void> {
           sessionToken,
         });
       } else {
-        logger.warn("Admin login failed", { username });
+        logger.warn("Admin login failed - invalid credentials", {
+          username,
+          timestamp: new Date().toISOString(),
+          attemptedFrom: req.ip || req.connection.remoteAddress,
+          userAgent: req.headers["user-agent"]
+        });
         res.status(401).json({
           success: false,
           message: "Invalid credentials",
@@ -1396,34 +1412,75 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       // Validate and sanitize query parameters
       const school =
-        typeof req.query.school === "string" ? req.query.school.trim() : "";
+        typeof req.query.school === "string" && req.query.school.trim().length > 0
+          ? req.query.school.trim()
+          : undefined;
       const yearStr =
         typeof req.query.year === "string" ? req.query.year.trim() : "";
       const month =
-        typeof req.query.month === "string" ? req.query.month.trim() : "";
+        typeof req.query.month === "string" && req.query.month.trim().length > 0
+          ? req.query.month.trim()
+          : undefined;
 
-      let feedback = await storage.getMonthlyFeedback();
-
-      // Apply filters with validated parameters
-      if (school && school.length > 0) {
-        feedback = feedback.filter((f) => f.school === school);
-      }
+      // Parse and validate year parameter
+      let validYear: number | undefined = undefined;
       if (yearStr) {
         const yearNum = parseInt(yearStr, 10);
-        if (!isNaN(yearNum) && yearNum > 1900 && yearNum < 2100) {
-          feedback = feedback.filter((f) => f.year === yearNum);
+        if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid year parameter. Year must be between 2000 and 2100.",
+          });
         }
-      }
-      if (month && month.length > 0) {
-        feedback = feedback.filter((f) => f.month === month);
+        validYear = yearNum;
       }
 
-      logger.info("[GET] Retrieved filtered monthly feedback", {
-        total: feedback.length,
-        filters: { school, year: yearStr, month },
+      // Parse pagination parameters
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+
+      // Validate pagination parameters
+      if (page < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Page number must be greater than 0",
+        });
+      }
+
+      if (limit < 1 || limit > 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Limit must be between 1 and 100",
+        });
+      }
+
+      // Fetch paginated data with filters
+      const result = await storage.getMonthlyFeedback({
+        school,
+        year: validYear,
+        month,
+        page,
+        limit,
       });
 
-      res.json(feedback);
+      logger.info("[GET] Retrieved filtered monthly feedback", {
+        page: result.pagination.currentPage,
+        totalPages: result.pagination.totalPages,
+        totalRecords: result.pagination.totalRecords,
+        filters: { school, year: validYear, month },
+      });
+
+      // Return paginated response with metadata
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          school,
+          year: validYear,
+          month,
+        },
+      });
     } catch (error) {
       logger.error("[GET] Error fetching monthly feedback:", {
         error: error instanceof Error ? error.message : String(error),
@@ -1561,27 +1618,16 @@ export async function registerRoutes(app: Express): Promise<void> {
         endDate: validEndDate,
       });
 
-      // Fetch all inspections and notes
-      const allInspections = await storage.getInspections();
-      const allNotes = await storage.getCustodialNotes();
+      // Fetch filtered inspections and notes directly from database (optimized query)
+      const filteredInspections = await storage.getInspections({
+        startDate: validStartDate || undefined,
+        endDate: validEndDate || undefined,
+      });
 
-      // Filter by date range if provided
-      let filteredInspections = allInspections;
-      let filteredNotes = allNotes;
-
-      if (validStartDate) {
-        filteredInspections = filteredInspections.filter(
-          (i) => i.date >= validStartDate,
-        );
-        filteredNotes = filteredNotes.filter((n) => n.date >= validStartDate);
-      }
-
-      if (validEndDate) {
-        filteredInspections = filteredInspections.filter(
-          (i) => i.date <= validEndDate,
-        );
-        filteredNotes = filteredNotes.filter((n) => n.date <= validEndDate);
-      }
+      const filteredNotes = await storage.getCustodialNotes({
+        startDate: validStartDate || undefined,
+        endDate: validEndDate || undefined,
+      });
 
       // Group by school
       const inspectionsBySchool: Record<string, any[]> = {};
@@ -1655,23 +1701,18 @@ export async function registerRoutes(app: Express): Promise<void> {
         endDate: validEndDate,
       });
 
-      // Fetch inspections and notes for this school
-      const allInspections = await storage.getInspections();
-      const allNotes = await storage.getCustodialNotes();
+      // Fetch filtered inspections and notes directly from database (optimized query)
+      const inspections = await storage.getInspections({
+        school,
+        startDate: validStartDate || undefined,
+        endDate: validEndDate || undefined,
+      });
 
-      let inspections = allInspections.filter((i) => i.school === school);
-      let notes = allNotes.filter((n) => n.school === school);
-
-      // Filter by date range if provided
-      if (validStartDate) {
-        inspections = inspections.filter((i) => i.date >= validStartDate);
-        notes = notes.filter((n) => n.date >= validStartDate);
-      }
-
-      if (validEndDate) {
-        inspections = inspections.filter((i) => i.date <= validEndDate);
-        notes = notes.filter((n) => n.date <= validEndDate);
-      }
+      const notes = await storage.getCustodialNotes({
+        school,
+        startDate: validStartDate || undefined,
+        endDate: validEndDate || undefined,
+      });
 
       // Calculate score
       const scoringResult = calculateBuildingScore(inspections, notes);
@@ -1696,8 +1737,8 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Photo upload endpoint for mobile photo capture
-  app.post("/api/photos/upload", upload.single("photo"), async (req, res) => {
+  // Photo upload endpoint for mobile photo capture (with rate limiting to prevent storage exhaustion)
+  app.post("/api/photos/upload", photoUploadRateLimit, upload.single("photo"), async (req, res) => {
     logger.info("[POST] Photo upload started", {
       contentType: req.get("Content-Type"),
       hasFile: !!req.file,
