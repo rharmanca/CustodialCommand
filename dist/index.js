@@ -26,7 +26,7 @@ __export(schema_exports, {
   syncQueue: () => syncQueue,
   users: () => users
 });
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 var coerceNullableNumber, users, inspections, roomInspections, custodialNotes, monthlyFeedback, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema, insertMonthlyFeedbackSchema, inspectionPhotos, syncQueue, insertInspectionPhotoSchema, insertSyncQueueSchema;
@@ -77,7 +77,12 @@ var init_schema = __esm({
       isCompleted: boolean("is_completed").default(false),
       // For whole building inspections
       createdAt: timestamp("created_at").defaultNow().notNull()
-    });
+    }, (table) => ({
+      schoolIdx: index("inspections_school_idx").on(table.school),
+      dateIdx: index("inspections_date_idx").on(table.date),
+      schoolDateIdx: index("inspections_school_date_idx").on(table.school, table.date),
+      inspectionTypeIdx: index("inspections_type_idx").on(table.inspectionType)
+    }));
     roomInspections = pgTable("room_inspections", {
       id: serial("id").primaryKey(),
       buildingInspectionId: integer("building_inspection_id").notNull(),
@@ -110,7 +115,11 @@ var init_schema = __esm({
       notes: text("notes").notNull(),
       images: text("images").array().default([]),
       createdAt: timestamp("created_at").defaultNow().notNull()
-    });
+    }, (table) => ({
+      schoolIdx: index("custodial_notes_school_idx").on(table.school),
+      dateIdx: index("custodial_notes_date_idx").on(table.date),
+      schoolDateIdx: index("custodial_notes_school_date_idx").on(table.school, table.date)
+    }));
     monthlyFeedback = pgTable("monthly_feedback", {
       id: serial("id").primaryKey(),
       school: text("school").notNull(),
@@ -123,7 +132,12 @@ var init_schema = __esm({
       uploadedBy: text("uploaded_by"),
       fileSize: integer("file_size"),
       createdAt: timestamp("created_at").defaultNow().notNull()
-    });
+    }, (table) => ({
+      schoolIdx: index("monthly_feedback_school_idx").on(table.school),
+      yearIdx: index("monthly_feedback_year_idx").on(table.year),
+      schoolYearIdx: index("monthly_feedback_school_year_idx").on(table.school, table.year),
+      schoolYearMonthIdx: index("monthly_feedback_school_year_month_idx").on(table.school, table.year, table.month)
+    }));
     insertUserSchema = createInsertSchema(users).pick({
       username: true,
       password: true
@@ -235,7 +249,10 @@ var init_schema = __esm({
       // JSON string with device info
       createdAt: timestamp("created_at").defaultNow().notNull(),
       updatedAt: timestamp("updated_at").defaultNow().notNull()
-    });
+    }, (table) => ({
+      inspectionIdIdx: index("inspection_photos_inspection_id_idx").on(table.inspectionId),
+      syncStatusIdx: index("inspection_photos_sync_status_idx").on(table.syncStatus)
+    }));
     syncQueue = pgTable("sync_queue", {
       id: serial("id").primaryKey(),
       type: text("type").notNull(),
@@ -254,13 +271,19 @@ var init_schema = __esm({
       updatedAt: true
     }).extend({
       inspectionId: z.coerce.number().int(),
-      photoUrl: z.string().url("Invalid photo URL"),
-      thumbnailUrl: z.string().url().optional(),
+      photoUrl: z.string().min(1, "Photo URL is required").refine(
+        (val) => val.startsWith("/") || val.startsWith("http://") || val.startsWith("https://"),
+        "Photo URL must be a relative path (starting with /) or a full URL"
+      ),
+      thumbnailUrl: z.string().refine(
+        (val) => val.startsWith("/") || val.startsWith("http://") || val.startsWith("https://"),
+        "Thumbnail URL must be a relative path or full URL"
+      ).optional(),
       locationLat: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
       locationLng: z.string().regex(/^-?\d+\.\d+$/).nullable().optional(),
       locationAccuracy: z.string().regex(/^\d+(\.\d+)?$/).nullable().optional(),
       locationSource: z.enum(["gps", "wifi", "cell", "manual", "qr"]).default("gps"),
-      buildingId: z.string().uuid().nullable().optional(),
+      buildingId: z.string().max(100).nullable().optional(),
       floor: z.number().int().min(0).max(100).nullable().optional(),
       room: z.string().max(100).nullable().optional(),
       capturedAt: z.date().optional(),
@@ -288,29 +311,44 @@ var init_schema = __esm({
 });
 
 // server/logger.ts
-var Logger, logger, requestIdMiddleware;
+import { AsyncLocalStorage } from "async_hooks";
+var asyncLocalStorage, Logger, logger, requestIdMiddleware;
 var init_logger = __esm({
   "server/logger.ts"() {
     "use strict";
+    asyncLocalStorage = new AsyncLocalStorage();
     Logger = class {
-      requestId = null;
-      setRequestId(id) {
-        this.requestId = id;
+      /**
+       * Get current request context from AsyncLocalStorage
+       */
+      getRequestContext() {
+        return asyncLocalStorage.getStore();
       }
       log(level, message, context) {
+        const requestContext = this.getRequestContext();
         const entry = {
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           level,
           message,
           context,
-          requestId: this.requestId || void 0
+          requestId: requestContext?.requestId,
+          correlationId: requestContext?.correlationId
         };
+        if (requestContext?.userId) {
+          entry.context = {
+            ...entry.context,
+            userId: requestContext.userId,
+            username: requestContext.username,
+            ip: requestContext.ip
+          };
+        }
         if (process.env.NODE_ENV === "production") {
           console.log(JSON.stringify(entry));
         } else {
           const contextStr = context ? ` ${JSON.stringify(context)}` : "";
-          const requestStr = this.requestId ? ` [${this.requestId}]` : "";
-          console.log(`[${entry.timestamp}] ${level}${requestStr}: ${message}${contextStr}`);
+          const requestStr = requestContext?.requestId ? ` [${requestContext.requestId}]` : "";
+          const correlationStr = requestContext?.correlationId ? ` (${requestContext.correlationId})` : "";
+          console.log(`[${entry.timestamp}] ${level}${requestStr}${correlationStr}: ${message}${contextStr}`);
         }
       }
       info(message, context) {
@@ -327,14 +365,32 @@ var init_logger = __esm({
           this.log("DEBUG", message, context);
         }
       }
+      /**
+       * Update user context for current request (for post-authentication logging)
+       */
+      updateUserContext(userId, username) {
+        const currentContext = this.getRequestContext();
+        if (currentContext) {
+          currentContext.userId = userId;
+          currentContext.username = username;
+        }
+      }
     };
     logger = new Logger();
     requestIdMiddleware = (req, res, next) => {
       const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const correlationId = req.headers["x-correlation-id"] || req.headers["x-request-id"] || requestId;
+      const requestContext = {
+        requestId,
+        correlationId,
+        ip: req.ip || req.connection.remoteAddress
+      };
       req.requestId = requestId;
       res.setHeader("X-Request-ID", requestId);
-      logger.setRequestId(requestId);
-      next();
+      res.setHeader("X-Correlation-ID", correlationId);
+      asyncLocalStorage.run(requestContext, () => {
+        next();
+      });
     };
   }
 });
@@ -343,7 +399,8 @@ var init_logger = __esm({
 var db_exports = {};
 __export(db_exports, {
   db: () => db,
-  pool: () => pool
+  pool: () => pool,
+  withDatabaseReconnection: () => withDatabaseReconnection
 });
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/neon-http";
@@ -371,11 +428,46 @@ async function initializeDatabase() {
         throw error;
       }
       logger.info(`Retrying database connection in ${retryDelay}ms...`);
-      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      await new Promise((resolve2) => setTimeout(resolve2, retryDelay));
     }
   }
 }
-var isRailway, sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
+async function withDatabaseReconnection(operation, operationName, maxRetries = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isConnectionError = errorMessage.includes("ECONNREFUSED") || errorMessage.includes("ENOTFOUND") || errorMessage.includes("ETIMEDOUT") || errorMessage.includes("Connection terminated") || errorMessage.includes("connection_lost") || errorMessage.includes("PROTOCOL_CONNECTION_LOST") || errorMessage.includes("ECONNRESET");
+      if (!isConnectionError) {
+        throw error;
+      }
+      logger.warn(`Database connection error on attempt ${attempt}/${maxRetries}`, {
+        operation: operationName,
+        error: errorMessage,
+        attempt
+      });
+      if (attempt === maxRetries) {
+        logger.error(`Database operation failed after ${maxRetries} attempts`, {
+          operation: operationName,
+          error: errorMessage
+        });
+        throw error;
+      }
+      const delay = Math.min(100 * Math.pow(2, attempt - 1), 1e3);
+      await new Promise((resolve2) => setTimeout(resolve2, delay));
+      logger.info(`Retrying database operation`, {
+        operation: operationName,
+        attempt: attempt + 1,
+        delay
+      });
+    }
+  }
+  throw lastError || new Error("Database operation failed");
+}
+var isRailway, POOL_CONFIG, sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
@@ -389,16 +481,31 @@ var init_db = __esm({
       set: (key, value, ttl) => Promise.resolve()
     };
     isRailway = process.env.RAILWAY_ENVIRONMENT === "production" || process.env.RAILWAY_SERVICE_ID;
+    POOL_CONFIG = isRailway ? {
+      maxConnections: 10,
+      minConnections: 2,
+      idleTimeoutMillis: 1e4,
+      connectionTimeoutMillis: 5e3,
+      acquireTimeoutMillis: 15e3,
+      createTimeoutMillis: 1e4
+    } : {
+      maxConnections: 20,
+      minConnections: 5,
+      idleTimeoutMillis: 3e4,
+      connectionTimeoutMillis: 1e4,
+      acquireTimeoutMillis: 6e4,
+      createTimeoutMillis: 3e4
+    };
     if (isRailway) {
-      neonConfig.maxConnections = 10;
-      neonConfig.idleTimeoutMillis = 1e4;
-      neonConfig.connectionTimeoutMillis = 5e3;
-      logger.info("Applying Railway-specific database configuration");
+      neonConfig.maxConnections = POOL_CONFIG.maxConnections;
+      neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
+      neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
+      logger.info("Applying Railway-specific database configuration", POOL_CONFIG);
     } else {
-      neonConfig.maxConnections = 20;
-      neonConfig.idleTimeoutMillis = 3e4;
-      neonConfig.connectionTimeoutMillis = 1e4;
-      logger.info("Applying local development database configuration");
+      neonConfig.maxConnections = POOL_CONFIG.maxConnections;
+      neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
+      neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
+      logger.info("Applying local development database configuration", POOL_CONFIG);
     }
     neonConfig.webSocketConstructor = ws;
     if (!process.env.DATABASE_URL) {
@@ -408,14 +515,12 @@ var init_db = __esm({
     db = drizzle(sql, { schema: schema_exports });
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: 20,
-      // Maximum number of connections in pool
-      min: 5,
-      // Minimum number of connections to maintain
-      idleTimeoutMillis: 3e4,
-      connectionTimeoutMillis: isRailway ? 5e3 : 1e4,
-      acquireTimeoutMillis: isRailway ? 15e3 : 6e4,
-      createTimeoutMillis: isRailway ? 1e4 : 3e4,
+      max: POOL_CONFIG.maxConnections,
+      min: POOL_CONFIG.minConnections,
+      idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
+      connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
+      acquireTimeoutMillis: POOL_CONFIG.acquireTimeoutMillis,
+      createTimeoutMillis: POOL_CONFIG.createTimeoutMillis,
       destroyTimeoutMillis: 5e3,
       reapIntervalMillis: 1e3,
       createRetryIntervalMillis: 200
@@ -456,112 +561,26 @@ var init_db = __esm({
   }
 });
 
-// server/index.ts
-import express3 from "express";
-import { createServer } from "http";
-import { randomBytes as randomBytes2 } from "crypto";
-import helmet from "helmet";
-import compression from "compression";
-
-// server/routes.ts
-import * as express from "express";
-import * as path3 from "path";
-import { randomBytes } from "crypto";
-
-// server/storage.ts
-init_db();
-init_schema();
-init_logger();
-import { eq, desc, and, gte, lte } from "drizzle-orm";
-
 // server/security.ts
-init_logger();
+var security_exports = {};
+__export(security_exports, {
+  CacheManager: () => CacheManager,
+  PasswordManager: () => PasswordManager,
+  SessionManager: () => SessionManager,
+  apiRateLimit: () => apiRateLimit,
+  createRateLimit: () => createRateLimit,
+  getRedisClient: () => getRedisClient,
+  getRedisHealth: () => getRedisHealth,
+  healthCheckRateLimit: () => healthCheckRateLimit,
+  initializeRedis: () => initializeRedis,
+  sanitizeInput: () => sanitizeInput,
+  securityHeaders: () => securityHeaders,
+  strictRateLimit: () => strictRateLimit,
+  validateRequest: () => validateRequest
+});
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcrypt";
 import { createClient } from "redis";
-var createRateLimit = (windowMs, max) => {
-  return rateLimit({
-    windowMs,
-    max,
-    message: { error: "Too many requests, please try again later" },
-    standardHeaders: true,
-    legacyHeaders: false
-  });
-};
-var API_RATE_LIMIT = process.env.RATE_LIMIT_MAX_REQUESTS ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) : 100;
-var STRICT_RATE_LIMIT = 20;
-var apiRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1e3,
-  // 15 minutes
-  max: API_RATE_LIMIT,
-  message: { error: "Too many requests, please try again later" },
-  standardHeaders: true,
-  legacyHeaders: false,
-  trustProxy: false,
-  // Set to false to avoid trust proxy warnings on Replit
-  keyGenerator: (req) => {
-    return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
-  }
-});
-var strictRateLimit = createRateLimit(
-  15 * 60 * 1e3,
-  STRICT_RATE_LIMIT
-);
-var sanitizeInput = (req, res, next) => {
-  const sanitizeString = (str) => {
-    return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
-  };
-  const sanitizeObject = (obj) => {
-    if (typeof obj === "string") {
-      return sanitizeString(obj);
-    } else if (Array.isArray(obj)) {
-      return obj.map(sanitizeObject);
-    } else if (typeof obj === "object" && obj !== null) {
-      const sanitized = {};
-      for (const [key, value] of Object.entries(obj)) {
-        sanitized[key] = sanitizeObject(value);
-      }
-      return sanitized;
-    }
-    return obj;
-  };
-  if (req.body && typeof req.body === "object") {
-    req.body = sanitizeObject(req.body);
-  }
-  next();
-};
-var securityHeaders = (req, res, next) => {
-  const allowedOrigins = ["http://localhost:5000", "http://localhost:5173"];
-  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-    allowedOrigins.push(
-      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
-      `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
-      `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
-    );
-  }
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, Content-Length, X-Requested-With"
-  );
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-};
-var redisClient = null;
 async function initializeRedis() {
   try {
     if (!process.env.REDIS_URL) {
@@ -593,378 +612,755 @@ async function initializeRedis() {
     redisClient = null;
   }
 }
-var PasswordManager = class {
-  static SALT_ROUNDS = 12;
-  /**
-   * Hash a password using bcrypt
-   */
-  static async hashPassword(password) {
-    try {
-      const salt = await bcrypt.genSalt(this.SALT_ROUNDS);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      logger.debug("Password hashed successfully");
-      return hashedPassword;
-    } catch (error) {
-      logger.error("Failed to hash password", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      throw new Error("Password hashing failed");
-    }
+async function getRedisHealth() {
+  if (!redisClient) {
+    return {
+      connected: false,
+      type: "memory",
+      error: "Redis not configured (using memory storage)"
+    };
   }
-  /**
-   * Verify a password against its hash
-   */
-  static async verifyPassword(password, hashedPassword) {
-    try {
-      const isValid = await bcrypt.compare(password, hashedPassword);
-      logger.debug("Password verification completed", { isValid });
-      return isValid;
-    } catch (error) {
-      logger.error("Failed to verify password", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      return false;
-    }
+  try {
+    const pingResult = await redisClient.ping();
+    const isConnected = pingResult === "PONG";
+    return {
+      connected: isConnected,
+      type: "redis"
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      type: "redis",
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   }
-  /**
-   * Generate a secure random password
-   */
-  static generateSecurePassword(length = 16) {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    let password = "";
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      password += charset[randomIndex];
-    }
-    return password;
-  }
-};
-var SessionManager = class {
-  static SESSION_PREFIX = "admin_session:";
-  static CACHE_PREFIX = "app_cache:";
-  static DEFAULT_TTL = 24 * 60 * 60;
-  // 24 hours in seconds
-  /**
-   * Store session data securely
-   */
-  static async setSession(sessionToken, sessionData, ttl = this.DEFAULT_TTL) {
-    try {
-      const key = this.SESSION_PREFIX + sessionToken;
-      const value = JSON.stringify({
-        ...sessionData,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-        lastAccessed: (/* @__PURE__ */ new Date()).toISOString()
+}
+function getRedisClient() {
+  return redisClient;
+}
+var createRateLimit, API_RATE_LIMIT, STRICT_RATE_LIMIT, HEALTH_CHECK_RATE_LIMIT, apiRateLimit, strictRateLimit, healthCheckRateLimit, sanitizeInput, securityHeaders, redisClient, PasswordManager, SessionExpirationQueue, SessionManager, CacheCircuitBreaker, CacheManager, validateRequest;
+var init_security = __esm({
+  "server/security.ts"() {
+    "use strict";
+    init_logger();
+    createRateLimit = (windowMs, max) => {
+      return rateLimit({
+        windowMs,
+        max,
+        message: { error: "Too many requests, please try again later" },
+        standardHeaders: true,
+        legacyHeaders: false
       });
-      if (redisClient) {
-        await redisClient.setEx(key, ttl, value);
-        logger.debug("Session stored in Redis", { sessionToken, ttl });
-      } else {
-        if (!global.adminSessions) {
-          global.adminSessions = /* @__PURE__ */ new Map();
-        }
-        const expiresAt = new Date(Date.now() + ttl * 1e3);
-        global.adminSessions.set(sessionToken, {
-          ...sessionData,
-          expiresAt
-        });
-        logger.warn("Session stored in memory (NOT SECURE FOR PRODUCTION)", {
-          sessionToken
-        });
+    };
+    API_RATE_LIMIT = process.env.RATE_LIMIT_MAX_REQUESTS ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) : process.env.NODE_ENV === "production" ? 60 : 100;
+    STRICT_RATE_LIMIT = process.env.NODE_ENV === "production" ? 10 : 20;
+    HEALTH_CHECK_RATE_LIMIT = 100;
+    apiRateLimit = rateLimit({
+      windowMs: 15 * 60 * 1e3,
+      // 15 minutes
+      max: API_RATE_LIMIT,
+      message: { error: "Too many requests, please try again later" },
+      standardHeaders: true,
+      legacyHeaders: false,
+      trustProxy: false,
+      // Set to false to avoid trust proxy warnings on Replit
+      keyGenerator: (req) => {
+        return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
       }
-    } catch (error) {
-      logger.error("Failed to store session", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      throw new Error("Session storage failed");
-    }
-  }
-  /**
-   * Retrieve session data
-   */
-  static async getSession(sessionToken) {
-    try {
-      const key = this.SESSION_PREFIX + sessionToken;
-      if (redisClient) {
-        const value = await redisClient.get(key);
-        if (!value) {
-          logger.debug("Session not found in Redis", { sessionToken });
-          return null;
-        }
-        const sessionData = JSON.parse(value);
-        sessionData.lastAccessed = (/* @__PURE__ */ new Date()).toISOString();
-        await redisClient.setEx(
-          key,
-          this.DEFAULT_TTL,
-          JSON.stringify(sessionData)
-        );
-        logger.debug("Session retrieved from Redis", { sessionToken });
-        return sessionData;
-      } else {
-        if (!global.adminSessions) {
-          return null;
-        }
-        const sessionData = global.adminSessions.get(
-          sessionToken
-        );
-        if (!sessionData) {
-          return null;
-        }
-        if (sessionData.expiresAt && /* @__PURE__ */ new Date() > sessionData.expiresAt) {
-          global.adminSessions.delete(sessionToken);
-          return null;
-        }
-        sessionData.lastAccessed = (/* @__PURE__ */ new Date()).toISOString();
-        logger.debug("Session retrieved from memory", { sessionToken });
-        return sessionData;
-      }
-    } catch (error) {
-      logger.error("Failed to retrieve session", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      return null;
-    }
-  }
-  /**
-   * Delete a session
-   */
-  static async deleteSession(sessionToken) {
-    try {
-      const key = this.SESSION_PREFIX + sessionToken;
-      if (redisClient) {
-        await redisClient.del(key);
-        logger.debug("Session deleted from Redis", { sessionToken });
-      } else {
-        if (global.adminSessions) {
-          global.adminSessions.delete(sessionToken);
-          logger.debug("Session deleted from memory", { sessionToken });
-        }
-      }
-    } catch (error) {
-      logger.error("Failed to delete session", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  }
-  /**
-   * Clean up expired sessions
-   */
-  static async cleanupExpiredSessions() {
-    try {
-      if (redisClient) {
-        logger.debug("Redis handles automatic session expiration");
-        return;
-      }
-      if (!global.adminSessions) {
-        return;
-      }
-      const sessions = global.adminSessions;
-      const now = /* @__PURE__ */ new Date();
-      let cleanedCount = 0;
-      for (const [token, sessionData] of sessions.entries()) {
-        if (sessionData.expiresAt && now > sessionData.expiresAt) {
-          sessions.delete(token);
-          cleanedCount++;
-        }
-      }
-      if (cleanedCount > 0) {
-        logger.info("Cleaned up expired memory sessions", {
-          count: cleanedCount
-        });
-      }
-    } catch (error) {
-      logger.error("Failed to cleanup expired sessions", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  }
-};
-var CacheManager = class {
-  static DEFAULT_TTL = 5 * 60;
-  // 5 minutes in seconds
-  /**
-   * Set cache value
-   */
-  static async set(key, value, ttl = this.DEFAULT_TTL) {
-    try {
-      const cacheKey = SessionManager.CACHE_PREFIX + key;
-      const serializedValue = JSON.stringify(value);
-      if (redisClient) {
-        await redisClient.setEx(cacheKey, ttl, serializedValue);
-        logger.debug("Cache stored in Redis", { key, ttl });
-      } else {
-        if (!global.appCache) {
-          global.appCache = /* @__PURE__ */ new Map();
-        }
-        const cache2 = global.appCache;
-        const expiresAt = new Date(Date.now() + ttl * 1e3);
-        cache2.set(key, { data: value, expiresAt });
-        if (cache2.size > 100) {
-          const oldestKey = cache2.keys().next().value;
-          cache2.delete(oldestKey);
-        }
-        logger.debug("Cache stored in memory", { key, ttl });
-      }
-    } catch (error) {
-      logger.error("Failed to set cache", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  }
-  /**
-   * Get cache value
-   */
-  static async get(key) {
-    try {
-      const cacheKey = SessionManager.CACHE_PREFIX + key;
-      if (redisClient) {
-        const value = await redisClient.get(cacheKey);
-        if (!value) {
-          return null;
-        }
-        const parsedValue = JSON.parse(value);
-        logger.debug("Cache hit in Redis", { key });
-        return parsedValue;
-      } else {
-        if (!global.appCache) {
-          return null;
-        }
-        const cache2 = global.appCache;
-        const cached = cache2.get(key);
-        if (!cached) {
-          return null;
-        }
-        if (/* @__PURE__ */ new Date() > cached.expiresAt) {
-          cache2.delete(key);
-          return null;
-        }
-        logger.debug("Cache hit in memory", { key });
-        return cached.data;
-      }
-    } catch (error) {
-      logger.error("Failed to get cache", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      return null;
-    }
-  }
-  /**
-   * Delete cache value
-   */
-  static async delete(key) {
-    try {
-      const cacheKey = SessionManager.CACHE_PREFIX + key;
-      if (redisClient) {
-        await redisClient.del(cacheKey);
-        logger.debug("Cache deleted from Redis", { key });
-      } else {
-        if (global.appCache) {
-          global.appCache.delete(key);
-          logger.debug("Cache deleted from memory", { key });
-        }
-      }
-    } catch (error) {
-      logger.error("Failed to delete cache", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  }
-  /**
-   * Clear cache by pattern
-   */
-  static async clearPattern(pattern) {
-    try {
-      if (redisClient) {
-        const keys = await redisClient.keys(
-          SessionManager.CACHE_PREFIX + "*" + pattern + "*"
-        );
-        if (keys.length > 0) {
-          await redisClient.del(keys);
-          logger.info("Cleared cache pattern in Redis", {
-            pattern,
-            count: keys.length
-          });
-        }
-      } else {
-        if (!global.appCache) {
-          return;
-        }
-        const cache2 = global.appCache;
-        const keysToDelete = Array.from(cache2.keys()).filter(
-          (key) => key.includes(pattern)
-        );
-        let deletedCount = 0;
-        for (const key of keysToDelete) {
-          cache2.delete(key);
-          deletedCount++;
-        }
-        if (deletedCount > 0) {
-          logger.info("Cleared cache pattern in memory", {
-            pattern,
-            count: deletedCount
-          });
-        }
-      }
-    } catch (error) {
-      logger.error("Failed to clear cache pattern", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  }
-  /**
-   * Get cache statistics
-   */
-  static async getStats() {
-    try {
-      if (redisClient) {
-        const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*");
-        return { size: keys.length, type: "Redis" };
-      } else {
-        const size = global.appCache ? global.appCache.size : 0;
-        return { size, type: "Memory (INSECURE)" };
-      }
-    } catch (error) {
-      logger.error("Failed to get cache stats", {
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      return { size: 0, type: "Unknown" };
-    }
-  }
-};
-initializeRedis().catch(() => {
-  logger.warn(
-    "Security module initialized without Redis (falling back to insecure memory storage)"
-  );
-});
-setInterval(
-  () => {
-    SessionManager.cleanupExpiredSessions().catch((error) => {
-      logger.error("Failed to cleanup expired sessions", { error });
     });
-  },
-  10 * 60 * 1e3
-);
-var validateRequest = (req, res, next) => {
-  const contentLength = parseInt(req.headers["content-length"] || "0");
-  if (contentLength > 10 * 1024 * 1024) {
-    return res.status(413).json({ error: "Request too large" });
+    strictRateLimit = createRateLimit(
+      15 * 60 * 1e3,
+      STRICT_RATE_LIMIT
+    );
+    healthCheckRateLimit = rateLimit({
+      windowMs: 15 * 60 * 1e3,
+      // 15 minutes
+      max: HEALTH_CHECK_RATE_LIMIT,
+      message: { error: "Too many health check requests" },
+      standardHeaders: true,
+      legacyHeaders: false,
+      skip: (req) => {
+        return !!(req.headers["x-railway-service-id"] || req.headers["user-agent"]?.includes("Railway"));
+      },
+      keyGenerator: (req) => {
+        return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
+      }
+    });
+    sanitizeInput = (req, res, next) => {
+      const sanitizeString = (str) => {
+        return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "");
+      };
+      const sanitizeObject = (obj) => {
+        if (typeof obj === "string") {
+          return sanitizeString(obj);
+        } else if (Array.isArray(obj)) {
+          return obj.map(sanitizeObject);
+        } else if (typeof obj === "object" && obj !== null) {
+          const sanitized = {};
+          for (const [key, value] of Object.entries(obj)) {
+            sanitized[key] = sanitizeObject(value);
+          }
+          return sanitized;
+        }
+        return obj;
+      };
+      if (req.body && typeof req.body === "object") {
+        req.body = sanitizeObject(req.body);
+      }
+      next();
+    };
+    securityHeaders = (req, res, next) => {
+      const allowedOrigins = ["http://localhost:5000", "http://localhost:5173"];
+      if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+        allowedOrigins.push(
+          `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+          `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`,
+          `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
+        );
+      }
+      const origin = req.headers.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+      }
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("X-Frame-Options", "DENY");
+      res.setHeader("X-XSS-Protection", "1; mode=block");
+      res.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+      );
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, Content-Length, X-Requested-With"
+      );
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      if (req.method === "OPTIONS") {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
+    };
+    redisClient = null;
+    PasswordManager = class {
+      static SALT_ROUNDS = 12;
+      /**
+       * Hash a password using bcrypt
+       */
+      static async hashPassword(password) {
+        try {
+          const salt = await bcrypt.genSalt(this.SALT_ROUNDS);
+          const hashedPassword = await bcrypt.hash(password, salt);
+          logger.debug("Password hashed successfully");
+          return hashedPassword;
+        } catch (error) {
+          logger.error("Failed to hash password", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+          throw new Error("Password hashing failed");
+        }
+      }
+      /**
+       * Verify a password against its hash
+       */
+      static async verifyPassword(password, hashedPassword) {
+        try {
+          const isValid = await bcrypt.compare(password, hashedPassword);
+          logger.debug("Password verification completed", { isValid });
+          return isValid;
+        } catch (error) {
+          logger.error("Failed to verify password", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+          return false;
+        }
+      }
+      /**
+       * Generate a secure random password
+       */
+      static generateSecurePassword(length = 16) {
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let password = "";
+        for (let i = 0; i < length; i++) {
+          const randomIndex = Math.floor(Math.random() * charset.length);
+          password += charset[randomIndex];
+        }
+        return password;
+      }
+    };
+    SessionExpirationQueue = class {
+      queue = [];
+      add(token, expiresAt) {
+        const expiryTime = expiresAt.getTime();
+        this.queue.push({ token, expiresAt: expiryTime });
+        this.queue.sort((a, b) => a.expiresAt - b.expiresAt);
+      }
+      getExpired(now) {
+        const expired = [];
+        while (this.queue.length > 0 && this.queue[0].expiresAt <= now) {
+          const item = this.queue.shift();
+          if (item) {
+            expired.push(item.token);
+          }
+        }
+        return expired;
+      }
+      remove(token) {
+        const index2 = this.queue.findIndex((item) => item.token === token);
+        if (index2 !== -1) {
+          this.queue.splice(index2, 1);
+        }
+      }
+      size() {
+        return this.queue.length;
+      }
+    };
+    SessionManager = class {
+      static SESSION_PREFIX = "admin_session:";
+      static CACHE_PREFIX = "app_cache:";
+      static DEFAULT_TTL = 24 * 60 * 60;
+      // 24 hours in seconds
+      static INACTIVE_SESSION_TTL = 30 * 60;
+      // 30 minutes of inactivity
+      static expirationQueue = new SessionExpirationQueue();
+      /**
+       * Store session data securely
+       */
+      static async setSession(sessionToken, sessionData, ttl = this.DEFAULT_TTL) {
+        try {
+          const key = this.SESSION_PREFIX + sessionToken;
+          const value = JSON.stringify({
+            ...sessionData,
+            createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+            lastAccessed: (/* @__PURE__ */ new Date()).toISOString()
+          });
+          if (redisClient) {
+            await redisClient.setEx(key, ttl, value);
+            logger.debug("Session stored in Redis", { sessionToken, ttl });
+          } else {
+            if (!global.adminSessions) {
+              global.adminSessions = /* @__PURE__ */ new Map();
+            }
+            const expiresAt = new Date(Date.now() + ttl * 1e3);
+            const sessionWithExpiry = {
+              ...sessionData,
+              expiresAt
+            };
+            global.adminSessions.set(sessionToken, sessionWithExpiry);
+            this.expirationQueue.add(sessionToken, expiresAt);
+            logger.warn("Session stored in memory (NOT SECURE FOR PRODUCTION)", {
+              sessionToken
+            });
+          }
+        } catch (error) {
+          logger.error("Failed to store session", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+          throw new Error("Session storage failed");
+        }
+      }
+      /**
+       * Retrieve session data
+       */
+      static async getSession(sessionToken) {
+        try {
+          const key = this.SESSION_PREFIX + sessionToken;
+          if (redisClient) {
+            const value = await redisClient.get(key);
+            if (!value) {
+              logger.debug("Session not found in Redis", { sessionToken });
+              return null;
+            }
+            const sessionData = JSON.parse(value);
+            const now = /* @__PURE__ */ new Date();
+            const lastAccessed = sessionData.lastAccessed ? new Date(sessionData.lastAccessed) : now;
+            const inactivityMs = now.getTime() - lastAccessed.getTime();
+            if (inactivityMs > this.INACTIVE_SESSION_TTL * 1e3) {
+              logger.info("Session expired due to inactivity", {
+                sessionToken,
+                inactivityMinutes: Math.floor(inactivityMs / 6e4)
+              });
+              await this.deleteSession(sessionToken);
+              return null;
+            }
+            sessionData.lastAccessed = now.toISOString();
+            await redisClient.setEx(
+              key,
+              this.DEFAULT_TTL,
+              JSON.stringify(sessionData)
+            );
+            logger.debug("Session retrieved from Redis", { sessionToken });
+            return sessionData;
+          } else {
+            if (!global.adminSessions) {
+              return null;
+            }
+            const sessionData = global.adminSessions.get(
+              sessionToken
+            );
+            if (!sessionData) {
+              return null;
+            }
+            if (sessionData.expiresAt && /* @__PURE__ */ new Date() > sessionData.expiresAt) {
+              global.adminSessions.delete(sessionToken);
+              return null;
+            }
+            sessionData.lastAccessed = (/* @__PURE__ */ new Date()).toISOString();
+            logger.debug("Session retrieved from memory", { sessionToken });
+            return sessionData;
+          }
+        } catch (error) {
+          logger.error("Failed to retrieve session", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+          return null;
+        }
+      }
+      /**
+       * Delete a session
+       */
+      static async deleteSession(sessionToken) {
+        try {
+          const key = this.SESSION_PREFIX + sessionToken;
+          if (redisClient) {
+            await redisClient.del(key);
+            logger.debug("Session deleted from Redis", { sessionToken });
+          } else {
+            if (global.adminSessions) {
+              global.adminSessions.delete(sessionToken);
+              this.expirationQueue.remove(sessionToken);
+              logger.debug("Session deleted from memory", { sessionToken });
+            }
+          }
+        } catch (error) {
+          logger.error("Failed to delete session", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+      /**
+       * Clean up expired sessions (optimized with priority queue for memory sessions)
+       */
+      static async cleanupExpiredSessions() {
+        try {
+          if (redisClient) {
+            await this.cleanupInactiveSessions();
+            return;
+          }
+          if (!global.adminSessions) {
+            return;
+          }
+          const sessions = global.adminSessions;
+          const now = Date.now();
+          const expiredTokens = this.expirationQueue.getExpired(now);
+          let cleanedCount = 0;
+          for (const token of expiredTokens) {
+            if (sessions.delete(token)) {
+              cleanedCount++;
+            }
+          }
+          if (cleanedCount > 0) {
+            logger.info("Cleaned up expired memory sessions", {
+              count: cleanedCount,
+              remainingSessions: sessions.size,
+              queueSize: this.expirationQueue.size()
+            });
+          }
+        } catch (error) {
+          logger.error("Failed to cleanup expired sessions", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+      /**
+       * Clean up inactive sessions in Redis (even if not expired, reclaim memory)
+       */
+      static async cleanupInactiveSessions() {
+        if (!redisClient) return;
+        try {
+          const pattern = `${this.SESSION_PREFIX}*`;
+          let cursor = 0;
+          let cleanedCount = 0;
+          const now = /* @__PURE__ */ new Date();
+          do {
+            const result = await redisClient.scan(cursor, {
+              MATCH: pattern,
+              COUNT: 100
+              // Process 100 keys at a time
+            });
+            cursor = result.cursor;
+            const keys = result.keys;
+            for (const key of keys) {
+              const value = await redisClient.get(key);
+              if (!value) continue;
+              const sessionData = JSON.parse(value);
+              const lastAccessed = sessionData.lastAccessed ? new Date(sessionData.lastAccessed) : new Date(sessionData.createdAt || 0);
+              const inactivityMs = now.getTime() - lastAccessed.getTime();
+              if (inactivityMs > this.INACTIVE_SESSION_TTL * 1e3) {
+                await redisClient.del(key);
+                cleanedCount++;
+              }
+            }
+          } while (cursor !== 0);
+          if (cleanedCount > 0) {
+            logger.info("Cleaned up inactive Redis sessions", {
+              count: cleanedCount
+            });
+          }
+        } catch (error) {
+          logger.error("Failed to cleanup inactive Redis sessions", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+    };
+    CacheCircuitBreaker = class {
+      failureCount = 0;
+      lastFailureTime = 0;
+      state = "closed";
+      threshold = 5;
+      // Open circuit after 5 failures
+      timeout = 6e4;
+      // Try again after 60 seconds
+      resetTime = 3e5;
+      // Reset failure count after 5 minutes of success
+      recordSuccess() {
+        if (this.state === "half-open") {
+          this.state = "closed";
+          this.failureCount = 0;
+          logger.info("Cache circuit breaker closed - Redis recovered");
+        } else if (this.state === "closed" && this.failureCount > 0) {
+          const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+          if (timeSinceLastFailure > this.resetTime) {
+            this.failureCount = 0;
+          }
+        }
+      }
+      recordFailure() {
+        this.failureCount++;
+        this.lastFailureTime = Date.now();
+        if (this.failureCount >= this.threshold && this.state === "closed") {
+          this.state = "open";
+          logger.warn("Cache circuit breaker opened - too many Redis failures", {
+            failureCount: this.failureCount
+          });
+        }
+      }
+      canAttempt() {
+        if (this.state === "closed") {
+          return true;
+        }
+        if (this.state === "open") {
+          const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+          if (timeSinceLastFailure >= this.timeout) {
+            this.state = "half-open";
+            logger.info("Cache circuit breaker half-open - attempting Redis connection");
+            return true;
+          }
+          return false;
+        }
+        return true;
+      }
+      getState() {
+        return this.state;
+      }
+    };
+    CacheManager = class {
+      static DEFAULT_TTL = 5 * 60;
+      // 5 minutes in seconds
+      static circuitBreaker = new CacheCircuitBreaker();
+      static cacheStats = {
+        hits: 0,
+        misses: 0,
+        errors: 0,
+        fallbacks: 0
+      };
+      /**
+       * Set cache value with graceful degradation
+       */
+      static async set(key, value, ttl = this.DEFAULT_TTL) {
+        const cacheKey = SessionManager.CACHE_PREFIX + key;
+        const serializedValue = JSON.stringify(value);
+        if (redisClient && this.circuitBreaker.canAttempt()) {
+          try {
+            await redisClient.setEx(cacheKey, ttl, serializedValue);
+            this.circuitBreaker.recordSuccess();
+            logger.debug("Cache stored in Redis", { key, ttl });
+            return;
+          } catch (error) {
+            this.cacheStats.errors++;
+            this.circuitBreaker.recordFailure();
+            logger.warn("Redis cache set failed, falling back to memory", {
+              key,
+              error: error instanceof Error ? error.message : "Unknown error",
+              circuitState: this.circuitBreaker.getState()
+            });
+          }
+        }
+        try {
+          this.cacheStats.fallbacks++;
+          if (!global.appCache) {
+            global.appCache = /* @__PURE__ */ new Map();
+          }
+          const cache = global.appCache;
+          const expiresAt = new Date(Date.now() + ttl * 1e3);
+          cache.set(key, { data: value, expiresAt });
+          if (cache.size > 500) {
+            const keysToDelete = Array.from(cache.keys()).slice(0, 100);
+            keysToDelete.forEach((k) => cache.delete(k));
+            logger.debug("Memory cache LRU eviction", { evicted: keysToDelete.length });
+          }
+          logger.debug("Cache stored in memory", { key, ttl });
+        } catch (error) {
+          this.cacheStats.errors++;
+          logger.error("Failed to set cache in both Redis and memory", {
+            key,
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+      /**
+       * Get cache value with graceful degradation
+       */
+      static async get(key) {
+        const cacheKey = SessionManager.CACHE_PREFIX + key;
+        if (redisClient && this.circuitBreaker.canAttempt()) {
+          try {
+            const value = await redisClient.get(cacheKey);
+            if (value) {
+              this.circuitBreaker.recordSuccess();
+              this.cacheStats.hits++;
+              const parsedValue = JSON.parse(value);
+              logger.debug("Cache hit in Redis", { key });
+              return parsedValue;
+            }
+          } catch (error) {
+            this.cacheStats.errors++;
+            this.circuitBreaker.recordFailure();
+            logger.warn("Redis cache get failed, trying memory fallback", {
+              key,
+              error: error instanceof Error ? error.message : "Unknown error",
+              circuitState: this.circuitBreaker.getState()
+            });
+          }
+        }
+        try {
+          if (!global.appCache) {
+            this.cacheStats.misses++;
+            return null;
+          }
+          const cache = global.appCache;
+          const cached = cache.get(key);
+          if (!cached) {
+            this.cacheStats.misses++;
+            return null;
+          }
+          if (/* @__PURE__ */ new Date() > cached.expiresAt) {
+            cache.delete(key);
+            this.cacheStats.misses++;
+            return null;
+          }
+          this.cacheStats.hits++;
+          this.cacheStats.fallbacks++;
+          logger.debug("Cache hit in memory", { key });
+          return cached.data;
+        } catch (error) {
+          this.cacheStats.errors++;
+          this.cacheStats.misses++;
+          logger.error("Failed to get cache from both Redis and memory", {
+            key,
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+          return null;
+        }
+      }
+      /**
+       * Delete cache value with graceful degradation
+       */
+      static async delete(key) {
+        const cacheKey = SessionManager.CACHE_PREFIX + key;
+        let redisSuccess = false;
+        if (redisClient && this.circuitBreaker.canAttempt()) {
+          try {
+            await redisClient.del(cacheKey);
+            this.circuitBreaker.recordSuccess();
+            logger.debug("Cache deleted from Redis", { key });
+            redisSuccess = true;
+          } catch (error) {
+            this.cacheStats.errors++;
+            this.circuitBreaker.recordFailure();
+            logger.warn("Redis cache delete failed, will try memory", {
+              key,
+              error: error instanceof Error ? error.message : "Unknown error"
+            });
+          }
+        }
+        try {
+          if (global.appCache) {
+            global.appCache.delete(key);
+            if (!redisSuccess) {
+              logger.debug("Cache deleted from memory", { key });
+            }
+          }
+        } catch (error) {
+          logger.error("Failed to delete cache from memory", {
+            key,
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+      /**
+       * Clear cache by pattern
+       */
+      static async clearPattern(pattern) {
+        try {
+          if (redisClient) {
+            const keys = await redisClient.keys(
+              SessionManager.CACHE_PREFIX + "*" + pattern + "*"
+            );
+            if (keys.length > 0) {
+              await redisClient.del(keys);
+              logger.info("Cleared cache pattern in Redis", {
+                pattern,
+                count: keys.length
+              });
+            }
+          } else {
+            if (!global.appCache) {
+              return;
+            }
+            const cache = global.appCache;
+            const keysToDelete = Array.from(cache.keys()).filter(
+              (key) => key.includes(pattern)
+            );
+            let deletedCount = 0;
+            for (const key of keysToDelete) {
+              cache.delete(key);
+              deletedCount++;
+            }
+            if (deletedCount > 0) {
+              logger.info("Cleared cache pattern in memory", {
+                pattern,
+                count: deletedCount
+              });
+            }
+          }
+        } catch (error) {
+          logger.error("Failed to clear cache pattern", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+      /**
+       * Get comprehensive cache statistics
+       */
+      static async getStats() {
+        try {
+          let size = 0;
+          let type = "Unknown";
+          if (redisClient && this.circuitBreaker.canAttempt()) {
+            try {
+              const keys = await redisClient.keys(SessionManager.CACHE_PREFIX + "*");
+              size = keys.length;
+              type = "Redis";
+            } catch (error) {
+              size = global.appCache ? global.appCache.size : 0;
+              type = "Memory (Redis unavailable)";
+            }
+          } else {
+            size = global.appCache ? global.appCache.size : 0;
+            type = this.circuitBreaker.getState() === "open" ? "Memory (Circuit breaker open)" : "Memory (INSECURE)";
+          }
+          const totalRequests = this.cacheStats.hits + this.cacheStats.misses;
+          const hitRate = totalRequests > 0 ? (this.cacheStats.hits / totalRequests * 100).toFixed(2) + "%" : "N/A";
+          return {
+            size,
+            type,
+            hits: this.cacheStats.hits,
+            misses: this.cacheStats.misses,
+            errors: this.cacheStats.errors,
+            fallbacks: this.cacheStats.fallbacks,
+            hitRate,
+            circuitBreakerState: this.circuitBreaker.getState()
+          };
+        } catch (error) {
+          logger.error("Failed to get cache stats", {
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+          return {
+            size: 0,
+            type: "Unknown",
+            hits: this.cacheStats.hits,
+            misses: this.cacheStats.misses,
+            errors: this.cacheStats.errors,
+            fallbacks: this.cacheStats.fallbacks,
+            hitRate: "N/A",
+            circuitBreakerState: "unknown"
+          };
+        }
+      }
+    };
+    initializeRedis().catch(() => {
+      logger.warn(
+        "Security module initialized without Redis (falling back to insecure memory storage)"
+      );
+    });
+    setInterval(
+      () => {
+        SessionManager.cleanupExpiredSessions().catch((error) => {
+          logger.error("Failed to cleanup expired sessions", { error });
+        });
+      },
+      10 * 60 * 1e3
+    );
+    validateRequest = (req, res, next) => {
+      const contentLength = parseInt(req.headers["content-length"] || "0");
+      if (contentLength > 10 * 1024 * 1024) {
+        return res.status(413).json({ error: "Request too large" });
+      }
+      if (["POST", "PUT", "PATCH"].includes(req.method)) {
+        const contentType = req.headers["content-type"];
+        if (!contentType) {
+          return res.status(400).json({ error: "Content-Type header is required" });
+        }
+        const baseContentType = contentType.split(";")[0].trim().toLowerCase();
+        const validTypes = ["application/json", "multipart/form-data"];
+        if (!validTypes.some((type) => baseContentType === type || baseContentType.startsWith(type))) {
+          return res.status(400).json({
+            error: "Invalid content type",
+            received: baseContentType,
+            expected: validTypes
+          });
+        }
+      }
+      next();
+    };
   }
-  if (["POST", "PUT", "PATCH"].includes(req.method)) {
-    const contentType = req.headers["content-type"];
-    if (!contentType || !contentType.includes("application/json") && !contentType.includes("multipart/form-data")) {
-      return res.status(400).json({ error: "Invalid content type" });
-    }
-  }
-  next();
-};
+});
+
+// server/index.ts
+import express3 from "express";
+import { createServer } from "http";
+import helmet from "helmet";
+import compression from "compression";
+import cookieParser from "cookie-parser";
+
+// server/routes.ts
+import * as express from "express";
+import * as path4 from "path";
+import { randomBytes } from "crypto";
 
 // server/storage.ts
+init_db();
+init_schema();
+init_logger();
+init_security();
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 var performanceMetrics = {
   cacheHits: 0,
   cacheMisses: 0,
   slowQueries: 0,
   totalQueries: 0
 };
-var cache = /* @__PURE__ */ new Map();
 var DEFAULT_TTL = 5 * 60 * 1e3;
 async function getFromCache(key) {
   try {
@@ -999,7 +1395,7 @@ async function executeQuery(operation, queryFn, cacheKey, ttl) {
         return cached;
       }
     }
-    const result = await queryFn();
+    const result = await withDatabaseReconnection(queryFn, operation);
     const duration = Date.now() - startTime;
     if (duration > 1e3) {
       performanceMetrics.slowQueries++;
@@ -1015,7 +1411,7 @@ async function executeQuery(operation, queryFn, cacheKey, ttl) {
     logger.debug("Query completed", {
       operation,
       duration,
-      cacheHit: !!cacheKey && cache.has(cacheKey)
+      cacheHit: false
     });
     return result;
   } catch (error) {
@@ -1054,6 +1450,7 @@ var storage = {
           query = query.where(and(...conditions));
         }
       }
+      query = query.orderBy(desc(inspections.date));
       if (options?.limit) {
         query = query.limit(options.limit);
       }
@@ -1107,6 +1504,7 @@ var storage = {
       if (options?.school) {
         query = query.where(eq(custodialNotes.school, options.school));
       }
+      query = query.orderBy(desc(custodialNotes.createdAt));
       if (options?.limit) {
         query = query.limit(options.limit);
       }
@@ -1130,8 +1528,8 @@ var storage = {
     return executeQuery("deleteCustodialNote", async () => {
       await db.delete(custodialNotes).where(eq(custodialNotes.id, id));
       logger.info("Deleted custodial note:", { id });
-      cache.delete(`custodialNote:${id}`);
-      await CacheManager.delete("custodialNotes:all");
+      await CacheManager.delete(`custodialNote:${id}`);
+      await CacheManager.clearPattern("custodialNotes:all");
       return true;
     });
   },
@@ -1148,11 +1546,11 @@ var storage = {
     const cacheKey = `roomInspections:all:${buildingInspectionId || "all"}`;
     return executeQuery("getRoomInspections", async () => {
       if (buildingInspectionId) {
-        const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId));
+        const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId)).orderBy(desc(roomInspections.createdAt));
         logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
         return result;
       } else {
-        const result = await db.select().from(roomInspections);
+        const result = await db.select().from(roomInspections).orderBy(desc(roomInspections.createdAt));
         logger.info(`Retrieved ${result.length} room inspections`);
         return result;
       }
@@ -1182,9 +1580,9 @@ var storage = {
         return null;
       }
       logger.info("Updated room inspection:", { roomId, buildingInspectionId });
-      cache.delete(`roomInspection:${roomId}`);
-      cache.delete(`roomInspections:all:${buildingInspectionId}`);
-      await CacheManager.delete("roomInspections:all:all");
+      await CacheManager.delete(`roomInspection:${roomId}`);
+      await CacheManager.delete(`roomInspections:all:${buildingInspectionId}`);
+      await CacheManager.clearPattern("roomInspections:all");
       return result;
     });
   },
@@ -1227,8 +1625,8 @@ var storage = {
     return executeQuery("deleteMonthlyFeedback", async () => {
       await db.delete(monthlyFeedback).where(eq(monthlyFeedback.id, id));
       logger.info("Deleted monthly feedback:", { id });
-      cache.delete(`monthlyFeedback:${id}`);
-      await CacheManager.delete("monthlyFeedback:all");
+      await CacheManager.delete(`monthlyFeedback:${id}`);
+      await CacheManager.clearPattern("monthlyFeedback:all");
       return true;
     });
   },
@@ -1236,18 +1634,20 @@ var storage = {
     return executeQuery("updateMonthlyFeedbackNotes", async () => {
       const [result] = await db.update(monthlyFeedback).set({ notes }).where(eq(monthlyFeedback.id, id)).returning();
       logger.info("Updated monthly feedback notes:", { id });
-      cache.delete(`monthlyFeedback:${id}`);
-      await CacheManager.delete("monthlyFeedback:all");
+      await CacheManager.delete(`monthlyFeedback:${id}`);
+      await CacheManager.clearPattern("monthlyFeedback:all");
       return result;
     });
   },
   // Performance metrics and cache management
-  getPerformanceMetrics() {
+  async getPerformanceMetrics() {
+    const cacheStats = await CacheManager.getStats();
     return {
       ...performanceMetrics,
       cacheHitRate: performanceMetrics.totalQueries > 0 ? (performanceMetrics.cacheHits / performanceMetrics.totalQueries * 100).toFixed(2) + "%" : "0%",
       slowQueryRate: performanceMetrics.totalQueries > 0 ? (performanceMetrics.slowQueries / performanceMetrics.totalQueries * 100).toFixed(2) + "%" : "0%",
-      cacheSize: cache.size,
+      cacheSize: cacheStats.size,
+      cacheType: cacheStats.type,
       poolStatus: {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount,
@@ -1393,6 +1793,7 @@ var storage = {
 
 // server/routes.ts
 init_schema();
+init_security();
 init_logger();
 import { z as z2 } from "zod";
 import multer from "multer";
@@ -1568,7 +1969,13 @@ var ObjectStorageService = class {
       };
     }
   }
-  async deleteFile(filename) {
+  /**
+   * Delete a file from storage
+   * NOTE: Caller should verify file is not referenced in database before calling this method
+   * @param filename - Path to the file relative to storage directory
+   * @param skipReferenceCheck - If true, skip checking if file is still referenced (use with caution)
+   */
+  async deleteFile(filename, skipReferenceCheck = false) {
     try {
       const validation = this.validateFilePath(filename);
       if (!validation.valid) {
@@ -1577,8 +1984,11 @@ var ObjectStorageService = class {
           error: validation.error || "Invalid file path"
         };
       }
+      if (skipReferenceCheck) {
+        logger.warn("File deletion without reference check", { filename });
+      }
       await fs2.unlink(validation.resolvedPath);
-      logger.info(`File deleted: ${filename}`);
+      logger.info(`File deleted: ${filename}`, { skipReferenceCheck });
       return {
         success: true
       };
@@ -1733,6 +2143,44 @@ function getComplianceStatus(score) {
   } else {
     return { text: "Needs Immediate Attention", color: "red" };
   }
+}
+
+// server/utils/pathValidation.ts
+init_logger();
+import * as path3 from "path";
+function sanitizeFilePath(userPath, allowedDirectory) {
+  if (!userPath || typeof userPath !== "string") {
+    logger.error("[Security] Invalid file path provided", { userPath });
+    throw new Error("Invalid file path");
+  }
+  const normalized = path3.normalize(userPath).replace(/^(\.\.(\/|\\|$))+/, "");
+  if (normalized.includes("..") || path3.isAbsolute(normalized)) {
+    logger.warn("[Security] Directory traversal attempt detected", {
+      userPath,
+      normalized
+    });
+    throw new Error("Invalid file path: directory traversal not allowed");
+  }
+  if (normalized.includes("\0")) {
+    logger.warn("[Security] Null byte injection attempt detected", {
+      userPath
+    });
+    throw new Error("Invalid file path: null bytes not allowed");
+  }
+  if (allowedDirectory) {
+    const resolvedPath = path3.resolve(allowedDirectory, normalized);
+    const allowedPath = path3.resolve(allowedDirectory);
+    if (!resolvedPath.startsWith(allowedPath)) {
+      logger.warn("[Security] Path escape attempt detected", {
+        userPath,
+        resolvedPath,
+        allowedPath
+      });
+      throw new Error("Invalid file path: outside allowed directory");
+    }
+    return resolvedPath;
+  }
+  return normalized;
 }
 
 // server/routes.ts
@@ -2150,8 +2598,34 @@ async function registerRoutes(app2) {
   );
   app2.get("/api/custodial-notes", async (req, res) => {
     try {
-      const custodialNotes2 = await storage.getCustodialNotes();
-      res.json(custodialNotes2);
+      const { page = "1", limit = "50", school } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      if (isNaN(pageNum) || pageNum < 1 || isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+        return res.status(400).json({
+          error: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100"
+          }
+        });
+      }
+      const offset = (pageNum - 1) * limitNum;
+      const allNotes = await storage.getCustodialNotes({
+        school
+      });
+      const totalCount = allNotes.length;
+      const paginatedNotes = allNotes.slice(offset, offset + limitNum);
+      res.json({
+        data: paginatedNotes,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limitNum)
+        }
+      });
     } catch (error) {
       logger.error("Error fetching custodial notes:", error);
       res.status(500).json({ error: "Failed to fetch custodial notes" });
@@ -2496,11 +2970,24 @@ async function registerRoutes(app2) {
       }
     }
   );
-  app2.use("/uploads", express.static(path3.join(process.cwd(), "uploads")));
+  app2.use("/uploads", express.static(path4.join(process.cwd(), "uploads")));
   app2.get("/objects/:filename(*)", async (req, res) => {
     try {
-      const filename = req.params.filename;
-      logger.info("[GET] Serving object from storage", { filename });
+      const requestedPath = req.params.filename;
+      let filename;
+      try {
+        filename = sanitizeFilePath(requestedPath);
+      } catch (securityError) {
+        logger.error("[GET] Security validation failed for file path", {
+          requestedPath,
+          error: securityError instanceof Error ? securityError.message : securityError
+        });
+        return res.status(400).json({
+          error: "Invalid file path",
+          message: "File path validation failed"
+        });
+      }
+      logger.info("[GET] Serving object from storage", { filename, requestedPath });
       const objectFile = await objectStorageService.getObjectFile(filename);
       if (!objectFile) {
         logger.warn("[GET] Object not found", { filename });
@@ -2543,14 +3030,6 @@ async function registerRoutes(app2) {
       const adminUsername = process.env.ADMIN_USERNAME;
       if (!adminUsername) {
         logger.error("ADMIN_USERNAME environment variable not set");
-        return res.status(500).json({
-          success: false,
-          message: "Server configuration error"
-        });
-      }
-      const adminPassword = process.env.ADMIN_PASSWORD;
-      if (!adminPassword) {
-        logger.error("ADMIN_PASSWORD environment variable not set");
         return res.status(500).json({
           success: false,
           message: "Server configuration error"
@@ -2805,11 +3284,14 @@ async function registerRoutes(app2) {
       });
       res.json(feedback);
     } catch (error) {
-      logger.error("[GET] Error fetching monthly feedback:", error);
+      logger.error("[GET] Error fetching monthly feedback:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : void 0
+      });
       const errorDetails = {
         message: "Failed to fetch monthly feedback",
-        error: process.env.NODE_ENV === "development" ? error.message : void 0,
-        stack: process.env.NODE_ENV === "development" ? error.stack : void 0,
+        error: process.env.NODE_ENV === "development" && error instanceof Error ? error.message : void 0,
+        stack: process.env.NODE_ENV === "development" && error instanceof Error ? error.stack : void 0,
         details: error instanceof Error ? error.message : String(error)
       };
       res.status(500).json(errorDetails);
@@ -3243,17 +3725,19 @@ async function registerRoutes(app2) {
           message: "Photo not found"
         });
       }
+      await storage.deleteInspectionPhoto(photoId);
       if (photo.photoUrl && photo.photoUrl.startsWith("/objects/")) {
         const filename = photo.photoUrl.replace("/objects/", "");
-        const deleteResult = await objectStorageService.deleteFile(filename);
+        const deleteResult = await objectStorageService.deleteFile(filename, true);
         if (!deleteResult.success) {
           logger.warn("[DELETE] Failed to delete photo from object storage", {
+            photoId,
             filename,
-            error: deleteResult.error
+            error: deleteResult.error,
+            note: "Database record already deleted, file may be orphaned"
           });
         }
       }
-      await storage.deleteInspectionPhoto(photoId);
       logger.info("[DELETE] Photo deleted successfully", { photoId });
       res.json({
         success: true,
@@ -3315,12 +3799,12 @@ async function registerRoutes(app2) {
 // server/vite.ts
 init_logger();
 import * as express2 from "express";
-import * as path4 from "path";
+import * as path5 from "path";
 function serveStatic(app2) {
-  const uploadsPath = path4.join(process.cwd(), "uploads");
+  const uploadsPath = path5.join(process.cwd(), "uploads");
   app2.use("/uploads", express2.static(uploadsPath));
   logger.info(`Serving uploads from: ${uploadsPath}`);
-  const staticPath = path4.join(process.cwd(), "dist", "public");
+  const staticPath = path5.join(process.cwd(), "dist", "public");
   app2.use((req, res, next) => {
     if (req.path.endsWith(".html") || req.path === "/") {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -3335,8 +3819,8 @@ function serveStatic(app2) {
     // Cache static assets for 1 year
     etag: true,
     lastModified: true,
-    setHeaders: (res, path5) => {
-      if (path5.endsWith(".html")) {
+    setHeaders: (res, path6) => {
+      if (path6.endsWith(".html")) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
@@ -3349,7 +3833,7 @@ function serveStatic(app2) {
     if (req.path.startsWith("/api") || req.path.startsWith("/health") || req.path.startsWith("/uploads") || req.path.includes(".")) {
       return next();
     }
-    const indexPath = path4.join(staticPath, "index.html");
+    const indexPath = path5.join(staticPath, "index.html");
     if (!res.headersSent) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.setHeader("Pragma", "no-cache");
@@ -3375,6 +3859,7 @@ function log(message, type = "info") {
 }
 
 // server/index.ts
+init_security();
 init_logger();
 
 // server/monitoring.ts
@@ -3395,6 +3880,18 @@ var healthCheck = async (req, res) => {
       dbStatus = "error";
       logger.error("Database health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
     }
+    let redisHealth;
+    try {
+      const { getRedisHealth: getRedisHealth2 } = await Promise.resolve().then(() => (init_security(), security_exports));
+      redisHealth = await getRedisHealth2();
+    } catch (error) {
+      redisHealth = {
+        connected: false,
+        type: "memory",
+        error: error instanceof Error ? error.message : "Unknown error"
+      };
+      logger.error("Redis health check failed", { error: error instanceof Error ? error.message : "Unknown error" });
+    }
     const memUsage = process.memoryUsage();
     const memory = {
       used: Math.round(memUsage.heapUsed / 1024 / 1024),
@@ -3408,6 +3905,7 @@ var healthCheck = async (req, res) => {
       version: "1.0.0",
       environment: process.env.NODE_ENV || "development",
       database: dbStatus,
+      redis: redisHealth,
       memory
     };
     const responseTime = Date.now() - startTime;
@@ -3784,14 +4282,14 @@ var APICache = class {
     return !noCachePatterns.some((pattern) => req.path.includes(pattern));
   }
   getCacheTTL(req) {
-    const path5 = req.path;
-    if (path5.includes("/api/inspections") || path5.includes("/api/custodial-notes")) {
+    const path6 = req.path;
+    if (path6.includes("/api/inspections") || path6.includes("/api/custodial-notes")) {
       return 6e4;
-    } else if (path5.includes("/api/scores")) {
+    } else if (path6.includes("/api/scores")) {
       return 3e5;
-    } else if (path5.includes("/api/monthly-feedback")) {
+    } else if (path6.includes("/api/monthly-feedback")) {
       return 12e4;
-    } else if (path5.startsWith("/api/")) {
+    } else if (path6.startsWith("/api/")) {
       return 6e4;
     } else {
       return 3e5;
@@ -3987,15 +4485,15 @@ var requestDeduplication = (req, res, next) => {
     });
     return;
   }
-  const requestPromise = new Promise((resolve, reject) => {
+  const requestPromise = new Promise((resolve2, reject) => {
     const originalJson = res.json;
     const originalSend = res.send;
     res.json = function(data) {
-      resolve(data);
+      resolve2(data);
       return originalJson.call(this, data);
     };
     res.send = function(data) {
-      resolve(data);
+      resolve2(data);
       return originalSend.call(this, data);
     };
     res.on("error", reject);
@@ -4212,6 +4710,167 @@ var circuitBreakerMiddleware = (circuitBreaker, operation) => {
   };
 };
 
+// server/csrf.ts
+init_logger();
+import { randomBytes as randomBytes2, createHash as createHash2 } from "crypto";
+var CSRF_TOKEN_LENGTH = 32;
+var CSRF_SECRET_LENGTH = 32;
+var CSRF_HEADER_NAME = "x-csrf-token";
+var CSRF_COOKIE_NAME = "csrf-secret";
+var CSRF_TOKEN_TTL = 24 * 60 * 60 * 1e3;
+var tokenStore = /* @__PURE__ */ new Map();
+function generateCsrfToken() {
+  const secret = randomBytes2(CSRF_SECRET_LENGTH).toString("hex");
+  const token = randomBytes2(CSRF_TOKEN_LENGTH).toString("hex");
+  return { token, secret };
+}
+function hashToken(token, secret) {
+  return createHash2("sha256").update(`${token}:${secret}`).digest("hex");
+}
+function verifyCsrfToken(token, secret, storedHash) {
+  const hash = hashToken(token, secret);
+  return hash === storedHash;
+}
+function csrfProtection(req, res, next) {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+  if (req.path.startsWith("/health") || req.path.startsWith("/metrics")) {
+    return next();
+  }
+  try {
+    const secret = req.cookies?.[CSRF_COOKIE_NAME];
+    if (!secret) {
+      logger.warn("CSRF validation failed: No secret cookie", {
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        error: "CSRF token missing",
+        message: "Please refresh the page and try again"
+      });
+    }
+    const token = req.headers[CSRF_HEADER_NAME] || req.body?._csrf;
+    if (!token) {
+      logger.warn("CSRF validation failed: No token provided", {
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        error: "CSRF token missing",
+        message: "Please include CSRF token in request"
+      });
+    }
+    const storedData = tokenStore.get(secret);
+    if (!storedData) {
+      logger.warn("CSRF validation failed: Token not found or expired", {
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        error: "CSRF token invalid or expired",
+        message: "Please refresh the page and try again"
+      });
+    }
+    if (Date.now() > storedData.expires) {
+      tokenStore.delete(secret);
+      logger.warn("CSRF validation failed: Token expired", {
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        error: "CSRF token expired",
+        message: "Please refresh the page and try again"
+      });
+    }
+    if (!verifyCsrfToken(token, secret, storedData.token)) {
+      logger.warn("CSRF validation failed: Invalid token", {
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        error: "CSRF token invalid",
+        message: "Security validation failed"
+      });
+    }
+    logger.debug("CSRF token validated successfully", {
+      path: req.path,
+      method: req.method
+    });
+    next();
+  } catch (error) {
+    logger.error("CSRF validation error", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      path: req.path,
+      method: req.method
+    });
+    return res.status(500).json({
+      error: "CSRF validation failed",
+      message: "An error occurred during security validation"
+    });
+  }
+}
+function generateToken(req, res) {
+  const { token, secret } = generateCsrfToken();
+  const hashedToken = hashToken(token, secret);
+  tokenStore.set(secret, {
+    token: hashedToken,
+    expires: Date.now() + CSRF_TOKEN_TTL
+  });
+  res.cookie(CSRF_COOKIE_NAME, secret, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: CSRF_TOKEN_TTL
+  });
+  logger.debug("CSRF token generated", { ip: req.ip });
+  return { token, secret };
+}
+function getCsrfToken(req, res) {
+  try {
+    const { token } = generateToken(req, res);
+    res.json({
+      csrfToken: token,
+      expiresIn: CSRF_TOKEN_TTL / 1e3
+      // seconds
+    });
+  } catch (error) {
+    logger.error("Failed to generate CSRF token", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      ip: req.ip
+    });
+    res.status(500).json({
+      error: "Failed to generate CSRF token"
+    });
+  }
+}
+function cleanupExpiredTokens() {
+  const now = Date.now();
+  let cleanedCount = 0;
+  for (const [secret, data] of tokenStore.entries()) {
+    if (now > data.expires) {
+      tokenStore.delete(secret);
+      cleanedCount++;
+    }
+  }
+  if (cleanedCount > 0) {
+    logger.debug("Cleaned up expired CSRF tokens", { count: cleanedCount });
+  }
+}
+setInterval(cleanupExpiredTokens, 15 * 60 * 1e3);
+function getCsrfStats() {
+  return {
+    activeTokens: tokenStore.size,
+    headerName: CSRF_HEADER_NAME,
+    cookieName: CSRF_COOKIE_NAME
+  };
+}
+
 // server/index.ts
 var app = express3();
 if (process.env.REPL_SLUG) {
@@ -4223,6 +4882,20 @@ app.use(requestIdMiddleware);
 app.use(performanceMiddleware);
 app.use(memoryMonitoring);
 app.use(metricsMiddleware);
+app.use((req, res, next) => {
+  if (!req.path.startsWith("/health")) {
+    req.setTimeout(12e4, () => {
+      logger.warn("Request timeout", { path: req.path, method: req.method });
+      if (!res.headersSent) {
+        res.status(408).json({ error: "Request timeout" });
+      }
+    });
+    res.setTimeout(12e4, () => {
+      logger.warn("Response timeout", { path: req.path, method: req.method });
+    });
+  }
+  next();
+});
 app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
@@ -4299,6 +4972,7 @@ app.use(validateRequest);
 app.use(sanitizeInput);
 app.use(express3.json({ limit: "10mb" }));
 app.use(express3.urlencoded({ extended: false, limit: "10mb" }));
+app.use(cookieParser());
 app.use(cacheMiddleware);
 app.use("/api/admin/login", strictRateLimit);
 app.use("/api/inspections", apiRateLimit);
@@ -4317,7 +4991,7 @@ app.use("/api", (req, res, next) => {
     const contentType = req.headers["content-type"];
     const accept = req.headers["accept"];
     const contentLength = req.headers["content-length"];
-    const path5 = req.path;
+    const path6 = req.path;
     const method = req.method;
     const bodyPreview = req.body ? JSON.parse(JSON.stringify(req.body)) : void 0;
     const truncate = (val) => {
@@ -4329,14 +5003,14 @@ app.use("/api", (req, res, next) => {
         bodyPreview[k] = truncate(bodyPreview[k]);
       }
     }
-    log(`API REQ ${method} ${path5} ct=${contentType || "n/a"} accept=${accept || "n/a"} len=${contentLength || "n/a"} :: ${JSON.stringify(bodyPreview || {})}`);
+    log(`API REQ ${method} ${path6} ct=${contentType || "n/a"} accept=${accept || "n/a"} len=${contentLength || "n/a"} :: ${JSON.stringify(bodyPreview || {})}`);
   } catch {
   }
   next();
 });
 app.use((req, res, next) => {
   const start = Date.now();
-  const path5 = req.path;
+  const path6 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -4345,8 +5019,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path5.startsWith("/api")) {
-      let logLine = `${req.method} ${path5} ${res.statusCode} in ${duration}ms`;
+    if (path6.startsWith("/api")) {
+      let logLine = `${req.method} ${path6} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -4394,15 +5068,26 @@ if (process.env.REPL_SLUG) {
         owner: process.env.REPL_OWNER
       });
     }
-    const requiredEnvVars = ["DATABASE_URL"];
-    const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+    const requiredEnvVars = ["DATABASE_URL", "SESSION_SECRET"];
+    const requiredProdEnvVars = process.env.NODE_ENV === "production" ? ["ADMIN_USERNAME", "ADMIN_PASSWORD_HASH"] : [];
+    const allRequiredVars = [...requiredEnvVars, ...requiredProdEnvVars];
+    const missingEnvVars = allRequiredVars.filter((varName) => !process.env[varName]);
     if (missingEnvVars.length > 0) {
-      logger.error("Missing required environment variables", { missing: missingEnvVars });
+      logger.error("Missing required environment variables", {
+        missing: missingEnvVars,
+        environment: process.env.NODE_ENV || "development"
+      });
+      if (missingEnvVars.includes("SESSION_SECRET")) {
+        logger.error("SESSION_SECRET is required. Generate one with: openssl rand -hex 32");
+      }
+      if (missingEnvVars.includes("ADMIN_PASSWORD_HASH")) {
+        logger.error("ADMIN_PASSWORD_HASH is required for production. Hash a password using bcrypt.");
+      }
       process.exit(1);
     }
-    if (!process.env.SESSION_SECRET) {
-      process.env.SESSION_SECRET = randomBytes2(32).toString("hex");
-      logger.warn("Generated temporary session secret");
+    if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length < 32) {
+      logger.error("SESSION_SECRET must be at least 32 characters long");
+      process.exit(1);
     }
     try {
       const { db: db2 } = await Promise.resolve().then(() => (init_db(), db_exports));
@@ -4414,7 +5099,7 @@ if (process.env.REPL_SLUG) {
       logger.error("Database connection failed", { error: error instanceof Error ? error.message : "Unknown error" });
       process.exit(1);
     }
-    app.get("/health", async (req, res) => {
+    app.get("/health", healthCheckRateLimit, async (req, res) => {
       try {
         if (process.env.RAILWAY_SERVICE_ID && !res.headersSent) {
           res.set("X-Railway-Service-ID", process.env.RAILWAY_SERVICE_ID);
@@ -4423,7 +5108,7 @@ if (process.env.REPL_SLUG) {
         await Promise.race([
           healthCheck(req, res),
           new Promise(
-            (_, reject) => setTimeout(() => reject(new Error("Health check timeout")), 2e4)
+            (_, reject) => setTimeout(() => reject(new Error("Health check timeout")), 3e4)
           )
         ]);
       } catch (error) {
@@ -4438,7 +5123,7 @@ if (process.env.REPL_SLUG) {
         }
       }
     });
-    app.get("/metrics", (req, res) => {
+    app.get("/metrics", healthCheckRateLimit, (req, res) => {
       try {
         const metrics = metricsCollector.getMetrics();
         metrics.railway = {
@@ -4453,7 +5138,7 @@ if (process.env.REPL_SLUG) {
         res.status(500).json({ error: "Failed to fetch metrics" });
       }
     });
-    app.get("/health/metrics", (req, res) => {
+    app.get("/health/metrics", healthCheckRateLimit, (req, res) => {
       try {
         const currentHealth = automatedMonitoring.getCurrentHealth();
         if (!currentHealth) {
@@ -4468,7 +5153,7 @@ if (process.env.REPL_SLUG) {
         res.status(500).json({ error: "Failed to fetch health metrics" });
       }
     });
-    app.get("/health/history", (req, res) => {
+    app.get("/health/history", healthCheckRateLimit, (req, res) => {
       try {
         const limit = parseInt(req.query.limit || "20", 10);
         const history = automatedMonitoring.getHealthHistory(limit);
@@ -4481,7 +5166,7 @@ if (process.env.REPL_SLUG) {
         res.status(500).json({ error: "Failed to fetch health history" });
       }
     });
-    app.get("/health/alerts", (req, res) => {
+    app.get("/health/alerts", healthCheckRateLimit, (req, res) => {
       try {
         const alerts = automatedMonitoring.getActiveAlerts();
         res.json({
@@ -4493,9 +5178,9 @@ if (process.env.REPL_SLUG) {
         res.status(500).json({ error: "Failed to fetch alerts" });
       }
     });
-    app.get("/api/performance/stats", (req, res) => {
+    app.get("/api/performance/stats", async (req, res) => {
       try {
-        const storageMetrics = storage.getPerformanceMetrics();
+        const storageMetrics = await storage.getPerformanceMetrics();
         const cacheStats = apiCache.getStats();
         const memUsage = process.memoryUsage();
         res.json({
@@ -4546,6 +5231,18 @@ if (process.env.REPL_SLUG) {
       }
     });
     logger.info("Health check and performance endpoints configured");
+    app.get("/api/csrf-token", getCsrfToken);
+    logger.info("CSRF token endpoint configured");
+    app.use("/api", csrfProtection);
+    logger.info("CSRF protection enabled for API routes");
+    app.get("/api/csrf-stats", (req, res) => {
+      try {
+        res.json(getCsrfStats());
+      } catch (error) {
+        logger.error("Failed to get CSRF stats", { error });
+        res.status(500).json({ error: "Failed to get CSRF stats" });
+      }
+    });
     await registerRoutes(app);
     logger.info("Routes registered successfully");
     serveStatic(app);
