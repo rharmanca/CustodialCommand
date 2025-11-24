@@ -291,60 +291,70 @@ export default function AdminInspectionsPage({ onBack }: AdminInspectionsPagePro
 
   if (!isAuthenticated) {
     return (
-      <div className="container mx-auto p-6 max-w-md">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Admin Login</CardTitle>
-            <CardDescription className="text-center">
-              Enter your credentials to access the admin panel
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
-                  value={loginForm.username}
-                  onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="Enter username"
-                  required
-                />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] py-12">
+        <div className="w-full max-w-md relative">
+          {/* Decorative background element */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-xl opacity-50" />
+          
+          <Card className="relative border-2 shadow-xl">
+            <CardHeader className="space-y-1 pb-6">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Settings className="w-6 h-6 text-primary" />
               </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="Enter password"
-                  required
-                />
-              </div>
-              {loginError && (
-                <div className="text-red-600 text-sm text-center">
-                  {loginError}
+              <CardTitle className="text-2xl text-center font-bold">Admin Access</CardTitle>
+              <CardDescription className="text-center text-base">
+                Enter your credentials to manage inspections
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pb-8 px-8">
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    autoComplete="username"
+                    value={loginForm.username}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
+                    placeholder="Enter username"
+                    required
+                    className="h-11"
+                  />
                 </div>
-              )}
-              <div className="flex gap-2">
-                {onBack && (
-                  <Button type="button" variant="outline" onClick={onBack} className="flex-1">
-                    Back
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Enter password"
+                    required
+                    className="h-11"
+                  />
+                </div>
+                {loginError && (
+                  <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md text-center font-medium animate-in fade-in slide-in-from-top-1">
+                    {loginError}
+                  </div>
                 )}
-                <Button type="submit" className="flex-1">
-                  Login
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                <div className="flex gap-3 pt-2">
+                  {onBack && (
+                    <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-11">
+                      Back
+                    </Button>
+                  )}
+                  <Button type="submit" className="flex-1 h-11 modern-button">
+                    Login
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

@@ -246,7 +246,7 @@ function App() {
         setShowInstallSuccess(true);
         SafeLocalStorage.setItem("pwa-install-shown", "true");
         setTimeout(() => setShowInstallSuccess(false), 5000);
-        
+
         // Show enhanced notification
         showSuccess(
           "App Installed Successfully!",
@@ -262,11 +262,11 @@ function App() {
     const checkForUpdates = () => {
       const currentVersion = 'v6';
       const storedVersion = SafeLocalStorage.getItem('app-version');
-      
+
       // If version changed, clear cache and reload
       if (storedVersion && storedVersion !== currentVersion) {
         console.log('App version updated, clearing cache...');
-        
+
         // Clear all caches
         if ('caches' in window) {
           caches.keys().then((cacheNames) => {
@@ -275,20 +275,20 @@ function App() {
             });
           });
         }
-        
+
         // Clear localStorage except for essential data
         const essentialKeys = ['app-version', 'pwa-install-shown'];
         const allKeys = SafeLocalStorage.keys();
         const keysToRemove = allKeys.filter(key => !essentialKeys.includes(key));
         keysToRemove.forEach(key => SafeLocalStorage.removeItem(key));
-        
+
         // Update version and reload
         SafeLocalStorage.setItem('app-version', currentVersion);
         showInfo('App Updated', '🔄 App updated! Reloading with latest version...');
         setTimeout(() => window.location.reload(), 2000);
         return;
       }
-      
+
       // Store current version
       SafeLocalStorage.setItem('app-version', currentVersion);
     };
@@ -301,7 +301,7 @@ function App() {
       setShowInstallSuccess(true);
       SafeLocalStorage.setItem("pwa-install-shown", "true");
       setTimeout(() => setShowInstallSuccess(false), 5000);
-      
+
       // Show enhanced notification
       showSuccess(
         "App Installed Successfully!",
@@ -617,9 +617,8 @@ function App() {
                     <button
                       key={link.name}
                       onClick={() => setCurrentPage(link.path)}
-                      className={`modern-button ${
-                        currentPage === link.path ? "bg-primary/80" : ""
-                      }`}
+                      className={`modern-button ${currentPage === link.path ? "bg-primary/80" : ""
+                        }`}
                       role="menuitem"
                       aria-current={currentPage === link.path ? "page" : undefined}
                       aria-label={`${link.name} page${currentPage === link.path ? ", current page" : ""}`}

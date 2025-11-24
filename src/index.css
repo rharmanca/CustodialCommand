@@ -63,12 +63,17 @@ body {
   -moz-user-select: auto;
   -ms-user-select: auto;
   user-select: auto;
-  min-height: 44px; /* iOS/Android recommended touch target size */
+  min-height: 44px;
+  /* iOS/Android recommended touch target size */
   min-width: 44px;
 }
 
 /* Default user-select for interactive elements */
-button, input, select, textarea, a {
+button,
+input,
+select,
+textarea,
+a {
   -webkit-user-select: auto;
   -moz-user-select: auto;
   -ms-user-select: auto;
@@ -113,7 +118,8 @@ button, input, select, textarea, a {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
-  overflow: hidden; /* Clearfix */
+  overflow: hidden;
+  /* Clearfix */
 }
 
 .legacy-container:after {
@@ -135,39 +141,69 @@ button, input, select, textarea, a {
 @layer base {
   :root {
     /* Modernized Retro Propaganda - Comfortable Reading & Vintage Aesthetic */
-    --background: 42 40% 96%;        /* Even lighter warm cream - airy and open */
-    --foreground: 25 18% 22%;        /* Warm dark brown - softer than black, good contrast */
-    --card: 42 35% 98%;              /* Almost white cream cards - maximum lightness */
-    --card-foreground: 25 18% 22%;   /* Warm dark brown for card text */
-    --popover: 42 35% 98%;           /* Very light cream popovers */
-    --popover-foreground: 25 18% 22%; /* Warm dark brown for popover text */
-    --primary: 355 60% 42%;          /* Deep burgundy - sophisticated retro red */
-    --primary-foreground: 42 48% 96%; /* Light cream text on burgundy */
-    --secondary: 25 22% 32%;         /* Warm charcoal - less harsh than pure gray */
-    --secondary-foreground: 42 48% 96%; /* Light cream text on charcoal */
-    --muted: 42 30% 88%;             /* Soft muted cream */
-    --muted-foreground: 25 16% 38%;  /* Medium warm gray - comfortable contrast */
-    --accent: 22 65% 52%;            /* Burnt orange - vintage accent color */
-    --accent-foreground: 42 48% 96%; /* Light cream text on orange */
-    --destructive: 8 70% 48%;        /* Softer red - less aggressive */
-    --destructive-foreground: 42 48% 96%; /* Light cream on destructive */
-    --border: 42 25% 78%;            /* Subtle warm border */
-    --input: 42 38% 90%;             /* Soft cream inputs */
-    --ring: 355 60% 42%;             /* Burgundy focus ring */
+    --background: 42 40% 96%;
+    /* Even lighter warm cream - airy and open */
+    --foreground: 25 18% 22%;
+    /* Warm dark brown - softer than black, good contrast */
+    --card: 42 35% 98%;
+    /* Almost white cream cards - maximum lightness */
+    --card-foreground: 25 18% 22%;
+    /* Warm dark brown for card text */
+    --popover: 42 35% 98%;
+    /* Very light cream popovers */
+    --popover-foreground: 25 18% 22%;
+    /* Warm dark brown for popover text */
+    --primary: 355 60% 42%;
+    /* Deep burgundy - sophisticated retro red */
+    --primary-foreground: 42 48% 96%;
+    /* Light cream text on burgundy */
+    --secondary: 25 22% 32%;
+    /* Warm charcoal - less harsh than pure gray */
+    --secondary-foreground: 42 48% 96%;
+    /* Light cream text on charcoal */
+    --muted: 42 30% 88%;
+    /* Soft muted cream */
+    --muted-foreground: 25 16% 38%;
+    /* Medium warm gray - comfortable contrast */
+    --accent: 22 65% 52%;
+    /* Burnt orange - vintage accent color */
+    --accent-foreground: 42 48% 96%;
+    /* Light cream text on orange */
+    --destructive: 8 70% 48%;
+    /* Softer red - less aggressive */
+    --destructive-foreground: 42 48% 96%;
+    /* Light cream on destructive */
+    --border: 42 25% 78%;
+    /* Subtle warm border */
+    --input: 42 38% 90%;
+    /* Soft cream inputs */
+    --ring: 355 60% 42%;
+    /* Burgundy focus ring */
 
     /* Enhanced semantic colors for status */
-    --success: 140 55% 38%;          /* Vintage green - muted but clear */
-    --success-foreground: 42 48% 96%; /* Light text on green */
-    --warning: 38 75% 52%;           /* Warm amber - retro warning */
-    --warning-foreground: 25 18% 22%; /* Dark text on warning */
-    --info: 210 35% 45%;             /* Muted slate blue - vintage info */
-    --info-foreground: 42 48% 96%;   /* Light text on blue */
+    --success: 140 55% 38%;
+    /* Vintage green - muted but clear */
+    --success-foreground: 42 48% 96%;
+    /* Light text on green */
+    --warning: 38 75% 52%;
+    /* Warm amber - retro warning */
+    --warning-foreground: 25 18% 22%;
+    /* Dark text on warning */
+    --info: 210 35% 45%;
+    /* Muted slate blue - vintage info */
+    --info-foreground: 42 48% 96%;
+    /* Light text on blue */
 
-    --chart-1: 355 60% 42%;          /* Burgundy for charts */
-    --chart-2: 140 55% 38%;          /* Vintage green for charts */
-    --chart-3: 22 65% 52%;           /* Burnt orange for charts */
-    --chart-4: 210 35% 45%;          /* Slate blue for charts */
-    --chart-5: 42 45% 65%;           /* Medium cream for charts */
+    --chart-1: 355 60% 42%;
+    /* Burgundy for charts */
+    --chart-2: 140 55% 38%;
+    /* Vintage green for charts */
+    --chart-3: 22 65% 52%;
+    /* Burnt orange for charts */
+    --chart-4: 210 35% 45%;
+    /* Slate blue for charts */
+    --chart-5: 42 45% 65%;
+    /* Medium cream for charts */
     --radius: 0.75rem;
 
     /* Safe area insets with fallbacks for older browsers */
@@ -179,44 +215,77 @@ button, input, select, textarea, a {
 
   .dark {
     /* Dark Modernized Retro - Comfortable Night Reading */
-    --background: 25 15% 14%;           /* Warm dark brown - easier than pure black */
-    --foreground: 42 42% 88%;           /* Soft warm cream text */
-    --card: 25 18% 18%;                 /* Slightly lighter warm dark cards */
-    --card-foreground: 42 42% 88%;      /* Soft cream card text */
-    --popover: 25 18% 18%;              /* Warm dark popovers */
-    --popover-foreground: 42 42% 88%;   /* Soft cream popover text */
-    --primary: 355 65% 52%;             /* Lighter burgundy for dark mode */
-    --primary-foreground: 42 48% 96%;   /* Light cream text on burgundy */
-    --secondary: 42 30% 60%;            /* Warm medium cream secondary */
-    --secondary-foreground: 25 15% 14%; /* Dark text on cream */
-    --muted: 25 12% 28%;                /* Warm muted dark */
-    --muted-foreground: 42 25% 68%;     /* Medium cream muted text */
-    --accent: 22 70% 58%;               /* Brighter burnt orange for dark mode */
-    --accent-foreground: 25 15% 14%;    /* Dark text on accent */
-    --destructive: 8 75% 55%;           /* Brighter red for visibility in dark */
-    --destructive-foreground: 42 48% 96%; /* Light cream on destructive */
-    --border: 25 12% 32%;               /* Subtle warm border */
-    --input: 25 15% 20%;                /* Warm dark input */
-    --ring: 355 65% 52%;                /* Burgundy focus ring */
+    --background: 25 15% 14%;
+    /* Warm dark brown - easier than pure black */
+    --foreground: 42 42% 88%;
+    /* Soft warm cream text */
+    --card: 25 18% 18%;
+    /* Slightly lighter warm dark cards */
+    --card-foreground: 42 42% 88%;
+    /* Soft cream card text */
+    --popover: 25 18% 18%;
+    /* Warm dark popovers */
+    --popover-foreground: 42 42% 88%;
+    /* Soft cream popover text */
+    --primary: 355 65% 52%;
+    /* Lighter burgundy for dark mode */
+    --primary-foreground: 42 48% 96%;
+    /* Light cream text on burgundy */
+    --secondary: 42 30% 60%;
+    /* Warm medium cream secondary */
+    --secondary-foreground: 25 15% 14%;
+    /* Dark text on cream */
+    --muted: 25 12% 28%;
+    /* Warm muted dark */
+    --muted-foreground: 42 25% 68%;
+    /* Medium cream muted text */
+    --accent: 22 70% 58%;
+    /* Brighter burnt orange for dark mode */
+    --accent-foreground: 25 15% 14%;
+    /* Dark text on accent */
+    --destructive: 8 75% 55%;
+    /* Brighter red for visibility in dark */
+    --destructive-foreground: 42 48% 96%;
+    /* Light cream on destructive */
+    --border: 25 12% 32%;
+    /* Subtle warm border */
+    --input: 25 15% 20%;
+    /* Warm dark input */
+    --ring: 355 65% 52%;
+    /* Burgundy focus ring */
 
     /* Enhanced semantic colors for dark mode */
-    --success: 140 48% 48%;             /* Brighter vintage green for dark */
-    --success-foreground: 42 48% 96%;   /* Light text on green */
-    --warning: 38 80% 58%;              /* Brighter amber for dark mode */
-    --warning-foreground: 25 18% 22%;   /* Dark text on warning */
-    --info: 210 45% 55%;                /* Brighter slate blue for dark */
-    --info-foreground: 42 48% 96%;      /* Light text on blue */
+    --success: 140 48% 48%;
+    /* Brighter vintage green for dark */
+    --success-foreground: 42 48% 96%;
+    /* Light text on green */
+    --warning: 38 80% 58%;
+    /* Brighter amber for dark mode */
+    --warning-foreground: 25 18% 22%;
+    /* Dark text on warning */
+    --info: 210 45% 55%;
+    /* Brighter slate blue for dark */
+    --info-foreground: 42 48% 96%;
+    /* Light text on blue */
 
-    --chart-1: 355 65% 52%;             /* Burgundy for charts */
-    --chart-2: 140 48% 48%;             /* Vintage green for charts */
-    --chart-3: 22 70% 58%;              /* Burnt orange for charts */
-    --chart-4: 210 45% 55%;             /* Slate blue for charts */
-    --chart-5: 42 30% 60%;              /* Medium cream for charts */
+    --chart-1: 355 65% 52%;
+    /* Burgundy for charts */
+    --chart-2: 140 48% 48%;
+    /* Vintage green for charts */
+    --chart-3: 22 70% 58%;
+    /* Burnt orange for charts */
+    --chart-4: 210 45% 55%;
+    /* Slate blue for charts */
+    --chart-5: 42 30% 60%;
+    /* Medium cream for charts */
   }
 }
 
 /* Firefox mobile and legacy browser optimizations - less aggressive */
-input, select, textarea, button {
+input,
+select,
+textarea,
+button {
   /* Prevent zoom on focus in mobile browsers - only when needed */
   -moz-appearance: none;
   -webkit-appearance: none;
@@ -224,7 +293,10 @@ input, select, textarea, button {
 }
 
 /* Apply form styling only to forms that need it */
-.legacy-form input, .legacy-form select, .legacy-form textarea, .legacy-form button {
+.legacy-form input,
+.legacy-form select,
+.legacy-form textarea,
+.legacy-form button {
   font-size: 16px !important;
   min-height: 44px;
   padding: 12px 16px;
@@ -237,8 +309,12 @@ input, select, textarea, button {
 }
 
 /* Enable text selection for input fields */
-input[type="text"], input[type="email"], input[type="password"], 
-input[type="number"], input[type="tel"], textarea {
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+textarea {
   -webkit-user-select: auto;
   -moz-user-select: auto;
   -ms-user-select: auto;
@@ -302,7 +378,8 @@ input[type="number"], input[type="tel"], textarea {
     text-size-adjust: 100%;
 
     /* Prevent zoom on mobile when focusing inputs */
-    font-size: 17px; /* ENHANCED base font size for better mobile readability (was 16px) */
+    font-size: 17px;
+    /* ENHANCED base font size for better mobile readability (was 16px) */
 
     /* Improve scroll performance */
     -webkit-overflow-scrolling: touch;
@@ -332,30 +409,31 @@ input[type="number"], input[type="tel"], textarea {
 
     /* Memory optimization for low-end devices */
     will-change: auto;
-    
+
     /* Browser cursor and display fixes */
     cursor: default;
-    
+
     /* Fix cursor disappearing issues */
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    
+
     /* Re-enable text selection for input fields */
-    input, textarea {
+    input,
+    textarea {
       -webkit-user-select: auto;
       -moz-user-select: auto;
       -ms-user-select: auto;
       user-select: auto;
     }
-    
+
     /* Fix hardware acceleration issues */
     -webkit-transform: translateZ(0);
     -moz-transform: translateZ(0);
     -ms-transform: translateZ(0);
     transform: translateZ(0);
-    
+
     /* Prevent cursor from disappearing during animations */
     -webkit-backface-visibility: hidden;
     -moz-backface-visibility: hidden;
@@ -364,11 +442,30 @@ input[type="number"], input[type="tel"], textarea {
 }
 
 /* Modern font classes */
-.font-inter-light { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 300; }
-.font-inter-regular { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 400; }
-.font-inter-medium { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 500; }
-.font-inter-semibold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 600; }
-.font-inter-bold { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 700; }
+.font-inter-light {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+}
+
+.font-inter-regular {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+}
+
+.font-inter-medium {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+}
+
+.font-inter-semibold {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 600;
+}
+
+.font-inter-bold {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+}
 
 /* Browser Cursor and Display Fixes */
 /* Fix cursor disappearing issues in various browsers */
@@ -378,25 +475,25 @@ input[type="number"], input[type="tel"], textarea {
 }
 
 /* Fix cursor issues on interactive elements */
-button, 
-input, 
-select, 
-textarea, 
-a, 
-[role="button"], 
+button,
+input,
+select,
+textarea,
+a,
+[role="button"],
 [tabindex] {
   cursor: pointer;
 }
 
 /* Fix cursor disappearing while typing */
-input:focus, 
+input:focus,
 textarea:focus {
   cursor: text;
 }
 
 /* Prevent cursor from disappearing on hover */
-button:hover, 
-a:hover, 
+button:hover,
+a:hover,
 [role="button"]:hover {
   cursor: pointer;
 }
@@ -406,17 +503,17 @@ a:hover,
   * {
     cursor: default !important;
   }
-  
-  button, 
-  input, 
-  select, 
-  textarea, 
-  a, 
+
+  button,
+  input,
+  select,
+  textarea,
+  a,
   [role="button"] {
     cursor: pointer !important;
   }
-  
-  input:focus, 
+
+  input:focus,
   textarea:focus {
     cursor: text !important;
   }
@@ -427,17 +524,17 @@ a:hover,
   * {
     cursor: default;
   }
-  
-  button, 
-  input, 
-  select, 
-  textarea, 
-  a, 
+
+  button,
+  input,
+  select,
+  textarea,
+  a,
   [role="button"] {
     cursor: pointer;
   }
-  
-  input:focus, 
+
+  input:focus,
   textarea:focus {
     cursor: text;
   }
@@ -448,17 +545,17 @@ a:hover,
   * {
     cursor: default;
   }
-  
-  button, 
-  input, 
-  select, 
-  textarea, 
-  a, 
+
+  button,
+  input,
+  select,
+  textarea,
+  a,
   [role="button"] {
     cursor: pointer;
   }
-  
-  input:focus, 
+
+  input:focus,
   textarea:focus {
     cursor: text;
   }
@@ -476,6 +573,9 @@ a:hover,
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* Subtle dot pattern for texture */
+  background-image: radial-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 @media (min-width: 768px) {
@@ -488,10 +588,14 @@ a:hover,
 .header-container {
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.9) 100%);
   position: relative;
-  border-bottom: 3px solid hsl(var(--primary) / 0.8); /* ENHANCED border (was 1px) */
-  padding: 1.5rem; /* ENHANCED padding (was 1rem) */
-  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Add shadow for depth */
+  border-bottom: 3px solid hsl(var(--primary) / 0.8);
+  /* ENHANCED border (was 1px) */
+  padding: 1.5rem;
+  /* ENHANCED padding (was 1rem) */
+  margin-bottom: 1.5rem;
+  /* ENHANCED margin (was 1rem) */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  /* Add shadow for depth */
 }
 
 @media (min-width: 768px) {
@@ -506,10 +610,12 @@ a:hover,
   font-weight: 700;
   color: hsl(var(--primary-foreground));
   letter-spacing: -0.02em;
-  font-size: 2rem; /* ENHANCED mobile size (was 1.75rem) */
+  font-size: 2rem;
+  /* ENHANCED mobile size (was 1.75rem) */
   line-height: 1.2;
   text-align: center;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add text shadow for better readability */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  /* Add text shadow for better readability */
 }
 
 @media (min-width: 480px) {
@@ -533,11 +639,15 @@ a:hover,
 /* Navigation container - ENHANCED for better visual separation */
 .nav-container {
   background: hsl(var(--card));
-  border: 2px solid hsl(var(--border)); /* ENHANCED border width (was 1px) */
+  border: 2px solid hsl(var(--border));
+  /* ENHANCED border width (was 1px) */
   border-radius: var(--radius);
-  padding: 1.25rem; /* ENHANCED padding (was 1rem) */
-  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Add subtle shadow */
+  padding: 1.25rem;
+  /* ENHANCED padding (was 1rem) */
+  margin-bottom: 1.5rem;
+  /* ENHANCED margin (was 1rem) */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  /* Add subtle shadow */
 }
 
 @media (min-width: 768px) {
@@ -573,25 +683,38 @@ a:hover,
 
 /* Responsive grid for main page buttons */
 .responsive-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 1rem;
-  align-items: center !important;
-  justify-content: center;
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  /* Increased gap for better breathing room */
+  align-items: center;
+  justify-items: center;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
+  /* Increased max-width */
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
 }
 
 /* Content area - ENHANCED for better visual separation */
 .content-area {
   background: hsl(var(--background));
-  padding: 1.5rem; /* ENHANCED padding for better mobile spacing (was 1rem) */
-  margin-bottom: 1.5rem; /* ENHANCED margin (was 1rem) */
-  border: 1px solid hsl(var(--border)); /* Add subtle border for separation */
-  border-radius: var(--radius); /* Add border radius for consistency */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Add subtle shadow */
+  padding: 1.5rem;
+  /* ENHANCED padding for better mobile spacing (was 1rem) */
+  margin-bottom: 1.5rem;
+  /* ENHANCED margin (was 1rem) */
+  border: 1px solid hsl(var(--border));
+  /* Add subtle border for separation */
+  border-radius: var(--radius);
+  /* Add border radius for consistency */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Add subtle shadow */
 }
 
 @media (min-width: 768px) {
@@ -610,7 +733,7 @@ a:hover,
     font-size: 0.875rem;
     letter-spacing: 0.01em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    
+
     /* Layout */
     display: inline-flex;
     align-items: center;
@@ -619,28 +742,26 @@ a:hover,
     min-height: 48px;
     width: 100%;
     max-width: 100%;
-    
+
     /* Styling */
     border-radius: var(--radius);
-    border: 3px solid hsl(var(--border));
+    border: 1px solid hsl(var(--border));
+    /* Thinner, subtler border */
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     text-decoration: none;
     cursor: pointer;
-    
-    /* PHASE 1: Enhanced 4-Layer Shadow System */
-    box-shadow: 
-      /* Layer 1: Outer shadow for depth */
-      0 4px 6px -1px rgb(0 0 0 / 0.1),
-      0 2px 4px -2px rgb(0 0 0 / 0.1),
-      /* Layer 2: Inner highlight for dimension */
-      inset 0 2px 0 rgba(255, 255, 255, 0.15),
-      /* Layer 3: Subtle bottom edge for separation */
-      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    
+
+    /* PHASE 1: Enhanced 4-Layer Shadow System - Refined for softness */
+    box-shadow:
+      0 4px 12px -2px rgb(0 0 0 / 0.12),
+      0 2px 6px -1px rgb(0 0 0 / 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    /* Subtler highlight */
+
     /* PHASE 1: Enhanced Transitions (200ms ease-out) */
-    transition: all 0.2s ease-out;
-    
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
     /* Touch Optimization */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -678,39 +799,39 @@ a:hover,
 }
 
 @layer components {
+
   /* PHASE 1: Hover state with enhanced depth */
   @media (hover: hover) and (pointer: fine) {
     .modern-button:hover {
-      background: hsl(var(--primary) / 0.9);
-      border-color: hsl(var(--primary) / 0.85);
-      
-      /* Enhanced Hover Shadow - deeper and more prominent */
+      background: hsl(var(--primary) / 0.95);
+      border-color: hsl(var(--primary) / 0.5);
+
+      /* Enhanced Hover Shadow - deeper and more prominent but softer */
       box-shadow:
-        /* Deeper outer shadow */
-        0 10px 15px -3px rgb(0 0 0 / 0.15),
-        0 4px 6px -4px rgb(0 0 0 / 0.1),
-        /* Brighter inner highlight */
-        inset 0 2px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-      
+        0 12px 20px -4px rgb(0 0 0 / 0.15),
+        0 6px 10px -3px rgb(0 0 0 / 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
       /* Subtle lift effect */
       transform: translateY(-2px);
     }
   }
-  
+
   /* PHASE 1: Active state with immediate feedback */
   .modern-button:active {
     /* Press down effect */
-    transform: translateY(1px);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    
+    transform: translateY(0);
+    box-shadow:
+      0 2px 4px -1px rgb(0 0 0 / 0.1),
+      inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
     /* Faster transition for immediate tactile feedback */
-    transition-duration: 0.1s;
-    
+    transition-duration: 0.05s;
+
     /* Slightly dimmer on press */
-    background: hsl(var(--primary) / 0.95);
+    background: hsl(var(--primary));
   }
-  
+
   /* PHASE 1: Focus state for accessibility */
   .modern-button:focus-visible {
     outline: none;
@@ -733,7 +854,7 @@ a:hover,
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(45deg, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), transparent);
   transition: opacity 0.3s ease;
   opacity: 0;
 }
@@ -744,49 +865,49 @@ a:hover,
 
 .retro-button:hover {
   transform: translateY(-1px);
-  box-shadow: 
-    0 3px 0 rgba(0,0,0,0.2),
-    0 6px 12px rgba(0,0,0,0.15);
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 @media (min-width: 640px) {
   .retro-button:hover {
     transform: translateY(-2px);
-    box-shadow: 
-      0 5px 0 rgba(0,0,0,0.2),
-      0 10px 16px rgba(0,0,0,0.15);
+    box-shadow:
+      0 5px 0 rgba(0, 0, 0, 0.2),
+      0 10px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
 @media (min-width: 1024px) {
   .retro-button:hover {
-    box-shadow: 
-      0 6px 0 rgba(0,0,0,0.2),
-      0 12px 20px rgba(0,0,0,0.15);
+    box-shadow:
+      0 6px 0 rgba(0, 0, 0, 0.2),
+      0 12px 20px rgba(0, 0, 0, 0.15);
   }
 }
 
 .retro-button:active {
   transform: translateY(1px);
-  box-shadow: 
-    0 1px 0 rgba(0,0,0,0.2),
-    0 2px 4px rgba(0,0,0,0.1);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 @media (min-width: 640px) {
   .retro-button:active {
     transform: translateY(2px);
-    box-shadow: 
-      0 2px 0 rgba(0,0,0,0.2),
-      0 4px 8px rgba(0,0,0,0.1);
+    box-shadow:
+      0 2px 0 rgba(0, 0, 0, 0.2),
+      0 4px 8px rgba(0, 0, 0, 0.1);
   }
 }
 
 .retro-button.active {
   transform: translateY(1px);
-  box-shadow: 
-    0 1px 0 rgba(0,0,0,0.2),
-    0 2px 4px rgba(0,0,0,0.1);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   border-color: #065f46;
 }
@@ -794,9 +915,9 @@ a:hover,
 @media (min-width: 640px) {
   .retro-button.active {
     transform: translateY(2px);
-    box-shadow: 
-      0 2px 0 rgba(0,0,0,0.2),
-      0 4px 8px rgba(0,0,0,0.1);
+    box-shadow:
+      0 2px 0 rgba(0, 0, 0, 0.2),
+      0 4px 8px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -820,28 +941,34 @@ a:hover,
 /* Modern star rating buttons - ENHANCED for mobile */
 /* PHASE 4: Star Rating Animation */
 @layer utilities {
+
   /* Star pulse animation */
   @keyframes star-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: scale(1);
       opacity: 1;
     }
+
     50% {
       transform: scale(1.1);
       opacity: 0.9;
     }
   }
-  
+
   /* Star fill animation */
   @keyframes star-fill {
     0% {
       transform: scale(0.8);
       opacity: 0.5;
     }
+
     50% {
       transform: scale(1.2);
       opacity: 1;
     }
+
     100% {
       transform: scale(1);
       opacity: 1;
@@ -860,24 +987,24 @@ a:hover,
     padding: 0.75rem;
     cursor: pointer;
     touch-action: manipulation;
-    
+
     /* Color */
     color: hsl(45 100% 50%);
     font-size: 1.75rem;
-    
+
     /* Smooth transition */
     transition: all 0.2s ease-out;
-    
+
     /* Subtle shadow */
     box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
   }
-  
+
   @media (min-width: 640px) {
     .star-button {
       padding: 0.375rem;
     }
   }
-  
+
   /* Hover effect (desktop only) */
   @media (hover: hover) and (pointer: fine) {
     .star-button:hover {
@@ -885,40 +1012,43 @@ a:hover,
       background: hsl(45 100% 50% / 0.15);
       border-color: hsl(45 100% 50% / 0.3);
       box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
-      
+
       /* Pulse animation */
       animation: star-pulse 0.8s ease-in-out infinite;
     }
   }
-  
+
   /* Active/Click effect */
   .star-button:active {
     transform: scale(0.95);
     transition-duration: 0.1s;
   }
-  
+
   /* Filled state */
   .star-button.filled {
     color: hsl(45 100% 50%);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
-    
+
     /* Play fill animation when clicked */
     animation: star-fill 0.4s ease-out;
   }
-  
+
   /* Empty state */
   .star-button.empty {
     color: hsl(var(--muted-foreground));
   }
-  
+
   /* Focus state */
   .star-button:focus-visible {
     outline: none;
     box-shadow: 0 0 0 4px hsl(45 100% 50% / 0.3);
   }
-}/* PHASE 3: Enhanced Form Input Polish */
+}
+
+/* PHASE 3: Enhanced Form Input Polish */
 @layer components {
+
   .responsive-form input,
   .responsive-form textarea,
   .responsive-form select {
@@ -927,27 +1057,28 @@ a:hover,
     font-weight: 500;
     font-size: 17px;
     color: hsl(var(--foreground));
-    
+
     /* Layout */
     width: 100%;
     min-height: 48px;
     padding: 1rem 0.75rem;
-    
+
     /* Styling */
     border-radius: 8px;
     border: 3px solid hsl(var(--border));
     background-color: hsl(var(--card));
-    
+
     /* Depth Effect - Inner Shadow */
-    box-shadow: 
+    box-shadow:
       inset 0 2px 4px 0 rgb(0 0 0 / 0.05),
       inset 0 0 0 1px rgb(0 0 0 / 0.03);
-    
+
     /* Smooth Transition */
     transition: all 0.2s ease-in-out;
   }
-  
+
   @media (min-width: 640px) {
+
     .responsive-form input,
     .responsive-form textarea,
     .responsive-form select {
@@ -955,18 +1086,18 @@ a:hover,
       font-size: 1rem;
     }
   }
-  
+
   .responsive-form input:focus,
   .responsive-form textarea:focus,
   .responsive-form select:focus {
     outline: none;
-    
+
     /* Primary Border */
     border-color: hsl(var(--primary));
-    
+
     /* Enhanced Background */
     background-color: hsl(var(--background));
-    
+
     /* Glow Effect with Ring */
     box-shadow:
       /* Inner depth */
@@ -976,7 +1107,7 @@ a:hover,
       /* Subtle elevation */
       0 4px 6px -1px rgb(0 0 0 / 0.1);
   }
-  
+
   /* Error State */
   .responsive-form input:invalid:not(:focus),
   .responsive-form textarea:invalid:not(:focus),
@@ -984,14 +1115,14 @@ a:hover,
     border-color: hsl(var(--destructive));
     background-color: hsl(var(--destructive) / 0.05);
   }
-  
+
   /* Success State */
   .responsive-form input:valid:not(:placeholder-shown),
   .responsive-form textarea:valid:not(:placeholder-shown),
   .responsive-form select:valid:not(:placeholder-shown) {
     border-color: hsl(142 76% 36% / 0.6);
   }
-  
+
   /* Disabled State */
   .responsive-form input:disabled,
   .responsive-form textarea:disabled,
@@ -1000,7 +1131,9 @@ a:hover,
     cursor: not-allowed;
     background-color: hsl(var(--muted));
   }
-}/* Cards - ENHANCED for better visual separation */
+}
+
+/* Cards - ENHANCED for better visual separation */
 /* Cards - PHASE 2: Enhanced with hover effects */
 @layer components {
   .card {
@@ -1010,19 +1143,19 @@ a:hover,
     border: 2px solid hsl(var(--border));
     overflow: hidden;
     margin-bottom: 1rem;
-    
+
     /* Enhanced Shadow System */
     box-shadow:
       0 4px 6px -1px rgb(0 0 0 / 0.1),
       0 2px 4px -2px rgb(0 0 0 / 0.05);
-    
+
     /* Smooth Transitions */
     transition: all 0.3s ease-out;
-    
+
     /* Relative positioning for pseudo-elements */
     position: relative;
   }
-  
+
   /* Interactive hover effect (desktop only) */
   @media (hover: hover) and (pointer: fine) {
     .card:hover {
@@ -1030,15 +1163,15 @@ a:hover,
       box-shadow:
         0 20px 25px -5px rgb(0 0 0 / 0.15),
         0 8px 10px -6px rgb(0 0 0 / 0.1);
-      
+
       /* Subtle lift */
       transform: translateY(-4px);
-      
+
       /* Border highlight */
       border-color: hsl(var(--border) / 0.7);
     }
   }
-  
+
   /* Optional: Decorative corner accent */
   .card-with-accent::before {
     content: '';
@@ -1047,15 +1180,13 @@ a:hover,
     left: 0;
     width: 3rem;
     height: 3rem;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary) / 0.08) 0%,
-      transparent 100%
-    );
+    background: linear-gradient(135deg,
+        hsl(var(--primary) / 0.08) 0%,
+        transparent 100%);
     border-radius: 0 0 0.75rem 0;
     pointer-events: none;
   }
-  
+
   /* Responsive adjustments */
   @media (min-width: 640px) {
     .card {
@@ -1085,6 +1216,7 @@ a:hover,
 
 /* Mobile improvements */
 @media (max-width: 767px) {
+
   /* Force mobile stacking when needed */
   .force-mobile-stack {
     display: flex !important;
@@ -1138,7 +1270,7 @@ a:hover,
 }
 
 /* Ensure toast content is visible */
-[data-radix-toast-viewport] > * {
+[data-radix-toast-viewport]>* {
   pointer-events: auto !important;
 }
 
@@ -1319,6 +1451,7 @@ textarea:focus,
   z-index: 9999998 !important;
   pointer-events: none !important;
 }
+
 /* ========================================
    PHASE 6: MODERN ACCESSIBILITY & PERFORMANCE
    WCAG 2.2 Compliance + 60fps Optimizations
@@ -1326,6 +1459,7 @@ textarea:focus,
 
 /* WCAG 2.2 Enhanced Focus Management */
 @layer accessibility {
+
   /* High-contrast focus indicators for keyboard navigation */
   :focus-visible {
     @apply outline-none;
@@ -1334,7 +1468,7 @@ textarea:focus,
     --tw-ring-offset-width: 2px;
     --tw-ring-offset-color: hsl(var(--background));
   }
-  
+
   /* Enhanced focus for interactive elements */
   button:focus-visible,
   input:focus-visible,
@@ -1345,7 +1479,7 @@ textarea:focus,
     --tw-ring-color: hsl(var(--primary) / 0.4);
     @apply outline-none;
   }
-  
+
   /* Skip links for keyboard navigation */
   .skip-link {
     @apply absolute;
@@ -1359,18 +1493,18 @@ textarea:focus,
     @apply font-semibold;
     @apply transition-transform;
   }
-  
+
   .skip-link:focus {
     @apply top-0;
   }
-  
+
   /* Enhanced ARIA support */
   [role="button"]:not(button) {
     @apply cursor-pointer;
     @apply focus:ring-4;
     --tw-ring-color: hsl(var(--primary) / 0.3);
   }
-  
+
   /* Screen reader only content */
   .sr-only {
     @apply absolute;
@@ -1382,9 +1516,10 @@ textarea:focus,
     @apply whitespace-nowrap;
     @apply border-0;
   }
-  
+
   /* Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -1398,12 +1533,13 @@ textarea:focus,
 
 /* 60fps Performance Optimizations */
 @layer performance {
+
   /* Hardware acceleration for smooth animations */
   .gpu-accelerated {
     transform: translateZ(0);
     will-change: transform, opacity;
   }
-  
+
   /* Optimized button animations */
   .modern-button {
     /* Use transform instead of layout properties */
@@ -1411,36 +1547,36 @@ textarea:focus,
     backface-visibility: hidden;
     perspective: 1000px;
   }
-  
+
   .modern-button:hover {
     transform: translateY(-2px) translateZ(0);
   }
-  
+
   .modern-button:active {
     transform: translateY(1px) translateZ(0);
     transition-duration: 0.1s;
   }
-  
+
   /* Performance-optimized star animations */
   .star-button {
     @apply transition-transform duration-200 ease-out;
     backface-visibility: hidden;
   }
-  
+
   .star-button:hover {
     transform: scale(1.1) translateZ(0);
   }
-  
+
   .star-button:active {
     transform: scale(0.95) translateZ(0);
     transition-duration: 0.1s;
   }
-  
+
   /* CSS Containment for performance */
   .performance-contained {
     contain: layout style paint;
   }
-  
+
   /* Content visibility for off-screen elements */
   .content-visibility-auto {
     content-visibility: auto;
@@ -1453,13 +1589,13 @@ textarea:focus,
   .card-container {
     container-type: inline-size;
   }
-  
+
   @container (min-width: 300px) {
     .responsive-card {
       @apply p-6;
     }
   }
-  
+
   @container (min-width: 500px) {
     .responsive-card {
       @apply p-8;
@@ -1469,13 +1605,14 @@ textarea:focus,
 
 /* Enhanced Touch Targets */
 @layer touch-optimization {
+
   /* Ensure minimum touch targets (44x44px) */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
     @apply touch-manipulation;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   /* Prevent zoom on input focus (iOS) */
   input[type="text"],
   input[type="email"],
@@ -1486,7 +1623,7 @@ textarea:focus,
   textarea {
     font-size: 16px;
   }
-  
+
   /* Enhanced touch feedback */
   .touch-feedback:active {
     @apply bg-opacity-80;
@@ -1496,20 +1633,22 @@ textarea:focus,
 
 /* WCAG 2.2 Color & Contrast Enhancements */
 @layer contrast {
+
   /* High contrast mode support */
   @media (prefers-contrast: high) {
     .modern-button {
       border-width: 3px;
       @apply font-bold;
     }
-    
+
     .card {
       border-width: 2px;
     }
   }
-  
+
   /* Forced colors mode support */
   @media (forced-colors: active) {
+
     .modern-button,
     .card,
     input,
@@ -1521,12 +1660,12 @@ textarea:focus,
       color: ButtonText;
     }
   }
-  
+
   /* Enhanced text shadows for better readability */
   .text-enhanced {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Better link indicators */
   a:not([class]) {
     @apply underline decoration-2 underline-offset-2;
@@ -1562,22 +1701,28 @@ textarea:focus,
 
   .wcag-compliant-error {
     /* Error text with sufficient contrast */
-    color: hsl(0 84% 40%); /* Darker red for better contrast */
-    background-color: hsl(0 84% 97%); /* Light red background */
+    color: hsl(0 84% 40%);
+    /* Darker red for better contrast */
+    background-color: hsl(0 84% 97%);
+    /* Light red background */
     border: 2px solid hsl(0 84% 70%);
   }
 
   .wcag-compliant-success {
     /* Success text with sufficient contrast */
-    color: hsl(142 76% 25%); /* Darker green for better contrast */
-    background-color: hsl(142 76% 97%); /* Light green background */
+    color: hsl(142 76% 25%);
+    /* Darker green for better contrast */
+    background-color: hsl(142 76% 97%);
+    /* Light green background */
     border: 2px solid hsl(142 76% 60%);
   }
 
   .wcag-compliant-warning {
     /* Warning text with sufficient contrast */
-    color: hsl(38 92% 35%); /* Darker amber for better contrast */
-    background-color: hsl(38 92% 97%); /* Light amber background */
+    color: hsl(38 92% 35%);
+    /* Darker amber for better contrast */
+    background-color: hsl(38 92% 97%);
+    /* Light amber background */
     border: 2px solid hsl(38 92% 70%);
   }
 
@@ -1613,100 +1758,111 @@ textarea:focus,
 
 /* Cognitive Accessibility Enhancements */
 @layer cognitive {
+
   /* Clear error messages */
   .error-message {
-    background-color: hsl(var(--destructive) / 0.1); border: 1px solid hsl(var(--destructive) / 0.2); color: hsl(var(--destructive));
+    background-color: hsl(var(--destructive) / 0.1);
+    border: 1px solid hsl(var(--destructive) / 0.2);
+    color: hsl(var(--destructive));
     @apply p-3 rounded-lg;
     @apply font-medium;
   }
-  
+
   /* Success messages */
   .success-message {
-    background-color: hsl(var(--success) / 0.1); border: 1px solid hsl(var(--success) / 0.2); color: hsl(var(--success));
+    background-color: hsl(var(--success) / 0.1);
+    border: 1px solid hsl(var(--success) / 0.2);
+    color: hsl(var(--success));
     @apply p-3 rounded-lg;
     @apply font-medium;
   }
-  
+
   /* Progress indicators */
   .progress-indicator {
     @apply w-full bg-muted rounded-full h-2;
     @apply overflow-hidden;
   }
-  
+
   .progress-bar {
     @apply h-full bg-primary rounded-full;
     @apply transition-all duration-300 ease-out;
   }
-  
+
   /* Loading states */
   .loading-state {
     @apply animate-pulse;
     @apply bg-muted;
     @apply rounded;
   }
-  
+
   /* Clear status indicators */
   .status-indicator {
     @apply inline-flex items-center gap-2;
     @apply px-2 py-1 rounded-full text-xs font-medium;
   }
-  
+
   .status-indicator.online {
-    background-color: hsl(var(--success) / 0.2); color: hsl(var(--success));
+    background-color: hsl(var(--success) / 0.2);
+    color: hsl(var(--success));
   }
-  
+
   .status-indicator.offline {
     @apply bg-muted text-muted-foreground;
   }
-  
+
   .status-indicator.busy {
-    background-color: hsl(45 100% 50% / 0.2); color: hsl(45 100% 40%);
+    background-color: hsl(45 100% 50% / 0.2);
+    color: hsl(45 100% 40%);
   }
 }
 
 /* Modern Animation Keyframes */
 @layer animations {
+
   /* Smooth entrance animations */
   @keyframes slideInUp {
     from {
       opacity: 0;
       transform: translateY(20px) translateZ(0);
     }
+
     to {
       opacity: 1;
       transform: translateY(0) translateZ(0);
     }
   }
-  
+
   @keyframes fadeIn {
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
   }
-  
+
   @keyframes scaleIn {
     from {
       opacity: 0;
       transform: scale(0.9) translateZ(0);
     }
+
     to {
       opacity: 1;
       transform: scale(1) translateZ(0);
     }
   }
-  
+
   /* Apply animations with performance in mind */
   .animate-slide-up {
     animation: slideInUp 0.3s ease-out;
   }
-  
+
   .animate-fade-in {
     animation: fadeIn 0.2s ease-out;
   }
-  
+
   .animate-scale-in {
     animation: scaleIn 0.2s ease-out;
   }
@@ -1714,34 +1870,35 @@ textarea:focus,
 
 /* Responsive Design Compliance */
 @layer responsive-enhancement {
+
   /* Progressive enhancement for larger screens */
   .responsive-text {
     @apply text-sm;
   }
-  
+
   @media (min-width: 640px) {
     .responsive-text {
       @apply text-base;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .responsive-text {
       @apply text-lg;
     }
   }
-  
+
   /* Responsive spacing */
   .responsive-spacing {
     @apply p-4;
   }
-  
+
   @media (min-width: 640px) {
     .responsive-spacing {
       @apply p-6;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .responsive-spacing {
       @apply p-8;
