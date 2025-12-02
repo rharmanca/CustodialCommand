@@ -1656,9 +1656,15 @@ export async function registerRoutes(app: Express): Promise<void> {
           : undefined,
       );
 
+      // Add complianceStatus to each school score (required by frontend BuildingScoreCard)
+      const scoresWithCompliance = schoolScores.map(schoolScore => ({
+        ...schoolScore,
+        complianceStatus: getComplianceStatus(schoolScore.score.overallScore)
+      }));
+
       res.json({
         success: true,
-        scores: schoolScores,
+        scores: scoresWithCompliance,
         dateRange: {
           start: startDate || "all",
           end: endDate || "all",
