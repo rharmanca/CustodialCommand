@@ -42,6 +42,12 @@ export function BuildingScoreCard({
   dateRange,
   compact = false
 }: BuildingScoreCardProps) {
+  // Defensive fallback for complianceStatus in case it's undefined during initial render
+  const safeComplianceStatus = complianceStatus ?? {
+    text: score.level2Compliant ? 'Meets Standards' : 'Below Standards',
+    color: score.overallScore >= 3 ? 'green' : score.overallScore >= 2 ? 'yellow' : 'red' as const
+  };
+  
   const scorePercentage = (score.overallScore / 5) * 100;
 
   const getScoreColor = (scoreValue: number) => {
@@ -77,13 +83,13 @@ export function BuildingScoreCard({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">{school}</CardTitle>
-            <Badge variant={getBadgeVariant(complianceStatus.color)}>
+            <Badge variant={getBadgeVariant(safeComplianceStatus.color)}>
               {score.level2Compliant ? (
                 <CheckCircle className="w-3 h-3 mr-1" />
               ) : (
                 <AlertCircle className="w-3 h-3 mr-1" />
               )}
-              {complianceStatus.text}
+              {safeComplianceStatus.text}
             </Badge>
           </div>
           {dateRange && (
@@ -133,13 +139,13 @@ export function BuildingScoreCard({
               </CardDescription>
             )}
           </div>
-          <Badge variant={getBadgeVariant(complianceStatus.color)} className="text-sm px-3 py-1">
+          <Badge variant={getBadgeVariant(safeComplianceStatus.color)} className="text-sm px-3 py-1">
             {score.level2Compliant ? (
               <CheckCircle className="w-4 h-4 mr-1" />
             ) : (
               <AlertCircle className="w-4 h-4 mr-1" />
             )}
-            {complianceStatus.text}
+            {safeComplianceStatus.text}
           </Badge>
         </div>
       </CardHeader>
