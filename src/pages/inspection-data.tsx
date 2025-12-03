@@ -30,6 +30,29 @@ import ProblemAreasView from '@/components/reports/ProblemAreasView';
 import AdvancedFilters, { type FilterState } from '@/components/filters/AdvancedFilters';
 import FilterPresets from '@/components/filters/FilterPresets';
 
+// Static constants moved outside component for stable references
+const SCORE_LABELS: Record<number, string> = {
+  1: "Unkempt Neglect",
+  2: "Moderate Dinginess",
+  3: "Acceptable",
+  4: "Ordinary Tidiness",
+  5: "Orderly Spotlessness"
+};
+
+const CATEGORIES: Array<{ key: string; label: string }> = [
+  { key: 'floors', label: 'Floors' },
+  { key: 'verticalHorizontalSurfaces', label: 'Vertical and Horizontal Surfaces' },
+  { key: 'ceiling', label: 'Ceiling' },
+  { key: 'restrooms', label: 'Restrooms' },
+  { key: 'customerSatisfaction', label: 'Customer Satisfaction and Coordination' },
+  { key: 'trash', label: 'Trash' },
+  { key: 'projectCleaning', label: 'Project Cleaning' },
+  { key: 'activitySupport', label: 'Activity Support' },
+  { key: 'safetyCompliance', label: 'Safety and Compliance' },
+  { key: 'equipment', label: 'Equipment' },
+  { key: 'monitoring', label: 'Monitoring' }
+];
+
 // Import export components
 import ExportDialog from '@/components/reports/ExportDialog';
 import PDFExportWizard from '@/components/reports/PDFExportWizard';
@@ -65,27 +88,8 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   });
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const ratingLabels = {
-    1: "Unacceptable",
-    2: "Below Standard", 
-    3: "Acceptable",
-    4: "Ordinary Tidiness",
-    5: "Orderly Spotlessness"
-  };
-
-  const categories = [
-    { key: 'floors', label: 'Floors' },
-    { key: 'verticalHorizontalSurfaces', label: 'Vertical and Horizontal Surfaces' },
-    { key: 'ceiling', label: 'Ceiling' },
-    { key: 'restrooms', label: 'Restrooms' },
-    { key: 'customerSatisfaction', label: 'Customer Satisfaction and Coordination' },
-    { key: 'trash', label: 'Trash' },
-    { key: 'projectCleaning', label: 'Project Cleaning' },
-    { key: 'activitySupport', label: 'Activity Support' },
-    { key: 'safetyCompliance', label: 'Safety and Compliance' },
-    { key: 'equipment', label: 'Equipment' },
-    { key: 'monitoring', label: 'Monitoring' }
-  ];
+  // Use module-level CATEGORIES constant for stable useMemo references
+  // ratingLabels uses SCORE_LABELS from module scope
 
   useEffect(() => {
     fetchData();
@@ -166,7 +170,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   };
 
   const calculateAverageRating = (inspection: Inspection): number | null => {
-    const ratings = categories
+    const ratings = CATEGORIES
       .map(cat => inspection[cat.key as keyof Inspection] as number | null | undefined)
       .filter((rating): rating is number => typeof rating === 'number');
 
@@ -190,7 +194,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
           />
         ))}
         <span className="ml-2 text-sm text-gray-600">
-          {ratingLabels[rating as keyof typeof ratingLabels]}
+          {SCORE_LABELS[rating as keyof typeof SCORE_LABELS]}
         </span>
       </div>
     );
@@ -291,10 +295,11 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
              inspectionDate < new Date(now.getFullYear(), now.getMonth(), 1);
     });
     
-    // Calculate trends
-    const inspectionTrend = lastMonthData.length > 0 
+    // Calculate trends - return null when comparison is not meaningful
+    // (e.g., no previous month data or no current month data to compare)
+    const inspectionTrend = (lastMonthData.length > 0 && currentMonthData.length > 0)
       ? ((currentMonthData.length - lastMonthData.length) / lastMonthData.length) * 100
-      : 0;
+      : null;
     
     const currentAvgRating = currentMonthData.length > 0
       ? currentMonthData.reduce((sum, inspection) => {
@@ -310,13 +315,14 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         }, 0) / lastMonthData.length
       : 0;
     
-    const ratingTrend = lastAvgRating > 0 
+    // Only show rating trend when both months have comparable data
+    const ratingTrend = (lastAvgRating > 0 && currentAvgRating > 0)
       ? ((currentAvgRating - lastAvgRating) / lastAvgRating) * 100
-      : 0;
+      : null;
     
     return {
-      inspectionTrend: Math.round(inspectionTrend * 10) / 10,
-      ratingTrend: Math.round(ratingTrend * 10) / 10
+      inspectionTrend: inspectionTrend !== null ? Math.round(inspectionTrend * 10) / 10 : null,
+      ratingTrend: ratingTrend !== null ? Math.round(ratingTrend * 10) / 10 : null
     };
   };
 
@@ -336,8 +342,8 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     }
   };
 
-  // Enhanced data processing functions for charts
-  const getPerformanceTrendData = () => {
+  // Memoized chart data calculations - prevents recalculation on every render
+  const performanceTrendData = useMemo(() => {
     const monthlyData = filteredInspections.reduce((acc, inspection) => {
       const month = new Date(inspection.date).toISOString().slice(0, 7); // YYYY-MM
       if (!acc[month]) {
@@ -358,9 +364,9 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         : 0,
       totalInspections: data.totalInspections
     })).sort((a, b) => a.date.localeCompare(b.date));
-  };
+  }, [filteredInspections]);
 
-  const getSchoolComparisonData = () => {
+  const schoolComparisonData = useMemo(() => {
     const schoolData = filteredInspections.reduce((acc, inspection) => {
       if (!acc[inspection.school]) {
         acc[inspection.school] = {
@@ -390,16 +396,16 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         ? Math.round((data.ratings.reduce((sum: number, rating: number) => sum + rating, 0) / data.ratings.length) * 10) / 10
         : 0
     }));
-  };
+  }, [filteredInspections]);
 
-  const getCategoryRadarData = () => {
-    const categoryTotals = categories.reduce((acc, category) => {
+  const categoryRadarData = useMemo(() => {
+    const categoryTotals = CATEGORIES.reduce((acc, category) => {
       acc[category.key] = { category: category.label, ratings: [], totalRatings: 0 };
       return acc;
     }, {} as Record<string, { category: string; ratings: number[]; totalRatings: number }>);
 
     filteredInspections.forEach(inspection => {
-      categories.forEach(category => {
+      CATEGORIES.forEach(category => {
         const rating = inspection[category.key as keyof Inspection] as number | null | undefined;
         if (typeof rating === 'number') {
           categoryTotals[category.key].ratings.push(rating);
@@ -415,9 +421,9 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         : 0,
       fullMark: 5
     }));
-  };
+  }, [filteredInspections]);
 
-  const getRoomHeatmapData = () => {
+  const roomHeatmapData = useMemo(() => {
     return filteredInspections
       .filter(inspection => inspection.inspectionType === 'single_room' && inspection.roomNumber)
       .map(inspection => ({
@@ -426,7 +432,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         school: inspection.school,
         lastInspection: inspection.date
       }));
-  };
+  }, [filteredInspections]);
 
   // KPI calculations
   const kpiData = useMemo(() => {
@@ -588,7 +594,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
               <div>
                 <h4 className="font-semibold mb-4">Category Ratings</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {categories.map(category => {
+                  {CATEGORIES.map(category => {
                     const rating = selectedInspection[category.key as keyof Inspection] as number | null | undefined;
                     return (
                       <div key={category.key} className="flex items-center justify-between p-3 border rounded-lg">
@@ -732,7 +738,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                     inspections={filteredInspections}
                     custodialNotes={custodialNotes}
                     availableSchools={schools}
-                    availableCategories={categories}
+                    availableCategories={CATEGORIES}
                     trigger={
                       <Button type="button" variant="outline" className="flex items-center gap-2">
                         <FileText className="w-4 h-4" />
@@ -756,7 +762,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   description="All time inspections"
                   icon={FileText}
                   color="primary"
-                  trend={trends.inspectionTrend !== 0 ? {
+                  trend={trends.inspectionTrend !== null && trends.inspectionTrend !== 0 ? {
                     value: trends.inspectionTrend,
                     period: "vs last month"
                   } : undefined}
@@ -767,7 +773,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                   description="Overall performance"
                   icon={Star}
                   color="success"
-                  trend={trends.ratingTrend !== 0 ? {
+                  trend={trends.ratingTrend !== null && trends.ratingTrend !== 0 ? {
                     value: trends.ratingTrend,
                     period: "vs last month"
                   } : undefined}
@@ -857,27 +863,27 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
           <TabsContent value="charts" className="mt-6">
             <div className="space-y-6">
               <PerformanceTrendChart 
-                data={getPerformanceTrendData()}
+                data={performanceTrendData}
                 title="Performance Trends Over Time"
                 description="Average ratings and inspection volume by month"
               />
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <SchoolComparisonChart 
-                  data={getSchoolComparisonData()}
+                  data={schoolComparisonData}
                   title="School Performance Comparison"
                   description="Average ratings and inspection counts by school"
                 />
                 
                 <CategoryRadarChart 
-                  data={getCategoryRadarData()}
+                  data={categoryRadarData}
                   title="Category Performance Analysis"
                   description="Performance ratings across all inspection categories"
                 />
               </div>
               
               <RoomHeatmap 
-                data={getRoomHeatmapData()}
+                data={roomHeatmapData}
                 title="Room Performance Heatmap"
                 description="Visual overview of room performance ratings"
                 maxRoomsPerRow={8}

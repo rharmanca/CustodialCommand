@@ -59,13 +59,19 @@ import AdminInspectionsPage from "./pages/admin-inspections";
 import MonthlyFeedbackPage from "./pages/monthly-feedback";
 import ScoresDashboard from "./pages/scores-dashboard";
 
-// Loading skeleton component
+// Loading skeleton component with accessibility support
 const PageLoadingSkeleton = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center p-4">
+  <div 
+    className="min-h-screen bg-background flex items-center justify-center p-4"
+    role="status"
+    aria-live="polite"
+    aria-busy="true"
+  >
     <div className="text-center max-w-md mx-auto">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" aria-hidden="true"></div>
       <h2 className="text-xl font-semibold text-foreground mb-2">Loading...</h2>
       <p className="text-muted-foreground">Please wait while we load the page.</p>
+      <span className="sr-only">Page content is loading</span>
     </div>
   </div>
 );

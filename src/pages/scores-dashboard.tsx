@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -112,21 +112,33 @@ export default function ScoresDashboard({ onBack }: ScoresDashboardProps) {
     setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
   };
 
-  const compliantCount = schoolScores.filter(s => s.score.level2Compliant).length;
-  const totalSchools = schoolScores.length;
-  const compliancePercentage = totalSchools > 0 ? (compliantCount / totalSchools) * 100 : 0;
+  // Memoize expensive calculations that depend on schoolScores
+  const { compliantCount, totalSchools, compliancePercentage, averageScore, topPerformer, needsAttention } = useMemo(() => {
+    const compliant = schoolScores.filter(s => s.score.level2Compliant).length;
+    const total = schoolScores.length;
+    const percentage = total > 0 ? (compliant / total) * 100 : 0;
 
-  const averageScore = schoolScores.length > 0
-    ? schoolScores.reduce((sum, s) => sum + s.score.overallScore, 0) / schoolScores.length
-    : 0;
+    const avgScore = schoolScores.length > 0
+      ? schoolScores.reduce((sum, s) => sum + s.score.overallScore, 0) / schoolScores.length
+      : 0;
 
-  const topPerformer = schoolScores.length > 0
-    ? schoolScores.reduce((prev, current) =>
-        current.score.overallScore > prev.score.overallScore ? current : prev
-      )
-    : null;
+    const top = schoolScores.length > 0
+      ? schoolScores.reduce((prev, current) =>
+          current.score.overallScore > prev.score.overallScore ? current : prev
+        )
+      : null;
 
-  const needsAttention = schoolScores.filter(s => s.score.overallScore < 3.0);
+    const attention = schoolScores.filter(s => s.score.overallScore < 3.0);
+
+    return {
+      compliantCount: compliant,
+      totalSchools: total,
+      compliancePercentage: percentage,
+      averageScore: avgScore,
+      topPerformer: top,
+      needsAttention: attention
+    };
+  }, [schoolScores]);
 
   if (loading && !refreshing) {
     return <LoadingOverlay message="Loading building scores..." />;

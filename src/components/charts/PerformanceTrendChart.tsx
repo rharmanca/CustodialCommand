@@ -101,4 +101,4 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({
   );
 };
 
-export default PerformanceTrendChart;
+export default React.memo(PerformanceTrendChart);

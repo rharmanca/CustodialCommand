@@ -137,4 +137,4 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
   );
 };
 
-export default CategoryRadarChart;
+export default React.memo(CategoryRadarChart);

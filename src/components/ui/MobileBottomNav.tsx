@@ -49,10 +49,13 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
   ];
 
   return (
-    <div className={cn(
-      "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden",
-      className
-    )}>
+    <nav 
+      className={cn(
+        "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden",
+        className
+      )}
+      aria-label="Main navigation"
+    >
       <div className="grid grid-cols-5 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -60,6 +63,8 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
             <a
               key={item.id}
               href={item.href}
+              aria-current={item.active ? "page" : undefined}
+              aria-label={item.label}
               className={cn(
                 "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation",
                 item.active
@@ -73,9 +78,10 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
                     "h-6 w-6 transition-transform duration-200",
                     item.active && "scale-110"
                   )}
+                  aria-hidden="true"
                 />
                 {item.active && (
-                  <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-600 rounded-full animate-pulse" />
+                  <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
                 )}
               </div>
               <span className={cn(
@@ -91,7 +97,7 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
 
       {/* Add safe area padding for mobile devices with home indicators */}
       <div className="h-safe-area-inset-bottom bg-white" />
-    </div>
+    </nav>
   );
 };
 

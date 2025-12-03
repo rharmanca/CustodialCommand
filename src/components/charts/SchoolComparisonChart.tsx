@@ -132,4 +132,4 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
   );
 };
 
-export default SchoolComparisonChart;
+export default React.memo(SchoolComparisonChart);

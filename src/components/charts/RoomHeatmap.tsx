@@ -98,21 +98,23 @@ const RoomHeatmap: React.FC<RoomHeatmapProps> = ({
                 {rooms.map((room) => (
                   <Dialog key={`${school}-${room.number}`}>
                     <DialogTrigger asChild>
-                      <div
+                      <button
+                        type="button"
                         className={`
                           p-3 text-center text-xs rounded-lg border-2 transition-all duration-200 hover:scale-105 cursor-pointer
                           ${getRatingColor(room.rating)}
                         `}
                         title={`Room ${room.number}: ${room.rating.toFixed(1)}/5 - ${getRatingLabel(room.rating)}`}
+                        aria-label={`Room ${room.number}, rating ${room.rating.toFixed(1)} out of 5, ${getRatingLabel(room.rating)}. Click for details.`}
                         onClick={() => handleRoomClick(room)}
                       >
-                        <div className="font-bold text-sm mb-1">
+                        <div className="font-bold text-sm mb-1" aria-hidden="true">
                           {room.number}
                         </div>
-                        <div className="text-xs opacity-75">
+                        <div className="text-xs opacity-75" aria-hidden="true">
                           {room.rating.toFixed(1)}
                         </div>
-                      </div>
+                      </button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
@@ -266,4 +268,4 @@ const RoomHeatmap: React.FC<RoomHeatmapProps> = ({
   );
 };
 
-export default RoomHeatmap;
+export default React.memo(RoomHeatmap);

@@ -104,7 +104,10 @@ const KPICard: React.FC<KPICardProps> = ({
           )}
           {trend && (
             <div className={`flex items-center gap-1 text-sm ${getTrendColor(trend.value)}`}>
-              {getTrendIcon(trend.value)}
+              <span aria-hidden="true">{getTrendIcon(trend.value)}</span>
+              <span className="sr-only">
+                {trend.value > 0 ? 'Increased by' : trend.value < 0 ? 'Decreased by' : 'No change'}
+              </span>
               <span className="font-medium">
                 {trend.value > 0 ? '+' : ''}{trend.value}%
               </span>
@@ -119,4 +122,4 @@ const KPICard: React.FC<KPICardProps> = ({
   );
 };
 
-export default KPICard;
+export default React.memo(KPICard);
