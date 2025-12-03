@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-19T21:09:06.670Z",
+  "timestamp": "2025-12-03T03:54:03.126Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 12,
@@ -11,40 +11,40 @@
     "responseTimes": [
       {
         "endpoint": "Health Check",
-        "responseTime": 277,
+        "responseTime": 482,
         "status": 200
       },
       {
         "endpoint": "API Test",
-        "responseTime": 56,
+        "responseTime": 87,
         "status": 404
       },
       {
         "endpoint": "Get Inspections",
-        "responseTime": 112,
+        "responseTime": 181,
         "status": 200
       },
       {
         "endpoint": "Get Custodial Notes",
-        "responseTime": 56,
+        "responseTime": 60,
         "status": 200
       },
       {
         "endpoint": "Home Page",
-        "responseTime": 58,
+        "responseTime": 55,
         "status": 200
       }
     ],
-    "throughput": 32.89473684210527,
+    "throughput": 29.49852507374631,
     "errorRate": 0
   },
   "details": [
     {
       "testName": "Response Time - Health Check",
       "passed": true,
-      "details": "Status: 200, Time: 277ms (threshold: 5000ms)",
+      "details": "Status: 200, Time: 482ms (threshold: 5000ms)",
       "metrics": {
-        "responseTime": 277,
+        "responseTime": 482,
         "threshold": 5000,
         "status": 200
       }
@@ -52,9 +52,9 @@
     {
       "testName": "Response Time - API Test",
       "passed": false,
-      "details": "Status: 404, Time: 56ms (threshold: 2000ms)",
+      "details": "Status: 404, Time: 87ms (threshold: 2000ms)",
       "metrics": {
-        "responseTime": 56,
+        "responseTime": 87,
         "threshold": 2000,
         "status": 404
       }
@@ -62,9 +62,9 @@
     {
       "testName": "Response Time - Get Inspections",
       "passed": true,
-      "details": "Status: 200, Time: 112ms (threshold: 2000ms)",
+      "details": "Status: 200, Time: 181ms (threshold: 2000ms)",
       "metrics": {
-        "responseTime": 112,
+        "responseTime": 181,
         "threshold": 2000,
         "status": 200
       }
@@ -72,9 +72,9 @@
     {
       "testName": "Response Time - Get Custodial Notes",
       "passed": true,
-      "details": "Status: 200, Time: 56ms (threshold: 2000ms)",
+      "details": "Status: 200, Time: 60ms (threshold: 2000ms)",
       "metrics": {
-        "responseTime": 56,
+        "responseTime": 60,
         "threshold": 2000,
         "status": 200
       }
@@ -82,9 +82,9 @@
     {
       "testName": "Response Time - Home Page",
       "passed": true,
-      "details": "Status: 200, Time: 58ms (threshold: 5000ms)",
+      "details": "Status: 200, Time: 55ms (threshold: 5000ms)",
       "metrics": {
-        "responseTime": 58,
+        "responseTime": 55,
         "threshold": 5000,
         "status": 200
       }
@@ -92,28 +92,28 @@
     {
       "testName": "Concurrent Request Handling",
       "passed": true,
-      "details": "10/10 successful (100.0%), Avg time: 255ms",
+      "details": "10/10 successful (100.0%), Avg time: 252ms",
       "metrics": {
         "totalRequests": 10,
         "successfulRequests": 10,
         "failedRequests": 0,
         "successRate": 100,
-        "avgResponseTime": 255.2,
-        "totalTime": 304
+        "avgResponseTime": 252,
+        "totalTime": 339
       }
     },
     {
       "testName": "Sustained Load Test",
       "passed": false,
-      "details": "28/296 successful (9.5%), Avg time: 83ms, RPS: 9.5",
+      "details": "18/279 successful (6.5%), Avg time: 92ms, RPS: 9.0",
       "metrics": {
-        "requestCount": 296,
-        "successCount": 28,
-        "errorCount": 268,
-        "successRate": 9.45945945945946,
-        "avgResponseTime": 83.35472972972973,
-        "requestsPerSecond": 9.548079094222766,
-        "duration": 31001
+        "requestCount": 279,
+        "successCount": 18,
+        "errorCount": 261,
+        "successRate": 6.451612903225806,
+        "avgResponseTime": 92.31899641577061,
+        "requestsPerSecond": 8.998838859502,
+        "duration": 31004
       }
     },
     {
@@ -125,20 +125,20 @@
     {
       "testName": "Database Performance - Create Operation",
       "passed": false,
-      "details": "Created in 59ms",
+      "details": "Created in 62ms",
       "metrics": {
-        "responseTime": 59,
+        "responseTime": 62,
         "status": 429
       }
     },
     {
       "testName": "Resource Usage - Performance Degradation",
       "passed": false,
-      "details": "Initial: 55ms, Final: 207ms, Degradation: 276.4%",
+      "details": "Initial: 82ms, Final: 193ms, Degradation: 135.4%",
       "metrics": {
-        "initialTime": 55,
-        "finalTime": 207,
-        "performanceDegradation": 276.3636363636364
+        "initialTime": 82,
+        "finalTime": 193,
+        "performanceDegradation": 135.3658536585366
       }
     },
     {
@@ -154,9 +154,9 @@
     {
       "testName": "File Upload Performance",
       "passed": false,
-      "details": "Upload completed in 56ms",
+      "details": "Upload completed in 155ms",
       "metrics": {
-        "responseTime": 56,
+        "responseTime": 155,
         "status": 429
       }
     }

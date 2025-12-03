@@ -1,82 +1,77 @@
 {
-  "timestamp": "2025-11-19T21:09:11.081Z",
+  "timestamp": "2025-12-03T03:54:10.543Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
-  "duration": 38821,
+  "duration": 41600,
   "summary": {
     "overallSuccess": true,
-    "criticalIssues": 2,
+    "criticalIssues": 0,
     "warnings": 0,
-    "recommendations": [
-      "Address failures in Security Tests",
-      "Address security vulnerabilities immediately - input validation or authentication issues detected"
-    ]
+    "recommendations": []
   },
   "suiteResults": [
     {
       "name": "End-to-End User Journey Tests",
       "description": "Complete user workflows and business processes",
-      "startTime": "2025-11-19T21:08:32.264Z",
-      "endTime": "2025-11-19T21:08:34.114Z",
+      "startTime": "2025-12-03T03:53:28.950Z",
+      "endTime": "2025-12-03T03:53:29.894Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 1850,
+      "duration": 944,
       "errors": [],
-      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
+      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     },
     {
       "name": "Performance Tests",
       "description": "Response times, load handling, and system performance",
-      "startTime": "2025-11-19T21:08:34.117Z",
-      "endTime": "2025-11-19T21:09:06.680Z",
+      "startTime": "2025-12-03T03:53:29.898Z",
+      "endTime": "2025-12-03T03:54:03.187Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 32563,
+      "duration": 33289,
       "errors": [],
-      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
+      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     },
     {
       "name": "Security Tests",
       "description": "Input validation, authentication, and security vulnerabilities",
-      "startTime": "2025-11-19T21:09:06.681Z",
-      "endTime": "2025-11-19T21:09:09.995Z",
-      "success": false,
-      "totalTests": 0,
-      "passedTests": 0,
-      "failedTests": 0,
-      "successRate": 0,
-      "duration": 3314,
-      "errors": [
-        "Command failed: node \"/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/security.test.cjs\"\nnode:events:486\n      throw er; // Unhandled 'error' event\n      ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19)\nEmitted 'error' event on TLSSocket instance at:\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v25.1.0\n"
-      ],
-      "reportFile": null
-    },
-    {
-      "name": "Mobile and PWA Tests",
-      "description": "Progressive Web App functionality and mobile responsiveness",
-      "startTime": "2025-11-19T21:09:09.996Z",
-      "endTime": "2025-11-19T21:09:11.081Z",
+      "startTime": "2025-12-03T03:54:03.189Z",
+      "endTime": "2025-12-03T03:54:08.358Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 1085,
+      "duration": 5169,
       "errors": [],
-      "reportFile": "/Volumes/Extreme SSD/Repositories/CustodialCommand/CustodialCommand/tests/test-report.json"
+      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
+    },
+    {
+      "name": "Mobile and PWA Tests",
+      "description": "Progressive Web App functionality and mobile responsiveness",
+      "startTime": "2025-12-03T03:54:08.360Z",
+      "endTime": "2025-12-03T03:54:10.540Z",
+      "success": true,
+      "totalTests": 6,
+      "passedTests": 6,
+      "failedTests": 0,
+      "successRate": 100,
+      "duration": 2180,
+      "errors": [],
+      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     }
   ],
   "overallStats": {
     "totalSuites": 4,
-    "passedSuites": 3,
-    "failedSuites": 1,
-    "totalTests": 18,
-    "passedTests": 18,
+    "passedSuites": 4,
+    "failedSuites": 0,
+    "totalTests": 24,
+    "passedTests": 24,
     "failedTests": 0,
     "overallSuccessRate": 100
   }
