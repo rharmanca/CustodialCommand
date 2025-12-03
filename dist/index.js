@@ -573,6 +573,7 @@ __export(security_exports, {
   getRedisHealth: () => getRedisHealth,
   healthCheckRateLimit: () => healthCheckRateLimit,
   initializeRedis: () => initializeRedis,
+  photoUploadRateLimit: () => photoUploadRateLimit,
   sanitizeInput: () => sanitizeInput,
   securityHeaders: () => securityHeaders,
   strictRateLimit: () => strictRateLimit,
@@ -638,7 +639,7 @@ async function getRedisHealth() {
 function getRedisClient() {
   return redisClient;
 }
-var createRateLimit, API_RATE_LIMIT, STRICT_RATE_LIMIT, HEALTH_CHECK_RATE_LIMIT, apiRateLimit, strictRateLimit, healthCheckRateLimit, sanitizeInput, securityHeaders, redisClient, PasswordManager, SessionExpirationQueue, SessionManager, CacheCircuitBreaker, CacheManager, validateRequest;
+var createRateLimit, API_RATE_LIMIT, STRICT_RATE_LIMIT, HEALTH_CHECK_RATE_LIMIT, apiRateLimit, strictRateLimit, healthCheckRateLimit, photoUploadRateLimit, sanitizeInput, securityHeaders, redisClient, PasswordManager, SessionExpirationQueue, SessionManager, CacheCircuitBreaker, CacheManager, validateRequest;
 var init_security = __esm({
   "server/security.ts"() {
     "use strict";
@@ -684,6 +685,42 @@ var init_security = __esm({
       },
       keyGenerator: (req) => {
         return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
+      }
+    });
+    photoUploadRateLimit = rateLimit({
+      windowMs: 15 * 60 * 1e3,
+      // 15 minutes
+      max: 10,
+      // Limit to 10 uploads per 15-minute window per IP
+      message: "Too many photo upload requests from this IP. Please try again after 15 minutes.",
+      standardHeaders: true,
+      // Return rate limit info in `RateLimit-*` headers
+      legacyHeaders: false,
+      // Disable `X-RateLimit-*` headers
+      // Custom handler for rate limit exceeded
+      handler: (req, res) => {
+        logger.warn("Photo upload rate limit exceeded", {
+          ip: req.ip || req.connection.remoteAddress,
+          path: req.path,
+          method: req.method,
+          userAgent: req.get("User-Agent"),
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+        res.status(429).json({
+          success: false,
+          message: "Too many photo upload requests from this IP. Please try again after 15 minutes.",
+          retryAfter: Math.ceil((req.rateLimit?.resetTime?.getTime() ?? Date.now()) / 1e3)
+          // Seconds until reset
+        });
+      },
+      keyGenerator: (req) => {
+        return req.headers["x-forwarded-for"] || req.connection.remoteAddress || "anonymous";
+      },
+      // Skip rate limiting for trusted IPs (optional)
+      skip: (req) => {
+        const trustedIPs = process.env.TRUSTED_IPS?.split(",") || [];
+        const clientIP = req.ip || req.connection.remoteAddress || "";
+        return trustedIPs.includes(clientIP);
       }
     });
     sanitizeInput = (req, res, next) => {
@@ -1438,17 +1475,21 @@ var storage = {
     const cacheKey = `inspections:all:${JSON.stringify(options || {})}`;
     return executeQuery("getInspections", async () => {
       let query = db.select().from(inspections);
-      if (options?.startDate || options?.endDate) {
-        const conditions = [];
-        if (options.startDate) {
-          conditions.push(gte(inspections.date, options.startDate));
-        }
-        if (options.endDate) {
-          conditions.push(lte(inspections.date, options.endDate));
-        }
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
+      const conditions = [];
+      if (options?.startDate) {
+        conditions.push(gte(inspections.date, options.startDate));
+      }
+      if (options?.endDate) {
+        conditions.push(lte(inspections.date, options.endDate));
+      }
+      if (options?.school) {
+        conditions.push(eq(inspections.school, options.school));
+      }
+      if (options?.inspectionType) {
+        conditions.push(eq(inspections.inspectionType, options.inspectionType));
+      }
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
       }
       query = query.orderBy(desc(inspections.date));
       if (options?.limit) {
@@ -1501,8 +1542,18 @@ var storage = {
     const cacheKey = `custodialNotes:all:${JSON.stringify(options || {})}`;
     return executeQuery("getCustodialNotes", async () => {
       let query = db.select().from(custodialNotes);
+      const conditions = [];
       if (options?.school) {
-        query = query.where(eq(custodialNotes.school, options.school));
+        conditions.push(eq(custodialNotes.school, options.school));
+      }
+      if (options?.startDate) {
+        conditions.push(gte(custodialNotes.date, options.startDate));
+      }
+      if (options?.endDate) {
+        conditions.push(lte(custodialNotes.date, options.endDate));
+      }
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
       }
       query = query.orderBy(desc(custodialNotes.createdAt));
       if (options?.limit) {
@@ -1598,19 +1649,44 @@ var storage = {
   async getMonthlyFeedback(options) {
     const cacheKey = `monthlyFeedback:all:${JSON.stringify(options || {})}`;
     return executeQuery("getMonthlyFeedback", async () => {
-      let query = db.select().from(monthlyFeedback).orderBy(desc(monthlyFeedback.createdAt));
+      const conditions = [];
       if (options?.school) {
-        query = query.where(eq(monthlyFeedback.school, options.school));
+        conditions.push(eq(monthlyFeedback.school, options.school));
       }
       if (options?.year) {
-        query = query.where(eq(monthlyFeedback.year, options.year));
+        conditions.push(eq(monthlyFeedback.year, options.year));
       }
       if (options?.month) {
-        query = query.where(eq(monthlyFeedback.month, options.month));
+        conditions.push(eq(monthlyFeedback.month, options.month));
       }
-      const result = await query;
-      logger.info(`Retrieved ${result.length} monthly feedback documents`, { options });
-      return result;
+      const whereClause = conditions.length > 0 ? and(...conditions) : void 0;
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100 ? options.limit : 50;
+      const offset = (page - 1) * limit;
+      const [feedbackData, totalCountResult] = await Promise.all([
+        // Fetch paginated data
+        db.select().from(monthlyFeedback).where(whereClause).orderBy(desc(monthlyFeedback.year), desc(monthlyFeedback.month)).limit(limit).offset(offset),
+        // Fetch total count for pagination metadata
+        db.select({ count: db.$count(monthlyFeedback.id) }).from(monthlyFeedback).where(whereClause)
+      ]);
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+      logger.info(`Retrieved ${feedbackData.length} monthly feedback documents (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+      return {
+        data: feedbackData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
     }, cacheKey, 12e4);
   },
   async getMonthlyFeedbackById(id) {
@@ -3029,20 +3105,31 @@ async function registerRoutes(app2) {
       }
       const adminUsername = process.env.ADMIN_USERNAME;
       if (!adminUsername) {
-        logger.error("ADMIN_USERNAME environment variable not set");
+        logger.error("ADMIN_USERNAME environment variable not set. Admin login unavailable.", {
+          endpoint: "/api/admin/login",
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          attemptedFrom: req.ip || req.connection.remoteAddress,
+          userAgent: req.headers["user-agent"]
+        });
         return res.status(500).json({
           success: false,
-          message: "Server configuration error"
+          message: "Internal server error. Please try again later."
         });
       }
       const hashedPassword = process.env.ADMIN_PASSWORD_HASH;
       if (!hashedPassword) {
         logger.error(
-          "ADMIN_PASSWORD_HASH environment variable not set - please run password setup"
+          "ADMIN_PASSWORD_HASH environment variable not set - please run password setup",
+          {
+            endpoint: "/api/admin/login",
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            attemptedFrom: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers["user-agent"]
+          }
         );
         return res.status(500).json({
           success: false,
-          message: "Server configuration error - password not properly hashed"
+          message: "Internal server error. Please try again later."
         });
       }
       const isValidPassword = await PasswordManager.verifyPassword(
@@ -3064,7 +3151,12 @@ async function registerRoutes(app2) {
           sessionToken
         });
       } else {
-        logger.warn("Admin login failed", { username });
+        logger.warn("Admin login failed - invalid credentials", {
+          username,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          attemptedFrom: req.ip || req.connection.remoteAddress,
+          userAgent: req.headers["user-agent"]
+        });
         res.status(401).json({
           success: false,
           message: "Invalid credentials"
@@ -3262,27 +3354,57 @@ async function registerRoutes(app2) {
   );
   app2.get("/api/monthly-feedback", async (req, res) => {
     try {
-      const school = typeof req.query.school === "string" ? req.query.school.trim() : "";
+      const school = typeof req.query.school === "string" && req.query.school.trim().length > 0 ? req.query.school.trim() : void 0;
       const yearStr = typeof req.query.year === "string" ? req.query.year.trim() : "";
-      const month = typeof req.query.month === "string" ? req.query.month.trim() : "";
-      let feedback = await storage.getMonthlyFeedback();
-      if (school && school.length > 0) {
-        feedback = feedback.filter((f) => f.school === school);
-      }
+      const month = typeof req.query.month === "string" && req.query.month.trim().length > 0 ? req.query.month.trim() : void 0;
+      let validYear = void 0;
       if (yearStr) {
         const yearNum = parseInt(yearStr, 10);
-        if (!isNaN(yearNum) && yearNum > 1900 && yearNum < 2100) {
-          feedback = feedback.filter((f) => f.year === yearNum);
+        if (isNaN(yearNum) || yearNum < 2e3 || yearNum > 2100) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid year parameter. Year must be between 2000 and 2100."
+          });
         }
+        validYear = yearNum;
       }
-      if (month && month.length > 0) {
-        feedback = feedback.filter((f) => f.month === month);
+      const page = req.query.page ? parseInt(req.query.page, 10) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
+      if (page < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Page number must be greater than 0"
+        });
       }
-      logger.info("[GET] Retrieved filtered monthly feedback", {
-        total: feedback.length,
-        filters: { school, year: yearStr, month }
+      if (limit < 1 || limit > 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Limit must be between 1 and 100"
+        });
+      }
+      const result = await storage.getMonthlyFeedback({
+        school,
+        year: validYear,
+        month,
+        page,
+        limit
       });
-      res.json(feedback);
+      logger.info("[GET] Retrieved filtered monthly feedback", {
+        page: result.pagination.currentPage,
+        totalPages: result.pagination.totalPages,
+        totalRecords: result.pagination.totalRecords,
+        filters: { school, year: validYear, month }
+      });
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          school,
+          year: validYear,
+          month
+        }
+      });
     } catch (error) {
       logger.error("[GET] Error fetching monthly feedback:", {
         error: error instanceof Error ? error.message : String(error),
@@ -3391,22 +3513,14 @@ async function registerRoutes(app2) {
         startDate: validStartDate,
         endDate: validEndDate
       });
-      const allInspections = await storage.getInspections();
-      const allNotes = await storage.getCustodialNotes();
-      let filteredInspections = allInspections;
-      let filteredNotes = allNotes;
-      if (validStartDate) {
-        filteredInspections = filteredInspections.filter(
-          (i) => i.date >= validStartDate
-        );
-        filteredNotes = filteredNotes.filter((n) => n.date >= validStartDate);
-      }
-      if (validEndDate) {
-        filteredInspections = filteredInspections.filter(
-          (i) => i.date <= validEndDate
-        );
-        filteredNotes = filteredNotes.filter((n) => n.date <= validEndDate);
-      }
+      const filteredInspections = await storage.getInspections({
+        startDate: validStartDate || void 0,
+        endDate: validEndDate || void 0
+      });
+      const filteredNotes = await storage.getCustodialNotes({
+        startDate: validStartDate || void 0,
+        endDate: validEndDate || void 0
+      });
       const inspectionsBySchool = {};
       const notesBySchool = {};
       filteredInspections.forEach((inspection) => {
@@ -3426,9 +3540,13 @@ async function registerRoutes(app2) {
         notesBySchool,
         startDate && endDate ? { start: startDate, end: endDate } : void 0
       );
+      const scoresWithCompliance = schoolScores.map((schoolScore) => ({
+        ...schoolScore,
+        complianceStatus: getComplianceStatus(schoolScore.score.overallScore)
+      }));
       res.json({
         success: true,
-        scores: schoolScores,
+        scores: scoresWithCompliance,
         dateRange: {
           start: startDate || "all",
           end: endDate || "all"
@@ -3455,18 +3573,16 @@ async function registerRoutes(app2) {
         startDate: validStartDate,
         endDate: validEndDate
       });
-      const allInspections = await storage.getInspections();
-      const allNotes = await storage.getCustodialNotes();
-      let inspections2 = allInspections.filter((i) => i.school === school);
-      let notes = allNotes.filter((n) => n.school === school);
-      if (validStartDate) {
-        inspections2 = inspections2.filter((i) => i.date >= validStartDate);
-        notes = notes.filter((n) => n.date >= validStartDate);
-      }
-      if (validEndDate) {
-        inspections2 = inspections2.filter((i) => i.date <= validEndDate);
-        notes = notes.filter((n) => n.date <= validEndDate);
-      }
+      const inspections2 = await storage.getInspections({
+        school,
+        startDate: validStartDate || void 0,
+        endDate: validEndDate || void 0
+      });
+      const notes = await storage.getCustodialNotes({
+        school,
+        startDate: validStartDate || void 0,
+        endDate: validEndDate || void 0
+      });
       const scoringResult = calculateBuildingScore(inspections2, notes);
       const complianceStatus = getComplianceStatus(scoringResult.overallScore);
       res.json({
@@ -3484,7 +3600,7 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to fetch school score" });
     }
   });
-  app2.post("/api/photos/upload", upload.single("photo"), async (req, res) => {
+  app2.post("/api/photos/upload", photoUploadRateLimit, upload.single("photo"), async (req, res) => {
     logger.info("[POST] Photo upload started", {
       contentType: req.get("Content-Type"),
       hasFile: !!req.file,
