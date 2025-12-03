@@ -1,6 +1,16 @@
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+// Dynamic imports for html2canvas and jspdf - loaded only when PDF generation is triggered
+// This removes ~600KB+ from the initial bundle
+import type { jsPDF } from 'jspdf';
 import type { ExportConfig } from '../components/reports/PDFExportWizard';
+
+// Dynamic loaders
+async function loadHtml2Canvas(): Promise<typeof import('html2canvas')> {
+  return import('html2canvas');
+}
+
+async function loadJsPDF(): Promise<typeof import('jspdf')> {
+  return import('jspdf');
+}
 
 export interface ChartExportOptions {
   width?: number;
@@ -12,6 +22,7 @@ export interface ChartExportOptions {
 
 /**
  * Capture a chart element as canvas using html2canvas
+ * Uses dynamic import to load html2canvas only when needed
  */
 export async function captureChartAsCanvas(
   chartElement: HTMLElement,
@@ -24,6 +35,10 @@ export async function captureChartAsCanvas(
     backgroundColor = '#ffffff',
     scale = 2
   } = options;
+
+  // Dynamic import - html2canvas is only loaded when capturing charts
+  const html2canvasModule = await loadHtml2Canvas();
+  const html2canvas = html2canvasModule.default;
 
   const canvas = await html2canvas(chartElement, {
     width,

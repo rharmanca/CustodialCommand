@@ -58,7 +58,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
           exportToCSV(exportData, sheetName);
           break;
         case 'pdf':
-          // Generate PDF using the Issues Report generator
+          // Generate PDF using the Issues Report generator (async - uses dynamic imports)
           const pdfData: IssuesReportData = {
             inspections,
             custodialNotes,
@@ -67,7 +67,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
               .map(([key]) => key)
           };
 
-          const pdfBlob = generateIssuesReport(pdfData);
+          const pdfBlob = await generateIssuesReport(pdfData);
 
           // Create download link
           const url = URL.createObjectURL(pdfBlob);

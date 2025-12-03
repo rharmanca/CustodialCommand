@@ -456,7 +456,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
   }, [filteredInspections, custodialNotes]);
 
   // Handle PDF export for issues
-  const handleExportIssuesPDF = () => {
+  const handleExportIssuesPDF = async () => {
     try {
       // Gather current filter state
       const reportData: IssuesReportData = {
@@ -468,8 +468,8 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         activeFilters: getActiveFilterLabels() // Get names of active quick filters
       };
       
-      // Generate PDF
-      const pdfBlob = generateIssuesReport(reportData);
+      // Generate PDF (async - uses dynamic import)
+      const pdfBlob = await generateIssuesReport(reportData);
       
       // Download
       const url = URL.createObjectURL(pdfBlob);

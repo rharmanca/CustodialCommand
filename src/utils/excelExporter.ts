@@ -1,6 +1,10 @@
-import * as XLSX from 'xlsx';
+// Dynamic import for xlsx - loaded only when export is triggered
+// This removes ~200KB from the initial bundle
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { analyzeProblemAreas, identifyUrgentCustodialNotes, calculateAverageRating, getSeverityLevel } from './problemAnalysis';
+
+// Type for dynamically imported xlsx module
+type XLSXModule = typeof import('xlsx');
 
 export interface ExportOptions {
   includeSummary: boolean;
@@ -20,31 +24,35 @@ export interface ExportData {
 
 /**
  * Export inspections and custodial notes to Excel with multiple sheets
+ * Uses dynamic import to load xlsx only when needed (~200KB savings on initial load)
  */
-export function exportToExcel(data: ExportData): void {
+export async function exportToExcel(data: ExportData): Promise<void> {
+  // Dynamic import - xlsx is only loaded when user clicks export
+  const XLSX = await import('xlsx');
+  
   const workbook = XLSX.utils.book_new();
   
   // Add Summary sheet if requested
   if (data.options.includeSummary) {
-    const summarySheet = createSummarySheet(data);
+    const summarySheet = createSummarySheet(data, XLSX);
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
   }
   
   // Add All Inspections sheet if requested
   if (data.options.includeAllInspections) {
-    const inspectionsSheet = createInspectionsSheet(data.inspections);
+    const inspectionsSheet = createInspectionsSheet(data.inspections, XLSX);
     XLSX.utils.book_append_sheet(workbook, inspectionsSheet, 'All Inspections');
   }
   
   // Add Problem Areas sheet if requested
   if (data.options.includeProblemAreas) {
-    const problemAreasSheet = createProblemAreasSheet(data.inspections);
+    const problemAreasSheet = createProblemAreasSheet(data.inspections, XLSX);
     XLSX.utils.book_append_sheet(workbook, problemAreasSheet, 'Problem Areas');
   }
   
   // Add Custodial Notes sheet if requested
   if (data.options.includeCustodialNotes) {
-    const notesSheet = createCustodialNotesSheet(data.custodialNotes);
+    const notesSheet = createCustodialNotesSheet(data.custodialNotes, XLSX);
     XLSX.utils.book_append_sheet(workbook, notesSheet, 'Custodial Notes');
   }
   
@@ -59,7 +67,7 @@ export function exportToExcel(data: ExportData): void {
 /**
  * Create Summary sheet with key metrics and statistics
  */
-function createSummarySheet(data: ExportData): XLSX.WorkSheet {
+function createSummarySheet(data: ExportData, XLSX: XLSXModule): import('xlsx').WorkSheet {
   const problemAnalysis = analyzeProblemAreas(data.inspections);
   const urgentNotes = identifyUrgentCustodialNotes(data.custodialNotes);
   
@@ -111,7 +119,7 @@ function createSummarySheet(data: ExportData): XLSX.WorkSheet {
 /**
  * Create All Inspections sheet with detailed inspection data
  */
-function createInspectionsSheet(inspections: Inspection[]): XLSX.WorkSheet {
+function createInspectionsSheet(inspections: Inspection[], XLSX: XLSXModule): import('xlsx').WorkSheet {
   const headers = [
     'ID', 'Date', 'School', 'Type', 'Room Number', 'Building Name', 'Location',
     'Inspector', 'Average Rating', 'Severity',
@@ -186,7 +194,7 @@ function createInspectionsSheet(inspections: Inspection[]): XLSX.WorkSheet {
 /**
  * Create Problem Areas sheet with critical and needs-attention issues
  */
-function createProblemAreasSheet(inspections: Inspection[]): XLSX.WorkSheet {
+function createProblemAreasSheet(inspections: Inspection[], XLSX: XLSXModule): import('xlsx').WorkSheet {
   const problemAnalysis = analyzeProblemAreas(inspections);
   
   const headers = [
@@ -256,7 +264,7 @@ function createProblemAreasSheet(inspections: Inspection[]): XLSX.WorkSheet {
 /**
  * Create Custodial Notes sheet with urgent and high-priority notes
  */
-function createCustodialNotesSheet(notes: CustodialNote[]): XLSX.WorkSheet {
+function createCustodialNotesSheet(notes: CustodialNote[], XLSX: XLSXModule): import('xlsx').WorkSheet {
   const urgentNotes = identifyUrgentCustodialNotes(notes);
   
   const headers = [
@@ -296,22 +304,26 @@ function createCustodialNotesSheet(notes: CustodialNote[]): XLSX.WorkSheet {
 
 /**
  * Export to CSV format (single sheet)
+ * Uses dynamic import to load xlsx only when needed
  */
-export function exportToCSV(data: ExportData, sheetName: 'inspections' | 'problems' | 'notes' = 'inspections'): void {
-  let worksheet: XLSX.WorkSheet;
+export async function exportToCSV(data: ExportData, sheetName: 'inspections' | 'problems' | 'notes' = 'inspections'): Promise<void> {
+  // Dynamic import - xlsx is only loaded when user clicks export
+  const XLSX = await import('xlsx');
+  
+  let worksheet: import('xlsx').WorkSheet;
   
   switch (sheetName) {
     case 'inspections':
-      worksheet = createInspectionsSheet(data.inspections);
+      worksheet = createInspectionsSheet(data.inspections, XLSX);
       break;
     case 'problems':
-      worksheet = createProblemAreasSheet(data.inspections);
+      worksheet = createProblemAreasSheet(data.inspections, XLSX);
       break;
     case 'notes':
-      worksheet = createCustodialNotesSheet(data.custodialNotes);
+      worksheet = createCustodialNotesSheet(data.custodialNotes, XLSX);
       break;
     default:
-      worksheet = createInspectionsSheet(data.inspections);
+      worksheet = createInspectionsSheet(data.inspections, XLSX);
   }
   
   const csv = XLSX.utils.sheet_to_csv(worksheet);

@@ -1,10 +1,20 @@
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// Dynamic imports for jspdf and jspdf-autotable - loaded only when PDF generation is triggered
+// This removes ~600KB+ from the initial bundle
+import type { jsPDF } from 'jspdf';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { PRINT_THEME, PRINT_FONTS, MARGINS } from './reportHelpers';
 import { calculateAverageRating } from './problemAnalysis';
 import type { ExportConfig } from '../components/reports/PDFExportWizard';
 import { filterDataByConfig } from './exportHelpers';
+
+// Dynamic loaders - these ensure jspdf/autotable are only loaded when actually needed
+async function loadJsPDF(): Promise<typeof import('jspdf')> {
+  return import('jspdf');
+}
+
+async function loadAutoTable(): Promise<typeof import('jspdf-autotable')> {
+  return import('jspdf-autotable');
+}
 
 // Extend jsPDF type to include autoTable properties
 declare module 'jspdf' {
@@ -42,7 +52,12 @@ export interface ReportData {
 /**
  * Generate clean issues report for printing on white paper
  */
-export function generateIssuesReport(data: IssuesReportData): Blob {
+export async function generateIssuesReport(data: IssuesReportData): Promise<Blob> {
+  // Dynamic import - jsPDF is only loaded when generating reports
+  const { jsPDF } = await loadJsPDF();
+  const autoTableModule = await loadAutoTable();
+  const autoTable = autoTableModule.default;
+  
   const doc = new jsPDF('p', 'mm', 'letter'); // US Letter size
   let currentY = 20;
   
@@ -53,10 +68,10 @@ export function generateIssuesReport(data: IssuesReportData): Blob {
   currentY = addPrintHeader(doc, data, currentY);
   
   // Summary statistics
-  currentY = addSummaryStats(doc, issues, currentY);
+  currentY = addSummaryStats(doc, issues, currentY, autoTable);
   
   // Issues table
-  currentY = addIssuesTable(doc, issues, currentY);
+  currentY = addIssuesTable(doc, issues, currentY, autoTable);
   
   // Footer on all pages
   addPrintFooter(doc);
@@ -188,7 +203,7 @@ function addPrintHeader(doc: jsPDF, data: IssuesReportData, yPosition: number): 
 /**
  * Add summary statistics box
  */
-function addSummaryStats(doc: jsPDF, issues: IssueForReport[], yPosition: number): number {
+function addSummaryStats(doc: jsPDF, issues: IssueForReport[], yPosition: number, autoTable: typeof import('jspdf-autotable').default): number {
   const critical = issues.filter(i => i.priority === 'Critical').length;
   const needsAttention = issues.filter(i => i.priority === 'Needs Attention').length;
   const schools = new Set(issues.map(i => i.school)).size;
@@ -230,7 +245,7 @@ function addSummaryStats(doc: jsPDF, issues: IssueForReport[], yPosition: number
 /**
  * Add issues table
  */
-function addIssuesTable(doc: jsPDF, issues: IssueForReport[], yPosition: number): number {
+function addIssuesTable(doc: jsPDF, issues: IssueForReport[], yPosition: number, autoTable: typeof import('jspdf-autotable').default): number {
   if (issues.length === 0) {
     doc.setFontSize(PRINT_FONTS.body);
     doc.setTextColor(PRINT_THEME.secondary);
@@ -320,7 +335,12 @@ function addPrintFooter(doc: jsPDF): void {
 /**
  * Generate Executive Summary PDF
  */
-export function generateExecutiveSummaryPDF(data: ReportData, config: ExportConfig): Blob {
+export async function generateExecutiveSummaryPDF(data: ReportData, config: ExportConfig): Promise<Blob> {
+  // Dynamic import - jsPDF is only loaded when generating reports
+  const { jsPDF } = await loadJsPDF();
+  const autoTableModule = await loadAutoTable();
+  const autoTable = autoTableModule.default;
+  
   const filteredData = filterDataByConfig(data, config);
   const doc = new jsPDF('p', 'mm', 'letter');
   let currentY = 20;
@@ -383,7 +403,12 @@ export function generateExecutiveSummaryPDF(data: ReportData, config: ExportConf
 /**
  * Generate School Performance PDF
  */
-export function generateSchoolPerformancePDF(data: ReportData, config: ExportConfig): Blob {
+export async function generateSchoolPerformancePDF(data: ReportData, config: ExportConfig): Promise<Blob> {
+  // Dynamic import - jsPDF is only loaded when generating reports
+  const { jsPDF } = await loadJsPDF();
+  const autoTableModule = await loadAutoTable();
+  const autoTable = autoTableModule.default;
+  
   const filteredData = filterDataByConfig(data, config);
   const doc = new jsPDF('p', 'mm', 'letter');
   let currentY = 20;
@@ -435,7 +460,12 @@ export function generateSchoolPerformancePDF(data: ReportData, config: ExportCon
 /**
  * Generate Category Analysis PDF
  */
-export function generateCategoryAnalysisPDF(data: ReportData, config: ExportConfig): Blob {
+export async function generateCategoryAnalysisPDF(data: ReportData, config: ExportConfig): Promise<Blob> {
+  // Dynamic import - jsPDF is only loaded when generating reports
+  const { jsPDF } = await loadJsPDF();
+  const autoTableModule = await loadAutoTable();
+  const autoTable = autoTableModule.default;
+  
   const filteredData = filterDataByConfig(data, config);
   const doc = new jsPDF('p', 'mm', 'letter');
   let currentY = 20;
@@ -485,7 +515,12 @@ export function generateCategoryAnalysisPDF(data: ReportData, config: ExportConf
 /**
  * Generate Custom Report PDF
  */
-export function generateCustomReportPDF(data: ReportData, config: ExportConfig): Blob {
+export async function generateCustomReportPDF(data: ReportData, config: ExportConfig): Promise<Blob> {
+  // Dynamic import - jsPDF is only loaded when generating reports
+  const { jsPDF } = await loadJsPDF();
+  const autoTableModule = await loadAutoTable();
+  const autoTable = autoTableModule.default;
+  
   const filteredData = filterDataByConfig(data, config);
   const doc = new jsPDF('p', 'mm', 'letter');
   let currentY = 20;
@@ -569,7 +604,12 @@ export interface WalkthroughReportData {
 /**
  * Generate Whole-Building Walkthrough Report PDF
  */
-export function generateWalkthroughReportPDF(data: WalkthroughReportData): Blob {
+export async function generateWalkthroughReportPDF(data: WalkthroughReportData): Promise<Blob> {
+  // Dynamic import - jsPDF is only loaded when generating reports
+  const { jsPDF } = await loadJsPDF();
+  const autoTableModule = await loadAutoTable();
+  const autoTable = autoTableModule.default;
+  
   const doc = new jsPDF('p', 'mm', 'letter');
   let currentY = 20;
 
@@ -655,7 +695,7 @@ export function generateWalkthroughReportPDF(data: WalkthroughReportData): Blob 
   }, {} as Record<string, Inspection[]>);
 
   // Process each category
-  Object.entries(inspectionsByCategory).forEach(([category, categoryInspections]) => {
+  for (const [category, categoryInspections] of Object.entries(inspectionsByCategory)) {
     // Check if we need a new page
     if (currentY > doc.internal.pageSize.getHeight() - 50) {
       doc.addPage();
@@ -703,7 +743,7 @@ export function generateWalkthroughReportPDF(data: WalkthroughReportData): Blob 
     });
 
     currentY = doc.lastAutoTable.finalY + 8;
-  });
+  }
 
   // Summary notes
   if (data.notes) {

@@ -152,12 +152,12 @@ const PDFExportWizard: React.FC<PDFExportWizardProps> = ({
       // Filter data based on configuration
       const filteredData = filterDataByConfig({ inspections, custodialNotes }, config);
       
-      // Generate PDF based on report type
+      // Generate PDF based on report type (async - uses dynamic imports)
       let pdfBlob: Blob;
       
       switch (config.reportType) {
         case 'issues':
-          pdfBlob = generateIssuesReport({
+          pdfBlob = await generateIssuesReport({
             inspections: filteredData.inspections,
             custodialNotes: filteredData.custodialNotes,
             startDate: config.filters.dateRange.from || undefined,
@@ -167,16 +167,16 @@ const PDFExportWizard: React.FC<PDFExportWizardProps> = ({
           });
           break;
         case 'executive':
-          pdfBlob = generateExecutiveSummaryPDF({ inspections, custodialNotes }, config);
+          pdfBlob = await generateExecutiveSummaryPDF({ inspections, custodialNotes }, config);
           break;
         case 'school-performance':
-          pdfBlob = generateSchoolPerformancePDF({ inspections, custodialNotes }, config);
+          pdfBlob = await generateSchoolPerformancePDF({ inspections, custodialNotes }, config);
           break;
         case 'category-analysis':
-          pdfBlob = generateCategoryAnalysisPDF({ inspections, custodialNotes }, config);
+          pdfBlob = await generateCategoryAnalysisPDF({ inspections, custodialNotes }, config);
           break;
         case 'custom':
-          pdfBlob = generateCustomReportPDF({ inspections, custodialNotes }, config);
+          pdfBlob = await generateCustomReportPDF({ inspections, custodialNotes }, config);
           break;
         default:
           throw new Error('Invalid report type');

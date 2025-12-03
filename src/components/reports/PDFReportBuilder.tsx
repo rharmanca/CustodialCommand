@@ -15,10 +15,10 @@ import {
   captureChartAsImage,
   THEME_COLORS,
   FONT_SIZES,
-  MARGINS
+  MARGINS,
+  loadJsPDF
 } from '../../utils/reportHelpers';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// jsPDF and autoTable are now dynamically imported via reportHelpers
 import { analyzeProblemAreas, identifyUrgentCustodialNotes, calculateAverageRating } from '../../utils/problemAnalysis';
 
 interface PDFReportBuilderProps {
@@ -56,7 +56,9 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
 
   const generateExecutiveSummary = async (): Promise<Blob> => {
     try {
-      const doc = initializePDF('Executive Problem Summary');
+      // Dynamic import of jsPDF and autoTable
+      const { default: autoTable } = await import('jspdf-autotable');
+      const doc = await initializePDF('Executive Problem Summary');
       let currentY = MARGINS.top;
     
     // Header
@@ -69,7 +71,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
     
     // Problem Areas Table
     updateProgress('Adding problem areas', 40);
-    currentY = addProblemAreasTable(doc, inspections, currentY);
+    currentY = addProblemAreasTable(doc, inspections, currentY, autoTable);
     
     // Urgent Notes
     updateProgress('Adding urgent notes', 60);
@@ -125,8 +127,10 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
       throw new Error('School name is required for school performance report');
     }
     
+    // Dynamic import of autoTable
+    const { default: autoTable } = await import('jspdf-autotable');
     const schoolInspections = inspections.filter(i => i.school === schoolName);
-    const doc = initializePDF(`School Performance Report - ${schoolName}`);
+    const doc = await initializePDF(`School Performance Report - ${schoolName}`);
     let currentY = MARGINS.top;
     
     // Header
@@ -139,7 +143,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
     
     // School Problem Areas
     updateProgress('Adding school problems', 40);
-    currentY = addProblemAreasTable(doc, schoolInspections, currentY);
+    currentY = addProblemAreasTable(doc, schoolInspections, currentY, autoTable);
     
     // Room-by-room breakdown
     updateProgress('Adding room breakdown', 60);
@@ -187,7 +191,9 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
   };
 
   const generateNotesDigest = async (): Promise<Blob> => {
-    const doc = initializePDF('Custodial Notes Digest');
+    // Dynamic import of autoTable
+    const { default: autoTable } = await import('jspdf-autotable');
+    const doc = await initializePDF('Custodial Notes Digest');
     let currentY = MARGINS.top;
     
     // Header
@@ -250,7 +256,9 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
   };
 
   const generateComprehensiveReport = async (): Promise<Blob> => {
-    const doc = initializePDF('Comprehensive Custodial Report');
+    // Dynamic import of autoTable
+    const { default: autoTable } = await import('jspdf-autotable');
+    const doc = await initializePDF('Comprehensive Custodial Report');
     let currentY = MARGINS.top;
     
     // Header
@@ -263,7 +271,7 @@ const PDFReportBuilder: React.FC<PDFReportBuilderProps> = ({
     
     // Problem Areas
     updateProgress('Adding problem areas', 40);
-    currentY = addProblemAreasTable(doc, inspections, currentY);
+    currentY = addProblemAreasTable(doc, inspections, currentY, autoTable);
     
     // Urgent Notes
     updateProgress('Adding urgent notes', 60);

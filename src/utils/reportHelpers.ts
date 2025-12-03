@@ -1,8 +1,24 @@
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import html2canvas from 'html2canvas';
+// Dynamic imports for jspdf and html2canvas - loaded only when PDF generation is triggered
+// This removes ~500KB+ from the initial bundle
+import type { jsPDF } from 'jspdf';
 import type { Inspection, CustodialNote } from '../../shared/schema';
 import { analyzeProblemAreas, identifyUrgentCustodialNotes, calculateAverageRating } from './problemAnalysis';
+
+// Re-export jsPDF type for consumers
+export type { jsPDF };
+
+// Dynamic loader for jsPDF with autoTable plugin
+export async function loadJsPDF(): Promise<typeof import('jspdf')> {
+  const jsPDFModule = await import('jspdf');
+  // Load autoTable plugin and attach to jsPDF
+  await import('jspdf-autotable');
+  return jsPDFModule;
+}
+
+// Dynamic loader for html2canvas
+export async function loadHtml2Canvas(): Promise<typeof import('html2canvas')> {
+  return import('html2canvas');
+}
 
 // Extend jsPDF type to include autoTable properties
 declare module 'jspdf' {
@@ -66,8 +82,10 @@ export const PRINT_FONTS = {
 
 /**
  * Initialize PDF with theme colors and settings
+ * Uses dynamic import to load jspdf only when needed (~500KB savings on initial load)
  */
-export function initializePDF(title: string): jsPDF {
+export async function initializePDF(title: string): Promise<jsPDF> {
+  const { jsPDF } = await loadJsPDF();
   const doc = new jsPDF('p', 'mm', 'a4');
   
   // Set theme colors
@@ -197,8 +215,14 @@ export function addKPISection(doc: jsPDF, inspections: Inspection[], yPosition: 
 
 /**
  * Add problem areas table to PDF
+ * Note: autoTable must be passed in as it's dynamically imported by the caller
  */
-export function addProblemAreasTable(doc: jsPDF, inspections: Inspection[], yPosition: number): number {
+export function addProblemAreasTable(
+  doc: jsPDF, 
+  inspections: Inspection[], 
+  yPosition: number, 
+  autoTable: typeof import('jspdf-autotable').default
+): number {
   const problemAnalysis = analyzeProblemAreas(inspections);
   const problemAreas = [...problemAnalysis.critical, ...problemAnalysis.needsAttention];
   
@@ -318,12 +342,17 @@ export function addUrgentNotesSection(doc: jsPDF, custodialNotes: CustodialNote[
 
 /**
  * Capture chart as image and add to PDF
+ * Uses dynamic import for html2canvas
  */
 export async function captureChartAsImage(chartElementId: string): Promise<string> {
   const element = document.getElementById(chartElementId);
   if (!element) {
     throw new Error(`Chart element with id "${chartElementId}" not found`);
   }
+  
+  // Dynamic import - html2canvas is only loaded when capturing charts
+  const html2canvasModule = await loadHtml2Canvas();
+  const html2canvas = html2canvasModule.default;
   
   const canvas = await html2canvas(element, {
     backgroundColor: THEME_COLORS.background,
