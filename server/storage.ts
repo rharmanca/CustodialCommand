@@ -1,7 +1,7 @@
 import { db, pool, withDatabaseReconnection } from './db';
 import { inspections, custodialNotes, roomInspections, monthlyFeedback, inspectionPhotos, syncQueue } from '../shared/schema';
 import type { InsertInspection, InsertCustodialNote, InsertRoomInspection, InsertMonthlyFeedback, InsertInspectionPhoto, InsertSyncQueue } from '../shared/schema';
-import { eq, desc, and, gte, lte } from 'drizzle-orm';
+import { eq, desc, and, gte, lte, count } from 'drizzle-orm';
 import { logger } from './logger';
 import { CacheManager } from './security';
 
@@ -424,7 +424,7 @@ export const storage = {
           .offset(offset),
 
         // Fetch total count for pagination metadata
-        db.select({ count: db.$count(monthlyFeedback.id) })
+        db.select({ count: count(monthlyFeedback.id) })
           .from(monthlyFeedback)
           .where(whereClause)
       ]);
