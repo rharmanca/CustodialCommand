@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, TrendingUp, AlertTriangle, AlertCircle } from 'lucide-react';
+
+// Screen-reader-only styles for accessible data table
+const srOnlyStyles: React.CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
 
 interface SchoolComparisonChartProps {
   data: Array<{
@@ -22,6 +35,33 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
   description = "Average ratings and inspection counts by school",
   showThresholds = true
 }) => {
+  // Generate accessible chart description for screen readers
+  const accessibleDescription = useMemo(() => {
+    if (!data || data.length === 0) return `${title}: No data available.`;
+    
+    const ratings = data.map(d => d.averageRating);
+    const bestSchool = data.reduce((best, current) => 
+      current.averageRating > best.averageRating ? current : best
+    );
+    const worstSchool = data.reduce((worst, current) => 
+      current.averageRating < worst.averageRating ? current : worst
+    );
+    const criticalSchools = data.filter(d => d.averageRating < 2.0);
+    const needsAttention = data.filter(d => d.averageRating >= 2.0 && d.averageRating < 3.0);
+    
+    let summary = `${title}. Bar chart comparing ${data.length} schools. `;
+    summary += `Best performing: ${bestSchool.school} with ${bestSchool.averageRating.toFixed(1)} rating. `;
+    summary += `Lowest: ${worstSchool.school} with ${worstSchool.averageRating.toFixed(1)} rating. `;
+    if (criticalSchools.length > 0) {
+      summary += `${criticalSchools.length} school${criticalSchools.length > 1 ? 's' : ''} below critical threshold. `;
+    }
+    if (needsAttention.length > 0) {
+      summary += `${needsAttention.length} school${needsAttention.length > 1 ? 's' : ''} need${needsAttention.length === 1 ? 's' : ''} attention.`;
+    }
+    
+    return summary;
+  }, [data, title]);
+
   // Custom tooltip matching your theme
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -56,7 +96,13 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-80 w-full">
+        {/* Accessible chart container with ARIA attributes */}
+        <div 
+          className="h-80 w-full"
+          role="img"
+          aria-label={accessibleDescription}
+          tabIndex={0}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid 
@@ -127,6 +173,37 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
             </div>
           </div>
         )}
+        
+        {/* Screen-reader-only data table for full accessibility */}
+        <table style={srOnlyStyles} aria-label={`Data table for ${title}`}>
+          <caption>{title} - {description}</caption>
+          <thead>
+            <tr>
+              <th scope="col">School</th>
+              <th scope="col">Average Rating</th>
+              <th scope="col">Status</th>
+              <th scope="col">Total Inspections</th>
+              <th scope="col">Single Room</th>
+              <th scope="col">Whole Building</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, index) => {
+              const status = row.averageRating < 2.0 ? 'Critical' : 
+                           row.averageRating < 3.0 ? 'Needs Attention' : 'Acceptable';
+              return (
+                <tr key={index}>
+                  <td>{row.school}</td>
+                  <td>{row.averageRating.toFixed(2)}</td>
+                  <td>{status}</td>
+                  <td>{row.totalInspections}</td>
+                  <td>{row.singleRoomCount}</td>
+                  <td>{row.wholeBuildingCount}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </CardContent>
     </Card>
   );

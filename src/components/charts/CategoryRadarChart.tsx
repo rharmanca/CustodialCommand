@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target, Star, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+
+// Screen-reader-only styles for accessible data table
+const srOnlyStyles: React.CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
 
 interface CategoryRadarChartProps {
   data: Array<{
@@ -22,10 +35,34 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
 }) => {
   // Determine performance level and color for each category
   const getPerformanceLevel = (rating: number) => {
-    if (rating < 2.0) return { level: 'critical', color: '#EF4444', icon: AlertTriangle };
-    if (rating < 3.0) return { level: 'needs-attention', color: '#F59E0B', icon: AlertCircle };
-    return { level: 'acceptable', color: '#10B981', icon: CheckCircle };
+    if (rating < 2.0) return { level: 'critical', color: '#EF4444', icon: AlertTriangle, label: 'Critical' };
+    if (rating < 3.0) return { level: 'needs-attention', color: '#F59E0B', icon: AlertCircle, label: 'Needs Attention' };
+    return { level: 'acceptable', color: '#10B981', icon: CheckCircle, label: 'Acceptable' };
   };
+
+  // Generate accessible chart description for screen readers
+  const accessibleDescription = useMemo(() => {
+    if (!data || data.length === 0) return `${title}: No data available.`;
+    
+    const criticalCategories = data.filter(d => d.rating < 2.0);
+    const needsAttentionCategories = data.filter(d => d.rating >= 2.0 && d.rating < 3.0);
+    const acceptableCategories = data.filter(d => d.rating >= 3.0);
+    const avgRating = (data.reduce((sum, d) => sum + d.rating, 0) / data.length).toFixed(1);
+    
+    let summary = `${title}. Radar chart showing ${data.length} inspection categories with an overall average of ${avgRating}. `;
+    
+    if (criticalCategories.length > 0) {
+      summary += `Critical issues in: ${criticalCategories.map(c => `${c.category} (${c.rating.toFixed(1)})`).join(', ')}. `;
+    }
+    if (needsAttentionCategories.length > 0) {
+      summary += `Needs attention: ${needsAttentionCategories.map(c => `${c.category} (${c.rating.toFixed(1)})`).join(', ')}. `;
+    }
+    if (acceptableCategories.length > 0) {
+      summary += `${acceptableCategories.length} categories are acceptable.`;
+    }
+    
+    return summary;
+  }, [data, title]);
 
   // Custom tick component with problem highlighting
   const CustomTick = (props: any) => {
@@ -70,7 +107,13 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-80 w-full">
+        {/* Accessible chart container with ARIA attributes */}
+        <div 
+          className="h-80 w-full"
+          role="img"
+          aria-label={accessibleDescription}
+          tabIndex={0}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <PolarGrid 
@@ -132,6 +175,30 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
             </div>
           </div>
         )}
+        
+        {/* Screen-reader-only data table for full accessibility */}
+        <table style={srOnlyStyles} aria-label={`Data table for ${title}`}>
+          <caption>{title} - {description}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col">Rating</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, index) => {
+              const performance = getPerformanceLevel(row.rating);
+              return (
+                <tr key={index}>
+                  <td>{row.category}</td>
+                  <td>{row.rating.toFixed(2)}</td>
+                  <td>{performance.label}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </CardContent>
     </Card>
   );
