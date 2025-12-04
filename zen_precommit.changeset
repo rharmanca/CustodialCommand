@@ -1,0 +1,395 @@
+warning: in the working copy of 'src/App.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/charts/KPICard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/charts/RoomHeatmap.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/ui/MobileBottomNav.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/queryClient.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/inspection-data.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/scores-dashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+diff --git a/src/App.tsx b/src/App.tsx
+index 05f2149b..2afa1fdf 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -59,13 +59,19 @@ import AdminInspectionsPage from "./pages/admin-inspections";
+ import MonthlyFeedbackPage from "./pages/monthly-feedback";
+ import ScoresDashboard from "./pages/scores-dashboard";
+ 
+-// Loading skeleton component
++// Loading skeleton component with accessibility support
+ const PageLoadingSkeleton = () => (
+-  <div className="min-h-screen bg-background flex items-center justify-center p-4">
++  <div 
++    className="min-h-screen bg-background flex items-center justify-center p-4"
++    role="status"
++    aria-live="polite"
++    aria-busy="true"
++  >
+     <div className="text-center max-w-md mx-auto">
+-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
++      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" aria-hidden="true"></div>
+       <h2 className="text-xl font-semibold text-foreground mb-2">Loading...</h2>
+       <p className="text-muted-foreground">Please wait while we load the page.</p>
++      <span className="sr-only">Page content is loading</span>
+     </div>
+   </div>
+ );
+diff --git a/src/components/charts/CategoryRadarChart.tsx b/src/components/charts/CategoryRadarChart.tsx
+index 4ffb6bda..96d8e436 100644
+--- a/src/components/charts/CategoryRadarChart.tsx
++++ b/src/components/charts/CategoryRadarChart.tsx
+@@ -137,4 +137,4 @@ const CategoryRadarChart: React.FC<CategoryRadarChartProps> = ({
+   );
+ };
+ 
+-export default CategoryRadarChart;
++export default React.memo(CategoryRadarChart);
+diff --git a/src/components/charts/KPICard.tsx b/src/components/charts/KPICard.tsx
+index 8938090f..e3c60248 100644
+--- a/src/components/charts/KPICard.tsx
++++ b/src/components/charts/KPICard.tsx
+@@ -104,7 +104,10 @@ const KPICard: React.FC<KPICardProps> = ({
+           )}
+           {trend && (
+             <div className={`flex items-center gap-1 text-sm ${getTrendColor(trend.value)}`}>
+-              {getTrendIcon(trend.value)}
++              <span aria-hidden="true">{getTrendIcon(trend.value)}</span>
++              <span className="sr-only">
++                {trend.value > 0 ? 'Increased by' : trend.value < 0 ? 'Decreased by' : 'No change'}
++              </span>
+               <span className="font-medium">
+                 {trend.value > 0 ? '+' : ''}{trend.value}%
+               </span>
+@@ -119,4 +122,4 @@ const KPICard: React.FC<KPICardProps> = ({
+   );
+ };
+ 
+-export default KPICard;
++export default React.memo(KPICard);
+diff --git a/src/components/charts/PerformanceTrendChart.tsx b/src/components/charts/PerformanceTrendChart.tsx
+index 6ab7cbb9..e5bd649a 100644
+--- a/src/components/charts/PerformanceTrendChart.tsx
++++ b/src/components/charts/PerformanceTrendChart.tsx
+@@ -101,4 +101,4 @@ const PerformanceTrendChart: React.FC<PerformanceTrendChartProps> = ({
+   );
+ };
+ 
+-export default PerformanceTrendChart;
++export default React.memo(PerformanceTrendChart);
+diff --git a/src/components/charts/RoomHeatmap.tsx b/src/components/charts/RoomHeatmap.tsx
+index 09a6f6e1..ce47e490 100644
+--- a/src/components/charts/RoomHeatmap.tsx
++++ b/src/components/charts/RoomHeatmap.tsx
+@@ -98,21 +98,23 @@ const RoomHeatmap: React.FC<RoomHeatmapProps> = ({
+                 {rooms.map((room) => (
+                   <Dialog key={`${school}-${room.number}`}>
+                     <DialogTrigger asChild>
+-                      <div
++                      <button
++                        type="button"
+                         className={`
+                           p-3 text-center text-xs rounded-lg border-2 transition-all duration-200 hover:scale-105 cursor-pointer
+                           ${getRatingColor(room.rating)}
+                         `}
+                         title={`Room ${room.number}: ${room.rating.toFixed(1)}/5 - ${getRatingLabel(room.rating)}`}
++                        aria-label={`Room ${room.number}, rating ${room.rating.toFixed(1)} out of 5, ${getRatingLabel(room.rating)}. Click for details.`}
+                         onClick={() => handleRoomClick(room)}
+                       >
+-                        <div className="font-bold text-sm mb-1">
++                        <div className="font-bold text-sm mb-1" aria-hidden="true">
+                           {room.number}
+                         </div>
+-                        <div className="text-xs opacity-75">
++                        <div className="text-xs opacity-75" aria-hidden="true">
+                           {room.rating.toFixed(1)}
+                         </div>
+-                      </div>
++                      </button>
+                     </DialogTrigger>
+                     <DialogContent className="max-w-2xl">
+                       <DialogHeader>
+@@ -266,4 +268,4 @@ const RoomHeatmap: React.FC<RoomHeatmapProps> = ({
+   );
+ };
+ 
+-export default RoomHeatmap;
++export default React.memo(RoomHeatmap);
+diff --git a/src/components/charts/SchoolComparisonChart.tsx b/src/components/charts/SchoolComparisonChart.tsx
+index 572a7824..b285d136 100644
+--- a/src/components/charts/SchoolComparisonChart.tsx
++++ b/src/components/charts/SchoolComparisonChart.tsx
+@@ -132,4 +132,4 @@ const SchoolComparisonChart: React.FC<SchoolComparisonChartProps> = ({
+   );
+ };
+ 
+-export default SchoolComparisonChart;
++export default React.memo(SchoolComparisonChart);
+diff --git a/src/components/ui/MobileBottomNav.tsx b/src/components/ui/MobileBottomNav.tsx
+index e26c2d04..8b6fcd1c 100644
+--- a/src/components/ui/MobileBottomNav.tsx
++++ b/src/components/ui/MobileBottomNav.tsx
+@@ -49,10 +49,14 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
+   ];
+ 
+   return (
+-    <div className={cn(
+-      "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden",
+-      className
+-    )}>
++    <nav 
++      className={cn(
++        "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 md:hidden",
++        className
++      )}
++      role="navigation"
++      aria-label="Main navigation"
++    >
+       <div className="grid grid-cols-5 py-2">
+         {navItems.map((item) => {
+           const Icon = item.icon;
+@@ -60,6 +64,8 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
+             <a
+               key={item.id}
+               href={item.href}
++              aria-current={item.active ? "page" : undefined}
++              aria-label={item.label}
+               className={cn(
+                 "flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors duration-200 touch-manipulation",
+                 item.active
+@@ -73,9 +79,10 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
+                     "h-6 w-6 transition-transform duration-200",
+                     item.active && "scale-110"
+                   )}
++                  aria-hidden="true"
+                 />
+                 {item.active && (
+-                  <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-600 rounded-full animate-pulse" />
++                  <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
+                 )}
+               </div>
+               <span className={cn(
+@@ -91,7 +98,7 @@ const MobileBottomNav = ({ className }: MobileBottomNavProps) => {
+ 
+       {/* Add safe area padding for mobile devices with home indicators */}
+       <div className="h-safe-area-inset-bottom bg-white" />
+-    </div>
++    </nav>
+   );
+ };
+ 
+diff --git a/src/lib/queryClient.ts b/src/lib/queryClient.ts
+index e06e9b27..19fde78a 100644
+--- a/src/lib/queryClient.ts
++++ b/src/lib/queryClient.ts
+@@ -136,9 +136,10 @@ export const queryClient = new QueryClient({
+     queries: {
+       queryFn: getQueryFn({ on401: "throw" }),
+       refetchInterval: false,
+-      refetchOnWindowFocus: false,
+-      staleTime: Infinity,
+-      retry: false,
++      refetchOnWindowFocus: true, // Refetch when user returns to tab
++      staleTime: 5 * 60 * 1000, // 5 minutes - data considered fresh
++      gcTime: 10 * 60 * 1000, // 10 minutes - unused data garbage collected
++      retry: 1, // Retry failed requests once
+     },
+     mutations: {
+       retry: false,
+diff --git a/src/pages/inspection-data.tsx b/src/pages/inspection-data.tsx
+index f50446d1..a14bd9a7 100644
+--- a/src/pages/inspection-data.tsx
++++ b/src/pages/inspection-data.tsx
+@@ -291,10 +291,11 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+              inspectionDate < new Date(now.getFullYear(), now.getMonth(), 1);
+     });
+     
+-    // Calculate trends
+-    const inspectionTrend = lastMonthData.length > 0 
++    // Calculate trends - return null when comparison is not meaningful
++    // (e.g., no previous month data or no current month data to compare)
++    const inspectionTrend = (lastMonthData.length > 0 && currentMonthData.length > 0)
+       ? ((currentMonthData.length - lastMonthData.length) / lastMonthData.length) * 100
+-      : 0;
++      : null;
+     
+     const currentAvgRating = currentMonthData.length > 0
+       ? currentMonthData.reduce((sum, inspection) => {
+@@ -310,13 +311,14 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+         }, 0) / lastMonthData.length
+       : 0;
+     
+-    const ratingTrend = lastAvgRating > 0 
++    // Only show rating trend when both months have comparable data
++    const ratingTrend = (lastAvgRating > 0 && currentAvgRating > 0)
+       ? ((currentAvgRating - lastAvgRating) / lastAvgRating) * 100
+-      : 0;
++      : null;
+     
+     return {
+-      inspectionTrend: Math.round(inspectionTrend * 10) / 10,
+-      ratingTrend: Math.round(ratingTrend * 10) / 10
++      inspectionTrend: inspectionTrend !== null ? Math.round(inspectionTrend * 10) / 10 : null,
++      ratingTrend: ratingTrend !== null ? Math.round(ratingTrend * 10) / 10 : null
+     };
+   };
+ 
+@@ -336,8 +338,8 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+     }
+   };
+ 
+-  // Enhanced data processing functions for charts
+-  const getPerformanceTrendData = () => {
++  // Memoized chart data calculations - prevents recalculation on every render
++  const performanceTrendData = useMemo(() => {
+     const monthlyData = filteredInspections.reduce((acc, inspection) => {
+       const month = new Date(inspection.date).toISOString().slice(0, 7); // YYYY-MM
+       if (!acc[month]) {
+@@ -358,9 +360,9 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+         : 0,
+       totalInspections: data.totalInspections
+     })).sort((a, b) => a.date.localeCompare(b.date));
+-  };
++  }, [filteredInspections]);
+ 
+-  const getSchoolComparisonData = () => {
++  const schoolComparisonData = useMemo(() => {
+     const schoolData = filteredInspections.reduce((acc, inspection) => {
+       if (!acc[inspection.school]) {
+         acc[inspection.school] = {
+@@ -390,9 +392,9 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+         ? Math.round((data.ratings.reduce((sum: number, rating: number) => sum + rating, 0) / data.ratings.length) * 10) / 10
+         : 0
+     }));
+-  };
++  }, [filteredInspections]);
+ 
+-  const getCategoryRadarData = () => {
++  const categoryRadarData = useMemo(() => {
+     const categoryTotals = categories.reduce((acc, category) => {
+       acc[category.key] = { category: category.label, ratings: [], totalRatings: 0 };
+       return acc;
+@@ -415,9 +417,9 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+         : 0,
+       fullMark: 5
+     }));
+-  };
++  }, [filteredInspections, categories]);
+ 
+-  const getRoomHeatmapData = () => {
++  const roomHeatmapData = useMemo(() => {
+     return filteredInspections
+       .filter(inspection => inspection.inspectionType === 'single_room' && inspection.roomNumber)
+       .map(inspection => ({
+@@ -426,7 +428,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+         school: inspection.school,
+         lastInspection: inspection.date
+       }));
+-  };
++  }, [filteredInspections]);
+ 
+   // KPI calculations
+   const kpiData = useMemo(() => {
+@@ -756,7 +758,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+                   description="All time inspections"
+                   icon={FileText}
+                   color="primary"
+-                  trend={trends.inspectionTrend !== 0 ? {
++                  trend={trends.inspectionTrend !== null && trends.inspectionTrend !== 0 ? {
+                     value: trends.inspectionTrend,
+                     period: "vs last month"
+                   } : undefined}
+@@ -767,7 +769,7 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+                   description="Overall performance"
+                   icon={Star}
+                   color="success"
+-                  trend={trends.ratingTrend !== 0 ? {
++                  trend={trends.ratingTrend !== null && trends.ratingTrend !== 0 ? {
+                     value: trends.ratingTrend,
+                     period: "vs last month"
+                   } : undefined}
+@@ -857,27 +859,27 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps)
+           <TabsContent value="charts" className="mt-6">
+             <div className="space-y-6">
+               <PerformanceTrendChart 
+-                data={getPerformanceTrendData()}
++                data={performanceTrendData}
+                 title="Performance Trends Over Time"
+                 description="Average ratings and inspection volume by month"
+               />
+               
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <SchoolComparisonChart 
+-                  data={getSchoolComparisonData()}
++                  data={schoolComparisonData}
+                   title="School Performance Comparison"
+                   description="Average ratings and inspection counts by school"
+                 />
+                 
+                 <CategoryRadarChart 
+-                  data={getCategoryRadarData()}
++                  data={categoryRadarData}
+                   title="Category Performance Analysis"
+                   description="Performance ratings across all inspection categories"
+                 />
+               </div>
+               
+               <RoomHeatmap 
+-                data={getRoomHeatmapData()}
++                data={roomHeatmapData}
+                 title="Room Performance Heatmap"
+                 description="Visual overview of room performance ratings"
+                 maxRoomsPerRow={8}
+diff --git a/src/pages/scores-dashboard.tsx b/src/pages/scores-dashboard.tsx
+index 4dbd3665..f928198b 100644
+--- a/src/pages/scores-dashboard.tsx
++++ b/src/pages/scores-dashboard.tsx
+@@ -1,4 +1,4 @@
+-import { useState, useEffect } from 'react';
++import { useState, useEffect, useMemo } from 'react';
+ import { Button } from '@/components/ui/button';
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+ import { Input } from '@/components/ui/input';
+@@ -112,21 +112,33 @@ export default function ScoresDashboard({ onBack }: ScoresDashboardProps) {
+     setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
+   };
+ 
+-  const compliantCount = schoolScores.filter(s => s.score.level2Compliant).length;
+-  const totalSchools = schoolScores.length;
+-  const compliancePercentage = totalSchools > 0 ? (compliantCount / totalSchools) * 100 : 0;
++  // Memoize expensive calculations that depend on schoolScores
++  const { compliantCount, totalSchools, compliancePercentage, averageScore, topPerformer, needsAttention } = useMemo(() => {
++    const compliant = schoolScores.filter(s => s.score.level2Compliant).length;
++    const total = schoolScores.length;
++    const percentage = total > 0 ? (compliant / total) * 100 : 0;
+ 
+-  const averageScore = schoolScores.length > 0
+-    ? schoolScores.reduce((sum, s) => sum + s.score.overallScore, 0) / schoolScores.length
+-    : 0;
++    const avgScore = schoolScores.length > 0
++      ? schoolScores.reduce((sum, s) => sum + s.score.overallScore, 0) / schoolScores.length
++      : 0;
+ 
+-  const topPerformer = schoolScores.length > 0
+-    ? schoolScores.reduce((prev, current) =>
+-        current.score.overallScore > prev.score.overallScore ? current : prev
+-      )
+-    : null;
++    const top = schoolScores.length > 0
++      ? schoolScores.reduce((prev, current) =>
++          current.score.overallScore > prev.score.overallScore ? current : prev
++        )
++      : null;
+ 
+-  const needsAttention = schoolScores.filter(s => s.score.overallScore < 3.0);
++    const attention = schoolScores.filter(s => s.score.overallScore < 3.0);
++
++    return {
++      compliantCount: compliant,
++      totalSchools: total,
++      compliancePercentage: percentage,
++      averageScore: avgScore,
++      topPerformer: top,
++      needsAttention: attention
++    };
++  }, [schoolScores]);
+ 
+   if (loading && !refreshing) {
+     return <LoadingOverlay message="Loading building scores..." />;

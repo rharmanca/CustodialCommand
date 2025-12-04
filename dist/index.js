@@ -1391,7 +1391,7 @@ init_db();
 init_schema();
 init_logger();
 init_security();
-import { eq, desc, and, gte, lte } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql as sql2 } from "drizzle-orm";
 var performanceMetrics = {
   cacheHits: 0,
   cacheMisses: 0,
@@ -1667,7 +1667,7 @@ var storage = {
         // Fetch paginated data
         db.select().from(monthlyFeedback).where(whereClause).orderBy(desc(monthlyFeedback.year), desc(monthlyFeedback.month)).limit(limit).offset(offset),
         // Fetch total count for pagination metadata
-        db.select({ count: db.$count(monthlyFeedback.id) }).from(monthlyFeedback).where(whereClause)
+        db.select({ count: sql2`count(*)` }).from(monthlyFeedback).where(whereClause)
       ]);
       const totalCount = Number(totalCountResult[0]?.count || 0);
       const totalPages = Math.ceil(totalCount / limit);

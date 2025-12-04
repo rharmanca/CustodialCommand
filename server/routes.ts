@@ -1519,23 +1519,71 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Diagnostic endpoint for Monthly Feedback debugging
   app.get("/api/monthly-feedback-diagnostic", async (req, res) => {
     try {
-      const diagnostic = {
+      const diagnostic: Record<string, any> = {
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV,
         database_url_exists: !!process.env.DATABASE_URL,
         database_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'NOT SET',
       };
 
-      // Test basic database connection
+      // Import pool for raw SQL queries
+      const { pool } = await import('./db');
+
+      // Step 1: Check if table exists using raw SQL
+      try {
+        const tableCheck = await pool.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'monthly_feedback'
+          ) as table_exists
+        `);
+        diagnostic.table_exists = tableCheck.rows[0]?.table_exists || false;
+      } catch (tableCheckError) {
+        diagnostic.table_check_error = tableCheckError instanceof Error ? tableCheckError.message : String(tableCheckError);
+      }
+
+      // Step 2: Check table structure if it exists
+      if (diagnostic.table_exists) {
+        try {
+          const columns = await pool.query(`
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'monthly_feedback' 
+            ORDER BY ordinal_position
+          `);
+          diagnostic.table_columns = columns.rows;
+        } catch (colError) {
+          diagnostic.columns_error = colError instanceof Error ? colError.message : String(colError);
+        }
+
+        // Step 3: Try raw count query
+        try {
+          const countResult = await pool.query('SELECT count(*) FROM monthly_feedback');
+          diagnostic.raw_count = parseInt(countResult.rows[0]?.count || '0');
+        } catch (countError) {
+          diagnostic.raw_count_error = countError instanceof Error ? countError.message : String(countError);
+        }
+
+        // Step 4: Try simple select
+        try {
+          const selectResult = await pool.query('SELECT * FROM monthly_feedback LIMIT 3');
+          diagnostic.raw_select_success = true;
+          diagnostic.raw_select_count = selectResult.rows.length;
+        } catch (selectError) {
+          diagnostic.raw_select_error = selectError instanceof Error ? selectError.message : String(selectError);
+        }
+      }
+
+      // Step 5: Test the ORM query
       try {
         const testQuery = await storage.getMonthlyFeedback();
-        diagnostic.query_success = true;
-        diagnostic.records_count = testQuery ? testQuery.length : 0;
-        diagnostic.query_result = testQuery;
+        diagnostic.orm_query_success = true;
+        diagnostic.orm_records_count = testQuery?.data ? testQuery.data.length : 0;
       } catch (queryError) {
-        diagnostic.query_success = false;
-        diagnostic.query_error = queryError instanceof Error ? queryError.message : String(queryError);
-        diagnostic.query_stack = queryError instanceof Error ? queryError.stack : undefined;
+        diagnostic.orm_query_success = false;
+        diagnostic.orm_query_error = queryError instanceof Error ? queryError.message : String(queryError);
+        diagnostic.orm_query_stack = queryError instanceof Error ? queryError.stack?.split('\n').slice(0, 5) : undefined;
       }
 
       res.json(diagnostic);
