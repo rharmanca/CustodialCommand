@@ -163,20 +163,44 @@ export const errorHandler = (error: any, req: Request, res: Response, next: Next
   });
 };
 
-// Metrics collection
+// Metrics collection with memory management
 class MetricsCollector {
   private metrics: Record<string, number> = {};
+  private readonly maxMetricKeys = 500; // Prevent unbounded growth
+  private lastResetTime = Date.now();
+  private readonly resetIntervalMs = 24 * 60 * 60 * 1000; // Reset daily
   
   increment(metric: string, value = 1) {
+    // Auto-reset if interval has passed to prevent memory buildup
+    if (Date.now() - this.lastResetTime > this.resetIntervalMs) {
+      this.reset();
+    }
+    
+    // Limit total number of metric keys to prevent memory leak
+    const keyCount = Object.keys(this.metrics).length;
+    if (keyCount >= this.maxMetricKeys && !(metric in this.metrics)) {
+      // Don't add new keys once limit reached - just log warning once
+      if (!this.metrics['_limit_reached']) {
+        this.metrics['_limit_reached'] = 1;
+        console.warn(`MetricsCollector: Max metric keys (${this.maxMetricKeys}) reached, ignoring new keys`);
+      }
+      return;
+    }
+    
     this.metrics[metric] = (this.metrics[metric] || 0) + value;
   }
   
   getMetrics() {
-    return { ...this.metrics };
+    return { 
+      ...this.metrics,
+      _keyCount: Object.keys(this.metrics).length,
+      _uptimeHours: Math.round((Date.now() - this.lastResetTime) / 3600000 * 10) / 10
+    };
   }
   
   reset() {
     this.metrics = {};
+    this.lastResetTime = Date.now();
   }
 }
 
