@@ -33,7 +33,9 @@
     "ui:test:headed": "npx --yes playwright test --headed",
     "ui:test:report": "npx --yes playwright show-report",
     "lighthouse": "lhci autorun",
-    "lighthouse:local": "npm run build && npm run start & npx wait-on http://localhost:5000 && lhci autorun && kill $(lsof -ti:5000)"
+    "lighthouse:local": "npm run build && npm run start & npx wait-on http://localhost:5000 && lhci autorun && kill $(lsof -ti:5000)",
+    "monitor": "node scripts/monitor-health.mjs",
+    "monitor:watch": "node scripts/monitor-health.mjs --watch"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
