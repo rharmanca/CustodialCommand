@@ -52,11 +52,14 @@ const SENTIMENT_PATTERNS = {
   positive: [
     /\b(excellent|outstanding|exceptional|great|good|clean|well maintained|shine|bright|fresh|spotless|tidy)\b/i,
     /\b(going well|improving|progress|complimentary)\b/i,
+    /\bsmells?\s+(good|great|clean|fresh|nice)\b/i,  // "smells good", "smell fresh", etc.
   ],
   major: [
     /\b(crisis|unsafe|hazard|broken|damaged|filthy|disgusting|unacceptable|failure|critical)\b/i,
     /\b(not working|completely|severe|major|serious|significant)\b/i,
-    /\b(overflowing|overflow|smells|stinks|foul|offensive)\b/i,
+    /\b(overflowing|overflow|stinks|foul|offensive)\b/i,
+    /\bsmells?\s+(bad|terrible|awful|horrible|like)\b/i,  // "smells bad", "smells like...", etc.
+    /\b(bad|terrible|awful|horrible)\s+smell\b/i,  // "bad smell", "terrible smell", etc.
   ],
   minor: [
     /\b(needs|need|should|could|minor|slight|small|little|dull|dingy|stain|streak|smudge)\b/i,
