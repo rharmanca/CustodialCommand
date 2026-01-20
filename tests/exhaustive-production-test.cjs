@@ -481,7 +481,7 @@ async function testSingleAreaInspection(context) {
     recordTest('forms', `${formName} - Load`, true);
 
     // Find and interact with school select
-    const schoolSelect = page.locator('button[role="combobox"]').first();
+    const schoolSelect = page.locator('[data-testid="school-select"]').first();
     await schoolSelect.click();
     await page.waitForTimeout(500);
 
@@ -534,8 +534,8 @@ async function testCustodialNotes(context) {
     recordTest('forms', `${formName} - Present`, hasForm);
 
     if (hasForm) {
-      // Try to fill basic fields
-      const textareas = await page.locator('textarea').count();
+      // Try to fill basic fields - use data-testid for reliable selector
+      const textareas = await page.locator('[data-testid="custodial-notes-description"]').count();
       recordTest('forms', `${formName} - Text Areas`, textareas > 0, `${textareas} text areas found`);
     }
 
@@ -560,11 +560,8 @@ async function testWholeBuildingInspection(context) {
     const hasContent = await page.locator('h1').count() > 0;
     recordTest('forms', `${formName} - Load`, hasContent);
 
-    // Check for step indicators (multi-step form)
-    const hasSteps = await page.evaluate(() => {
-      const text = document.body.textContent;
-      return text.includes('Step') || text.includes('step');
-    });
+    // Check for step indicators (multi-step form) - use data-testid for reliable detection
+    const hasSteps = await page.locator('[data-testid="multi-progress"]').count() > 0;
     recordTest('forms', `${formName} - Multi-Step`, hasSteps);
 
   } catch (error) {

@@ -53,6 +53,12 @@ export function csrfProtection(req: any, res: Response, next: NextFunction) {
     return next();
   }
 
+  // Skip CSRF for admin authentication (endpoint uses password auth)
+  if (req.path.startsWith("/api/admin/login")) {
+    logger.debug("Skipping CSRF for admin authentication", { path: req.path });
+    return next();
+  }
+
   try {
     // Get secret from cookie
     const secret = req.cookies?.[CSRF_COOKIE_NAME];
