@@ -2,6 +2,17 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { randomBytes } from "crypto";
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Read version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '../package.json'), 'utf-8')
+);
+const APP_VERSION = packageJson.version;
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
@@ -536,7 +547,7 @@ if (process.env.REPL_SLUG) {
     server.listen(PORT, HOST, () => {
       logger.info(`Server running on port ${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0'
+        version: APP_VERSION
       });
     });
 
