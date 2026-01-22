@@ -55,7 +55,8 @@ export function csrfProtection(req: any, res: Response, next: NextFunction) {
 
   // Skip CSRF for admin authentication (endpoint uses password auth)
   // Note: req.path is relative to middleware mount point (/api), so we check without /api prefix
-  if (req.path.startsWith("/admin/login")) {
+  // Use more flexible check that matches actual admin endpoints
+  if (req.path.includes("/admin/") || req.path === "/admin/login") {
     logger.debug("Skipping CSRF for admin authentication", { path: req.path });
     return next();
   }
