@@ -46,6 +46,7 @@ export async function apiRequest<T = any>(
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include', // Required to send CSRF cookie
     });
 
     if (!response.ok) {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -127,9 +128,15 @@ export function MonthlyFeedbackUploadForm({ onUploadSuccess }: MonthlyFeedbackUp
       if (formData.notes) formDataToSend.append('notes', formData.notes);
       if (formData.uploadedBy) formDataToSend.append('uploadedBy', formData.uploadedBy);
 
+      // Refresh CSRF token if needed before making the request
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const response = await fetch('/api/monthly-feedback', {
         method: 'POST',
         body: formDataToSend,
+        credentials: 'include', // Required to send CSRF cookie
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {},
       });
 
       if (response.ok) {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from "@/utils/csrf";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -523,11 +524,16 @@ export default function CustodialNotesPage({
 
       // Ensure proper content-type handling for FormData
       // Some environments may not handle FormData correctly with fetch
+      // Refresh CSRF token if needed before making the request
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const fetchOptions: RequestInit = {
         method: "POST",
         body: formDataToSend,
+        credentials: 'include', // Required to send CSRF cookie
         // Don't set Content-Type header when using FormData - browser will set it automatically with boundary
-        headers: {}
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {}
       };
 
       // Add user agent for debugging (only in development)

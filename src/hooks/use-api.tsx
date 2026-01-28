@@ -79,14 +79,9 @@ export function useApi(options?: UseApiOptions) {
 }
 
 export async function createInspection(data: any) {
-  const res = await fetch('/api/inspections', {
+  // Use apiRequest which handles CSRF tokens and credentials
+  return apiRequest('/api/inspections', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Create inspection failed: ${res.status} ${text}`);
-  }
-  return res.json();
 }

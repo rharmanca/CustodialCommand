@@ -8,6 +8,7 @@
 import { useState, useEffect, memo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, processImageForStorage, getStorageStats } from '@/utils/storage';
 import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 import { Button } from '@/components/ui/button';
@@ -340,10 +341,16 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+      // Refresh CSRF token if needed before making the request
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const response = await fetch('/api/inspections', {
         method: 'POST',
         body: formDataToSend, // No Content-Type header - let browser set it for multipart
         signal: controller.signal,
+        credentials: 'include', // Required to send CSRF cookie
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {},
       });
 
       clearTimeout(timeoutId);
