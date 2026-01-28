@@ -1377,6 +1377,9 @@ var init_security = __esm({
 // server/index.ts
 import express3 from "express";
 import { createServer } from "http";
+import { readFileSync as readFileSync2 } from "fs";
+import { join as join5, dirname as dirname2 } from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
@@ -2082,12 +2085,18 @@ var ObjectStorageService = class {
 var SENTIMENT_PATTERNS = {
   positive: [
     /\b(excellent|outstanding|exceptional|great|good|clean|well maintained|shine|bright|fresh|spotless|tidy)\b/i,
-    /\b(going well|improving|progress|complimentary)\b/i
+    /\b(going well|improving|progress|complimentary)\b/i,
+    /\bsmells?\s+(good|great|clean|fresh|nice)\b/i
+    // "smells good", "smell fresh", etc.
   ],
   major: [
     /\b(crisis|unsafe|hazard|broken|damaged|filthy|disgusting|unacceptable|failure|critical)\b/i,
     /\b(not working|completely|severe|major|serious|significant)\b/i,
-    /\b(overflowing|overflow|smells|stinks|foul|offensive)\b/i
+    /\b(overflowing|overflow|stinks|foul|offensive)\b/i,
+    /\bsmells?\s+(bad|terrible|awful|horrible|like)\b/i,
+    // "smells bad", "smells like...", etc.
+    /\b(bad|terrible|awful|horrible)\s+smell\b/i
+    // "bad smell", "terrible smell", etc.
   ],
   minor: [
     /\b(needs|need|should|could|minor|slight|small|little|dull|dingy|stain|streak|smudge)\b/i,
@@ -3443,15 +3452,53 @@ async function registerRoutes(app2) {
         database_url_exists: !!process.env.DATABASE_URL,
         database_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + "..." : "NOT SET"
       };
+      const { pool: pool2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      try {
+        const tableCheck = await pool2.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'monthly_feedback'
+          ) as table_exists
+        `);
+        diagnostic.table_exists = tableCheck.rows[0]?.table_exists || false;
+      } catch (tableCheckError) {
+        diagnostic.table_check_error = tableCheckError instanceof Error ? tableCheckError.message : String(tableCheckError);
+      }
+      if (diagnostic.table_exists) {
+        try {
+          const columns = await pool2.query(`
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'monthly_feedback' 
+            ORDER BY ordinal_position
+          `);
+          diagnostic.table_columns = columns.rows;
+        } catch (colError) {
+          diagnostic.columns_error = colError instanceof Error ? colError.message : String(colError);
+        }
+        try {
+          const countResult = await pool2.query("SELECT count(*) FROM monthly_feedback");
+          diagnostic.raw_count = parseInt(countResult.rows[0]?.count || "0");
+        } catch (countError) {
+          diagnostic.raw_count_error = countError instanceof Error ? countError.message : String(countError);
+        }
+        try {
+          const selectResult = await pool2.query("SELECT * FROM monthly_feedback LIMIT 3");
+          diagnostic.raw_select_success = true;
+          diagnostic.raw_select_count = selectResult.rows.length;
+        } catch (selectError) {
+          diagnostic.raw_select_error = selectError instanceof Error ? selectError.message : String(selectError);
+        }
+      }
       try {
         const testQuery = await storage.getMonthlyFeedback();
-        diagnostic.query_success = true;
-        diagnostic.records_count = testQuery ? testQuery.length : 0;
-        diagnostic.query_result = testQuery;
+        diagnostic.orm_query_success = true;
+        diagnostic.orm_records_count = testQuery?.data ? testQuery.data.length : 0;
       } catch (queryError) {
-        diagnostic.query_success = false;
-        diagnostic.query_error = queryError instanceof Error ? queryError.message : String(queryError);
-        diagnostic.query_stack = queryError instanceof Error ? queryError.stack : void 0;
+        diagnostic.orm_query_success = false;
+        diagnostic.orm_query_error = queryError instanceof Error ? queryError.message : String(queryError);
+        diagnostic.orm_query_stack = queryError instanceof Error ? queryError.stack?.split("\n").slice(0, 5) : void 0;
       }
       res.json(diagnostic);
     } catch (error) {
@@ -3980,6 +4027,15 @@ init_logger();
 
 // server/monitoring.ts
 init_logger();
+import { readFileSync } from "fs";
+import { join as join4, dirname } from "path";
+import { fileURLToPath } from "url";
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = dirname(__filename);
+var packageJson = JSON.parse(
+  readFileSync(join4(__dirname, "../package.json"), "utf-8")
+);
+var APP_VERSION = packageJson.version;
 var healthCheck = async (req, res) => {
   const startTime = Date.now();
   try {
@@ -4018,7 +4074,7 @@ var healthCheck = async (req, res) => {
       status: dbStatus === "error" ? "error" : "ok",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       uptime: Math.floor(process.uptime()),
-      version: "1.0.0",
+      version: APP_VERSION,
       environment: process.env.NODE_ENV || "development",
       database: dbStatus,
       redis: redisHealth,
@@ -4044,14 +4100,35 @@ var healthCheck = async (req, res) => {
 };
 var MetricsCollector = class {
   metrics = {};
+  maxMetricKeys = 500;
+  // Prevent unbounded growth
+  lastResetTime = Date.now();
+  resetIntervalMs = 24 * 60 * 60 * 1e3;
+  // Reset daily
   increment(metric, value = 1) {
+    if (Date.now() - this.lastResetTime > this.resetIntervalMs) {
+      this.reset();
+    }
+    const keyCount = Object.keys(this.metrics).length;
+    if (keyCount >= this.maxMetricKeys && !(metric in this.metrics)) {
+      if (!this.metrics["_limit_reached"]) {
+        this.metrics["_limit_reached"] = 1;
+        console.warn(`MetricsCollector: Max metric keys (${this.maxMetricKeys}) reached, ignoring new keys`);
+      }
+      return;
+    }
     this.metrics[metric] = (this.metrics[metric] || 0) + value;
   }
   getMetrics() {
-    return { ...this.metrics };
+    return {
+      ...this.metrics,
+      _keyCount: Object.keys(this.metrics).length,
+      _uptimeHours: Math.round((Date.now() - this.lastResetTime) / 36e5 * 10) / 10
+    };
   }
   reset() {
     this.metrics = {};
+    this.lastResetTime = Date.now();
   }
 };
 var metricsCollector = new MetricsCollector();
@@ -4854,6 +4931,10 @@ function csrfProtection(req, res, next) {
   if (req.path.startsWith("/health") || req.path.startsWith("/metrics")) {
     return next();
   }
+  if (req.path.includes("/admin/") || req.path === "/admin/login") {
+    logger.debug("Skipping CSRF for admin authentication", { path: req.path });
+    return next();
+  }
   try {
     const secret = req.cookies?.[CSRF_COOKIE_NAME];
     if (!secret) {
@@ -4988,6 +5069,12 @@ function getCsrfStats() {
 }
 
 // server/index.ts
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = dirname2(__filename2);
+var packageJson2 = JSON.parse(
+  readFileSync2(join5(__dirname2, "../package.json"), "utf-8")
+);
+var APP_VERSION2 = packageJson2.version;
 var app = express3();
 if (process.env.REPL_SLUG) {
   app.set("trust proxy", 1);
@@ -5387,7 +5474,7 @@ if (process.env.REPL_SLUG) {
     server.listen(PORT, HOST, () => {
       logger.info(`Server running on port ${PORT}`, {
         environment: process.env.NODE_ENV || "development",
-        version: "1.0.0"
+        version: APP_VERSION2
       });
     });
     const shutdown = (signal) => {

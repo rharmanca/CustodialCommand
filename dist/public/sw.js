@@ -627,8 +627,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle other API requests with offline form storage
-  if (event.request.url.includes('/api/') && event.request.method === 'POST') {
+  // Handle other API requests with offline form storage (exclude auth endpoints)
+  if (event.request.url.includes('/api/') &&
+      !event.request.url.includes('/api/admin/') &&
+      event.request.method === 'POST') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
