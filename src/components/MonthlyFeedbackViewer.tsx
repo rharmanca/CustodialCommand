@@ -80,24 +80,6 @@ export function MonthlyFeedbackViewer({
     };
   }, [isOpen, feedback?.id, retryTrigger]);
 
-  if (!feedback) return null;
-
-  // Safe data access with null checks
-  const source = loadedFeedback ?? feedback;
-  const safeFeedback = {
-    id: source.id || 0,
-    school: source.school || 'Unknown School',
-    month: source.month || 'Unknown Month',
-    year: source.year || new Date().getFullYear(),
-    pdfUrl: source.pdfUrl || '',
-    pdfFileName: source.pdfFileName || 'document.pdf',
-    extractedText: source.extractedText || null,
-    notes: source.notes || null,
-    uploadedBy: source.uploadedBy || null,
-    fileSize: source.fileSize || null,
-    createdAt: source.createdAt || new Date().toISOString()
-  };
-
   // Focus trap and keyboard handling
   useEffect(() => {
     if (!isOpen) return;
@@ -120,6 +102,25 @@ export function MonthlyFeedbackViewer({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Early return AFTER all hooks are called (Rules of Hooks compliance)
+  if (!feedback) return null;
+
+  // Safe data access with null checks
+  const source = loadedFeedback ?? feedback;
+  const safeFeedback = {
+    id: source.id || 0,
+    school: source.school || 'Unknown School',
+    month: source.month || 'Unknown Month',
+    year: source.year || new Date().getFullYear(),
+    pdfUrl: source.pdfUrl || '',
+    pdfFileName: source.pdfFileName || 'document.pdf',
+    extractedText: source.extractedText || null,
+    notes: source.notes || null,
+    uploadedBy: source.uploadedBy || null,
+    fileSize: source.fileSize || null,
+    createdAt: source.createdAt || new Date().toISOString()
+  };
 
   const handleDownload = () => {
     const link = document.createElement('a');
