@@ -8,6 +8,10 @@ import { z } from 'zod';
  */
 export const singleAreaInspectionSchema = z.object({
   // Basic Information
+  inspectorName: z.string()
+    .min(1, 'Inspector name is required')
+    .max(200, 'Inspector name too long'),
+
   school: z.string()
     .min(1, 'School is required')
     .max(100, 'School name too long'),
@@ -113,8 +117,9 @@ export type SingleAreaInspectionForm = z.infer<typeof singleAreaInspectionSchema
  * Ensures all fields start with valid values
  */
 export const inspectionDefaultValues: SingleAreaInspectionForm = {
+  inspectorName: '',
   school: '',
-  date: '',
+  date: new Date().toISOString().split('T')[0],
   inspectionType: 'single_room',
   locationDescription: '',
   roomNumber: '',

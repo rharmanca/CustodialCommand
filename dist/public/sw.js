@@ -1,8 +1,8 @@
-const CACHE_NAME = 'custodial-command-v10';
+const CACHE_NAME = 'custodial-command-v11';
 const OFFLINE_FORMS_KEY = 'offline-forms';
 const PHOTO_QUEUE_KEY = 'photo-queue';
 const SYNC_QUEUE_KEY = 'sync-queue';
-const APP_VERSION = 'v10';
+const APP_VERSION = 'v11';
 const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 // Photo-specific cache name
@@ -628,8 +628,13 @@ self.addEventListener('fetch', event => {
   }
 
   // Handle other API requests with offline form storage (exclude auth endpoints)
+  // Also exclude multipart/form-data requests (files) - they can't be easily stored offline
+  const contentType = event.request.headers.get('content-type') || '';
+  const isMultipartFormData = contentType.includes('multipart/form-data');
+
   if (event.request.url.includes('/api/') &&
       !event.request.url.includes('/api/admin/') &&
+      !isMultipartFormData &&
       event.request.method === 'POST') {
     event.respondWith(
       fetch(event.request)

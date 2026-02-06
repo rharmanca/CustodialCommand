@@ -5146,10 +5146,10 @@ app.use(compression({
 }));
 app.use(securityHeaders);
 app.use(validateRequest);
-app.use(sanitizeInput);
 app.use(express3.json({ limit: "10mb" }));
 app.use(express3.urlencoded({ extended: false, limit: "10mb" }));
 app.use(cookieParser());
+app.use(sanitizeInput);
 app.use(cacheMiddleware);
 app.use("/api/admin/login", strictRateLimit);
 app.use("/api/inspections", apiRateLimit);

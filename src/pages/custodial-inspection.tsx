@@ -193,6 +193,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const loadDraftData = (draft: any) => {
     // Load draft data into React Hook Form using setValue
+    setValue('inspectorName', draft.inspectorName || '');
     setValue('school', draft.school || '');
     setValue('date', draft.date || '');
     setValue('inspectionType', draft.inspectionType || 'single_room');
@@ -682,6 +683,22 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="sm:col-span-2 lg:col-span-3">
+                <Label htmlFor="inspectorName">Inspector Name *</Label>
+                <Input
+                  id="inspectorName"
+                  {...register('inspectorName')}
+                  placeholder="Enter your name"
+                  aria-required="true"
+                  aria-describedby={errors.inspectorName ? "inspectorName-error" : undefined}
+                  aria-invalid={errors.inspectorName ? "true" : undefined}
+                  className="border-2 min-h-[48px]"
+                />
+                {errors.inspectorName && (
+                  <p id="inspectorName-error" className="text-sm text-red-500 mt-1" role="alert">{errors.inspectorName.message}</p>
+                )}
+              </div>
+
               <div>
                 <Label htmlFor="school" id="school-label">School *</Label>
                 <Controller

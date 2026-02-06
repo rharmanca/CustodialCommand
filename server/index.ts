@@ -152,14 +152,16 @@ app.use(compression({
 }));
 app.use(securityHeaders);
 app.use(validateRequest);
-app.use(sanitizeInput);
 
-// Body parsing middleware - CRITICAL: Must be before routes
+// Body parsing middleware - CRITICAL: Must be before sanitizeInput so req.body is populated
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Cookie parsing middleware - Required for CSRF protection
 app.use(cookieParser());
+
+// Input sanitization - MUST be after body parsers so req.body exists
+app.use(sanitizeInput);
 
 // Performance optimization middleware
 app.use(cacheMiddleware); // Add caching for GET requests
