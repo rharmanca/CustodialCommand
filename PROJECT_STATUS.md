@@ -1,7 +1,7 @@
 # Custodial Command - Project Status
 
-**Last Updated**: January 20, 2026
-**Status**: Core functionality operational, all critical bugs fixed
+**Last Updated**: February 6, 2026 7:45 AM CST
+**Status**: 19 of 25 bugs fixed across 4 deployment waves; 6 remaining (deferred)
 
 ---
 
@@ -9,316 +9,133 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Test Cases | 185 |
-| Tests Executed | 82 (44.3%) |
-| Tests Passed | 71 (86.6%) |
-| Tests Failed | 11 (13.4%) |
-| Critical Bugs Fixed | 2 (Admin Auth + Data Export) |
-| Critical Bugs Remaining | 0 |
+| Production Test Cases | 128 |
+| Tests Passed | 101 (79%) |
+| Tests Failed | 19 |
+| Tests Skipped | 8 |
+| Bugs Found | 25 |
+| Bugs Fixed | 19 |
+| Bugs Deferred | 6 |
+| Current Version | 1.0.2 |
 | Deployment URL | https://cacustodialcommand.up.railway.app |
 
 ---
 
-## Known Bugs & Issues
+## Bug Resolution Summary
 
-### Bug #1: Data Export Functionality (FIXED)
+### Deployment Wave 1: Critical Fixes (commit `fda5640e`)
+| Bug # | Description | Status |
+|-------|-------------|--------|
+| 4 | Missing Inspector Name field on single room inspection form | ✅ FIXED |
+| 5 | Input sanitization bypass (middleware before body parsers) | ✅ FIXED |
+| 16 | Stale service worker v10 deployed (blocks ALL form submissions) | ✅ FIXED |
 
-| Field | Value |
-|-------|-------|
-| **Status** | ✅ FIXED - Pending Deployment |
-| **Severity** | CRITICAL |
-| **Reported** | January 19, 2026 |
-| **Fixed** | January 20, 2026 |
+### Deployment Wave 2: High Priority Fixes (commit `4ab44a68`)
+| Bug # | Description | Status |
+|-------|-------------|--------|
+| 6 | Silent submission failure (root cause: stale SW, now fixed) | ✅ FIXED (by SW fix) |
+| 7 | Stale service worker v10 vs v11 | ✅ FIXED (same as #16) |
+| 11 | CORS open to all origins with credentials | ✅ FIXED |
+| 17 | Room inspection 503 from stale SW | ✅ FIXED (by SW fix) |
+| 24 | Misleading retryAfter: 5 in rate limit responses | ✅ FIXED |
 
-**Description**
-PDF Export Wizard button was not working due to non-standard Radix UI implementation pattern.
+### Deployment Wave 3: Medium Priority Fixes (commit `11cbf75d`)
+| Bug # | Description | Status |
+|-------|-------------|--------|
+| 1 | API format mismatch: custodial notes returns {data:[]} but frontend expects array | ✅ FIXED |
+| 2 | API format mismatch: monthly feedback same wrapper issue | ✅ FIXED |
+| 8 | Date field not pre-filled with today's date | ✅ FIXED |
+| 9 | No client-side min length validation for notes | ✅ ALREADY FIXED (schema has .min(10)) |
+| 10 | CSRF token caching (missing Cache-Control headers) | ✅ FIXED |
+| 14 | Viewport prevents pinch-to-zoom (WCAG violation) | ✅ FIXED |
+| 15 | Rating star buttons lack aria-labels | ✅ FIXED |
+| 18 | Whole building date defaults to tomorrow (UTC timezone bug) | ✅ FIXED |
+| 23 | PDF export wizard ratingThreshold defaults to 0 (validation requires 1-5) | ✅ FIXED |
 
-**Root Cause**
-PDFExportWizard used a custom `div` wrapper with manual `onClick` handler instead of Radix UI's standard `DialogTrigger asChild` pattern. The manual event handler was not properly integrated with Radix's event handling system.
+### Deployment Wave 4: Low Priority Fixes (commit `d8861363`)
+| Bug # | Description | Status |
+|-------|-------------|--------|
+| 3 | No dedicated 404 page (falls to homepage) | ✅ FIXED |
+| 13 | Weak CSP (unsafe-inline required) | ✅ TIGHTENED (added base-uri, form-action, frame-ancestors) |
+| 21 | "Room null" displayed for missing room numbers | ✅ FIXED |
+| 22 | "All Schools" filter misleadingly named | ✅ FIXED (renamed to "Problem Areas") |
+| 25 | /api/building-scores and /api/school-scores documented but don't exist | ✅ FIXED (docs corrected) |
 
-**Fix Applied**
-**File**: `src/components/reports/PDFExportWizard.tsx`
-
-**Changes**:
-1. Added `DialogTrigger` import from Dialog component (line 2)
-2. Replaced custom `div` wrapper with `<DialogTrigger asChild>` (lines 267-269)
-
-**Before**:
-```tsx
-{trigger && (
-  <div
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setOpen(true);
-    }}
-  >
-    {trigger}
-  </div>
-)}
-```
-
-**After**:
-```tsx
-<DialogTrigger asChild>
-  {trigger || <Button className="hidden" />}
-</DialogTrigger>
-```
-
-**Affected Features**
-- PDF Export Wizard button now works correctly
-- Excel and CSV exports already worked (ExportDialog used correct pattern)
-
-**Fix Complexity**
-- **LOW** (pattern change only, ~5 minutes)
-
-**Relevant Files**
-- `/src/components/reports/PDFExportWizard.tsx` - Fixed trigger pattern
+### Deferred Bugs (Need Further Investigation)
+| Bug # | Description | Reason Deferred |
+|-------|-------------|-----------------|
+| 12 | Directory traversal returns 500 instead of 404 | Already handled (returns 400 via sanitizeFilePath) |
+| 19 | Dual navigation system conflict (React state vs Wouter URL routing) | Architectural refactor needed |
+| 20 | Random navigation away during form editing | Likely symptom of #19; needs investigation to reproduce |
 
 ---
 
-### Bug #2: Admin Authentication (FIXED)
+## Commit History (Bug Fix Deployments)
 
-| Field | Value |
-|-------|-------|
-| **Status** | ✅ FIXED - Pending Deployment |
-| **Severity** | CRITICAL |
-| **Reported** | January 19, 2026 |
-| **Fixed** | January 20, 2026 |
-| **Impact** | Previously blocked entire admin panel access |
-
-**Description (Original Issue)**
-Admin login returned a 503 error with message "Failed to save form offline". The login attempt was being incorrectly routed to an offline sync mechanism via the Service Worker.
-
-**Root Cause**
-Dual-problem identified:
-1. CSRF middleware (`server/csrf.ts`) blocked login with 403 - login page doesn't send CSRF tokens
-2. Service Worker (`public/sw.js`) treated 403 as "network failure" and attempted to store credentials in IndexedDB, returning misleading 503 error
-
-**Fix Applied**
-**Server-side** (`server/csrf.ts`):
-```typescript
-// Skip CSRF for admin authentication (endpoint uses password auth)
-if (req.path.startsWith("/api/admin/login")) {
-  return next();
-}
-```
-
-**Client-side** (`public/sw.js`):
-```javascript
-// Exclude admin routes from offline form storage
-if (event.request.url.includes('/api/') &&
-    !event.request.url.includes('/api/admin/') &&
-    event.request.method === 'POST') {
-```
-
-**Affected Features**
-- All admin panel functionality (now accessible)
-
-**Fix Complexity**
-- **LOW** (exemption only, ~10 minutes)
-- Admin endpoint password-protected, limited to production admin
-- Auth endpoints shouldn't be stored offline anyway
-
-**Fix Location**
-- `/server/csrf.ts` - CSRF exemption added at line 54
-- `/public/sw.js` - Admin route exclusion added at line 61
-
-**Verification Needed**
-Test admin login locally: `npm run dev` → visit `/admin-inspections` → login with admin credentials
+| Date | Commit | Description |
+|------|--------|-------------|
+| 2026-02-06 | `d8861363` | fix: resolve 5 low-priority bugs and tighten CSP |
+| 2026-02-06 | `11cbf75d` | fix: resolve 8 medium-priority bugs from production testing |
+| 2026-02-06 | `4ab44a68` | fix(security): restrict CORS to allowed origins and fix retryAfter values |
+| 2026-02-06 | `fda5640e` | fix: resolve 3 critical bugs blocking form submissions and XSS protection |
+| 2026-02-05 | `de2c4068` | refactor(db): migrate from Neon serverless to Railway PostgreSQL |
+| 2026-02-05 | `900d398c` | fix(sw): exclude FormData requests from offline storage |
+| 2026-02-05 | `eef43345` | fix(csrf): add credentials and CSRF token to all API form submissions |
 
 ---
 
-## Working Features (Verified)
+## Key Files Modified
 
-The following features have been verified as **functional** through multiple test methods:
+### Critical/High Fixes
+- `server/index.ts` - Sanitization middleware ordering, CSP directives
+- `server/security.ts` - CORS origin whitelist
+- `server/performanceErrorHandler.ts` - Rate limit retryAfter values
+- `src/schemas/inspectionSchema.ts` - Added inspectorName field, timezone fix
+- `src/pages/custodial-inspection.tsx` - Inspector Name input, aria-labels
+- `dist/public/sw.js` - Service worker v11 with FormData exclusion
 
-| Feature | Verification Methods | Status |
-|---------|---------------------|--------|
-| **Single Room Inspection** | API tests, E2E tests, manual exploration | ✅ Fully Functional |
-| **Whole Building Inspection** | Manual navigation, form structure verified | ✅ Fully Functional |
-| **Custodial Notes** | Auto-save verified, form functional | ✅ Fully Functional |
-| **Monthly Feedback** | Browse/Upload tabs verified, PDF upload works | ✅ Fully Functional |
-| **Scores Dashboard** | Data viewing functional | ✅ Fully Functional |
-| **Rating Criteria Reference** | Page loads correctly | ✅ Fully Functional |
-| **API Health Check** | All test suites confirm `/health` endpoint | ✅ Fully Functional |
-| **Performance** | All API endpoints respond within thresholds | ✅ Meets Targets |
-| **Security - Rate Limiting** | Rate limiting active and tested | ✅ Working |
-| **Security - Input Validation** | Validation verified through security tests | ✅ Working |
-| **PWA Manifest** | PWA tests confirm valid manifest | ✅ Installable |
-| **Mobile Responsiveness** | Mobile tests pass, viewport configured | ✅ Responsive |
+### Medium Fixes
+- `src/pages/inspection-data.tsx` - API {data:[]} wrapper handling, Room null fix
+- `src/pages/monthly-feedback.tsx` - API {data:[]} wrapper handling
+- `src/components/reports/PDFExportWizard.tsx` - ratingThreshold default 0→1
+- `server/csrf.ts` - Cache-Control no-store headers
+- `index.html` - Removed maximum-scale=1.0, user-scalable=no
+- `src/schemas/custodialNotesSchema.ts` - Local date timezone fix
+- `src/hooks/use-building-inspection-form.tsx` - Local date timezone fix
+- `src/pages/whole-building-inspection.tsx` - Local date timezone fix
 
----
-
-## Test Execution Results
-
-### Manual Browser Testing (Sessions 1-3)
-
-| Session | Tests | Passed | Failed | Pass Rate |
-|---------|-------|--------|--------|-----------|
-| Session 1 | 40 | 36 | 4 | 90% |
-| Session 2 | 4 | 4 | 0 | 100% |
-| Manual Total | **44** | **40** | **4** | **90.9%** |
-
-### Automated API Tests
-
-| Suite | Tests | Passed | Failed | Duration | Pass Rate |
-|-------|-------|--------|--------|----------|-----------|
-| End-to-End User Journey | 6 | 6 | 0 | 0.5s | 100% |
-| Performance | 6 | 6 | 0 | 33s | 100% |
-| Security | 6 | 6 | 0 | 2.8s | 100% |
-| Mobile/PWA | 6 | 6 | 0 | 1.1s | 100% |
-| Automated Total | **24** | **24** | **0** | **37.4s** | **100%** |
-
-### Playwright UI Tests
-
-| Category | Tests | Passed | Failed | Notes |
-|----------|-------|--------|--------|-------|
-| Homepage Accessibility | 5 | 2 | 3 | Dynamic rendering timing issues |
-| Keyboard Navigation | 1 | 1 | 0 | ✅ Pass |
-| Screen Reader Support | 1 | 1 | 0 | ✅ Pass |
-| Form Accessibility | 4 | 0 | 4 | Load timeouts |
-| Mobile Accessibility | 1 | 1 | 0 | ✅ Pass |
-| Error Handling | 2 | 2 | 0 | ✅ Pass |
-| Custodial Improvements | 4 | 4 | 0 | ✅ Pass |
-| Playwright Total | **18** | **11** | **7** | ~50% |
-
-**Note**: Many Playwright failures are test synchronization issues (dynamic React rendering) rather than actual bugs.
+### Low Fixes
+- `src/App.tsx` - NotFoundPage lazy import for default case
+- `src/components/filters/FilterPresets.tsx` - "All Schools" → "Problem Areas"
+- `CLAUDE.md` - Corrected API endpoint references
 
 ---
 
-### Overall Test Status
+## Remaining Work
 
-| Metric | Value |
-|--------|-------|
-| Total Test Cases | 185 |
-| Tests Executed | 82 (44.3%) |
-| Tests Passed | 71 |
-| Tests Failed | 11 |
-| Overall Pass Rate | 86.6% |
+### Deferred Technical Debt
+1. **Navigation system refactor** (Bug #19, #20) - Consolidate React state navigation (`setCurrentPage`) with Wouter URL routing into a single navigation system. This is the root cause of inconsistent page transitions and random navigation away during editing.
 
----
+2. **CSP nonce-based scripts** (Bug #13) - Replace `unsafe-inline` with nonce-based script loading for stronger XSS protection. Requires changes to Vite build configuration and the inline polyfill script in index.html.
 
-## Fix Priorities
+### Performance Observations
+- Memory usage at 95% - investigate for potential memory leaks or increase allocation
+- 128 tests run, 79% pass rate (before fixes deployed)
+- All API endpoints responding within acceptable latency
 
-### ✅ Priority 1 (Completed - All Critical Bugs Fixed)
-
-1. **Bug #2: Admin Authentication** - ✅ COMPLETE
-   - CSRF exemption added in `server/csrf.ts` (line 54)
-   - Service Worker exclusion added in `public/sw.js` (line 61)
-   - Complexity: LOW
-
-2. **Bug #1: Data Export Functionality** - ✅ COMPLETE
-   - Fixed PDFExportWizard trigger pattern in `src/components/reports/PDFExportWizard.tsx`
-   - Changed from custom div wrapper to `<DialogTrigger asChild>`
-   - Complexity: LOW
-
-3. **Test Infrastructure** - ✅ COMPLETED
-   - Added `data-testid` attributes to 3 key components
-   - Added `data-loaded` markers for React hydration
-   - Updated test selectors in `exhaustive-production-test.cjs`
-   - Added React hydration utilities to `ui-tests/ui.spec.ts`
-   - Extended Select component with data-testid prop support
-
-### 🚀 Priority 2 (Next Steps - Deployment)
-
-4. **Deploy All Fixes to Production**
-   - Commit changes and push to Railway
-   - Verify admin login works in production
-   - Verify export buttons work in production
-
-### Priority 3 (Improvements)
-
-5. **Touch Target Accessibility**
-   - 5 elements violate 44x44px minimum for mobile
-   - Update button styles in UI components
-   - Estimated time: 30-60 minutes
-
-6. **Test Infrastructure - Rate Limiting Issue**
-   - Tests blocked by HTTP 429 (Too Many Requests) on production
-   - Add local testing support via `TEST_URL=http://localhost:5000`
-   - Add test bypass token for automated testing
-   - Estimated time: 1-2 hours
-
----
-
-## Developer Environment
-
-| Setting | Value |
-|---------|-------|
-| Stack | React 18.3.1 + TypeScript 5.6.3 (frontend) | Express 4.21.2 (backend) |
-| Database | PostgreSQL + Drizzle ORM 0.39.1 |
-| Deployment | Railway |
-| Production URL | https://cacustodialcommand.up.railway.app |
-
----
-
-## Detailed Report References
-
-| Document | Purpose |
-|----------|---------|
-| `TEST-PLAN.md` | Complete test specification, 3 session execution results |
-| `tests/master-test-report.json` | Machine-readable automated test results |
-| `CLAUDE.md` | Development guide with known bugs |
-| `README.md` | Project overview with known issues |
-| `Documentation.md` | Complete API documentation |
-| `SECURITY_NOTES.md` | Security vulnerability analysis |
-| `TESTING_GUIDE.md` | Testing instructions and status |
-
----
-
-## Recent Implementation Changes (January 20, 2026)
-
-### Test Infrastructure Improvements
-
-**Added data-testid attributes for robust test selectors:**
-| Component | data-testid | File |
-|-----------|-------------|------|
-| School Select | `school-select` | `src/pages/custodial-inspection.tsx` |
-| Notes Textarea | `custodial-notes-description` | `src/pages/custodial-notes.tsx` |
-| Progress Indicator | `multi-progress` | `src/pages/whole-building-inspection.tsx` |
-
-**Added data-loaded markers for React hydration synchronization:**
-| Component | Marker | File |
-|-----------|--------|------|
-| Single Room Inspection | `data-loaded="true"` | `src/pages/custodial-inspection.tsx` |
-| Custodial Notes | `data-loaded="true"` | `src/pages/custodial-notes.tsx` |
-| Whole Building Inspection | `data-loaded="true"` | `src/pages/whole-building-inspection.tsx` |
-
-**Updated test selectors in `tests/exhaustive-production-test.cjs`:**
-- Line 484: `[data-testid="school-select"]` (was `button[role="combobox"]`)
-- Line 538: `[data-testid="custodial-notes-description"]` (was `textarea`)
-- Line 564: `[data-testid="multi-progress"]` (was text content check)
-
-**Added React hydration utilities to `ui-tests/ui.spec.ts`:**
-- `waitForReactReady(page)` - Waits for DOM interactive state
-- `navigateAndWait(page, path)` - Combined navigation + hydration wait
-
-**Extended Select component:**
-- Added optional `data-testid` prop to `src/components/ui/select.tsx` for testability
-
----
-
-## Next Actions
-
-1. **MANUAL: Test Data Export** - Visit `/inspection-data` and click both export buttons
-   - If broken: Apply fix to `PDFExportWizard.tsx`
-2. **MANUAL: Test Admin Auth** - Run `npm run dev` and verify `/admin-inspections` login works
-3. **DEPLOY: Push Admin Auth fix** - `git push` after verification
-4. **FIX: Test Infrastructure** - Resolve HTTP 429 rate limiting issue for automated tests
-5. **ADD: data-loaded markers** - Extend to remaining 6 pages (`inspection-data.tsx`, `scores-dashboard.tsx`, `monthly-feedback.tsx`, `admin-inspections.tsx`, `rating-criteria.tsx`, `not-found.tsx`)
-6. **FIX: Touch target accessibility** - 5 elements violate 44x44px minimum
-7. **COMPLETE: Remaining test cases** - 103 unexecuted from TEST-PLAN.md
+### Post-Fix Verification Needed
+- Re-run production tests after Railway deploys all 4 waves
+- Verify form submissions work end-to-end (single room, whole building, custodial notes)
+- Verify CORS blocks unauthorized origins
+- Verify pinch-to-zoom works on mobile
+- Verify PDF export wizard opens without validation error
 
 ---
 
 ## Notes
 
-- All core user-facing workflows are functional
-- Production API endpoints responding correctly
-- Security features (rate limiting, validation) operational
-- PWA features working (manifest valid, installable)
-- **Admin Authentication bug fixed** (CSRF exemption Service Worker exclusion)
-- **Data Export bug fixed** (PDFExportWizard Radix UI pattern)
-- All critical bugs resolved - pending deployment
-- Automated tests blocked by production rate limiting (HTTP 429) - documented in `tests/run-all-tests.cjs`
+- All critical user-facing workflows should now be functional post-deployment
+- Railway auto-deploys on push to main branch (2-5 min build time)
+- Test data created during testing (inspection #717 contains XSS payload - cleanup recommended)
+- Full test findings in `docs/plans/2026-02-05-production-test-findings.md`
+- Testing plan in `docs/plans/2026-02-05-autonomous-production-testing.md`
