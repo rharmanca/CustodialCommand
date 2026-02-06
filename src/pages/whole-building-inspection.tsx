@@ -182,7 +182,7 @@ export default function WholeBuildingInspectionPage({
   const [formData, setFormData] = useState({
     inspectorName: "",
     school: "",
-    date: new Date().toISOString().split('T')[0], // Smart default: today's date
+    date: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`, // Local date (avoids UTC timezone shift)
     inspectionType: "whole_building",
     locationCategory: "",
     roomNumber: "",

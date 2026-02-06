@@ -132,8 +132,12 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
       if (notesResponse.ok) {
         const notesData = await notesResponse.json();
-        if (Array.isArray(notesData)) {
-          setCustodialNotes(notesData);
+        // API returns { data: [...], pagination: {...} } wrapper format
+        const notesArray = Array.isArray(notesData) ? notesData
+          : (notesData?.data && Array.isArray(notesData.data)) ? notesData.data
+          : null;
+        if (notesArray) {
+          setCustodialNotes(notesArray);
         } else {
           console.error('Invalid custodial notes data format:', notesData);
           setCustodialNotes([]);

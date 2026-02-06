@@ -435,6 +435,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 type="button"
                 className="p-3 min-w-[48px] min-h-[48px] rounded-md hover:bg-yellow-50 transition-colors touch-manipulation flex items-center justify-center"
                 onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, star)}
+                aria-label={`Rate ${star} star${star > 1 ? 's' : ''} for ${categoryObj.label}`}
               >
                 <Star
                   className={`w-7 h-7 ${
@@ -457,6 +458,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
               onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, 0)}
+              aria-label={`Clear rating for ${categoryObj.label}`}
             >
               Not Rated
             </button>
@@ -506,6 +508,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             size="sm"
             className="px-4 py-3 text-xs min-h-[48px]"
             onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, 0)}
+            aria-label={`Clear rating for ${categoryObj.label}`}
           >
             Not Rated
           </Button>
@@ -517,6 +520,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               size="icon"
               className="min-w-[48px] min-h-[48px]"
               onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, star)}
+              aria-label={`Rate ${star} star${star > 1 ? 's' : ''} for ${categoryObj.label}`}
             >
               <Star
                 className={`w-7 h-7 ${

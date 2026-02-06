@@ -79,7 +79,7 @@ const PDFExportWizard: React.FC<PDFExportWizardProps> = ({
       schools: [],
       severityLevels: [],
       categories: [],
-      ratingThreshold: 0
+      ratingThreshold: 1
     },
     includeCharts: true,
     includeDetails: false

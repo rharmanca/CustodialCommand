@@ -5007,6 +5007,8 @@ function generateToken(req, res) {
 function getCsrfToken(req, res) {
   try {
     const { token } = generateToken(req, res);
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.set("Pragma", "no-cache");
     res.json({
       csrfToken: token,
       expiresIn: CSRF_TOKEN_TTL / 1e3
