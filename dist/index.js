@@ -403,9 +403,8 @@ __export(db_exports, {
   withDatabaseReconnection: () => withDatabaseReconnection
 });
 import { config } from "dotenv";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon, neonConfig, Pool } from "@neondatabase/serverless";
-import ws from "ws";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 async function initializeDatabase() {
   const maxRetries = 5;
   const retryDelay = 2e3;
@@ -467,64 +466,39 @@ async function withDatabaseReconnection(operation, operationName, maxRetries = 3
   }
   throw lastError || new Error("Database operation failed");
 }
-var isRailway, POOL_CONFIG, sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
+var Pool, isRailway, POOL_CONFIG, pool, db, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
     init_schema();
     init_logger();
+    ({ Pool } = pg);
     config();
-    neonConfig.fetchConnectionCache = true;
-    neonConfig.cacheAdapter = {
-      get: (key) => Promise.resolve(null),
-      // Implement proper cache if needed
-      set: (key, value, ttl) => Promise.resolve()
-    };
     isRailway = process.env.RAILWAY_ENVIRONMENT === "production" || process.env.RAILWAY_SERVICE_ID;
     POOL_CONFIG = isRailway ? {
-      maxConnections: 10,
-      minConnections: 2,
+      max: 10,
+      min: 2,
       idleTimeoutMillis: 1e4,
-      connectionTimeoutMillis: 5e3,
-      acquireTimeoutMillis: 15e3,
-      createTimeoutMillis: 1e4
+      connectionTimeoutMillis: 5e3
     } : {
-      maxConnections: 20,
-      minConnections: 5,
+      max: 20,
+      min: 5,
       idleTimeoutMillis: 3e4,
-      connectionTimeoutMillis: 1e4,
-      acquireTimeoutMillis: 6e4,
-      createTimeoutMillis: 3e4
+      connectionTimeoutMillis: 1e4
     };
-    if (isRailway) {
-      neonConfig.maxConnections = POOL_CONFIG.maxConnections;
-      neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
-      neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
-      logger.info("Applying Railway-specific database configuration", POOL_CONFIG);
-    } else {
-      neonConfig.maxConnections = POOL_CONFIG.maxConnections;
-      neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
-      neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
-      logger.info("Applying local development database configuration", POOL_CONFIG);
-    }
-    neonConfig.webSocketConstructor = ws;
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
+      throw new Error("DATABASE_URL must be set. Check your environment variables.");
     }
-    sql = neon(process.env.DATABASE_URL);
-    db = drizzle(sql, { schema: schema_exports });
+    logger.info("Applying database configuration", { isRailway, ...POOL_CONFIG });
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: POOL_CONFIG.maxConnections,
-      min: POOL_CONFIG.minConnections,
+      max: POOL_CONFIG.max,
+      min: POOL_CONFIG.min,
       idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
       connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
-      acquireTimeoutMillis: POOL_CONFIG.acquireTimeoutMillis,
-      createTimeoutMillis: POOL_CONFIG.createTimeoutMillis,
-      destroyTimeoutMillis: 5e3,
-      reapIntervalMillis: 1e3,
-      createRetryIntervalMillis: 200
+      ssl: process.env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: false } : false
     });
+    db = drizzle(pool, { schema: schema_exports });
     connectionPoolErrors = 0;
     MAX_POOL_ERRORS = 5;
     pool.on("error", (err) => {
@@ -534,14 +508,14 @@ var init_db = __esm({
         logger.error("Too many database pool errors, restarting pool may be needed");
       }
     });
-    pool.on("connect", (client) => {
+    pool.on("connect", () => {
       logger.debug("New database connection established", {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount,
         waitingCount: pool.waitingCount
       });
     });
-    pool.on("remove", (client) => {
+    pool.on("remove", () => {
       logger.debug("Database connection removed", {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount
@@ -1394,7 +1368,7 @@ init_db();
 init_schema();
 init_logger();
 init_security();
-import { eq, desc, and, gte, lte, sql as sql2 } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 var performanceMetrics = {
   cacheHits: 0,
   cacheMisses: 0,
@@ -1670,7 +1644,7 @@ var storage = {
         // Fetch paginated data
         db.select().from(monthlyFeedback).where(whereClause).orderBy(desc(monthlyFeedback.year), desc(monthlyFeedback.month)).limit(limit).offset(offset),
         // Fetch total count for pagination metadata
-        db.select({ count: sql2`count(*)` }).from(monthlyFeedback).where(whereClause)
+        db.select({ count: sql`count(*)` }).from(monthlyFeedback).where(whereClause)
       ]);
       const totalCount = Number(totalCountResult[0]?.count || 0);
       const totalPages = Math.ceil(totalCount / limit);

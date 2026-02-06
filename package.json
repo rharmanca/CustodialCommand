@@ -41,7 +41,6 @@
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
-    "@neondatabase/serverless": "^0.10.4",
     "@radix-ui/react-accordion": "^1.2.4",
     "@radix-ui/react-alert-dialog": "^1.1.7",
     "@radix-ui/react-aspect-ratio": "^1.1.3",
@@ -130,7 +129,6 @@
     "uuid": "^13.0.0",
     "vaul": "^1.1.2",
     "wouter": "^3.3.5",
-    "ws": "^8.18.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^3.25.76",
     "zod-validation-error": "^3.4.0"
@@ -150,7 +148,6 @@
     "@types/react": "^18.3.26",
     "@types/react-dom": "^18.3.7",
     "@types/vite__client": "npm:@vitejs/plugin-react@^5.1.0",
-    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
     "axe-playwright": "^2.2.2",
@@ -164,8 +161,5 @@
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
     "vite": "^6.4.1"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.8"
   }
 }
