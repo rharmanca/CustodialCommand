@@ -116,8 +116,8 @@ npm run lighthouse       # Performance audit
 - `POST /api/room-inspections` - Create room within building inspection
 - `GET /api/room-inspections/building/:id` - Get all rooms for a building
 - `POST /api/custodial-notes` - Create quick concern note
-- `GET /api/building-scores` - Aggregate building performance
-- `GET /api/school-scores` - School-level metrics
+- `GET /api/scores` - Aggregate scores for all schools
+- `GET /api/scores/:school` - Score for a specific school
 - `GET /health` - Health check (used by Railway)
 
 **Middleware Stack**:

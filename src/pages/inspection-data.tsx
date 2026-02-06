@@ -562,8 +562,8 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
               Inspection Details
             </CardTitle>
             <CardDescription>
-              {selectedInspection.inspectionType === 'single_room' 
-                ? `Room ${selectedInspection.roomNumber} at ${selectedInspection.school}`
+              {selectedInspection.inspectionType === 'single_room'
+                ? `Room ${selectedInspection.roomNumber ?? 'Not specified'} at ${selectedInspection.school}`
                 : `Building: ${selectedInspection.buildingName || selectedInspection.locationDescription || 'Whole Building'} at ${selectedInspection.school}`
               }
             </CardDescription>

@@ -5095,14 +5095,19 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
+      // Required for Radix UI inline styles
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      // FIXED: Added 'unsafe-inline' for Vite compatibility
+      // Required for index.html polyfill script
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
-      frameSrc: ["'none'"]
+      frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: []
     }
   } : false,
   crossOriginEmbedderPolicy: false,
