@@ -145,13 +145,20 @@ export const sanitizeInput = (
   next();
 };
 
-// Updated CORS for Replit
+// CORS and security headers
 export const securityHeaders = (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   const allowedOrigins = ["http://localhost:5000", "http://localhost:5173"];
+
+  // Production Railway origin
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    allowedOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+  }
+  // Hardcoded production URL as fallback
+  allowedOrigins.push("https://cacustodialcommand.up.railway.app");
 
   // Replit-specific origins
   if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
@@ -162,28 +169,33 @@ export const securityHeaders = (
     );
   }
 
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-
-  // Security headers
+  // Security headers (always set)
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
 
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,PUT,POST,DELETE,PATCH,OPTIONS",
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, Content-Length, X-Requested-With",
-  );
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+  // CORS headers - only set when origin is in the allowed list
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,PUT,POST,DELETE,PATCH,OPTIONS",
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, Content-Length, X-Requested-With, x-csrf-token",
+    );
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
 
   if (req.method === "OPTIONS") {
-    res.sendStatus(200);
+    // Only allow preflight for known origins
+    if (origin && allowedOrigins.includes(origin)) {
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(403);
+    }
   } else {
     next();
   }

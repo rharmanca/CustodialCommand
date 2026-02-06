@@ -722,6 +722,10 @@ var init_security = __esm({
     };
     securityHeaders = (req, res, next) => {
       const allowedOrigins = ["http://localhost:5000", "http://localhost:5173"];
+      if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+        allowedOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+      }
+      allowedOrigins.push("https://cacustodialcommand.up.railway.app");
       if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
         allowedOrigins.push(
           `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
@@ -729,24 +733,28 @@ var init_security = __esm({
           `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
         );
       }
-      const origin = req.headers.origin;
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-      }
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.setHeader("X-Frame-Options", "DENY");
       res.setHeader("X-XSS-Protection", "1; mode=block");
-      res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-      );
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, Content-Length, X-Requested-With"
-      );
-      res.setHeader("Access-Control-Allow-Credentials", "true");
+      const origin = req.headers.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader(
+          "Access-Control-Allow-Methods",
+          "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+        );
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization, Content-Length, X-Requested-With, x-csrf-token"
+        );
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+      }
       if (req.method === "OPTIONS") {
-        res.sendStatus(200);
+        if (origin && allowedOrigins.includes(origin)) {
+          res.sendStatus(200);
+        } else {
+          res.sendStatus(403);
+        }
       } else {
         next();
       }
@@ -4764,21 +4772,15 @@ function getErrorMessage(error) {
   return error.message || "An unexpected error occurred";
 }
 var errorRecoveryMiddleware = (req, res, next) => {
-  if (!res.headersSent) {
-    res.set({
-      "X-Retry-After": "5",
-      // Suggest retry after 5 seconds
-      "X-Error-Recovery": "true"
-    });
-  }
   const originalJson = res.json;
   res.json = function(data) {
     if (res.statusCode >= 400 && !res.headersSent) {
       if (data && typeof data === "object") {
+        const retryAfter = res.statusCode === 429 ? Math.ceil(parseInt(res.getHeader("ratelimit-reset")) || 900) : 5;
         data.recovery = {
-          retryAfter: 5,
-          canRetry: res.statusCode < 500,
-          maxRetries: 3
+          retryAfter,
+          canRetry: res.statusCode < 500 || res.statusCode === 503,
+          maxRetries: res.statusCode === 429 ? 1 : 3
         };
       }
     }

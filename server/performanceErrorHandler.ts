@@ -232,24 +232,21 @@ export const errorRecoveryMiddleware = (
   next: NextFunction
 ): void => {
   // Only add headers if not already sent
-  if (!res.headersSent) {
-    // Add recovery headers
-    res.set({
-      'X-Retry-After': '5', // Suggest retry after 5 seconds
-      'X-Error-Recovery': 'true'
-    });
-  }
-
   // Wrap res.json to add recovery information
   const originalJson = res.json;
   res.json = function(data: any) {
     if (res.statusCode >= 400 && !res.headersSent) {
       // Add recovery information to error responses
       if (data && typeof data === 'object') {
+        // Use actual rate limit reset time for 429, otherwise a short retry
+        const retryAfter = res.statusCode === 429
+          ? Math.ceil((parseInt(res.getHeader('ratelimit-reset') as string) || 900))
+          : 5;
+
         data.recovery = {
-          retryAfter: 5,
-          canRetry: res.statusCode < 500,
-          maxRetries: 3
+          retryAfter,
+          canRetry: res.statusCode < 500 || res.statusCode === 503,
+          maxRetries: res.statusCode === 429 ? 1 : 3
         };
       }
     }
