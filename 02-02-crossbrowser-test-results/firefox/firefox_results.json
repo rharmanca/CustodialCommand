@@ -1,0 +1,48 @@
+{
+  "browser": "Firefox",
+  "timestamp": null,
+  "tests": [
+    {
+      "name": "Page Load",
+      "status": "PASS",
+      "details": "Title: Custodial Command"
+    },
+    {
+      "name": "Page Structure",
+      "status": "PASS",
+      "details": "12 buttons, 8 links"
+    },
+    {
+      "name": "Navigation",
+      "status": "PASS",
+      "details": "Tested 9 pages"
+    },
+    {
+      "name": "Form Fill",
+      "status": "PASS",
+      "details": "Filled test data into form"
+    },
+    {
+      "name": "Responsive Design",
+      "status": "PASS",
+      "details": "Mobile viewport tested"
+    },
+    {
+      "name": "Console Errors",
+      "status": "FAIL",
+      "details": "1 errors found"
+    },
+    {
+      "name": "PWA Features",
+      "status": "PASS",
+      "details": "Manifest: True, SW: True"
+    }
+  ],
+  "console_errors": [
+    {
+      "type": "error",
+      "text": "[JavaScript Error: \"downloadable font: download failed (font-family: \"Inter\" style:normal weight:500 stretch:100 src index:0): status=2152398850 source: https://cacustodialcommand.up.railway.app/fonts/Inter-Medium.woff2\"]"
+    }
+  ],
+  "issues": []
+}
