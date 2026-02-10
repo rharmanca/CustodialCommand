@@ -1,0 +1,99 @@
+{
+  "pages": {
+    "Home": {
+      "url": "https://cacustodialcommand.up.railway.app/",
+      "structure": {
+        "tables": 0,
+        "cards": 0,
+        "buttons": 12,
+        "inputs": 0,
+        "selects": 0,
+        "headings": {
+          "h1": 1,
+          "h2": 2
+        }
+      },
+      "accessibility": {
+        "aria_labels": 17,
+        "aria_live_regions": 4,
+        "images_total": 0,
+        "images_without_alt": 0,
+        "skip_links": 3,
+        "form_labels": 0
+      },
+      "test_data_found": []
+    },
+    "Inspection Data": {
+      "url": "https://cacustodialcommand.up.railway.app/inspection-data",
+      "structure": {
+        "tables": 0,
+        "cards": 0,
+        "buttons": 12,
+        "inputs": 0,
+        "selects": 0,
+        "headings": {
+          "h1": 1,
+          "h2": 2
+        }
+      },
+      "accessibility": {
+        "aria_labels": 17,
+        "aria_live_regions": 4,
+        "images_total": 0,
+        "images_without_alt": 0,
+        "skip_links": 3,
+        "form_labels": 0
+      },
+      "test_data_found": []
+    },
+    "Custodial Inspection": {
+      "url": "https://cacustodialcommand.up.railway.app/custodial-inspection",
+      "structure": {
+        "tables": 0,
+        "cards": 0,
+        "buttons": 12,
+        "inputs": 0,
+        "selects": 0,
+        "headings": {
+          "h1": 1,
+          "h2": 2
+        }
+      },
+      "accessibility": {
+        "aria_labels": 17,
+        "aria_live_regions": 4,
+        "images_total": 0,
+        "images_without_alt": 0,
+        "skip_links": 3,
+        "form_labels": 0
+      },
+      "test_data_found": []
+    },
+    "Custodial Notes": {
+      "url": "https://cacustodialcommand.up.railway.app/custodial-notes",
+      "structure": {
+        "tables": 0,
+        "cards": 0,
+        "buttons": 12,
+        "inputs": 0,
+        "selects": 0,
+        "headings": {
+          "h1": 1,
+          "h2": 2
+        }
+      },
+      "accessibility": {
+        "aria_labels": 17,
+        "aria_live_regions": 4,
+        "images_total": 0,
+        "images_without_alt": 0,
+        "skip_links": 3,
+        "form_labels": 0
+      },
+      "test_data_found": []
+    }
+  },
+  "accessibility_summary": {},
+  "test_data_found": {},
+  "ui_patterns": {}
+}
