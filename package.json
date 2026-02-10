@@ -157,6 +157,7 @@
     "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.0",
+    "pdf-parse": "^2.4.5",
     "postcss": "^8.4.47",
     "puppeteer": "^24.29.1",
     "tailwindcss": "^3.4.17",

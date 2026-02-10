@@ -1,0 +1,5 @@
+{
+  "timestamp": "2026-02-10T07:34:35Z",
+  "investigations": {},
+  "error": "'charmap' codec can't encode character '\\U0001f4f1' in position 189: character maps to <undefined>"
+}

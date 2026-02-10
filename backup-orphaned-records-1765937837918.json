@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1,
+    "building_inspection_id": 1,
+    "room_type": "exterior",
+    "room_identifier": "221",
+    "notes": null,
+    "created_at": "2025-08-15T01:25:09.632Z"
+  },
+  {
+    "id": 3,
+    "building_inspection_id": 1,
+    "room_type": "gym_bleachers",
+    "room_identifier": "48",
+    "notes": null,
+    "created_at": "2025-08-15T06:12:34.616Z"
+  },
+  {
+    "id": 8,
+    "building_inspection_id": 22,
+    "room_type": "classroom",
+    "room_identifier": "Room 201",
+    "notes": "Classroom in good condition. Desks clean, whiteboard maintained. Some dust on ceiling fans. Emergency equipment properly placed.",
+    "created_at": "2025-09-15T21:03:03.994Z"
+  },
+  {
+    "id": 9,
+    "building_inspection_id": 22,
+    "room_type": "restroom",
+    "room_identifier": "Restroom 2A",
+    "notes": "Restroom needs attention. Floor tiles dirty, mirrors need cleaning. Soap dispensers empty. Strong cleaning needed.",
+    "created_at": "2025-09-15T21:03:10.009Z"
+  },
+  {
+    "id": 10,
+    "building_inspection_id": 22,
+    "room_type": "hallway",
+    "room_identifier": "Main Hallway 2nd Floor",
+    "notes": "Hallway well-maintained. Floors clean, walls spotless. Emergency exits clear. Good lighting throughout.",
+    "created_at": "2025-09-15T21:03:15.900Z"
+  },
+  {
+    "id": 16,
+    "building_inspection_id": 40,
+    "room_type": "classroom",
+    "room_identifier": "J200",
+    "notes": "Room classroom journey test",
+    "created_at": "2025-09-17T21:45:00.977Z"
+  },
+  {
+    "id": 17,
+    "building_inspection_id": 40,
+    "room_type": "office",
+    "room_identifier": "J201",
+    "notes": "Room office journey test",
+    "created_at": "2025-09-17T21:45:01.067Z"
+  },
+  {
+    "id": 18,
+    "building_inspection_id": 40,
+    "room_type": "restroom",
+    "room_identifier": "J202",
+    "notes": "Room restroom journey test",
+    "created_at": "2025-09-17T21:45:01.175Z"
+  },
+  {
+    "id": 19,
+    "building_inspection_id": 41,
+    "room_type": "classroom",
+    "room_identifier": "C101",
+    "notes": "Consistency test room",
+    "created_at": "2025-09-17T21:45:02.066Z"
+  },
+  {
+    "id": 23,
+    "building_inspection_id": 53,
+    "room_type": "classroom",
+    "room_identifier": "J200",
+    "notes": "Room classroom journey test",
+    "created_at": "2025-09-18T05:56:49.491Z"
+  },
+  {
+    "id": 24,
+    "building_inspection_id": 53,
+    "room_type": "office",
+    "room_identifier": "J201",
+    "notes": "Room office journey test",
+    "created_at": "2025-09-18T05:56:49.539Z"
+  },
+  {
+    "id": 25,
+    "building_inspection_id": 53,
+    "room_type": "restroom",
+    "room_identifier": "J202",
+    "notes": "Room restroom journey test",
+    "created_at": "2025-09-18T05:56:49.585Z"
+  },
+  {
+    "id": 26,
+    "building_inspection_id": 54,
+    "room_type": "classroom",
+    "room_identifier": "C101",
+    "notes": "Consistency test room",
+    "created_at": "2025-09-18T05:56:49.954Z"
+  },
+  {
+    "id": 46,
+    "building_inspection_id": 163,
+    "room_type": "classroom",
+    "room_identifier": null,
+    "notes": "Test room inspection",
+    "created_at": "2025-10-08T21:50:13.164Z"
+  }
+]

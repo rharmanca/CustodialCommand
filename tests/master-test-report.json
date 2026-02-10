@@ -1,7 +1,7 @@
 {
-  "timestamp": "2025-12-03T03:54:10.543Z",
+  "timestamp": "2026-02-10T03:51:00.345Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
-  "duration": 41600,
+  "duration": 36832,
   "summary": {
     "overallSuccess": true,
     "criticalIssues": 0,
@@ -12,58 +12,58 @@
     {
       "name": "End-to-End User Journey Tests",
       "description": "Complete user workflows and business processes",
-      "startTime": "2025-12-03T03:53:28.950Z",
-      "endTime": "2025-12-03T03:53:29.894Z",
+      "startTime": "2026-02-10T03:50:23.515Z",
+      "endTime": "2026-02-10T03:50:24.593Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 944,
+      "duration": 1078,
       "errors": [],
-      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
+      "reportFile": "D:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     },
     {
       "name": "Performance Tests",
       "description": "Response times, load handling, and system performance",
-      "startTime": "2025-12-03T03:53:29.898Z",
-      "endTime": "2025-12-03T03:54:03.187Z",
+      "startTime": "2026-02-10T03:50:24.595Z",
+      "endTime": "2026-02-10T03:50:57.237Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 33289,
+      "duration": 32642,
       "errors": [],
-      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
+      "reportFile": "D:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     },
     {
       "name": "Security Tests",
       "description": "Input validation, authentication, and security vulnerabilities",
-      "startTime": "2025-12-03T03:54:03.189Z",
-      "endTime": "2025-12-03T03:54:08.358Z",
+      "startTime": "2026-02-10T03:50:57.237Z",
+      "endTime": "2026-02-10T03:50:59.465Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 5169,
+      "duration": 2228,
       "errors": [],
-      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
+      "reportFile": "D:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     },
     {
       "name": "Mobile and PWA Tests",
       "description": "Progressive Web App functionality and mobile responsiveness",
-      "startTime": "2025-12-03T03:54:08.360Z",
-      "endTime": "2025-12-03T03:54:10.540Z",
+      "startTime": "2026-02-10T03:50:59.465Z",
+      "endTime": "2026-02-10T03:51:00.344Z",
       "success": true,
       "totalTests": 6,
       "passedTests": 6,
       "failedTests": 0,
       "successRate": 100,
-      "duration": 2180,
+      "duration": 879,
       "errors": [],
-      "reportFile": "C:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
+      "reportFile": "D:\\Obsidian And Projects\\Custodial Command\\tests\\test-report.json"
     }
   ],
   "overallStats": {

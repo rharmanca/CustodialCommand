@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-12-03T03:53:29.853Z",
+  "timestamp": "2026-02-10T03:50:24.581Z",
   "baseUrl": "https://cacustodialcommand.up.railway.app",
   "summary": {
     "total": 5,
@@ -26,7 +26,7 @@
     {
       "testName": "Admin Journey - Login",
       "passed": false,
-      "details": "Failed to login: 403"
+      "details": "Failed to login: 401"
     },
     {
       "testName": "Data Consistency Journey - Create Building",

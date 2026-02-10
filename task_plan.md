@@ -1,68 +1,51 @@
-# Cross-Browser Testing Plan (02-02)
-
-## Plan: 02-02-CROSSBROWSER-PLAN.md
-## Phase: 02-recommendations
-## Started: 2025-02-10
-## Status: COMPLETED
+# Test Data Cleanup with Backup - Task Plan
 
 ## Goal
-Test Custodial Command application compatibility across Firefox, Safari, and Edge browsers.
+Delete verified test data with complete backup in case restoration is needed.
 
-## Results Summary
-- **Firefox**: ✅ PASS (1 minor font error)
-- **Safari/WebKit**: ✅ PASS (no errors)
-- **Edge**: ✅ PASS (no errors)
-- **Overall Grade**: A (96.9% tests passed)
+## Backup Location
+`.backups/test-data-cleanup-2026-02-10/`
 
 ## Phases
 
-### Phase 1: Firefox Testing
-- [x] Test page load and rendering - PASS
-- [x] Test navigation between all 9 pages - PASS
-- [x] Test form submission (Custodial Inspection) - PASS
-- [x] Check console errors - 1 font error found
-- [x] Document Firefox-specific issues - Documented
-- [x] Take screenshots - 11 screenshots
+### Phase 1: Create Backup Infrastructure
+**Status:** in_progress
+- [ ] Create backup directory structure
+- [ ] Export inspections (IDs 460-714, 237 records)
+- [ ] Export room_inspections (IDs 85-149, 17 records)
+- [ ] Export photos metadata
+- [ ] Copy photo files from /objects/inspections/
+- [ ] Create BACKUP_MANIFEST.md
 
-### Phase 2: Safari Testing
-- [x] Test page load and rendering - PASS
-- [x] Test navigation between pages - PASS
-- [x] Test form submission - PASS
-- [x] Pay special attention to iOS behaviors - Simulated
-- [x] Check camera/photo capture - Page tested
-- [x] Test PWA install on iOS - API available
-- [x] Check service worker functionality - PASS
-- [x] Document WebKit rendering differences - Documented
-- [x] Take screenshots - 11 screenshots
+### Phase 2: Verify Backup Completeness
+**Status:** pending
+- [ ] Verify all backup files exist
+- [ ] Verify record counts match
+- [ ] Verify photo files copied correctly
+- [ ] Document backup integrity
 
-### Phase 3: Edge Testing
-- [x] Test page load and rendering - PASS
-- [x] Test navigation between pages - PASS
-- [x] Test form submission - PASS
-- [x] Check for Edge-specific behaviors - PASS
-- [x] Test PWA install - PASS
-- [x] Document any issues - None found
-- [x] Take screenshots - 11 screenshots
+### Phase 3: Execute Deletion
+**Status:** pending
+- [ ] Delete room_inspections (child records first)
+- [ ] Delete inspection_photos records
+- [ ] Delete inspections (parent records)
+- [ ] Remove photo files from /objects/inspections/
 
-### Phase 4: Cross-Browser Comparison
-- [x] Create compatibility matrix - Created
-- [x] Identify critical issues - None found
-- [x] Prioritize fixes - 1 low-priority font issue
+### Phase 4: Verify Deletion
+**Status:** pending
+- [ ] Confirm test data counts are zero
+- [ ] Run health check
+- [ ] Verify application still works
 
-### Phase 5: Documentation
-- [x] Create 02-02-CROSSBROWSER-SUMMARY.md - Created
-- [x] Document browser support policy - Documented
+### Phase 5: Document Results
+**Status:** pending
+- [ ] Create 02-04-CLEANUP-SUMMARY.md
+- [ ] Record what was backed up
+- [ ] Record what was deleted
+- [ ] Document restoration instructions
 
-## Current Phase
-Phase 1: Firefox Testing
-
-## Target URL
-https://cacustodialcommand.up.railway.app/
-
-## Chrome Results (from Phase 01)
-- Page Load: ✅
-- Navigation: ✅
-- Forms: ✅
-- Photo Upload: ✅
-- PWA Install: ✅
-- Offline Mode: ✅
+## Critical Rules
+1. Backup FIRST - never delete before backup is verified
+2. Delete in proper order (children before parents)
+3. Verify after each major step
+4. Document everything for potential restoration
