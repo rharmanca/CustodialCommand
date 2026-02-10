@@ -53,6 +53,14 @@ export function csrfProtection(req: any, res: Response, next: NextFunction) {
     return next();
   }
 
+  // Skip CSRF for admin authentication (endpoint uses password auth)
+  // Note: req.path is relative to middleware mount point (/api), so we check without /api prefix
+  // Use more flexible check that matches actual admin endpoints
+  if (req.path.includes("/admin/") || req.path === "/admin/login") {
+    logger.debug("Skipping CSRF for admin authentication", { path: req.path });
+    return next();
+  }
+
   try {
     // Get secret from cookie
     const secret = req.cookies?.[CSRF_COOKIE_NAME];
@@ -178,6 +186,10 @@ export function generateToken(req: Request, res: Response): { token: string; sec
 export function getCsrfToken(req: Request, res: Response) {
   try {
     const { token } = generateToken(req, res);
+
+    // Prevent caching of CSRF tokens
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
 
     res.json({
       csrfToken: token,

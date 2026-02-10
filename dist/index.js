@@ -403,9 +403,8 @@ __export(db_exports, {
   withDatabaseReconnection: () => withDatabaseReconnection
 });
 import { config } from "dotenv";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon, neonConfig, Pool } from "@neondatabase/serverless";
-import ws from "ws";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 async function initializeDatabase() {
   const maxRetries = 5;
   const retryDelay = 2e3;
@@ -467,64 +466,39 @@ async function withDatabaseReconnection(operation, operationName, maxRetries = 3
   }
   throw lastError || new Error("Database operation failed");
 }
-var isRailway, POOL_CONFIG, sql, db, pool, connectionPoolErrors, MAX_POOL_ERRORS;
+var Pool, isRailway, POOL_CONFIG, pool, db, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
     init_schema();
     init_logger();
+    ({ Pool } = pg);
     config();
-    neonConfig.fetchConnectionCache = true;
-    neonConfig.cacheAdapter = {
-      get: (key) => Promise.resolve(null),
-      // Implement proper cache if needed
-      set: (key, value, ttl) => Promise.resolve()
-    };
     isRailway = process.env.RAILWAY_ENVIRONMENT === "production" || process.env.RAILWAY_SERVICE_ID;
     POOL_CONFIG = isRailway ? {
-      maxConnections: 10,
-      minConnections: 2,
+      max: 10,
+      min: 2,
       idleTimeoutMillis: 1e4,
-      connectionTimeoutMillis: 5e3,
-      acquireTimeoutMillis: 15e3,
-      createTimeoutMillis: 1e4
+      connectionTimeoutMillis: 5e3
     } : {
-      maxConnections: 20,
-      minConnections: 5,
+      max: 20,
+      min: 5,
       idleTimeoutMillis: 3e4,
-      connectionTimeoutMillis: 1e4,
-      acquireTimeoutMillis: 6e4,
-      createTimeoutMillis: 3e4
+      connectionTimeoutMillis: 1e4
     };
-    if (isRailway) {
-      neonConfig.maxConnections = POOL_CONFIG.maxConnections;
-      neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
-      neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
-      logger.info("Applying Railway-specific database configuration", POOL_CONFIG);
-    } else {
-      neonConfig.maxConnections = POOL_CONFIG.maxConnections;
-      neonConfig.idleTimeoutMillis = POOL_CONFIG.idleTimeoutMillis;
-      neonConfig.connectionTimeoutMillis = POOL_CONFIG.connectionTimeoutMillis;
-      logger.info("Applying local development database configuration", POOL_CONFIG);
-    }
-    neonConfig.webSocketConstructor = ws;
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL must be set. Check your Replit Secrets tab.");
+      throw new Error("DATABASE_URL must be set. Check your environment variables.");
     }
-    sql = neon(process.env.DATABASE_URL);
-    db = drizzle(sql, { schema: schema_exports });
+    logger.info("Applying database configuration", { isRailway, ...POOL_CONFIG });
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: POOL_CONFIG.maxConnections,
-      min: POOL_CONFIG.minConnections,
+      max: POOL_CONFIG.max,
+      min: POOL_CONFIG.min,
       idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
       connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
-      acquireTimeoutMillis: POOL_CONFIG.acquireTimeoutMillis,
-      createTimeoutMillis: POOL_CONFIG.createTimeoutMillis,
-      destroyTimeoutMillis: 5e3,
-      reapIntervalMillis: 1e3,
-      createRetryIntervalMillis: 200
+      ssl: process.env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: false } : false
     });
+    db = drizzle(pool, { schema: schema_exports });
     connectionPoolErrors = 0;
     MAX_POOL_ERRORS = 5;
     pool.on("error", (err) => {
@@ -534,14 +508,14 @@ var init_db = __esm({
         logger.error("Too many database pool errors, restarting pool may be needed");
       }
     });
-    pool.on("connect", (client) => {
+    pool.on("connect", () => {
       logger.debug("New database connection established", {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount,
         waitingCount: pool.waitingCount
       });
     });
-    pool.on("remove", (client) => {
+    pool.on("remove", () => {
       logger.debug("Database connection removed", {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount
@@ -748,6 +722,10 @@ var init_security = __esm({
     };
     securityHeaders = (req, res, next) => {
       const allowedOrigins = ["http://localhost:5000", "http://localhost:5173"];
+      if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+        allowedOrigins.push(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+      }
+      allowedOrigins.push("https://cacustodialcommand.up.railway.app");
       if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
         allowedOrigins.push(
           `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
@@ -755,24 +733,28 @@ var init_security = __esm({
           `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`
         );
       }
-      const origin = req.headers.origin;
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-      }
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.setHeader("X-Frame-Options", "DENY");
       res.setHeader("X-XSS-Protection", "1; mode=block");
-      res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-      );
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, Content-Length, X-Requested-With"
-      );
-      res.setHeader("Access-Control-Allow-Credentials", "true");
+      const origin = req.headers.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader(
+          "Access-Control-Allow-Methods",
+          "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+        );
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization, Content-Length, X-Requested-With, x-csrf-token"
+        );
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+      }
       if (req.method === "OPTIONS") {
-        res.sendStatus(200);
+        if (origin && allowedOrigins.includes(origin)) {
+          res.sendStatus(200);
+        } else {
+          res.sendStatus(403);
+        }
       } else {
         next();
       }
@@ -1377,6 +1359,9 @@ var init_security = __esm({
 // server/index.ts
 import express3 from "express";
 import { createServer } from "http";
+import { readFileSync as readFileSync2 } from "fs";
+import { join as join5, dirname as dirname2 } from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
@@ -1391,7 +1376,7 @@ init_db();
 init_schema();
 init_logger();
 init_security();
-import { eq, desc, and, gte, lte, sql as sql2 } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 var performanceMetrics = {
   cacheHits: 0,
   cacheMisses: 0,
@@ -1667,7 +1652,7 @@ var storage = {
         // Fetch paginated data
         db.select().from(monthlyFeedback).where(whereClause).orderBy(desc(monthlyFeedback.year), desc(monthlyFeedback.month)).limit(limit).offset(offset),
         // Fetch total count for pagination metadata
-        db.select({ count: sql2`count(*)` }).from(monthlyFeedback).where(whereClause)
+        db.select({ count: sql`count(*)` }).from(monthlyFeedback).where(whereClause)
       ]);
       const totalCount = Number(totalCountResult[0]?.count || 0);
       const totalPages = Math.ceil(totalCount / limit);
@@ -2082,12 +2067,18 @@ var ObjectStorageService = class {
 var SENTIMENT_PATTERNS = {
   positive: [
     /\b(excellent|outstanding|exceptional|great|good|clean|well maintained|shine|bright|fresh|spotless|tidy)\b/i,
-    /\b(going well|improving|progress|complimentary)\b/i
+    /\b(going well|improving|progress|complimentary)\b/i,
+    /\bsmells?\s+(good|great|clean|fresh|nice)\b/i
+    // "smells good", "smell fresh", etc.
   ],
   major: [
     /\b(crisis|unsafe|hazard|broken|damaged|filthy|disgusting|unacceptable|failure|critical)\b/i,
     /\b(not working|completely|severe|major|serious|significant)\b/i,
-    /\b(overflowing|overflow|smells|stinks|foul|offensive)\b/i
+    /\b(overflowing|overflow|stinks|foul|offensive)\b/i,
+    /\bsmells?\s+(bad|terrible|awful|horrible|like)\b/i,
+    // "smells bad", "smells like...", etc.
+    /\b(bad|terrible|awful|horrible)\s+smell\b/i
+    // "bad smell", "terrible smell", etc.
   ],
   minor: [
     /\b(needs|need|should|could|minor|slight|small|little|dull|dingy|stain|streak|smudge)\b/i,
@@ -3443,15 +3434,53 @@ async function registerRoutes(app2) {
         database_url_exists: !!process.env.DATABASE_URL,
         database_url_prefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + "..." : "NOT SET"
       };
+      const { pool: pool2 } = await Promise.resolve().then(() => (init_db(), db_exports));
+      try {
+        const tableCheck = await pool2.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'monthly_feedback'
+          ) as table_exists
+        `);
+        diagnostic.table_exists = tableCheck.rows[0]?.table_exists || false;
+      } catch (tableCheckError) {
+        diagnostic.table_check_error = tableCheckError instanceof Error ? tableCheckError.message : String(tableCheckError);
+      }
+      if (diagnostic.table_exists) {
+        try {
+          const columns = await pool2.query(`
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'monthly_feedback' 
+            ORDER BY ordinal_position
+          `);
+          diagnostic.table_columns = columns.rows;
+        } catch (colError) {
+          diagnostic.columns_error = colError instanceof Error ? colError.message : String(colError);
+        }
+        try {
+          const countResult = await pool2.query("SELECT count(*) FROM monthly_feedback");
+          diagnostic.raw_count = parseInt(countResult.rows[0]?.count || "0");
+        } catch (countError) {
+          diagnostic.raw_count_error = countError instanceof Error ? countError.message : String(countError);
+        }
+        try {
+          const selectResult = await pool2.query("SELECT * FROM monthly_feedback LIMIT 3");
+          diagnostic.raw_select_success = true;
+          diagnostic.raw_select_count = selectResult.rows.length;
+        } catch (selectError) {
+          diagnostic.raw_select_error = selectError instanceof Error ? selectError.message : String(selectError);
+        }
+      }
       try {
         const testQuery = await storage.getMonthlyFeedback();
-        diagnostic.query_success = true;
-        diagnostic.records_count = testQuery ? testQuery.length : 0;
-        diagnostic.query_result = testQuery;
+        diagnostic.orm_query_success = true;
+        diagnostic.orm_records_count = testQuery?.data ? testQuery.data.length : 0;
       } catch (queryError) {
-        diagnostic.query_success = false;
-        diagnostic.query_error = queryError instanceof Error ? queryError.message : String(queryError);
-        diagnostic.query_stack = queryError instanceof Error ? queryError.stack : void 0;
+        diagnostic.orm_query_success = false;
+        diagnostic.orm_query_error = queryError instanceof Error ? queryError.message : String(queryError);
+        diagnostic.orm_query_stack = queryError instanceof Error ? queryError.stack?.split("\n").slice(0, 5) : void 0;
       }
       res.json(diagnostic);
     } catch (error) {
@@ -3980,6 +4009,15 @@ init_logger();
 
 // server/monitoring.ts
 init_logger();
+import { readFileSync } from "fs";
+import { join as join4, dirname } from "path";
+import { fileURLToPath } from "url";
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = dirname(__filename);
+var packageJson = JSON.parse(
+  readFileSync(join4(__dirname, "../package.json"), "utf-8")
+);
+var APP_VERSION = packageJson.version;
 var healthCheck = async (req, res) => {
   const startTime = Date.now();
   try {
@@ -4018,7 +4056,7 @@ var healthCheck = async (req, res) => {
       status: dbStatus === "error" ? "error" : "ok",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       uptime: Math.floor(process.uptime()),
-      version: "1.0.0",
+      version: APP_VERSION,
       environment: process.env.NODE_ENV || "development",
       database: dbStatus,
       redis: redisHealth,
@@ -4044,14 +4082,35 @@ var healthCheck = async (req, res) => {
 };
 var MetricsCollector = class {
   metrics = {};
+  maxMetricKeys = 500;
+  // Prevent unbounded growth
+  lastResetTime = Date.now();
+  resetIntervalMs = 24 * 60 * 60 * 1e3;
+  // Reset daily
   increment(metric, value = 1) {
+    if (Date.now() - this.lastResetTime > this.resetIntervalMs) {
+      this.reset();
+    }
+    const keyCount = Object.keys(this.metrics).length;
+    if (keyCount >= this.maxMetricKeys && !(metric in this.metrics)) {
+      if (!this.metrics["_limit_reached"]) {
+        this.metrics["_limit_reached"] = 1;
+        console.warn(`MetricsCollector: Max metric keys (${this.maxMetricKeys}) reached, ignoring new keys`);
+      }
+      return;
+    }
     this.metrics[metric] = (this.metrics[metric] || 0) + value;
   }
   getMetrics() {
-    return { ...this.metrics };
+    return {
+      ...this.metrics,
+      _keyCount: Object.keys(this.metrics).length,
+      _uptimeHours: Math.round((Date.now() - this.lastResetTime) / 36e5 * 10) / 10
+    };
   }
   reset() {
     this.metrics = {};
+    this.lastResetTime = Date.now();
   }
 };
 var metricsCollector = new MetricsCollector();
@@ -4713,21 +4772,15 @@ function getErrorMessage(error) {
   return error.message || "An unexpected error occurred";
 }
 var errorRecoveryMiddleware = (req, res, next) => {
-  if (!res.headersSent) {
-    res.set({
-      "X-Retry-After": "5",
-      // Suggest retry after 5 seconds
-      "X-Error-Recovery": "true"
-    });
-  }
   const originalJson = res.json;
   res.json = function(data) {
     if (res.statusCode >= 400 && !res.headersSent) {
       if (data && typeof data === "object") {
+        const retryAfter = res.statusCode === 429 ? Math.ceil(parseInt(res.getHeader("ratelimit-reset")) || 900) : 5;
         data.recovery = {
-          retryAfter: 5,
-          canRetry: res.statusCode < 500,
-          maxRetries: 3
+          retryAfter,
+          canRetry: res.statusCode < 500 || res.statusCode === 503,
+          maxRetries: res.statusCode === 429 ? 1 : 3
         };
       }
     }
@@ -4854,6 +4907,10 @@ function csrfProtection(req, res, next) {
   if (req.path.startsWith("/health") || req.path.startsWith("/metrics")) {
     return next();
   }
+  if (req.path.includes("/admin/") || req.path === "/admin/login") {
+    logger.debug("Skipping CSRF for admin authentication", { path: req.path });
+    return next();
+  }
   try {
     const secret = req.cookies?.[CSRF_COOKIE_NAME];
     if (!secret) {
@@ -4950,6 +5007,8 @@ function generateToken(req, res) {
 function getCsrfToken(req, res) {
   try {
     const { token } = generateToken(req, res);
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.set("Pragma", "no-cache");
     res.json({
       csrfToken: token,
       expiresIn: CSRF_TOKEN_TTL / 1e3
@@ -4988,6 +5047,12 @@ function getCsrfStats() {
 }
 
 // server/index.ts
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = dirname2(__filename2);
+var packageJson2 = JSON.parse(
+  readFileSync2(join5(__dirname2, "../package.json"), "utf-8")
+);
+var APP_VERSION2 = packageJson2.version;
 var app = express3();
 if (process.env.REPL_SLUG) {
   app.set("trust proxy", 1);
@@ -5030,14 +5095,19 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
+      // Required for Radix UI inline styles
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      // FIXED: Added 'unsafe-inline' for Vite compatibility
+      // Required for index.html polyfill script
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
-      frameSrc: ["'none'"]
+      frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: []
     }
   } : false,
   crossOriginEmbedderPolicy: false,
@@ -5085,10 +5155,10 @@ app.use(compression({
 }));
 app.use(securityHeaders);
 app.use(validateRequest);
-app.use(sanitizeInput);
 app.use(express3.json({ limit: "10mb" }));
 app.use(express3.urlencoded({ extended: false, limit: "10mb" }));
 app.use(cookieParser());
+app.use(sanitizeInput);
 app.use(cacheMiddleware);
 app.use("/api/admin/login", strictRateLimit);
 app.use("/api/inspections", apiRateLimit);
@@ -5387,7 +5457,7 @@ if (process.env.REPL_SLUG) {
     server.listen(PORT, HOST, () => {
       logger.info(`Server running on port ${PORT}`, {
         environment: process.env.NODE_ENV || "development",
-        version: "1.0.0"
+        version: APP_VERSION2
       });
     });
     const shutdown = (signal) => {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from "@/utils/csrf";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,14 @@ export default function CustodialNotesPage({
   // Watch all form fields for auto-save functionality
   // Using watch() instead of getValues() ensures the effect re-runs when form changes
   const watchedFields = watch();
+
+  // Page loaded state for test synchronization
+  const [pageLoaded, setPageLoaded] = useState(false);
+
+  // Mark page as loaded when mounted
+  useEffect(() => {
+    setPageLoaded(true);
+  }, []);
 
   // Image state (handled separately from form data)
   const [images, setImages] = useState<File[]>([]);
@@ -515,11 +524,16 @@ export default function CustodialNotesPage({
 
       // Ensure proper content-type handling for FormData
       // Some environments may not handle FormData correctly with fetch
+      // Refresh CSRF token if needed before making the request
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const fetchOptions: RequestInit = {
         method: "POST",
         body: formDataToSend,
+        credentials: 'include', // Required to send CSRF cookie
         // Don't set Content-Type header when using FormData - browser will set it automatically with boundary
-        headers: {}
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {}
       };
 
       // Add user agent for debugging (only in development)
@@ -695,7 +709,7 @@ export default function CustodialNotesPage({
       {/* Inject animation styles */}
       <style>{progressAnimation}</style>
 
-      <div className="max-w-3xl mx-auto p-6 space-y-8">
+      <div className="max-w-3xl mx-auto p-6 space-y-8" data-loaded={pageLoaded ? "true" : undefined}>
         {onBack && (
           <Button
             onClick={onBack}
@@ -1094,6 +1108,7 @@ export default function CustodialNotesPage({
             <CardContent>
               <Textarea
                 {...register("notes")}
+                data-testid="custodial-notes-description"
                 placeholder="Describe the issue, maintenance need, or observation...&#10;&#10;Examples:&#10;• Broken equipment or fixtures&#10;• Cleaning supply needs&#10;• Safety concerns&#10;• Maintenance requests&#10;• General observations&#10;• Follow-up needed"
                 rows={10}
                 className="min-h-[250px]"

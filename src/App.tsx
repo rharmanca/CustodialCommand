@@ -44,6 +44,7 @@ const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
 const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
 const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
 const ScoresDashboard = lazy(() => import("./pages/scores-dashboard"));
+const NotFoundPage = lazy(() => import("./pages/not-found"));
 
 // Loading skeleton component with accessibility support
 const PageLoadingSkeleton = () => (
@@ -550,15 +551,9 @@ function App() {
           );
         default:
           return (
-            <div className="p-8 text-center">
-              <h1 className="text-2xl font-bold">Page Not Found</h1>
-              <button
-                onClick={() => setCurrentPage("Custodial")}
-                className="mt-4 modern-button bg-primary hover:bg-primary/90 border-primary text-primary-foreground"
-              >
-                Return Home
-              </button>
-            </div>
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <NotFoundPage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
           );
       }
     } catch (error) {

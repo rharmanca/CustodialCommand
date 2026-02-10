@@ -58,9 +58,12 @@ export default function MonthlyFeedbackPage({ onBack }: MonthlyFeedbackPageProps
 
       if (response.ok) {
         const data = await response.json();
-        // Validate data is an array
-        if (Array.isArray(data)) {
-          setFeedbackList(data);
+        // API may return { data: [...] } wrapper or flat array
+        const feedbackArray = Array.isArray(data) ? data
+          : (data?.data && Array.isArray(data.data)) ? data.data
+          : null;
+        if (feedbackArray) {
+          setFeedbackList(feedbackArray);
         } else {
           console.error('Invalid data format from API');
           toast({

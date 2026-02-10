@@ -159,6 +159,9 @@ export default function WholeBuildingInspectionPage({
     { value: "WLC", label: "WLC" },
   ];
 
+  // Page loaded state for test synchronization
+  const [pageLoaded, setPageLoaded] = useState(false);
+
   // Track completed inspections
   const [completed, setCompleted] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
@@ -179,7 +182,7 @@ export default function WholeBuildingInspectionPage({
   const [formData, setFormData] = useState({
     inspectorName: "",
     school: "",
-    date: new Date().toISOString().split('T')[0], // Smart default: today's date
+    date: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`, // Local date (avoids UTC timezone shift)
     inspectionType: "whole_building",
     locationCategory: "",
     roomNumber: "",
@@ -252,6 +255,7 @@ export default function WholeBuildingInspectionPage({
 
   // Load available inspections on mount
   useEffect(() => {
+    setPageLoaded(true);
     const loadAvailableInspections = async () => {
       try {
         const response = await fetch(
@@ -1024,7 +1028,7 @@ export default function WholeBuildingInspectionPage({
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto p-6 max-w-4xl space-y-6">
+      <div className="container mx-auto p-6 max-w-4xl space-y-6" data-loaded={pageLoaded ? "true" : undefined}>
       {/* Primary call-to-action placed above progress table */}
       {!showInspectionSelector && (
         <Card className="border-primary/30">
@@ -1363,6 +1367,7 @@ export default function WholeBuildingInspectionPage({
                   value={stats.overallPercentage}
                   className="h-3 bg-primary/10 transition-all duration-700 ease-out"
                   aria-label={`Overall progress: ${stats.overallPercentage}% complete`}
+                  data-testid="multi-progress"
                 />
                 <p className="text-sm text-muted-foreground text-center" aria-live="polite" aria-atomic="true">
                   {stats.totalCompleted} of {stats.totalRequired} rooms inspected

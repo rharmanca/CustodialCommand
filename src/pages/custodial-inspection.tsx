@@ -8,6 +8,7 @@
 import { useState, useEffect, memo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 import { saveDraft, loadDraft, clearDraft, STORAGE_KEYS, migrateLegacyDrafts, processImageForStorage, getStorageStats } from '@/utils/storage';
 import { compressImage, needsCompression, formatFileSize } from '@/utils/imageCompression';
 import { Button } from '@/components/ui/button';
@@ -192,6 +193,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
 
   const loadDraftData = (draft: any) => {
     // Load draft data into React Hook Form using setValue
+    setValue('inspectorName', draft.inspectorName || '');
     setValue('school', draft.school || '');
     setValue('date', draft.date || '');
     setValue('inspectionType', draft.inspectionType || 'single_room');
@@ -340,10 +342,16 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+      // Refresh CSRF token if needed before making the request
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const response = await fetch('/api/inspections', {
         method: 'POST',
         body: formDataToSend, // No Content-Type header - let browser set it for multipart
         signal: controller.signal,
+        credentials: 'include', // Required to send CSRF cookie
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {},
       });
 
       clearTimeout(timeoutId);
@@ -427,6 +435,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                 type="button"
                 className="p-3 min-w-[48px] min-h-[48px] rounded-md hover:bg-yellow-50 transition-colors touch-manipulation flex items-center justify-center"
                 onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, star)}
+                aria-label={`Rate ${star} star${star > 1 ? 's' : ''} for ${categoryObj.label}`}
               >
                 <Star
                   className={`w-7 h-7 ${
@@ -449,6 +458,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
                   : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
               onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, 0)}
+              aria-label={`Clear rating for ${categoryObj.label}`}
             >
               Not Rated
             </button>
@@ -498,6 +508,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
             size="sm"
             className="px-4 py-3 text-xs min-h-[48px]"
             onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, 0)}
+            aria-label={`Clear rating for ${categoryObj.label}`}
           >
             Not Rated
           </Button>
@@ -509,6 +520,7 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
               size="icon"
               className="min-w-[48px] min-h-[48px]"
               onClick={() => setValue(categoryObj.key as keyof SingleAreaInspectionForm, star)}
+              aria-label={`Rate ${star} star${star > 1 ? 's' : ''} for ${categoryObj.label}`}
             >
               <Star
                 className={`w-7 h-7 ${
@@ -675,6 +687,22 @@ export default function CustodialInspectionPage({ onBack }: CustodialInspectionP
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="sm:col-span-2 lg:col-span-3">
+                <Label htmlFor="inspectorName">Inspector Name *</Label>
+                <Input
+                  id="inspectorName"
+                  {...register('inspectorName')}
+                  placeholder="Enter your name"
+                  aria-required="true"
+                  aria-describedby={errors.inspectorName ? "inspectorName-error" : undefined}
+                  aria-invalid={errors.inspectorName ? "true" : undefined}
+                  className="border-2 min-h-[48px]"
+                />
+                {errors.inspectorName && (
+                  <p id="inspectorName-error" className="text-sm text-red-500 mt-1" role="alert">{errors.inspectorName.message}</p>
+                )}
+              </div>
+
               <div>
                 <Label htmlFor="school" id="school-label">School *</Label>
                 <Controller

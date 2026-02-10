@@ -5,8 +5,8 @@ nixPkgs = ["nodejs_20"]
 cmds = ["npm install --production=false"]
 
 [phases.build]
-# Disable build phase - use pre-built dist files from repo
-cmds = []
+# Build phase - compile TypeScript and bundle frontend
+cmds = ["npm run build"]
 
 [start]
 cmd = "npm run railway:start"

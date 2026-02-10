@@ -164,8 +164,8 @@ const FilterPresets: React.FC<FilterPresetsProps> = ({
     },
     {
       id: 'all-schools',
-      label: 'All Schools',
-      description: 'Show all schools with problems',
+      label: 'Problem Areas',
+      description: 'Show critical and needs-attention issues across all schools',
       icon: <School className="w-4 h-4 text-purple-600" />,
       applyFilter: (current) => ({
         ...current,

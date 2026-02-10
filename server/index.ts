@@ -2,6 +2,17 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { randomBytes } from "crypto";
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Read version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '../package.json'), 'utf-8')
+);
+const APP_VERSION = packageJson.version;
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
@@ -89,14 +100,18 @@ app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"], // FIXED: Added 'unsafe-inline' for Vite compatibility
+      styleSrc: ["'self'", "'unsafe-inline'"], // Required for Radix UI inline styles
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Required for index.html polyfill script
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: [],
     },
   } : false,
   crossOriginEmbedderPolicy: false,
@@ -141,14 +156,16 @@ app.use(compression({
 }));
 app.use(securityHeaders);
 app.use(validateRequest);
-app.use(sanitizeInput);
 
-// Body parsing middleware - CRITICAL: Must be before routes
+// Body parsing middleware - CRITICAL: Must be before sanitizeInput so req.body is populated
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Cookie parsing middleware - Required for CSRF protection
 app.use(cookieParser());
+
+// Input sanitization - MUST be after body parsers so req.body exists
+app.use(sanitizeInput);
 
 // Performance optimization middleware
 app.use(cacheMiddleware); // Add caching for GET requests
@@ -536,7 +553,7 @@ if (process.env.REPL_SLUG) {
     server.listen(PORT, HOST, () => {
       logger.info(`Server running on port ${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0'
+        version: APP_VERSION
       });
     });
 

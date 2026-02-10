@@ -1,8 +1,35 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+/**
+ * Waits for React and the page to be fully hydrated and loaded.
+ * This handles client-side routing delays (Wouter) and React 18 rendering timing.
+ */
+async function waitForReactReady(page: Page) {
+  await page.waitForFunction(
+    () => {
+      // Check DOM is interactive
+      return window.performance?.getEntriesByType?.('navigation')?.[0]?.domInteractive > 0;
+    },
+    { timeout: 10000 }
+  );
+}
+
+/**
+ * Navigate to a URL and wait for the page to be fully loaded and React hydrated.
+ */
+async function navigateAndWait(page: Page, path: string) {
+  await page.goto(path);
+  await waitForReactReady(page);
+  // Wait for data-loaded marker if present (from our page components)
+  await page.waitForSelector('[data-loaded="true"]', { state: 'attached', timeout: 8000 }).catch(() => {
+    // Fallback: some pages might not have the marker yet
+  });
+}
 
 test.describe('Custodial Command - Comprehensive UI', () => {
   test('Landing page loads and main navigation works', async ({ page, baseURL }) => {
     await page.goto('/');
+    await waitForReactReady(page);
     await expect(page).toHaveTitle(/Custodial|Command/i);
 
     // Basic nav routes (best-effort by link text and common keywords)
@@ -25,7 +52,7 @@ test.describe('Custodial Command - Comprehensive UI', () => {
   });
 
   test('Create Single Room Inspection (happy path)', async ({ page }) => {
-    await page.goto('/custodial-inspection');
+    await navigateAndWait(page, '/custodial-inspection');
 
     // Fill minimal required fields by label where possible
     const maybeFill = async (label: RegExp | string, value: string) => {
@@ -74,7 +101,7 @@ test.describe('Custodial Command - Comprehensive UI', () => {
   });
 
   test('Create Custodial Note', async ({ page }) => {
-    await page.goto('/custodial-notes');
+    await navigateAndWait(page, '/custodial-notes');
 
     const maybeFill = async (label: RegExp | string, value: string) => {
       const ctl = page.getByLabel(label).first();
@@ -97,7 +124,7 @@ test.describe('Custodial Command - Comprehensive UI', () => {
   });
 
   test('Admin list view loads (if accessible)', async ({ page }) => {
-    await page.goto('/admin-inspections');
+    await navigateAndWait(page, '/admin-inspections');
     // If protected, expect some guard; otherwise expect table/list
     const protectedText = page.getByText(/unauthorized|login|forbidden/i);
     const table = page.locator('table');

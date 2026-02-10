@@ -1,5 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Read version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '../package.json'), 'utf-8')
+);
+const APP_VERSION = packageJson.version;
 
 interface HealthCheck {
   status: 'ok' | 'error';
@@ -109,7 +120,7 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
       status: dbStatus === 'error' ? 'error' : 'ok',
       timestamp: new Date().toISOString(),
       uptime: Math.floor(process.uptime()),
-      version: '1.0.0',
+      version: APP_VERSION,
       environment: process.env.NODE_ENV || 'development',
       database: dbStatus,
       redis: redisHealth,

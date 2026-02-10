@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -79,7 +79,7 @@ const PDFExportWizard: React.FC<PDFExportWizardProps> = ({
       schools: [],
       severityLevels: [],
       categories: [],
-      ratingThreshold: 0
+      ratingThreshold: 1
     },
     includeCharts: true,
     includeDetails: false
@@ -264,17 +264,9 @@ const PDFExportWizard: React.FC<PDFExportWizardProps> = ({
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {trigger && (
-        <div 
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setOpen(true);
-          }}
-        >
-          {trigger}
-        </div>
-      )}
+      <DialogTrigger asChild>
+        {trigger || <Button className="hidden" />}
+      </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

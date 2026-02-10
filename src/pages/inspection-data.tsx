@@ -132,8 +132,12 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
 
       if (notesResponse.ok) {
         const notesData = await notesResponse.json();
-        if (Array.isArray(notesData)) {
-          setCustodialNotes(notesData);
+        // API returns { data: [...], pagination: {...} } wrapper format
+        const notesArray = Array.isArray(notesData) ? notesData
+          : (notesData?.data && Array.isArray(notesData.data)) ? notesData.data
+          : null;
+        if (notesArray) {
+          setCustodialNotes(notesArray);
         } else {
           console.error('Invalid custodial notes data format:', notesData);
           setCustodialNotes([]);
@@ -558,8 +562,8 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
               Inspection Details
             </CardTitle>
             <CardDescription>
-              {selectedInspection.inspectionType === 'single_room' 
-                ? `Room ${selectedInspection.roomNumber} at ${selectedInspection.school}`
+              {selectedInspection.inspectionType === 'single_room'
+                ? `Room ${selectedInspection.roomNumber ?? 'Not specified'} at ${selectedInspection.school}`
                 : `Building: ${selectedInspection.buildingName || selectedInspection.locationDescription || 'Whole Building'} at ${selectedInspection.school}`
               }
             </CardDescription>
