@@ -1,0 +1,52 @@
+[
+  {
+    "id": 719,
+    "inspectorName": "Test Inspector",
+    "school": "LCA",
+    "date": "2026-02-10",
+    "inspectionType": "single_room",
+    "roomNumber": "101",
+    "createdAt": "2026-02-10T13:16:42.800Z",
+    "notes": "Test notes from automated testing - 20260210_071606"
+  },
+  {
+    "id": 717,
+    "inspectorName": "Test Inspector - Automated",
+    "school": "ASA",
+    "date": "2026-02-05",
+    "inspectionType": "single_room",
+    "roomNumber": "101",
+    "createdAt": "2026-02-06T03:57:03.788Z",
+    "notes": "This is an automated test inspection submitted on 2026-02-05. The facility shows mixed ratings with excellent ceiling and activity support, but restrooms and monitoring need improvement. Overall the building is maintained at an acceptable level with areas requiring attention."
+  },
+  {
+    "id": 718,
+    "inspectorName": "XSS Test Inspector",
+    "school": "ASA",
+    "date": "2026-02-05",
+    "inspectionType": "single_room",
+    "roomNumber": "999",
+    "createdAt": "2026-02-06T04:03:52.802Z",
+    "notes": "<script>alert(\"xss\")</script> Building needs attention."
+  },
+  {
+    "id": 716,
+    "inspectorName": "Test Inspector",
+    "school": "ASA",
+    "date": "2026-01-28",
+    "inspectionType": "single_room",
+    "roomNumber": null,
+    "createdAt": "2026-01-28T13:55:43.640Z",
+    "notes": "CSRF verification test - Phase 1.1"
+  },
+  {
+    "id": 715,
+    "inspectorName": "Test Inspector",
+    "school": "ASA",
+    "date": "2026-01-28",
+    "inspectionType": "single_room",
+    "roomNumber": "101",
+    "createdAt": "2026-01-28T04:16:39.942Z",
+    "notes": null
+  }
+]

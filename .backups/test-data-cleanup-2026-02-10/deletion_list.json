@@ -1,0 +1,27 @@
+[
+  {
+    "id": 719,
+    "inspectorName": "Test Inspector",
+    "school": "LCA"
+  },
+  {
+    "id": 717,
+    "inspectorName": "Test Inspector - Automated",
+    "school": "ASA"
+  },
+  {
+    "id": 718,
+    "inspectorName": "XSS Test Inspector",
+    "school": "ASA"
+  },
+  {
+    "id": 716,
+    "inspectorName": "Test Inspector",
+    "school": "ASA"
+  },
+  {
+    "id": 715,
+    "inspectorName": "Test Inspector",
+    "school": "ASA"
+  }
+]
