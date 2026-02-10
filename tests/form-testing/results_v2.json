@@ -1,0 +1,130 @@
+{
+  "test_run": "20260210_071606",
+  "version": "2.0",
+  "tasks": {
+    "task1_custodial_inspection": {
+      "logs": [
+        "[07:16:30] ======================================================================",
+        "[07:16:30] TASK 1: Custodial Inspection Form Test",
+        "[07:16:30] ======================================================================",
+        "[07:16:30] Navigating to application home...",
+        "[07:16:37] Screenshot saved: v2_homepage.png",
+        "[07:16:38] Page structure: {'buttons': 12, 'links': 8, 'inputs': 0, 'selects': 0, 'textareas': 0}",
+        "[07:16:38] Error capturing structure: 'charmap' codec can't encode character '\\U0001f4f1' in position 96: character maps to <undefined>",
+        "[07:16:38] Looking for Custodial Inspection link...",
+        "[07:16:38] Found inspection link, clicking...",
+        "[07:16:41] Screenshot saved: v2_task1_form.png",
+        "[07:16:41] Page structure: {'buttons': 84, 'links': 9, 'inputs': 6, 'selects': 2, 'textareas': 1}",
+        "[07:16:41] Button texts: ['Home', 'Admin', 'A-\\nDecrease text size', 'A+\\nIncrease text size', 'Select school', 'Select location category', 'Floors', 'Not Rated']",
+        "[07:16:41] Attempting to fill form fields...",
+        "[07:16:41] Found 9 total input elements",
+        "[07:16:41] Input 0: INPUT type=text, placeholder=Enter your name, name=inspectorName",
+        "[07:16:41]   -> Filled inspector name",
+        "[07:16:41] Input 1: SELECT type=text, placeholder=, name=",
+        "[07:16:41]   -> Selected option from dropdown",
+        "[07:16:41] Input 2: INPUT type=date, placeholder=, name=date",
+        "[07:16:41] Input 3: SELECT type=text, placeholder=, name=",
+        "[07:16:42]   -> Selected option from dropdown",
+        "[07:16:42] Input 4: INPUT type=text, placeholder=e.g., 101, Main Hall, name=roomNumber",
+        "[07:16:42]   -> Filled room number",
+        "[07:16:42] Input 5: INPUT type=text, placeholder=e.g., Main Building, Second Floor, Near Library, name=locationDescription",
+        "[07:16:42]   -> Filled location",
+        "[07:16:42] Input 6: TEXTAREA type=text, placeholder=Enter detailed notes about this inspection...\n\nExamples:\n\u2022 Specific areas that need attention\n\u2022 Safety concerns observed\n\u2022 Maintenance recommendations\n\u2022 Follow-up actions required\n\u2022 Staff performance observations\n\u2022 Equipment issues noted, name=notes",
+        "[07:16:42]   -> Filled with test notes",
+        "[07:16:42] Filled 6 fields",
+        "[07:16:42] Screenshot saved: v2_task1_filled.png",
+        "[07:16:42] Looking for submit button...",
+        "[07:16:42] Found submit button: Submit Inspection",
+        "[07:16:42] Clicked submit button"
+      ],
+      "status": "PASSED"
+    },
+    "console": {
+      "logs": [
+        "[07:16:33] [Console log] [Polyfill] Performance object and scheduler exports container initialized",
+        "[07:16:33] [Console log] App initializing...",
+        "[07:16:33] [Console log] Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+        "[07:16:33] [Console log] [CSRF] Token fetched successfully",
+        "[07:16:33] [Console log] [CSRF] Initialized successfully",
+        "[07:16:41] [Console log] Cleaned up 0 old drafts",
+        "[07:16:41] [Console log] Storage stats: {totalSizeKB: 0, totalSizeMB: 0, draftCount: 0, limitMB: 8, usagePercent: 0}"
+      ]
+    },
+    "task2_whole_building": {
+      "logs": [
+        "[07:16:45] ======================================================================",
+        "[07:16:45] TASK 2: Whole Building Inspection Form Test",
+        "[07:16:45] ======================================================================",
+        "[07:16:45] Navigating to Whole Building Inspection...",
+        "[07:16:48] Screenshot saved: v2_task2_form.png",
+        "[07:16:48] Page structure: {'buttons': 12, 'links': 8, 'inputs': 0, 'selects': 0, 'textareas': 0}",
+        "[07:16:48] Error capturing structure: 'charmap' codec can't encode character '\\U0001f4f1' in position 96: character maps to <undefined>",
+        "[07:16:49] Screenshot saved: v2_task2_filled.png"
+      ],
+      "status": "COMPLETED"
+    },
+    "task3_validation": {
+      "logs": [
+        "[07:16:49] ======================================================================",
+        "[07:16:49] TASK 3: Form Validation Testing",
+        "[07:16:49] ======================================================================"
+      ],
+      "status": "COMPLETED"
+    },
+    "task4_photo_upload": {
+      "logs": [
+        "[07:16:52] ======================================================================",
+        "[07:16:52] TASK 4: Photo Upload Testing",
+        "[07:16:52] ======================================================================",
+        "[07:16:52] Created test image",
+        "[07:16:55] No upload elements found"
+      ],
+      "upload_found": false,
+      "status": "COMPLETED"
+    },
+    "task5_data_verification": {
+      "logs": [
+        "[07:16:55] ======================================================================",
+        "[07:16:55] TASK 5: Form Data Verification",
+        "[07:16:55] ======================================================================",
+        "[07:17:01] Screenshot saved: v2_task5_data.png",
+        "[07:17:01] Found 0 tables, 0 rows"
+      ],
+      "test_data_found": false,
+      "status": "COMPLETED"
+    }
+  },
+  "errors": [],
+  "findings": [
+    {
+      "category": "Form Submission",
+      "description": "Custodial form appears to submit successfully",
+      "status": "success",
+      "timestamp": "2026-02-10T07:16:45.452096"
+    },
+    {
+      "category": "Whole Building Form",
+      "description": "Form structure: {}",
+      "status": "info",
+      "timestamp": "2026-02-10T07:16:49.020528"
+    },
+    {
+      "category": "Photo Upload",
+      "description": "No photo upload elements detected",
+      "status": "info",
+      "timestamp": "2026-02-10T07:16:55.439463"
+    },
+    {
+      "category": "Data Verification",
+      "description": "'Test Inspector' not found in data view",
+      "status": "info",
+      "timestamp": "2026-02-10T07:17:01.551869"
+    },
+    {
+      "category": "Data Structure",
+      "description": "Data page has 0 tables and 0 rows",
+      "status": "info",
+      "timestamp": "2026-02-10T07:17:01.561123"
+    }
+  ]
+}

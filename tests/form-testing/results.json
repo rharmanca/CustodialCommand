@@ -1,0 +1,87 @@
+{
+  "test_run": "20260209_215107",
+  "tasks": {
+    "task1_custodial_inspection": {
+      "logs": [
+        "[21:51:33] ============================================================",
+        "[21:51:33] TASK 1: Custodial Inspection Form Test",
+        "[21:51:33] ============================================================",
+        "[21:51:33] Navigating to Custodial Inspection page...",
+        "[21:51:37] Screenshot saved: task1_initial.png",
+        "[21:51:37] Found 0 form element(s)",
+        "[21:51:37] Filling inspector name...",
+        "[21:51:37] Inspector input not found, trying generic approach...",
+        "[21:51:37] Selecting school...",
+        "[21:51:37] Filling room number...",
+        "[21:51:37] Looking for scoring criteria...",
+        "[21:51:37] Found 0 potential score inputs",
+        "[21:51:37] Set 0 scores",
+        "[21:51:37] Adding notes...",
+        "[21:51:37] Screenshot saved: task1_filled.png",
+        "[21:51:37] Attempting to submit form...",
+        "[21:51:37] ERROR: Submit button not found"
+      ],
+      "status": "FAILED"
+    },
+    "console": {
+      "logs": [
+        "[21:51:33] [Browser Console] log: [Polyfill] Performance object and scheduler exports container initialized",
+        "[21:51:34] [Browser Console] log: App initializing...",
+        "[21:51:34] [Browser Console] log: Service Worker registered successfully: https://cacustodialcommand.up.railway.app/",
+        "[21:51:34] [Browser Console] error: Failed to load resource: the server responded with a status of 429 ()",
+        "[21:51:34] [Browser Console] error: [CSRF] Failed to fetch token: Error: Failed to fetch CSRF token: 429\n    at o (https://cacustodialcommand.up.railway.app/assets/csrf-DV9n1Bpu.js:1:133)\n    at async a (https://cacustodialcommand.up.railway.app/assets/csrf-DV9n1Bpu.js:1:593)",
+        "[21:51:34] [Browser Console] warning: [CSRF] Initialization failed (backend may not support CSRF yet): Error: Failed to fetch CSRF token: 429\n    at o (https://cacustodialcommand.up.railway.app/assets/csrf-DV9n1Bpu.js:1:133)\n    at async a (https://cacustodialcommand.up.railway.app/assets/csrf-DV9n1Bpu.js:1:593)"
+      ]
+    },
+    "task2_whole_building": {
+      "logs": [
+        "[21:51:37] ============================================================",
+        "[21:51:37] TASK 2: Whole Building Inspection Form Test",
+        "[21:51:37] ============================================================",
+        "[21:51:37] Navigating to Whole Building Inspection page...",
+        "[21:51:39] Screenshot saved: task2_initial.png",
+        "[21:51:39] Analyzing form structure...",
+        "[21:51:39] Found: 0 forms, 0 inputs, 0 selects, 12 buttons",
+        "[21:51:39] Attempting to fill form...",
+        "[21:51:39] Screenshot saved: task2_filled.png"
+      ],
+      "status": "COMPLETED"
+    },
+    "task3_validation": {
+      "logs": [
+        "[21:51:39] ============================================================",
+        "[21:51:39] TASK 3: Form Validation Testing",
+        "[21:51:39] ============================================================",
+        "[21:51:41] Testing empty form submission..."
+      ],
+      "status": "COMPLETED"
+    },
+    "task4_photo_upload": {
+      "logs": [
+        "[21:51:41] ============================================================",
+        "[21:51:41] TASK 4: Photo Upload Testing",
+        "[21:51:41] ============================================================",
+        "[21:51:41] Creating test image...",
+        "[21:51:42] Created test image using PIL",
+        "[21:51:44] Looking for file upload input...",
+        "[21:51:44] No file upload input found on form"
+      ],
+      "upload_found": false,
+      "status": "COMPLETED"
+    },
+    "task5_data_verification": {
+      "logs": [
+        "[21:51:44] ============================================================",
+        "[21:51:44] TASK 5: Form Data Verification",
+        "[21:51:44] ============================================================",
+        "[21:51:44] Navigating to Inspection Data page...",
+        "[21:51:47] Screenshot saved: task5_data_page.png",
+        "[21:51:47] WARNING: 'Test Inspector' not found in current view",
+        "[21:51:47] Found 0 tables, ~17 potential data rows"
+      ],
+      "test_data_found": false,
+      "status": "COMPLETED"
+    }
+  },
+  "errors": []
+}
