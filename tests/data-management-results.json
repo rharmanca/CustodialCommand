@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-02-10T07:31:58Z",
+  "target_url": "https://cacustodialcommand.up.railway.app/",
+  "tests": {
+    "custodial_notes": {
+      "status": "INCOMPLETE",
+      "error": "No create button or list found"
+    },
+    "inspection_data": {
+      "status": "PARTIAL",
+      "checks": {
+        "has_table": false,
+        "has_inspector": false,
+        "has_school": false,
+        "has_date": true,
+        "has_score": true,
+        "test_inspector_present": false
+      }
+    },
+    "filter_search": {
+      "school_filter": "NOT_FOUND",
+      "search": "NOT_FOUND"
+    },
+    "persistence": {
+      "status": "WARNING",
+      "initial_count": 0,
+      "refreshed_count": 0
+    },
+    "export": {
+      "export_buttons_found": 0,
+      "status": "NOT_AVAILABLE"
+    },
+    "sorting": {
+      "found": false
+    },
+    "pagination": {
+      "found": false
+    }
+  }
+}
