@@ -294,23 +294,94 @@ export const storage = {
     });
   },
 
-  async getRoomInspections(buildingInspectionId?: number) {
-    const cacheKey = `roomInspections:all:${buildingInspectionId || 'all'}`;
+  async getRoomInspections(options?: {
+    buildingInspectionId?: number;
+    roomIdentifier?: string;
+    roomType?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const cacheKey = `roomInspections:list:${JSON.stringify(options || {})}`;
     return executeQuery('getRoomInspections', async () => {
-      if (buildingInspectionId) {
-        const result = await db.select()
-          .from(roomInspections)
-          .where(eq(roomInspections.buildingInspectionId, buildingInspectionId))
-          .orderBy(desc(roomInspections.createdAt));
-        logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
-        return result;
-      } else {
-        const result = await db.select()
-          .from(roomInspections)
-          .orderBy(desc(roomInspections.createdAt));
-        logger.info(`Retrieved ${result.length} room inspections`);
-        return result;
+      // Build filter conditions
+      const conditions = [];
+
+      if (options?.buildingInspectionId) {
+        conditions.push(eq(roomInspections.buildingInspectionId, options.buildingInspectionId));
       }
+
+      if (options?.roomIdentifier) {
+        conditions.push(eq(roomInspections.roomIdentifier, options.roomIdentifier));
+      }
+
+      if (options?.roomType) {
+        conditions.push(eq(roomInspections.roomType, options.roomType));
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // Pagination parameters with defaults and validation
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100
+        ? options.limit
+        : 50; // Default 50 records per page, max 100
+
+      const offset = (page - 1) * limit;
+
+      // Execute queries in parallel for performance
+      const [roomData, totalCountResult] = await Promise.all([
+        // Fetch paginated data with column selection for performance
+        db.select({
+          id: roomInspections.id,
+          buildingInspectionId: roomInspections.buildingInspectionId,
+          roomType: roomInspections.roomType,
+          roomIdentifier: roomInspections.roomIdentifier,
+          floors: roomInspections.floors,
+          verticalHorizontalSurfaces: roomInspections.verticalHorizontalSurfaces,
+          ceiling: roomInspections.ceiling,
+          restrooms: roomInspections.restrooms,
+          customerSatisfaction: roomInspections.customerSatisfaction,
+          trash: roomInspections.trash,
+          projectCleaning: roomInspections.projectCleaning,
+          activitySupport: roomInspections.activitySupport,
+          safetyCompliance: roomInspections.safetyCompliance,
+          equipment: roomInspections.equipment,
+          monitoring: roomInspections.monitoring,
+          notes: roomInspections.notes,
+          createdAt: roomInspections.createdAt,
+        })
+          .from(roomInspections)
+          .where(whereClause)
+          .orderBy(desc(roomInspections.createdAt))
+          .limit(limit)
+          .offset(offset),
+
+        // Fetch total count for pagination metadata
+        db.select({ count: sql<number>`count(*)` })
+          .from(roomInspections)
+          .where(whereClause)
+      ]);
+
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      logger.info(`Retrieved ${roomData.length} room inspections (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+
+      return {
+        data: roomData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
     }, cacheKey, 60000); // 1 minute cache for list queries
   },
 

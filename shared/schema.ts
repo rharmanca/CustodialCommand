@@ -70,7 +70,13 @@ export const roomInspections = pgTable("room_inspections", {
   images: text("images").array().default([]),
   responses: text("responses"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  buildingInspectionIdIdx: index("room_inspections_building_id_idx").on(table.buildingInspectionId),
+  roomTypeIdx: index("room_inspections_room_type_idx").on(table.roomType),
+  roomIdentifierIdx: index("room_inspections_room_identifier_idx").on(table.roomIdentifier),
+  createdAtIdx: index("room_inspections_created_at_idx").on(table.createdAt),
+  buildingCreatedAtIdx: index("room_inspections_building_created_idx").on(table.buildingInspectionId, table.createdAt),
+}));
 
 export const custodialNotes = pgTable("custodial_notes", {
   id: serial("id").primaryKey(),

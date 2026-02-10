@@ -851,18 +851,68 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.get("/api/room-inspections", async (req: Request, res: Response) => {
     try {
-      const buildingInspectionId = req.query.buildingInspectionId;
-      const roomInspections = await storage.getRoomInspections();
+      const { buildingInspectionId, roomIdentifier, roomType, page = "1", limit = "50" } = req.query;
+
+      // Validate pagination parameters
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+
+      if (
+        isNaN(pageNum) ||
+        pageNum < 1 ||
+        isNaN(limitNum) ||
+        limitNum < 1 ||
+        limitNum > 100
+      ) {
+        return res.status(400).json({
+          error: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100",
+          },
+        });
+      }
+
+      // Build query options
+      const options: {
+        buildingInspectionId?: number;
+        roomIdentifier?: string;
+        roomType?: string;
+        page: number;
+        limit: number;
+      } = {
+        page: pageNum,
+        limit: limitNum,
+      };
 
       if (buildingInspectionId) {
-        const filteredRooms = roomInspections.filter(
-          (room) =>
-            room.buildingInspectionId === parseInt(buildingInspectionId),
-        );
-        res.json(filteredRooms);
-      } else {
-        res.json(roomInspections);
+        const parsedId = parseInt(buildingInspectionId as string, 10);
+        if (!isNaN(parsedId)) {
+          options.buildingInspectionId = parsedId;
+        }
       }
+
+      if (roomIdentifier) {
+        options.roomIdentifier = roomIdentifier as string;
+      }
+
+      if (roomType) {
+        options.roomType = roomType as string;
+      }
+
+      const result = await storage.getRoomInspections(options);
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          buildingInspectionId: options.buildingInspectionId,
+          roomIdentifier: options.roomIdentifier,
+          roomType: options.roomType,
+        },
+      });
     } catch (error) {
       logger.error("Error fetching room inspections:", error);
       res.status(500).json({ error: "Failed to fetch room inspections" });
