@@ -192,11 +192,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.get("/api/inspections", async (req: Request, res: Response) => {
     try {
-      const { type, incomplete, page = "1", limit = "50" } = req.query;
-      let inspections;
-
-      inspections = await storage.getInspections();
-      logger.info(`[GET] Found ${inspections.length} total inspections`);
+      const { type, incomplete, page = "1", limit = "50", school, startDate, endDate } = req.query;
 
       // Validate pagination parameters
       const pageNum = parseInt(page as string, 10);
@@ -218,31 +214,54 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
 
-      const totalCount = inspections.length;
-      const offset = (pageNum - 1) * limitNum;
+      // Build query options with server-side filtering
+      const options: {
+        page: number;
+        limit: number;
+        school?: string;
+        startDate?: string;
+        endDate?: string;
+        inspectionType?: 'single_room' | 'whole_building';
+        isCompleted?: boolean;
+      } = {
+        page: pageNum,
+        limit: limitNum,
+      };
 
-      // Apply filters
-      if (type === "whole_building" && incomplete === "true") {
-        inspections = inspections.filter(
-          (inspection) =>
-            inspection.inspectionType === "whole_building" &&
-            !inspection.isCompleted,
-        );
-        logger.info(
-          `[GET] Filtered whole_building incomplete: ${inspections.length} → ${inspections.length} inspections`,
-        );
+      // Apply filters at database level
+      if (school) {
+        options.school = school as string;
       }
 
-      // Apply pagination
-      const paginatedInspections = inspections.slice(offset, offset + limitNum);
+      if (startDate) {
+        options.startDate = startDate as string;
+      }
+
+      if (endDate) {
+        options.endDate = endDate as string;
+      }
+
+      if (type === "whole_building" && incomplete === "true") {
+        options.inspectionType = "whole_building";
+        options.isCompleted = false;
+      } else if (type) {
+        options.inspectionType = type as 'single_room' | 'whole_building';
+      }
+
+      const result = await storage.getInspections(options);
+
+      logger.info(`[GET] Retrieved ${result.data.length} inspections (page ${result.pagination.currentPage}/${result.pagination.totalPages})`);
 
       res.json({
-        data: paginatedInspections,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: totalCount,
-          totalPages: Math.ceil(totalCount / limitNum),
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          type: options.inspectionType,
+          incomplete: incomplete === "true" ? true : undefined,
+          school: options.school,
+          startDate: options.startDate,
+          endDate: options.endDate,
         },
       });
     } catch (error) {
@@ -1254,8 +1273,15 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Protected admin routes
   app.get("/api/admin/inspections", validateAdminSession, async (req, res) => {
     try {
-      const inspections = await storage.getInspections();
-      res.json({ success: true, data: inspections });
+      const { page = "1", limit = "50" } = req.query;
+      const pageNum = parseInt(page as string, 10) || 1;
+      const limitNum = parseInt(limit as string, 10) || 50;
+
+      const result = await storage.getInspections({
+        page: pageNum,
+        limit: Math.min(limitNum, 100),
+      });
+      res.json({ success: true, data: result.data, pagination: result.pagination });
     } catch (error) {
       logger.error("Error fetching admin inspections", { error });
       res
@@ -1717,9 +1743,10 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
 
       // Fetch filtered inspections and notes directly from database (optimized query)
-      const filteredInspections = await storage.getInspections({
+      const inspectionsResult = await storage.getInspections({
         startDate: validStartDate || undefined,
         endDate: validEndDate || undefined,
+        limit: 1000, // Get more records for analytics
       });
 
       const filteredNotes = await storage.getCustodialNotes({
@@ -1731,7 +1758,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const inspectionsBySchool: Record<string, any[]> = {};
       const notesBySchool: Record<string, any[]> = {};
 
-      filteredInspections.forEach((inspection) => {
+      inspectionsResult.data.forEach((inspection) => {
         if (!inspectionsBySchool[inspection.school]) {
           inspectionsBySchool[inspection.school] = [];
         }
@@ -1806,10 +1833,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       });
 
       // Fetch filtered inspections and notes directly from database (optimized query)
-      const inspections = await storage.getInspections({
+      const inspectionsResult = await storage.getInspections({
         school,
         startDate: validStartDate || undefined,
         endDate: validEndDate || undefined,
+        limit: 1000, // Get more records for analytics
       });
 
       const notes = await storage.getCustodialNotes({
@@ -1818,8 +1846,10 @@ export async function registerRoutes(app: Express): Promise<void> {
         endDate: validEndDate || undefined,
       });
 
+      const inspectionsData = inspectionsResult.data;
+
       // Calculate score
-      const scoringResult = calculateBuildingScore(inspections, notes);
+      const scoringResult = calculateBuildingScore(inspectionsData, notes);
       const complianceStatus = getComplianceStatus(scoringResult.overallScore);
 
       res.json({
@@ -1828,10 +1858,10 @@ export async function registerRoutes(app: Express): Promise<void> {
         score: scoringResult,
         complianceStatus,
         dateRange: {
-          start: startDate || inspections[0]?.date || notes[0]?.date,
+          start: startDate || inspectionsData[0]?.date || notes[0]?.date,
           end:
             endDate ||
-            inspections[inspections.length - 1]?.date ||
+            inspectionsData[inspectionsData.length - 1]?.date ||
             notes[notes.length - 1]?.date,
         },
       });

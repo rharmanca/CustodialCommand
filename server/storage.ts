@@ -111,17 +111,27 @@ export const storage = {
   },
 
   async getInspections(options?: {
+    page?: number;
     limit?: number;
-    offset?: number;
     startDate?: string;
     endDate?: string;
     school?: string;
     inspectionType?: 'single_room' | 'whole_building';
-  }) {
-    const cacheKey = `inspections:all:${JSON.stringify(options || {})}`;
+    isCompleted?: boolean;
+  }): Promise<{
+    data: any[];
+    totalCount: number;
+    pagination: {
+      currentPage: number;
+      pageSize: number;
+      totalPages: number;
+      totalRecords: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  }> {
+    const cacheKey = `inspections:list:${JSON.stringify(options || {})}`;
     return executeQuery('getInspections', async () => {
-      let query = db.select().from(inspections);
-
       // Build filter conditions
       const conditions = [];
 
@@ -141,25 +151,83 @@ export const storage = {
         conditions.push(eq(inspections.inspectionType, options.inspectionType));
       }
 
-      // Apply all conditions if any exist
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+      if (options?.isCompleted !== undefined) {
+        conditions.push(eq(inspections.isCompleted, options.isCompleted));
       }
 
-      // Order by date descending (most recent first)
-      query = query.orderBy(desc(inspections.date));
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
+      // Pagination parameters with defaults and validation
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100
+        ? options.limit
+        : 50; // Default 50 records per page, max 100
 
-      if (options?.offset) {
-        query = query.offset(options.offset);
-      }
+      const offset = (page - 1) * limit;
 
-      const result = await query;
-      logger.info(`Retrieved ${result.length} inspections`, { options });
-      return result;
+      // Execute queries in parallel for performance
+      const [inspectionsData, totalCountResult] = await Promise.all([
+        // Fetch paginated data with column selection
+        db.select({
+          id: inspections.id,
+          inspectorName: inspections.inspectorName,
+          school: inspections.school,
+          date: inspections.date,
+          inspectionType: inspections.inspectionType,
+          locationDescription: inspections.locationDescription,
+          roomNumber: inspections.roomNumber,
+          locationCategory: inspections.locationCategory,
+          buildingName: inspections.buildingName,
+          buildingInspectionId: inspections.buildingInspectionId,
+          floors: inspections.floors,
+          verticalHorizontalSurfaces: inspections.verticalHorizontalSurfaces,
+          ceiling: inspections.ceiling,
+          restrooms: inspections.restrooms,
+          customerSatisfaction: inspections.customerSatisfaction,
+          trash: inspections.trash,
+          projectCleaning: inspections.projectCleaning,
+          activitySupport: inspections.activitySupport,
+          safetyCompliance: inspections.safetyCompliance,
+          equipment: inspections.equipment,
+          monitoring: inspections.monitoring,
+          notes: inspections.notes,
+          images: inspections.images,
+          verifiedRooms: inspections.verifiedRooms,
+          isCompleted: inspections.isCompleted,
+          createdAt: inspections.createdAt,
+        })
+          .from(inspections)
+          .where(whereClause)
+          .orderBy(desc(inspections.date))
+          .limit(limit)
+          .offset(offset),
+
+        // Fetch total count for pagination metadata
+        db.select({ count: sql<number>`count(*)` })
+          .from(inspections)
+          .where(whereClause)
+      ]);
+
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      logger.info(`Retrieved ${inspectionsData.length} inspections (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+
+      return {
+        data: inspectionsData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
     }, cacheKey, 60000); // 1 minute cache for list queries
   },
 
