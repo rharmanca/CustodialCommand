@@ -288,6 +288,71 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Quick Capture endpoint - POST /api/inspections/quick-capture
+  app.post("/api/inspections/quick-capture", async (req: Request, res: Response) => {
+    logger.info("[POST] Quick capture submission started", {
+      body: req.body,
+    });
+
+    try {
+      // Validate request body with Zod
+      const quickCaptureSchema = z.object({
+        school: z.string().min(1, "School is required"),
+        captureLocation: z.string().min(1, "Capture location is required"),
+        inspectorName: z.string().min(1, "Inspector name is required"),
+        quickNotes: z.string().max(200, "Quick notes must be 200 characters or less").optional(),
+        images: z.array(z.string()).optional(),
+      });
+
+      const validatedData = quickCaptureSchema.parse(req.body);
+
+      // Create quick capture inspection
+      const newInspection = await storage.createQuickCapture({
+        school: validatedData.school,
+        captureLocation: validatedData.captureLocation,
+        inspectorName: validatedData.inspectorName,
+        quickNotes: validatedData.quickNotes,
+        images: validatedData.images,
+      });
+
+      logger.info("[POST] Quick capture created successfully", {
+        id: newInspection.id,
+        school: validatedData.school,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Quick capture created successfully",
+        data: newInspection,
+      });
+    } catch (error) {
+      logger.error("[POST] Error creating quick capture:", error);
+
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid quick capture data",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message,
+          })),
+        });
+      }
+
+      if (error instanceof Error && error.message.includes("Missing required fields")) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  });
+
   // Custodial Notes routes - now supports file uploads
   app.post("/api/custodial-notes", upload.array("images"), async (req, res) => {
     logger.info("[POST] Custodial Notes submission started", {
