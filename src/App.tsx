@@ -44,6 +44,7 @@ const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
 const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
 const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
 const ScoresDashboard = lazy(() => import("./pages/scores-dashboard"));
+const QuickCapturePage = lazy(() => import("./pages/quick-capture"));
 const NotFoundPage = lazy(() => import("./pages/not-found"));
 
 // Loading skeleton component with accessibility support
@@ -112,6 +113,7 @@ function App() {
     | "admin-inspections"
     | "Monthly Feedback"
     | "Scores Dashboard"
+    | "Quick Capture"
   >("Custodial");
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
@@ -188,7 +190,8 @@ function App() {
         "Rating Criteria": "Rating Criteria Reference Guide",
         "admin-inspections": "Admin Inspections Panel",
         "Monthly Feedback": "Monthly Feedback Reports",
-        "Scores Dashboard": "Building Scores Dashboard"
+        "Scores Dashboard": "Building Scores Dashboard",
+        "Quick Capture": "Quick Photo Capture"
       };
 
       announce(`Navigated to ${pageNames[currentPage] || currentPage}`);
@@ -547,6 +550,12 @@ function App() {
           return (
             <Suspense fallback={<PageLoadingSkeleton />}>
               <ScoresDashboard onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
+          );
+        case "Quick Capture":
+          return (
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <QuickCapturePage onBack={() => setCurrentPage("Custodial")} />
             </Suspense>
           );
         default:
