@@ -266,6 +266,207 @@ export const storage = {
     });
   },
 
+  // Quick Capture / Pending Review workflow methods
+  async createQuickCapture(data: { school: string; captureLocation: string; inspectorName: string; quickNotes?: string; images?: string[] }) {
+    return executeQuery('createQuickCapture', async () => {
+      // Validate required fields
+      if (!data.school || !data.captureLocation || !data.inspectorName) {
+        throw new Error('Missing required fields: school, captureLocation, and inspectorName are required');
+      }
+
+      const inspectionData = {
+        inspectorName: data.inspectorName,
+        school: data.school,
+        date: new Date().toISOString(),
+        inspectionType: 'single_room' as const,
+        locationDescription: data.captureLocation,
+        status: 'pending_review' as const,
+        captureTimestamp: new Date(),
+        captureLocation: data.captureLocation,
+        quickNotes: data.quickNotes || null,
+        images: data.images || [],
+        isCompleted: false,
+      };
+
+      const [result] = await db.insert(inspections).values(inspectionData).returning();
+      logger.info('Created quick capture inspection:', { id: result.id, school: data.school });
+
+      // Invalidate relevant cache entries
+      await CacheManager.clearPattern('inspections:pending');
+      await CacheManager.clearPattern('inspections:list');
+
+      return result;
+    });
+  },
+
+  async getPendingInspections(options?: {
+    school?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    data: any[];
+    totalCount: number;
+    pagination: {
+      currentPage: number;
+      pageSize: number;
+      totalPages: number;
+      totalRecords: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  }> {
+    const cacheKey = `inspections:pending:${JSON.stringify(options || {})}`;
+    return executeQuery('getPendingInspections', async () => {
+      // Build filter conditions
+      const conditions = [eq(inspections.status, 'pending_review')];
+
+      if (options?.school) {
+        conditions.push(eq(inspections.school, options.school));
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // Pagination parameters with defaults and validation
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100
+        ? options.limit
+        : 20; // Default 20 records per page for pending reviews
+
+      const offset = (page - 1) * limit;
+
+      // Execute queries in parallel for performance
+      const [inspectionsData, totalCountResult] = await Promise.all([
+        // Fetch paginated data ordered by captureTimestamp (newest first)
+        db.select({
+          id: inspections.id,
+          inspectorName: inspections.inspectorName,
+          school: inspections.school,
+          date: inspections.date,
+          inspectionType: inspections.inspectionType,
+          locationDescription: inspections.locationDescription,
+          roomNumber: inspections.roomNumber,
+          locationCategory: inspections.locationCategory,
+          buildingName: inspections.buildingName,
+          buildingInspectionId: inspections.buildingInspectionId,
+          notes: inspections.notes,
+          images: inspections.images,
+          verifiedRooms: inspections.verifiedRooms,
+          isCompleted: inspections.isCompleted,
+          status: inspections.status,
+          captureTimestamp: inspections.captureTimestamp,
+          completionTimestamp: inspections.completionTimestamp,
+          quickNotes: inspections.quickNotes,
+          captureLocation: inspections.captureLocation,
+          createdAt: inspections.createdAt,
+        })
+          .from(inspections)
+          .where(whereClause)
+          .orderBy(desc(inspections.captureTimestamp))
+          .limit(limit)
+          .offset(offset),
+
+        // Fetch total count for pagination metadata
+        db.select({ count: sql<number>`count(*)` })
+          .from(inspections)
+          .where(whereClause)
+      ]);
+
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      logger.info(`Retrieved ${inspectionsData.length} pending inspections (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+
+      return {
+        data: inspectionsData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
+    }, cacheKey, 60000); // 1 minute cache for pending list queries
+  },
+
+  async completePendingInspection(id: number, data: Partial<InsertInspection>) {
+    return executeQuery('completePendingInspection', async () => {
+      // First check if inspection exists and is in pending_review status
+      const [existing] = await db.select()
+        .from(inspections)
+        .where(eq(inspections.id, id))
+        .limit(1);
+
+      if (!existing) {
+        throw new Error('Inspection not found');
+      }
+
+      if (existing.status !== 'pending_review') {
+        throw new Error(`Inspection is not in pending_review status (current: ${existing.status})`);
+      }
+
+      // Update with completion data
+      const updateData = {
+        ...data,
+        status: 'completed' as const,
+        completionTimestamp: new Date(),
+        isCompleted: true,
+      };
+
+      const [result] = await db.update(inspections)
+        .set(updateData)
+        .where(eq(inspections.id, id))
+        .returning();
+
+      logger.info('Completed pending inspection:', { id });
+
+      // Invalidate relevant cache entries
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern('inspections:pending');
+      await CacheManager.clearPattern('inspections:list');
+
+      return result;
+    });
+  },
+
+  async discardInspection(id: number) {
+    return executeQuery('discardInspection', async () => {
+      // First check if inspection exists and is in pending_review status
+      const [existing] = await db.select()
+        .from(inspections)
+        .where(eq(inspections.id, id))
+        .limit(1);
+
+      if (!existing) {
+        throw new Error('Inspection not found');
+      }
+
+      if (existing.status !== 'pending_review') {
+        throw new Error(`Inspection is not in pending_review status (current: ${existing.status})`);
+      }
+
+      // Soft delete by updating status to discarded
+      const [result] = await db.update(inspections)
+        .set({ status: 'discarded' as const })
+        .where(eq(inspections.id, id))
+        .returning();
+
+      logger.info('Discarded inspection:', { id });
+
+      // Invalidate relevant cache entries
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern('inspections:pending');
+      await CacheManager.clearPattern('inspections:list');
+
+      return result;
+    });
+  },
+
   // Custodial Notes methods
   async createCustodialNote(data: InsertCustodialNote) {
     return executeQuery('createCustodialNote', async () => {
