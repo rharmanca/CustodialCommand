@@ -2252,10 +2252,51 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const photoUrl = `/objects/${filename}`;
 
+      // Generate thumbnail
+      let thumbnailUrl: string | undefined = undefined;
+      try {
+        logger.info("[POST] Generating thumbnail", {
+          filename,
+          size: req.file.buffer.length,
+        });
+
+        const thumbnailBuffer = await generateThumbnail(req.file.buffer);
+        const thumbnailFilename = `photos/${timestamp}-${randomId}-thumb-${req.file.originalname}`;
+
+        // Upload thumbnail to object storage
+        const thumbnailUploadResult = await objectStorageService.uploadLargeFile(
+          thumbnailBuffer,
+          thumbnailFilename,
+          req.file.mimetype,
+        );
+
+        if (thumbnailUploadResult.success) {
+          thumbnailUrl = `/objects/${thumbnailFilename}`;
+          logger.info("[POST] Thumbnail generated and uploaded", {
+            thumbnailFilename,
+            thumbnailUrl,
+            originalSize: req.file.buffer.length,
+            thumbnailSize: thumbnailBuffer.length,
+          });
+        } else {
+          logger.error("[POST] Failed to upload thumbnail", {
+            filename: thumbnailFilename,
+            error: thumbnailUploadResult.error,
+          });
+        }
+      } catch (thumbnailError) {
+        logger.error("[POST] Thumbnail generation failed", {
+          error: thumbnailError instanceof Error ? thumbnailError.message : 'Unknown error',
+          filename,
+        });
+        // Continue without thumbnail - don't fail the entire upload
+      }
+
       // Save to database
       const photoData = {
         inspectionId: inspectionId || null,
         photoUrl: photoUrl,
+        thumbnailUrl: thumbnailUrl,
         locationLat: locationData ? locationData.latitude.toString() : null,
         locationLng: locationData ? locationData.longitude.toString() : null,
         locationAccuracy:
@@ -2294,6 +2335,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         photo: {
           id: savedPhoto.id,
           url: photoUrl,
+          thumbnailUrl: thumbnailUrl || null,
           metadata: {
             width: metadata.width,
             height: metadata.height,
