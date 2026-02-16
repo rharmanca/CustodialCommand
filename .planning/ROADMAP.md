@@ -1,113 +1,134 @@
 # Custodial Command - Testing & Review Roadmap
 
 ## Overview
+
 Comprehensive testing and review of the deployed application at https://cacustodialcommand.up.railway.app/
 
 ## Phase 01: Deployed App Review and Testing
+
 **Goal:** Systematically test all features of the deployed application to verify functionality, identify issues, and document findings.
 
-**Scope:**
-- Frontend UI/UX testing across all 9 pages
-- Backend API endpoint verification
-- Database hosting verification on Railway
-- Mobile responsiveness and PWA features
-- Data persistence and photo upload
-- Admin authentication and protected routes
-- Performance and accessibility validation
+**Status:** ✅ COMPLETE (8/8 plans)
 
 ---
-
-### Phase 01: Plans
-
-**Plan 01** — Home Page & Navigation Testing
-- Test landing page load and PWA install prompt
-- Verify navigation to all pages
-- Check responsive design on mobile/desktop
-- Validate accessibility features
-
-**Plan 02** — Inspection Forms Testing  
-- Test Custodial Inspection form (single area)
-- Test Whole Building Inspection form
-- Verify form validation and error handling
-- Test photo upload functionality
-
-**Plan 03** — Data Management Testing
-- Test Custodial Notes creation and viewing
-- Test Inspection Data page and filtering
-- Verify data persistence after refresh
-- Test search and filter functionality
-
-**Plan 04** — Admin & Feedback Testing
-- Test admin login and protected routes
-- Test Monthly Feedback PDF upload and processing
-- Test Scores Dashboard data display
-- Verify admin CRUD operations
-
-**Plan 05** — Database & Infrastructure Verification
-- Verify PostgreSQL database is hosted on Railway (not local)
-- Confirm database connection strings and environment variables
-- Test data persistence across deployments
-- Verify backup and recovery procedures
-- Check database performance metrics
-
-**Plan 06** — API & Backend Testing
-- Test all API endpoints with curl/Postman
-- Verify authentication on protected routes
-- Test file upload endpoints
-- Validate error responses
-
-**Plan 07** — Mobile & PWA Testing
-- Test on mobile device/simulator
-- Verify PWA install and offline functionality
-- Test photo capture on mobile
-- Validate responsive breakpoints
-
-**Plan 08** — Cross-Cutting Concerns
-- Performance testing (load times)
-- Accessibility audit (keyboard navigation, screen readers)
-- Security validation (CSRF, auth, rate limiting)
-- Cross-browser testing
-
 
 ## Phase 02: Address Testing Recommendations
+
 **Goal:** Resolve issues and complete verification tasks identified during Phase 01 testing.
 
-**Scope:**
-- Manual verification of data page UI structure
-- Complete admin testing with credentials
-- Run Lighthouse accessibility audit
-- Cross-browser compatibility testing
-- Performance optimization
-- Cleanup test data
-- Set up monitoring and automation
+**Status:** 🔄 IN PROGRESS (5/8 plans complete)
 
 ---
 
-### Phase 02: Plans
+## Phase 03: Workflow Improvements
 
-**Plan 01** — Immediate Verification Tasks
-- Manual Inspection Data page review
-- Admin credential testing
-- Lighthouse accessibility audit
+**Goal:** Implement quick capture mode and photo-first review to improve mobile inspection workflow.
 
-**Plan 02** — Cross-Browser Testing
-- Firefox testing and verification
-- Safari testing and verification  
-- Edge testing and verification
-- Document compatibility issues
+**Status:** 📋 PLANNED (0/5 plans)
 
-**Plan 03** — Performance Optimization
-- Optimize /api/room-inspections endpoint
-- Database query optimization
-- Response time improvements
+**Scope:**
+- Quick capture mode for mobile field use
+- Photo-first review on desktop
+- Performance optimizations for mobile
+- Mobile UX improvements
+- Workflow completion tracking
 
-**Plan 04** — Test Data Cleanup
-- Remove "Test Inspector" entries from database
-- Clean up test photos and files
-- Reset test state
+---
 
-**Plan 05** — Monitoring & Automation Setup
-- Set up error log monitoring
-- Configure performance metrics tracking
-- Document monitoring procedures
+### Phase 03: Plans
 
+**Plan 01** — Quick Capture Core
+- Create "Quick Capture" entry point on mobile dashboard
+- Build rapid photo capture interface (camera stays open)
+- Location selection with minimal taps
+- Optional quick note field
+- Save as "pending review" status
+- Requirements: CAP-01, CAP-02, CAP-03, CAP-04, CAP-05, CAP-06, CAP-07
+
+**Plan 02** — Photo-First Review
+- Create "Pending Review" dashboard on desktop
+- Display photos alongside full inspection form
+- Enable photo reference while completing ratings
+- Complete inspection workflow
+- Requirements: REV-01, REV-02, REV-03, REV-04, REV-05, REV-06, REV-07
+
+**Plan 03** — Mobile Performance
+- Optimize inspection form load time (<2s)
+- Camera initialization optimization
+- Photo thumbnail generation
+- Progressive photo loading
+- Requirements: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05
+
+**Plan 04** — Mobile UX Polish
+- Large touch targets (44px minimum)
+- Portrait-only orientation support
+- Clear mode distinctions (capture vs review)
+- Offline capability for quick capture
+- Requirements: MOB-01, MOB-02, MOB-03, MOB-04
+
+**Plan 05** — Workflow Completion
+- End-to-end workflow testing
+- Data integrity verification
+- User acceptance testing
+- Documentation updates
+- Success criteria validation
+
+---
+
+## Phase 03: Success Criteria
+
+### Observable Outcomes
+
+1. **Mobile inspector can capture 5 locations in under 2 minutes**
+   - Including location selection, photos, and optional note
+   - Without opening full inspection form
+
+2. **Desktop reviewer can complete inspection using photos**
+   - Photos visible alongside form fields
+   - No need to re-visit physical location
+
+3. **No data loss between capture and review**
+   - Photos persist with inspection record
+   - Optional notes preserved
+   - Timestamps tracked separately
+
+4. **Improved mobile performance**
+   - Quick capture loads in <1s on 4G
+   - Camera stays active between shots
+   - Form loads in <2s
+
+### User-Facing Milestones
+
+| Milestone | User Can | Verification |
+|-----------|----------|--------------|
+| Quick Capture Live | Walk school and rapidly capture issues | Time 5 captures <2 min |
+| Photo Review Ready | Review and complete inspections from photos | Complete inspection without re-visit |
+| Performance Improved | Use app without waiting for loads | All screens <2s load |
+
+---
+
+## Traceability
+
+All Phase 03 requirements map to specific plans:
+
+| Plan | Requirements | Success Criteria |
+|------|--------------|------------------|
+| 03-01 | CAP-01 through CAP-07 | Milestone 1 |
+| 03-02 | REV-01 through REV-07 | Milestone 2 |
+| 03-03 | PERF-01 through PERF-05 | Milestone 3 |
+| 03-04 | MOB-01 through MOB-04 | Milestone 3 |
+| 03-05 | All Phase 03 | All Milestones |
+
+---
+
+## Current Status Summary
+
+| Phase | Status | Plans Complete | Next Action |
+|-------|--------|----------------|-------------|
+| 01 | ✅ Complete | 8/8 | — |
+| 02 | 🔄 In Progress | 5/8 | Complete 02-02, 02-04 |
+| 03 | 📋 Planned | 0/5 | Begin 03-01 |
+
+---
+*Roadmap created: 2026-02-16*
+*Last updated: 2026-02-16 - Added Phase 03: Workflow Improvements*
