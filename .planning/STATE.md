@@ -26,9 +26,9 @@ Phase 02: recommendations [███████░░] 87% 🔄
 ├── 02-04: Cleanup ⏳ PENDING
 └── 02-05: Monitoring ✅ COMPLETE
 
-Phase 03: workflow-improvements [░░░░░░░░░] 0% 📋
-├── 03-01: Quick Capture Core ⏳ READY TO PLAN
-├── 03-02: Photo-First Review ⏳ PENDING
+Phase 03: workflow-improvements [██░░░░░░░] 20% 🔄
+├── 03-01: Quick Capture Core ✅ COMPLETE
+├── 03-02: Photo-First Review ⏳ READY TO PLAN
 ├── 03-03: Mobile Performance ⏳ PENDING
 ├── 03-04: Mobile UX Polish ⏳ PENDING
 └── 03-05: Workflow Completion ⏳ PENDING
@@ -56,12 +56,14 @@ Phase 03: workflow-improvements [░░░░░░░░░] 0% 📋
 2. **Photo-First Review on Desktop**: Larger screens better for detailed assessment
 3. **Optional Quick Notes**: Some items need immediate context
 4. **Timeline**: No hard deadline; implement as bandwidth allows
+5. **Inspection Status Enum**: Three states: 'pending_review', 'completed', 'discarded' with backward-compatible default
+6. **Separate Timestamps**: captureTimestamp tracks quick capture, completionTimestamp tracks full review
 
 ## Next Actions
 
-1. **Plan Phase 03-01**: Quick Capture Core — Create detailed plan
+1. **Plan Phase 03-02**: Photo-First Review — Create detailed plan
 2. **Complete Phase 02**: Finish Cross-Browser Testing and Cleanup
-3. **Execute Phase 03**: Begin implementation
+3. **Execute Phase 03-02**: Implement photo-first review features
 
 ## File References
 
@@ -73,8 +75,8 @@ Phase 03: workflow-improvements [░░░░░░░░░] 0% 📋
 ## Last Session
 
 - **Timestamp**: 2026-02-16
-- **Activity**: Created Phase 03 planning documents
-- **Summary**: Documented workflow improvement requirements based on user feedback about mobile inspection pain points
+- **Activity**: Executed Plan 03-01: Quick Capture Core
+- **Summary**: Extended inspections database schema with status tracking (pending_review/completed/discarded), capture/completion timestamps, quick notes (200 char), and capture location fields. Created migration file and performance indexes.
 
 ---
 *Last updated: 2026-02-16*
