@@ -24,6 +24,7 @@ import {
   getComplianceStatus,
 } from "./utils/scoring";
 import { sanitizeFilePath, isValidFilename } from "./utils/pathValidation";
+import { generateThumbnail } from "./services/thumbnail";
 
 const objectStorageService = new ObjectStorageService();
 
@@ -285,6 +286,160 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       logger.error("Error fetching inspection:", error);
       res.status(500).json({ error: "Failed to fetch inspection" });
+    }
+  });
+
+  // Pending Review endpoints
+  // GET /api/inspections/pending - List pending inspections
+  app.get("/api/inspections/pending", async (req: Request, res: Response) => {
+    try {
+      const { school, page = "1", limit = "20" } = req.query;
+
+      // Validate pagination parameters
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+
+      if (
+        isNaN(pageNum) ||
+        pageNum < 1 ||
+        isNaN(limitNum) ||
+        limitNum < 1 ||
+        limitNum > 100
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100",
+          },
+        });
+      }
+
+      const options: {
+        school?: string;
+        page: number;
+        limit: number;
+      } = {
+        page: pageNum,
+        limit: limitNum,
+      };
+
+      if (school) {
+        options.school = school as string;
+      }
+
+      const result = await storage.getPendingInspections(options);
+
+      logger.info(`[GET] Retrieved ${result.data.length} pending inspections (page ${result.pagination.currentPage}/${result.pagination.totalPages})`);
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          school: options.school,
+        },
+      });
+    } catch (error) {
+      logger.error("[GET] Error fetching pending inspections:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch pending inspections",
+      });
+    }
+  });
+
+  // PATCH /api/inspections/:id/complete - Complete a pending inspection
+  app.patch("/api/inspections/:id/complete", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid inspection ID",
+        });
+      }
+
+      logger.info(`[PATCH] Completing pending inspection ${id}`, {
+        body: req.body,
+      });
+
+      const completedInspection = await storage.completePendingInspection(id, req.body);
+
+      res.json({
+        success: true,
+        message: "Inspection completed successfully",
+        data: completedInspection,
+      });
+    } catch (error) {
+      logger.error(`[PATCH] Error completing inspection ${req.params.id}:`, error);
+
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return res.status(404).json({
+            success: false,
+            message: "Inspection not found",
+          });
+        }
+        if (error.message.includes("not in pending_review status")) {
+          return res.status(400).json({
+            success: false,
+            message: error.message,
+          });
+        }
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to complete inspection",
+      });
+    }
+  });
+
+  // PATCH /api/inspections/:id/discard - Discard a pending inspection
+  app.patch("/api/inspections/:id/discard", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid inspection ID",
+        });
+      }
+
+      logger.info(`[PATCH] Discarding inspection ${id}`);
+
+      const discardedInspection = await storage.discardInspection(id);
+
+      res.json({
+        success: true,
+        message: "Inspection discarded successfully",
+        data: discardedInspection,
+      });
+    } catch (error) {
+      logger.error(`[PATCH] Error discarding inspection ${req.params.id}:`, error);
+
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return res.status(404).json({
+            success: false,
+            message: "Inspection not found",
+          });
+        }
+        if (error.message.includes("not in pending_review status")) {
+          return res.status(400).json({
+            success: false,
+            message: error.message,
+          });
+        }
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to discard inspection",
+      });
     }
   });
 
