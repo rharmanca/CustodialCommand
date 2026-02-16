@@ -42,11 +42,20 @@ export const inspections = pgTable("inspections", {
   verifiedRooms: text("verified_rooms").array(), // For tracking completed room types in building inspections
   isCompleted: boolean("is_completed").default(false), // For whole building inspections
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Quick capture workflow fields
+  status: text("status").default('completed').notNull(), // 'pending_review', 'completed', 'discarded'
+  captureTimestamp: timestamp("capture_timestamp"), // When quick capture was created
+  completionTimestamp: timestamp("completion_timestamp"), // When full inspection completed
+  quickNotes: text("quick_notes"), // Optional 200-char notes for quick capture
+  captureLocation: text("capture_location"), // Quick-select location identifier
 }, (table) => ({
   schoolIdx: index("inspections_school_idx").on(table.school),
   dateIdx: index("inspections_date_idx").on(table.date),
   schoolDateIdx: index("inspections_school_date_idx").on(table.school, table.date),
   inspectionTypeIdx: index("inspections_type_idx").on(table.inspectionType),
+  statusIdx: index("inspections_status_idx").on(table.status),
+  statusSchoolIdx: index("inspections_status_school_idx").on(table.status, table.school),
+  captureTimestampIdx: index("inspections_capture_timestamp_idx").on(table.captureTimestamp),
 }));
 
 // New table for individual room inspections within a building inspection
@@ -118,6 +127,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
+export const inspectionStatusEnum = z.enum(['pending_review', 'completed', 'discarded']);
+
 export const insertInspectionSchema = createInsertSchema(inspections).omit({
   id: true,
   createdAt: true,
@@ -131,6 +142,12 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   locationDescription: z.string().optional().default(''),
   inspectorName: z.string().min(1, "Inspector name is required"),
   date: z.string().min(1, "Date is required"),
+  // Quick capture workflow fields
+  status: inspectionStatusEnum.optional().default('completed'),
+  captureTimestamp: z.date().nullable().optional(),
+  completionTimestamp: z.date().nullable().optional(),
+  quickNotes: z.string().max(200, "Quick notes must be 200 characters or less").nullable().optional(),
+  captureLocation: z.string().nullable().optional(),
   // Make these fields nullable for building inspections
   floors: coerceNullableNumber.optional(),
   verticalHorizontalSurfaces: coerceNullableNumber.optional(),
