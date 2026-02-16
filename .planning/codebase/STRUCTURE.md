@@ -1,216 +1,438 @@
 # Codebase Structure
 
-**Analysis Date:** 2025-02-09
+**Analysis Date:** 2026-02-16
 
 ## Directory Layout
 
 ```
-[custodial-command]/
-├── src/                      # React frontend source
-│   ├── components/           # React components
-│   │   ├── charts/          # Data visualization components
-│   │   ├── data/            # Data display components
-│   │   ├── dev/             # Development/debug components
-│   │   ├── errors/          # Error handling components
-│   │   ├── filters/         # Filter UI components
-│   │   ├── performance/     # Performance optimization components
-│   │   ├── reports/         # Report generation components
-│   │   ├── shared/          # Shared component utilities
-│   │   └── ui/              # UI primitive components (shadcn/radix)
-│   ├── hooks/               # Custom React hooks
-│   ├── lib/                 # Library configuration (TanStack Query, utils)
-│   ├── pages/               # Page-level components (routes)
-│   ├── schemas/             # Zod schemas (deprecated - use shared/)
-│   ├── styles/              # Global styles and CSS
-│   ├── types/               # TypeScript type definitions
-│   └── utils/               # Utility functions
-├── server/                   # Express backend
-│   ├── config/              # Server configuration constants
-│   ├── controllers/         # Route controllers (handlers)
-│   ├── types/               # Server-specific TypeScript types
-│   └── utils/               # Server utilities (scoring, file upload, etc.)
-├── shared/                   # Shared between frontend and backend
-│   └── schema.ts            # Zod schemas and Drizzle table definitions
-├── client/                   # Client-side utilities (minimal)
-│   └── src/                 # Additional client source
-├── tests/                    # Test suites
-│   ├── performance/         # Performance test results
-│   ├── reports/             # Test reports
-│   └── screenshots/         # Test screenshots
-├── public/                   # Static assets served directly
-│   └── fonts/               # Font files
-├── scripts/                  # Utility scripts
-│   └── qa/                  # QA automation scripts
-├── docs/                     # Documentation
-│   ├── mobile-efficiency/   # Mobile optimization docs
-│   ├── pdca/                # PDCA improvement docs
-│   └── security/            # Security documentation
-├── migrations/               # Database migrations (Drizzle)
-│   └── meta/                # Migration metadata
-├── .planning/               # Project planning documents
-│   └── codebase/            # Codebase analysis documents
-└── dist/                    # Build output (generated)
-    └── public/              # Bundled frontend assets
+project-root/
+├── .planning/              # GSD planning artifacts
+│   ├── codebase/           # Codebase documentation
+│   └── phases/           # Phase tracking
+├── .github/              # GitHub Actions and workflows
+├── client/               # Legacy client folder (minimal use)
+├── docs/                 # Documentation
+│   ├── mobile-efficiency/
+│   ├── monitoring/
+│   ├── pdca/
+│   ├── plans/
+│   └── security/
+├── migrations/           # Drizzle ORM database migrations
+│   └── meta/
+├── public/               # Static assets served directly
+│   ├── fonts/
+│   ├── icons/
+│   ├── manifest.json     # PWA manifest
+│   └── sw.js             # Service Worker for offline
+├── scripts/              # Utility scripts
+│   └── qa/
+├── server/               # Express backend
+│   ├── config/
+│   ├── controllers/
+│   ├── types/
+│   └── utils/
+├── shared/                 # Shared types and schemas
+├── src/                    # React frontend
+│   ├── assets/
+│   ├── components/
+│   ├── hooks/
+│   ├── lib/
+│   ├── pages/
+│   ├── polyfills/
+│   ├── schemas/
+│   ├── styles/
+│   ├── types/
+│   └── utils/
+├── tests/                  # Test suites
+│   ├── admin/
+│   ├── form-testing/
+│   ├── performance/
+│   ├── reports/
+│   ├── screenshots/
+│   └── test-assets/
+└── ui-tests/               # Playwright UI tests
 ```
 
 ## Directory Purposes
 
-**`src/` (Frontend):**
-- Purpose: React application source code
-- Contains: Components, pages, hooks, utilities, styles
-- Key files: `App.tsx`, `main.tsx`
+### Root Level Files
 
-**`src/components/`:**
-- Purpose: Reusable React components
-- Subdirectories organize by function:
-  - `ui/` - shadcn/ui components built on Radix UI primitives
-  - `charts/` - Recharts-based data visualizations
-  - `filters/` - Advanced filtering UI
-  - `dev/` - Development tools and demos
-
-**`src/pages/`:**
-- Purpose: Page-level route components
-- Pattern: Each file represents a route (e.g., `custodial-inspection.tsx`)
-- Lazy-loaded in `App.tsx` for code splitting
-
-**`src/hooks/`:**
-- Purpose: Custom React hooks for shared logic
-- Examples: `usePhotoCapture.ts`, `useOfflineManager.ts`, `use-toast.ts`
-
-**`src/utils/`:**
-- Purpose: Pure utility functions
-- Examples: `api.ts` (API client), `photoStorage.ts`, `offlineManager.ts`
-
-**`server/` (Backend):**
-- Purpose: Express.js API server
-- Contains: Route handlers, middleware, database logic
-- Key files: `index.ts` (entry), `routes.ts` (API routes), `storage.ts` (data layer)
-
-**`server/controllers/`:**
-- Purpose: Route controller functions (extracted from routes.ts)
-- Current: `inspectionController.ts`
-- Pattern: Each controller handles a specific resource
-
-**`server/utils/`:**
-- Purpose: Server-specific utilities
-- Examples: `scoring.ts` (score calculations), `fileUpload.ts`, `pathValidation.ts`
-
-**`shared/`:**
-- Purpose: Code shared between frontend and backend
-- Critical file: `schema.ts` - single source of truth for data shapes
-- Contains: Drizzle table definitions, Zod schemas, derived types
-
-**`public/`:**
-- Purpose: Static assets served directly
-- Contains: Fonts, service worker (at root), manifest.json
-
-**`migrations/`:**
-- Purpose: Database schema migrations
-- Tool: Drizzle Kit
-
-**`tests/`:**
-- Purpose: Test suites and results
-- Types: e2e, performance, security, mobile PWA tests
-
-## Key File Locations
-
-**Entry Points:**
-- Frontend: `src/main.tsx` - React app bootstrap
-- Backend: `server/index.ts` - Express server startup
-- Shared: `shared/schema.ts` - Type/schema definitions
-
-**Configuration:**
-- Vite: `vite.config.ts` - Build configuration, aliases, dev server
-- TypeScript: `tsconfig.json` - TypeScript compiler settings
-- Database: `drizzle.config.ts` - Drizzle ORM configuration
-- Tailwind: `tailwind.config.ts` - CSS framework configuration
-- Playwright: `playwright.config.ts` - E2E test configuration
-
-**Core Logic:**
-- App root: `src/App.tsx` - Main application component with routing
-- API routes: `server/routes.ts` - All API endpoint definitions
-- Storage layer: `server/storage.ts` - Database operations with caching
-- Database: `server/db.ts` - Drizzle ORM and connection pooling
-
-**Security:**
-- Security middleware: `server/security.ts` - Authentication, rate limiting
-- CSRF protection: `server/csrf.ts` - Token generation and validation
-- Error handling: `server/performanceErrorHandler.ts` - Error middleware
-
-**Testing:**
-- E2E tests: `tests/e2e-user-journey.test.cjs`
-- All tests: `tests/run-all-tests.cjs`
-
-## Naming Conventions
-
-**Files:**
-- Components: `PascalCase.tsx` (e.g., `PhotoCapture.tsx`)
-- Pages: `kebab-case.tsx` (e.g., `custodial-inspection.tsx`)
-- Utilities/Hooks: `camelCase.ts` (e.g., `usePhotoCapture.ts`)
-- Styles: `kebab-case.css` (e.g., `android-fixes.css`)
-- Server files: `camelCase.ts` (e.g., `storage.ts`)
-
-**Directories:**
-- All lowercase with hyphens: `components/`, `ui/`, `custodial-notes/`
-
-**Path Aliases:**
-- `@/*` → `src/*` (frontend)
-- `@assets/*` → `src/assets/*`
-- `@shared/*` → `shared/*` (both frontend and backend)
-
-## Where to Add New Code
-
-**New Feature:**
-- Page component: `src/pages/{feature-name}.tsx`
-- API routes: Add to `server/routes.ts` or create controller in `server/controllers/`
-- Database operations: Add to `server/storage.ts`
-- Types/Schemas: Add to `shared/schema.ts`
-
-**New Component:**
-- UI primitive: `src/components/ui/{ComponentName}.tsx`
-- Feature component: `src/components/{feature}/{ComponentName}.tsx`
-- Page component: `src/pages/{page-name}.tsx`
-
-**New Hook:**
-- Location: `src/hooks/use{HookName}.ts`
-- Pattern: Follow existing hook patterns with TypeScript types
-
-**New Utility:**
-- Frontend: `src/utils/{utilityName}.ts`
-- Backend: `server/utils/{utilityName}.ts`
-
-**New API Endpoint:**
-- Route definition: `server/routes.ts` (find appropriate section)
-- Controller logic: `server/controllers/{resource}Controller.ts` (if complex)
-- Storage method: `server/storage.ts` (add corresponding method)
-
-**Database Changes:**
-1. Update schema in `shared/schema.ts`
-2. Run `npm run db:push` to apply migrations
-3. Update storage methods in `server/storage.ts` if needed
-
-## Special Directories
-
-**`dist/`:**
-- Purpose: Production build output
-- Generated: Yes (by `npm run build`)
-- Committed: No (in `.gitignore`)
-
-**`node_modules/`:**
-- Purpose: npm dependencies
-- Generated: Yes (by `npm install`)
-- Committed: No (in `.gitignore`)
-
-**`.planning/`:**
-- Purpose: Project planning and documentation
-- Committed: Yes
-- Contains: Research, codebase analysis, task tracking
-
-**`migrations/meta/`:**
-- Purpose: Drizzle migration state
-- Generated: Yes
-- Committed: Yes (tracks migration history)
+| File | Purpose |
+|------|---------|
+| `package.json` | Dependencies and scripts |
+| `tsconfig.json` | TypeScript config (frontend) |
+| `tsconfig.server.json` | TypeScript config (backend) |
+| `vite.config.ts` | Vite build config |
+| `drizzle.config.ts` | Drizzle ORM config |
+| `tailwind.config.ts` | Tailwind CSS config |
+| `playwright.config.ts` | Playwright test config |
+| `index.html` | HTML entry point |
+| `railway.json` | Railway deployment config |
+| `.env.example` | Environment variable template |
 
 ---
 
-*Structure analysis: 2025-02-09*
+### `src/` - Frontend Source
+
+**Purpose:** React application source code
+
+**Subdirectories:**
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/assets/` | Static images, fonts, icons |
+| `src/components/` | React components |
+| `src/components/charts/` | Chart/Recharts components |
+| `src/components/data/` | Data visualization components |
+| `src/components/dev/` | Development/debugging components |
+| `src/components/errors/` | Error handling components |
+| `src/components/filters/` | Filter UI components |
+| `src/components/performance/` | Performance-related components |
+| `src/components/reports/` | Report generation components |
+| `src/components/shared/` | Shared component utilities |
+| `src/components/ui/` | Radix UI component wrappers (shadcn) |
+| `src/hooks/` | Custom React hooks |
+| `src/lib/` | Library initialization (queryClient, utils) |
+| `src/pages/` | Page-level route components |
+| `src/polyfills/` | Browser compatibility polyfills |
+| `src/schemas/` | Local Zod schemas (extends shared) |
+| `src/styles/` | CSS and Tailwind utilities |
+| `src/types/` | TypeScript type definitions |
+| `src/utils/` | Utility functions |
+
+**Key Files:**
+- `src/main.tsx` - React entry point
+- `src/App.tsx` - Root component with routing
+- `src/index.css` - Global styles
+
+---
+
+### `server/` - Backend Source
+
+**Purpose:** Express.js API server
+
+**Subdirectories:**
+
+| Directory | Purpose |
+|-----------|---------|
+| `server/config/` | Configuration constants |
+| `server/controllers/` | Route controller logic |
+| `server/types/` | Express type extensions |
+| `server/utils/` | Server utilities (scoring, validation) |
+
+**Key Files:**
+- `server/index.ts` - Server entry point
+- `server/routes.ts` - Route definitions
+- `server/storage.ts` - Database abstraction layer
+- `server/db.ts` - Database connection
+- `server/security.ts` - Security middleware
+- `server/csrf.ts` - CSRF protection
+- `server/cache.ts` - Caching middleware
+- `server/monitoring.ts` - Health monitoring
+- `server/performanceErrorHandler.ts` - Error handling
+- `server/objectStorage.ts` - File upload/storage
+- `server/logger.ts` - Structured logging
+- `server/doclingService.ts` - PDF text extraction
+
+---
+
+### `shared/` - Shared Code
+
+**Purpose:** Code shared between frontend and backend
+
+**Files:**
+- `shared/schema.ts` - Database schema + Zod schemas
+- `shared/custodial-criteria.ts` - Rating criteria definitions
+
+---
+
+### `tests/` - Test Suites
+
+**Purpose:** Automated testing
+
+**Subdirectories:**
+
+| Directory | Purpose |
+|-----------|---------|
+| `tests/admin/` | Admin panel tests |
+| `tests/form-testing/` | Form validation tests |
+| `tests/performance/` | Performance/load tests |
+| `tests/reports/` | Report generation tests |
+| `tests/screenshots/` | Visual regression test outputs |
+| `tests/test-assets/` | Test data and fixtures |
+
+**Key Files:**
+- `tests/run-all-tests.cjs` - Test runner
+- `tests/e2e-user-journey.test.cjs` - E2E tests
+- `tests/comprehensive-form-testing.cjs` - Form tests
+- `tests/mobile-pwa.test.cjs` - Mobile/PWA tests
+
+---
+
+### `public/` - Static Assets
+
+**Purpose:** Files served directly without processing
+
+**Contents:**
+- `public/fonts/` - Web fonts
+- `public/icon-*.svg` - PWA icons
+- `public/manifest.json` - PWA manifest
+- `public/sw.js` - Service Worker
+
+---
+
+### `migrations/` - Database Migrations
+
+**Purpose:** Drizzle ORM migration files
+
+**Structure:**
+- `migrations/meta/` - Migration metadata
+- `migrations/*.sql` - SQL migration files
+
+---
+
+## Key File Locations
+
+### Entry Points
+
+| Purpose | Location |
+|---------|----------|
+| Frontend Entry | `src/main.tsx` |
+| Backend Entry | `server/index.ts` |
+| HTML Entry | `index.html` |
+| Service Worker | `public/sw.js` |
+
+---
+
+### Configuration
+
+| Purpose | Location |
+|---------|----------|
+| Vite Config | `vite.config.ts` |
+| Tailwind Config | `tailwind.config.ts` |
+| Drizzle Config | `drizzle.config.ts` |
+| TypeScript (Frontend) | `tsconfig.json` |
+| TypeScript (Backend) | `tsconfig.server.json` |
+| Playwright Config | `playwright.config.ts` |
+| PostCSS Config | `postcss.config.js` |
+
+---
+
+### Core Logic
+
+| Purpose | Location |
+|---------|----------|
+| Database Schema | `shared/schema.ts` |
+| Storage Layer | `server/storage.ts` |
+| Route Handlers | `server/routes.ts` |
+| Query Client | `src/lib/queryClient.ts` |
+| Security Middleware | `server/security.ts` |
+| Scoring Logic | `server/utils/scoring.ts` |
+
+---
+
+### Testing
+
+| Purpose | Location |
+|---------|----------|
+| Playwright Config | `playwright.config.ts` |
+| E2E Tests | `tests/e2e-user-journey.test.cjs` |
+| UI Tests | `ui-tests/*.spec.ts` |
+| Test Runner | `tests/run-all-tests.cjs` |
+| Test Utilities | `tests/comprehensive-test.cjs` |
+
+---
+
+## Naming Conventions
+
+### Files
+
+| Pattern | Example | Usage |
+|---------|---------|-------|
+| `*.ts` | `utils.ts` | Utilities, types, configs |
+| `*.tsx` | `App.tsx` | React components |
+| `*.test.ts` | `security.test.cjs` | Test files (Node scripts) |
+| `*.spec.ts` | `example.spec.ts` | Playwright UI tests |
+| `*.cjs` | `test.cjs` | CommonJS for Node scripts |
+| `*.mjs` | `script.mjs` | ES Modules for Node scripts |
+| `kebab-case.ts` | `auto-save-indicator.tsx` | Component files |
+| `PascalCase.tsx` | `App.tsx` | Component files (main) |
+| `camelCase.ts` | `queryClient.ts` | Utilities, configs |
+| `SCREAMING_SNAKE.ts` | `CONSTANTS.ts` | Constants (rare) |
+
+### Directories
+
+| Pattern | Example | Usage |
+|---------|---------|-------|
+| `kebab-case/` | `form-testing/` | Test directories |
+| `camelCase/` | `components/` | Source directories |
+| `lowercase/` | `server/`, `src/`, `shared/` | Root directories |
+
+---
+
+## Where to Add New Code
+
+### New Feature (Frontend)
+
+| Component | Location |
+|-----------|----------|
+| Page Component | `src/pages/{feature-name}.tsx` |
+| Reusable Components | `src/components/{feature}/` |
+| Custom Hooks | `src/hooks/use-{feature}.tsx` |
+| Utilities | `src/utils/{feature}.ts` |
+| Styles | `src/styles/{feature}.css` |
+| Types | `src/types/{feature}.ts` |
+
+### New Feature (Backend)
+
+| Component | Location |
+|-----------|----------|
+| Route Handlers | `server/routes.ts` (add to registerRoutes) |
+| Storage Methods | `server/storage.ts` (add to storage object) |
+| Controller Logic | `server/controllers/{feature}Controller.ts` |
+| Utilities | `server/utils/{feature}.ts` |
+| Middleware | `server/{feature}.ts` |
+
+### New API Endpoint
+
+Add to `server/routes.ts` in `registerRoutes`:
+
+```typescript
+// GET /api/{resource}
+app.get("/api/{resource}", async (req, res) => {
+  const data = await storage.get{Resource}();
+  res.json({ success: true, data });
+});
+
+// POST /api/{resource}
+app.post("/api/{resource}", async (req, res) => {
+  const validated = insert{Resource}Schema.parse(req.body);
+  const result = await storage.create{Resource}(validated);
+  res.json({ success: true, data: result });
+});
+```
+
+### New Database Table
+
+Add to `shared/schema.ts`:
+
+```typescript
+export const {tableName} = pgTable("{table_name}", {
+  id: serial("id").primaryKey(),
+  // ... columns
+}, (table) => ({
+  // ... indexes
+}));
+
+export const insert{TableName}Schema = createInsertSchema({tableName}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Insert{TableName} = z.infer<typeof insert{TableName}Schema>;
+export type {TableName} = typeof {tableName}.$inferSelect;
+```
+
+### New Component
+
+Create in `src/components/{category}/`:
+
+```typescript
+// src/components/{category}/{ComponentName}.tsx
+import React from 'react';
+
+export function {ComponentName}({ prop1, prop2 }: { prop1: string; prop2: number }) {
+  return (
+    <div className="...">
+      {/* JSX */}
+    </div>
+  );
+}
+```
+
+### New Hook
+
+Create in `src/hooks/`:
+
+```typescript
+// src/hooks/use-{feature}.tsx
+import { useState, useEffect } from 'react';
+
+export function use{Feature}() {
+  const [state, setState] = useState(null);
+  // ... logic
+  return { state, setState };
+}
+```
+
+---
+
+## Special Directories
+
+### `public/`
+
+**Purpose:** Static assets served directly
+**Generated:** No (manual)
+**Committed:** Yes
+
+**Rules:**
+- Files here are copied as-is to `dist/` during build
+- Do NOT put source files here (they won't be processed)
+- Good for: icons, fonts, service worker, manifest.json
+
+### `dist/`
+
+**Purpose:** Build output directory
+**Generated:** Yes (by `npm run build`)
+**Committed:** No (in `.gitignore`)
+
+**Structure:**
+- `dist/index.js` - Built server
+- `dist/public/` - Built frontend assets
+- `dist/package.json` - Copied from root
+
+### `migrations/`
+
+**Purpose:** Database migrations
+**Generated:** Yes (by `drizzle-kit`)
+**Committed:** Yes
+
+**Rules:**
+- Generated via `npm run db:push` or `drizzle-kit generate`
+- Never edit migration files manually
+- Always review before committing
+
+### `.vite/`
+
+**Purpose:** Vite cache
+**Generated:** Yes
+**Committed:** No
+
+### `node_modules/`
+
+**Purpose:** Dependencies
+**Generated:** Yes (by `npm install`)
+**Committed:** No
+
+---
+
+## Path Aliases
+
+Configured in `tsconfig.json`:
+
+| Alias | Resolves To |
+|-------|-------------|
+| `@/*` | `./src/*` |
+| `@assets/*` | `./src/assets/*` |
+| `@shared/*` | `./shared/*` |
+
+**Usage:**
+```typescript
+import { Button } from '@/components/ui/button';
+import { queryClient } from '@/lib/queryClient';
+import { insertInspectionSchema } from '@shared/schema';
+```
+
+---
+
+*Structure analysis: 2026-02-16*

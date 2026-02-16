@@ -1,115 +1,100 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-02-09
+**Analysis Date:** 2026-02-16
 
 ## Naming Patterns
 
 **Files:**
-- React components: PascalCase (`Button.tsx`, `CustodialInspection.tsx`)
-- Hooks: camelCase with `use` prefix (`use-toast.ts`, `use-mobile.tsx`)
-- Utilities: camelCase (`utils.ts`, `validation.ts`)
-- Server files: camelCase (`routes.ts`, `logger.ts`)
-- Test files: kebab-case with `.test.cjs` or `.spec.ts` suffix
+- React components: `PascalCase.tsx` (e.g., `Button.tsx`, `MobileBottomNav.tsx`)
+- Utilities/Hooks: `camelCase.ts` or `kebab-case.ts` (e.g., `use-toast.ts`, `api.ts`)
+- Server files: `camelCase.ts` (e.g., `routes.ts`, `security.ts`)
+- Constants/Config: `UPPER_SNAKE_CASE` or `camelCase.ts` (e.g., `constants.ts`)
 
 **Functions:**
-- React components: PascalCase (`function App()`, `const Button = () =>`)
-- Hooks: camelCase with `use` prefix (`useToast()`, `useMobile()`)
-- Utilities/Helpers: camelCase (`calculateScore()`, `sanitizeFilePath()`)
-- Event handlers: camelCase with `handle` prefix (`handleSubmit()`, `handleClick()`)
-- API route handlers: camelCase (`registerRoutes()`, `validateAdminSession()`)
+- `camelCase` for all functions (e.g., `apiRequest`, `useToast`, `calculateBuildingScore`)
+- Async functions prefixed with verb (e.g., `fetchData`, `processImage`)
+- Private functions may use underscore prefix (e.g., `_validateInput`)
 
 **Variables:**
-- camelCase for all variables (`isLoading`, `currentPage`, `inspectionData`)
-- Boolean flags: prefix with `is`, `has`, `should` (`isCompleted`, `hasError`)
-- Constants: UPPER_SNAKE_CASE for true constants (`TOAST_LIMIT`, `TOAST_REMOVE_DELAY`)
-- TypeScript types: PascalCase (`InsertInspection`, `StandardResponse`)
+- `camelCase` for all variables
+- React hooks follow `useXxx` pattern (e.g., `useIsMobile`, `useToast`)
+- Constants at module level use `UPPER_SNAKE_CASE` (e.g., `TOAST_LIMIT`, `TOAST_REMOVE_DELAY`)
 
-**Types:**
-- Interfaces: PascalCase (`interface ButtonProps`, `interface LogEntry`)
-- Type aliases: PascalCase (`type Toast`, `type ActionType`)
-- Zod schemas: camelCase with `Schema` suffix (`insertInspectionSchema`, `insertCustodialNoteSchema`)
+**Types/Interfaces:**
+- `PascalCase` for interfaces and types (e.g., `ApiResponse`, `ButtonProps`)
+- Schema types from Drizzle use `InsertXxx` and `Xxx` patterns (e.g., `InsertInspection`, `Inspection`)
+- Props interfaces use `ComponentNameProps` pattern (e.g., `ToastProps`)
 
 ## Code Style
 
 **Formatting:**
-- No ESLint or Prettier config detected
-- Indentation: 2 spaces (observed in all files)
-- Semicolons: Used consistently
-- Quotes: Double quotes for strings
-- Trailing commas: Not consistently enforced
-- Line endings: Mixed (LF observed in most files)
+- Uses TypeScript strict mode (`tsconfig.json`)
+- Double quotes for strings (observed in source files)
+- Semicolons at end of statements
+- 2-space indentation
 
-**TypeScript Strictness:**
-- Strict mode enabled (`tsconfig.json`)
-- Explicit return types on public functions
-- Type annotations on function parameters
-- Use `type` for simple unions, `interface` for object shapes
+**Linting:**
+- No ESLint/Prettier config files detected
+- Relies on TypeScript strict mode for type checking
+- AGENTS.md specifies: Use path aliases (`@/*` for src, `@shared/*` for shared)
+
+**Tailwind/Styling:**
+- Uses Tailwind CSS with `cn()` utility from `@/lib/utils.ts`
+- Combines `clsx` and `tailwind-merge` for conditional classes
+- CSS variables for theming (`--primary`, `--background`, etc.)
 
 ## Import Organization
 
-**Order:**
-1. React imports
-2. External library imports (alphabetical)
-3. Internal path aliases (`@/*`, `@shared/*`)
-4. Type imports
-5. Relative imports (last resort)
+**Order (from observed patterns):**
+1. React imports (`import * as React from "react"`)
+2. Third-party libraries (`@radix-ui/react-*`, `zod`, `drizzle-orm`)
+3. Path aliased internal imports (`@/components/*`, `@/hooks/*`, `@/utils/*`)
+4. Relative imports for same-directory files
+5. Type-only imports when needed
 
 **Path Aliases:**
-- `@/*` → `./src/*` (frontend source)
-- `@shared/*` → `./shared/*` (shared types/schemas)
-- `@assets/*` → `./src/assets/*` (static assets)
+- `@/*` → `./src/*`
+- `@assets/*` → `./src/assets/*`
+- `@shared/*` → `./shared/*`
 
 **Example:**
 ```typescript
-import React, { useState, useEffect } from "react";
-import { useIsMobile } from "./hooks/use-mobile";
-import { useCustomNotifications } from "@/hooks/use-custom-notifications";
-import SafeLocalStorage from "@/utils/SafeLocalStorage";
-import { Toaster } from "@/components/ui/toaster";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { z } from "zod";
-
-import type { Express } from "express";
-import { insertInspectionSchema } from "@shared/schema";
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+import type { ToastActionElement } from "@/components/ui/toast"
 ```
 
 ## Error Handling
 
-**Patterns:**
-- Try-catch blocks with logger
-- Return structured error responses: `{ success: false, message: string }`
-- Zod validation errors: Extract and return field-level details
-- Express middleware for centralized error handling
-- Always log errors with context
+**Frontend (React/TypeScript):**
+- Custom error classes (e.g., `ApiError extends Error`)
+- Structured error responses with `{ success: false, message: string }`
+- Try-catch with logger integration
+- Error boundaries for React components (`ErrorBoundary` in `App.tsx`)
 
-**Backend Example:**
+**Backend (Express):**
+- Standard response interface: `StandardResponse<T>` with `success`, `data`, `error`, `details`, `meta`
+- Logger-based error tracking with context
+- HTTP status codes: 400 (validation), 401 (auth), 413 (payload too large), etc.
+
+**Example Pattern:**
 ```typescript
-try {
-  const validatedData = insertInspectionSchema.parse(req.body);
-  const newInspection = await storage.createInspection(validatedData);
-  res.status(201).json({ message: "Success", id: newInspection.id });
-} catch (error) {
-  if (error instanceof z.ZodError) {
-    return res.status(400).json({
-      message: "Invalid inspection data",
-      details: error.errors,
+// Backend route handler
+app.post("/api/inspections", async (req, res) => {
+  try {
+    // ... logic
+    return res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    logger.error("Failed to create inspection", { error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to create inspection",
+      details: error.message 
     });
   }
-  logger.error("Error creating inspection:", error);
-  res.status(500).json({ message: "Internal server error" });
-}
-```
-
-**Frontend Pattern:**
-```typescript
-try {
-  const response = await fetch('/api/inspections');
-  if (!response.ok) throw new Error('Failed to fetch');
-  const data = await response.json();
-} catch (error) {
-  console.error('Fetch error:', error);
-  showError('Failed to load inspections');
-}
+});
 ```
 
 ## Logging
@@ -117,111 +102,160 @@ try {
 **Framework:** Custom logger (`server/logger.ts`)
 
 **Patterns:**
-- Use logger instance instead of console in backend
-- Include request IDs for tracing
-- Structured logging with context objects
-- Log levels: `info`, `warn`, `error`, `debug`
+- Structured JSON logging in production
+- Human-readable format in development
+- Request correlation via `AsyncLocalStorage`
+- Context includes: `requestId`, `correlationId`, `userId`, `username`, `ip`
+
+**Levels:**
+- `logger.info(message, context?)` - General information
+- `logger.warn(message, context?)` - Warnings
+- `logger.error(message, context?)` - Errors
+- `logger.debug(message, context?)` - Development-only debugging
 
 **Example:**
 ```typescript
-import { logger } from "./logger";
-
-logger.info("Creating inspection", { inspectionId, userId });
-logger.error("Database connection failed", { error, connectionString });
-logger.debug("Processing request", { requestId, payload });
+logger.info("[POST] Building inspection submission started", {
+  body: req.body,
+  files: req.files ? req.files.length : 0,
+});
 ```
 
 ## Comments
 
 **When to Comment:**
-- Accessibility status comments at top of files (`// ACCESSIBILITY STATUS: ✅ COMPLETE`)
-- Security notes (`// SECURITY: Directory traversal protection`)
-- Complex business logic
-- Workarounds or temporary fixes
+- Security-related code (e.g., `// Security: Directory traversal protection`)
+- Complex logic explanations
+- TODO/FIXME markers for known issues
+- JSDoc for exported functions (minimal usage observed)
 
-**JSDoc/TSDoc:**
-- Minimal usage observed
-- Prefer self-documenting code
-- TypeScript types provide most documentation
+**Patterns Observed:**
+```typescript
+// Standard API response interface for consistency across all endpoints
+// TODO: [TEST-FIX] Add error handling for EPIPE and TLS socket errors
+// Issue: Test suite crashes with "Error: write EPIPE"
+```
 
 ## Function Design
 
 **Size:**
 - Keep functions focused on single responsibility
-- Extract complex logic into helper functions
-- Maximum ~50 lines for main functions
+- Route handlers in `server/routes.ts` are typically 50-150 lines
+- Component files are 50-200 lines
 
 **Parameters:**
-- Use destructuring for multiple parameters
-- Prefer options objects for 3+ parameters
-- Default values for optional parameters
+- Destructuring for options objects
+- Optional parameters with defaults
+- Type annotations required
 
 **Return Values:**
-- Consistent return types
-- Use discriminated unions for success/error: `{ success: true, data: T } | { success: false, error: string }`
+- Explicit return types on exported functions
+- Async functions return `Promise<T>`
+- API functions return structured response objects
+
+**Example:**
+```typescript
+export async function apiRequest<T = any>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> {
+  // implementation
+}
+```
 
 ## Module Design
 
 **Exports:**
-- Named exports preferred
-- Default exports for page components
-- Barrel files for clean imports (`components/ui/index.ts`)
+- Named exports preferred (`export { Button, buttonVariants }`)
+- Default exports for page components (lazy loading compatibility)
+- Barrel files for grouping exports (`src/schemas/index.ts`)
+
+**Barrel Files:**
+- `src/schemas/index.ts` exports all schemas
+- Re-export pattern: `export * from "./file"`
 
 **Example:**
 ```typescript
-// Named exports for utilities
-export { useToast, toast } from "./use-toast";
-export { Button, buttonVariants } from "./button";
-
-// Default export for pages
-export default function CustodialInspectionPage() { }
+// src/schemas/index.ts
+export * from "./inspectionSchema";
+export * from "./custodialNotesSchema";
 ```
 
-## React Patterns
+## Validation
 
-**Components:**
-- Functional components with hooks
-- Props interface always defined
-- Forward refs for reusable components
-- `displayName` for debugging
+**Framework:** Zod (via `drizzle-zod`)
+
+**Patterns:**
+- Schema definitions in `shared/schema.ts`
+- Custom preprocessors for type coercion (e.g., `coerceNullableNumber`)
+- Schema extension via `.extend()` and `.omit()`
+- Validation before DB operations
 
 **Example:**
 ```typescript
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "destructive" | "outline";
-  size?: "default" | "sm" | "lg" | "icon";
-  asChild?: boolean;
-}
+export const insertInspectionSchema = createInsertSchema(inspections).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  school: z.string().min(1, "School is required"),
+  inspectionType: z.string().optional().default('whole_building'),
+  floors: coerceNullableNumber.optional(),
+});
+```
 
+## Security Conventions
+
+**Input Sanitization:**
+- All inputs validated with Zod schemas before processing
+- Path validation utilities (`sanitizeFilePath`, `isValidFilename`)
+- File upload restrictions (image only, 5MB limit)
+
+**Authentication:**
+- Session-based authentication with tokens
+- CSRF protection with token validation
+- Rate limiting on sensitive endpoints
+
+**Example:**
+```typescript
+// Validate before DB operations
+const validatedData = insertInspectionSchema.parse(req.body);
+// Security: Directory traversal protection via pathValidation.ts
+```
+
+## Component Patterns
+
+**Shadcn/UI Style:**
+- Forward refs: `React.forwardRef<HTMLButtonElement, ButtonProps>`
+- Variant props via `class-variance-authority` (cva)
+- `cn()` utility for class merging
+- `asChild` prop for composition
+
+**Example:**
+```typescript
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+    const Comp = asChild ? Slot : "button"
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
       />
-    );
+    )
   }
-);
-Button.displayName = "Button";
+)
+Button.displayName = "Button"
 ```
 
-**State Management:**
-- React Query for server state (`@tanstack/react-query`)
-- useState/useReducer for local state
-- Custom hooks for complex state logic
+## Database Conventions
 
-## Database Patterns
-
-**ORM:** Drizzle ORM with Zod validation
+**ORM:** Drizzle ORM
 
 **Patterns:**
-- Define schemas in `shared/schema.ts`
-- Use `createInsertSchema` from drizzle-zod
-- Extend schemas with Zod refinements
-- Database indexes for query performance
+- Table definitions with explicit column names
+- Index definitions for frequently queried columns
+- Relations via foreign key references
+- Schema co-location in `shared/schema.ts`
 
 **Example:**
 ```typescript
@@ -231,38 +265,10 @@ export const inspections = pgTable("inspections", {
   // ...
 }, (table) => ({
   schoolIdx: index("inspections_school_idx").on(table.school),
+  dateIdx: index("inspections_date_idx").on(table.date),
 }));
-
-export const insertInspectionSchema = createInsertSchema(inspections).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  school: z.string().min(1, "School is required"),
-});
-```
-
-## Accessibility Requirements
-
-**Mandatory:**
-- Semantic HTML elements (`<header>`, `<nav>`, `<main>`, `<footer>`)
-- ARIA labels on interactive elements
-- `role` attributes for custom components
-- `aria-live` regions for dynamic content
-- Skip links for keyboard navigation
-- Focus management for modals
-
-**Example:**
-```tsx
-<main id="main-content" role="main" aria-label="Main content" tabIndex={-1}>
-  <div role="status" aria-live="polite" aria-busy="true">
-    Loading...
-  </div>
-  <button aria-label="Submit inspection" aria-describedby="submit-help">
-    Submit
-  </button>
-</main>
 ```
 
 ---
 
-*Convention analysis: 2026-02-09*
+*Convention analysis: 2026-02-16*

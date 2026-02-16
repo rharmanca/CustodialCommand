@@ -1,174 +1,173 @@
 # Technology Stack
 
-**Analysis Date:** 2026-02-09
+**Analysis Date:** 2026-02-16
 
 ## Languages
 
 **Primary:**
-- **TypeScript** (strict mode enabled) - Used for all frontend React components, backend Express server, and shared types
-- **JavaScript** - Used for test suites (`.cjs` files)
+- TypeScript 5.6.3 - Full-stack application (frontend + backend)
+- JavaScript (ES2020) - Build scripts and tests
 
 **Secondary:**
-- **CSS** - Tailwind CSS for styling with custom CSS variables for theming
-- **HTML** - Single-page application entry point with PWA meta tags
+- CSS/Tailwind - Styling
+- SQL - Database queries (via Drizzle ORM)
 
 ## Runtime
 
 **Environment:**
-- **Node.js** - ES2020 target with ESNext modules
+- Node.js (latest LTS recommended)
+- ES Modules (`"type": "module"` in `package.json`)
 
 **Package Manager:**
-- **npm** - Standard npm with lockfile present (`package-lock.json`)
-- Lockfile: `package-lock.json` present
+- npm (lockfile: `package-lock.json` present)
+- Dependencies: 134 packages
+- DevDependencies: 28 packages
 
 ## Frameworks
 
 **Core:**
-- **React 18.3.1** - UI library with hooks-based functional components
-- **Express 4.21.2** - Backend HTTP server framework
-- **Drizzle ORM 0.39.1** - Type-safe SQL-like ORM for database operations
+- React 18.3.1 - Frontend UI library
+- Express 4.21.2 - Backend web framework
+- Vite 6.4.1 - Build tool and dev server
+- Tailwind CSS 3.4.17 - Utility-first CSS framework
 
-**UI Components:**
-- **Radix UI** - Headless UI primitives (dialog, select, checkbox, etc.)
-- **Tailwind CSS 3.4.17** - Utility-first CSS framework
-- **class-variance-authority** - Component variant management
-- **tailwind-merge + clsx** - Conditional class merging
-
-**Forms & Validation:**
-- **React Hook Form 7.66.0** - Form state management
-- **Zod 3.25.76** - Schema validation with TypeScript inference
-- **drizzle-zod 0.7.0** - Zod schemas from Drizzle tables
-
-**Build & Dev:**
-- **Vite 6.4.1** - Frontend build tool and dev server
-- **esbuild 0.25.0** - Server bundling for production
-- **tsx 4.19.1** - TypeScript execution for development
+**Database:**
+- Drizzle ORM 0.39.1 - TypeScript ORM for PostgreSQL
+- Drizzle Kit 0.31.4 - Database migrations and schema management
+- node-postgres (pg) 8.16.3 - PostgreSQL client
 
 **Testing:**
-- **Playwright 1.56.1** - E2E testing framework (cross-browser)
-- **Node.js test scripts** - Custom test suites for API/performance/security
+- Playwright 1.56.1 - E2E testing
+- Puppeteer 24.29.1 - Additional browser automation
+- Node.js scripts - API/integration tests (`.test.cjs` files)
+
+**Build/Dev:**
+- esbuild 0.25.0 - Server bundling
+- tsx 4.19.1 - TypeScript execution for dev server
+- TypeScript 5.6.3 - Type checking
 
 ## Key Dependencies
 
 **Critical:**
-- `@neondatabase/serverless 0.10.4` - PostgreSQL connection driver (Neon serverless)
-- `pg 8.16.3` - PostgreSQL client with connection pooling
-- `drizzle-orm 0.39.1` - Database ORM (core data layer)
-- `bcrypt 6.0.0` - Password hashing for admin authentication
-- `express-session 1.18.1` - Session management
-- `helmet 8.1.0` - Security headers middleware
-- `express-rate-limit 8.0.1` - API rate limiting
-- `multer 2.0.2` - File upload handling (images, PDFs)
+- `zod` 3.25.76 - Runtime schema validation (shared across frontend/backend)
+- `drizzle-zod` 0.7.0 - Zod schema generation from Drizzle tables
+- `bcrypt` 6.0.0 - Password hashing
+- `express-session` 1.18.1 + `passport` 0.7.0 - Authentication
+- `helmet` 8.1.0 - Security headers
+- `express-rate-limit` 8.0.1 - Rate limiting
 
-**State & Data:**
-- `@tanstack/react-query 5.60.5` - Server state management with caching
-- `wouter 3.3.5` - Lightweight routing for React
-- `zustand` - Not explicitly listed but React Query handles most state
+**Infrastructure:**
+- `redis` 5.9.0 - Caching and session storage (optional, falls back to memory)
+- `connect-redis` 9.0.0 - Redis session store
+- `compression` 1.8.1 - Response compression
+- `cookie-parser` 1.4.7 - Cookie parsing
+- `multer` 2.0.2 - File upload handling
+
+**Frontend UI:**
+- Radix UI primitives - `@radix-ui/react-*` (30+ components)
+- `framer-motion` 11.13.1 - Animations
+- `react-hook-form` 7.66.0 + `@hookform/resolvers` 3.10.0 - Form handling
+- `recharts` 2.15.2 - Data visualization
+- `lucide-react` 0.453.0 - Icons
+- `date-fns` 3.6.0 - Date utilities
+- `react-webcam` 7.2.0 - Camera access
+
+**PDF/Document Processing:**
+- `jspdf` 3.0.3 + `jspdf-autotable` 5.0.2 - PDF generation
+- `html2canvas` 1.4.1 - HTML to image conversion
+- `xlsx` 0.20.3 (SheetJS) - Excel file processing
+- Docling (external CLI tool) - PDF text extraction
 
 **Utilities:**
-- `date-fns 3.6.0` - Date manipulation
-- `uuid 13.0.0` - UUID generation
-- `lucide-react 0.453.0` - Icon library
-
-**PDF & Document Processing:**
-- `jspdf 3.0.3` + `jspdf-autotable 5.0.2` - PDF generation
-- `html2canvas 1.4.1` - HTML to canvas conversion
-- `xlsx` (SheetJS) - Excel file processing
-- `pdf-parse` - PDF text extraction (dev dependency)
-
-**PWA & Offline:**
-- `dexie 4.2.1` - IndexedDB wrapper for offline storage
-- Service Worker at `/public/sw.js` - Offline capabilities
-
-**Animation & UX:**
-- `framer-motion 11.13.1` - Animations and transitions
-- `@use-gesture/react 10.3.1` - Touch gesture handling
-- `embla-carousel-react 8.6.0` - Carousels
+- `class-variance-authority` 0.7.1 - Component variants
+- `tailwind-merge` 2.6.0 - Tailwind class merging
+- `clsx` 2.1.1 - Conditional class names
+- `uuid` 13.0.0 - UUID generation
 
 ## Configuration
 
-**TypeScript Configuration:**
-- `tsconfig.json` - Frontend/client configuration
-- `tsconfig.node.json` - Node.js tooling configuration
-- `tsconfig.server.json` - Server-specific configuration
+**TypeScript:**
+- Config: `tsconfig.json`
+- Target: ES2020
+- Module: ESNext with Bundler resolution
+- Path aliases: `@/*` → `./src/*`, `@shared/*` → `./shared/*`
+- Strict mode enabled
+- JSX: react-jsx transform
 
-**Path Aliases:**
-- `@/*` → `./src/*` (frontend source)
-- `@assets/*` → `./src/assets/*` (static assets)
-- `@shared/*` → `./shared/*` (shared types/schemas)
+**Vite:**
+- Config: `vite.config.ts`
+- Dev server port: 5173
+- API proxy: `/api` → `http://localhost:5000`
+- Build output: `dist/public`
+- Code splitting enabled
+- Target: es2020
 
-**Build:**
-- `vite.config.ts` - Vite configuration with React plugin, path aliases, and optimizations
-- `drizzle.config.ts` - Database migration configuration
-- `tailwind.config.ts` - Tailwind CSS with custom theme colors
-- `postcss.config.js` - PostCSS with autoprefixer
+**Tailwind:**
+- Config: `tailwind.config.ts`
+- Content: `./index.html`, `./src/**/*.{js,jsx,ts,tsx}`
+- Dark mode: `"class"`
+- Custom color scheme with CSS variables
+- Plugins: `tailwindcss-animate`, `@tailwindcss/typography`
 
-**Environment:**
-- `.env.example` - Template for required environment variables
-- Environment variables loaded via `dotenv` package
+**PostCSS:**
+- Config: `postcss.config.js`
+- Plugins: `tailwindcss`, `autoprefixer`
+
+**Database:**
+- Config: `drizzle.config.ts`
+- Dialect: PostgreSQL
+- Schema: `./shared/schema.ts`
+- Migrations: `./migrations`
+
+**Testing:**
+- Config: `playwright.config.ts`
+- Test directory: `./tests`
+- Browsers: Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari
+- Timeout: 60s
+- Retries: 2 in CI
 
 ## Platform Requirements
 
 **Development:**
-- Node.js with ES module support
-- PostgreSQL database (Neon recommended)
-- Redis (optional, falls back to memory)
+- Node.js with npm
+- PostgreSQL database (local or cloud)
+- Optional: Redis (falls back to memory if unavailable)
+- Optional: Docling CLI tool for PDF processing
 
 **Production:**
-- **Railway.app** - Primary deployment platform (configured in `railway.json`)
-- Port 5000 (configurable via `PORT` env var)
-- Health check endpoint: `/health`
+- **Platform:** Railway (configured via `railway.json`)
+- **Database:** PostgreSQL (Railway provisioned)
+- **Cache:** Redis (optional, recommended)
+- **Port:** 5000 (configurable via `PORT` env var)
+- **Health checks:** `/health` endpoint with 30s timeout
 
-**Required Environment Variables:**
-- `DATABASE_URL` - PostgreSQL connection string
-- `SESSION_SECRET` - 64-character hex secret for sessions
-- `ADMIN_USERNAME` - Admin login username
-- `ADMIN_PASSWORD_HASH` - bcrypt-hashed admin password
-- `PORT` - Server port (default: 5000)
-
-**Optional Environment Variables:**
-- `REDIS_URL` - Redis connection for session/cache
-- `RATE_LIMIT_WINDOW_MS` - Rate limiting window
-- `RATE_LIMIT_MAX_REQUESTS` - Rate limit max requests
-- `LOG_LEVEL` - Logging verbosity
-
-## Scripts
-
-**Development:**
+**Build Process:**
 ```bash
-npm run dev              # Start dev server (frontend + backend on :5000)
-npm run dev:server       # Backend only
-npm run dev:client       # Frontend only (Vite on :5173)
+# Development
+npm run dev          # Start dev server (port 5000)
+npm run dev:client   # Start Vite dev server (port 5173)
+
+# Production build
+npm run build        # Vite build + esbuild for server
+npm run start        # Production server (runs db:push first)
 ```
 
-**Build:**
-```bash
-npm run check            # TypeScript type checking
-npm run build            # Production build (runs check first)
-```
+## Dependency Notes
 
-**Database:**
-```bash
-npm run db:push          # Push schema changes to database
-npm run db:push-safe     # Push with error handling
-```
+**ESM Only:**
+- All imports use ES module syntax
+- `.js` extension required for relative imports (Node ESM requirement)
+- `tsx` used for TypeScript execution in dev
 
-**Testing:**
-```bash
-npm run test:comprehensive   # Run all test suites
-npm run test:e2e            # End-to-end user journey tests
-npm run test:performance    # Performance tests
-npm run test:security       # Security tests
-npm run test:mobile         # Mobile/PWA tests
-npm run ui:test             # Playwright UI tests
-```
+**External Tools:**
+- Docling must be installed separately for PDF processing
+  - Installation: `pip install docling`
+  - Used in: `server/doclingService.ts`
 
-**Monitoring:**
-```bash
-npm run monitor           # Health monitoring
-npm run monitor:watch     # Continuous monitoring
-```
+**Optional Dependencies:**
+- Redis - Falls back to in-memory storage if `REDIS_URL` not set
+- PDF tools - Graceful degradation if Docling unavailable
 
 ---
 
-*Stack analysis: 2026-02-09*
+*Stack analysis: 2026-02-16*

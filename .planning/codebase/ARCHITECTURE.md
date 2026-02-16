@@ -1,219 +1,356 @@
 # Architecture
 
-**Analysis Date:** 2025-02-09
+**Analysis Date:** 2026-02-16
 
 ## Pattern Overview
 
-**Overall:** Full-Stack Monolithic Application with Separation of Concerns
+**Overall:** Full-stack TypeScript application with React SPA frontend and Express API backend, following a layered architecture with clear separation of concerns.
 
 **Key Characteristics:**
-- Client-Server architecture with shared schema definitions
-- Layered backend with Express.js middleware pipeline
-- Component-based React frontend with code-splitting
-- Repository pattern for data access (storage layer)
-- Progressive Web App (PWA) capabilities with offline support
+- **Monolithic Full-Stack**: Single codebase containing both frontend (`src/`) and backend (`server/`)
+- **Client-Server Architecture**: React SPA consumes REST API from Express server
+- **Component-Based Frontend**: Functional React components with hooks pattern
+- **Layered Backend**: Middleware → Routes → Storage → Database flow
+- **PWA Support**: Service Worker for offline capabilities
+- **Mobile-First**: Extensive mobile optimization and touch-friendly design
 
 ## Layers
 
-**Presentation Layer (Frontend):**
-- Purpose: UI rendering, user interaction, state management
-- Location: `src/`
-- Contains: React components, pages, hooks, utilities
-- Depends on: `@shared/*` for types/schemas, backend API via TanStack Query
-- Used by: Browser clients
+### Frontend (Presentation Layer)
 
-**API Layer (Backend Routes):**
-- Purpose: HTTP request handling, request validation, response formatting
-- Location: `server/routes.ts`, `server/controllers/`
-- Contains: Express route handlers, controllers
-- Depends on: storage layer, security middleware, validation schemas
-- Used by: Frontend via HTTP requests
+**Purpose:** React SPA providing user interface and client-side logic
 
-**Service Layer (Storage/Domain):**
-- Purpose: Business logic, data operations, caching
-- Location: `server/storage.ts`, `server/utils/`
-- Contains: Storage methods, utility functions, scoring logic
-- Depends on: database layer, cache manager
-- Used by: Route handlers, controllers
+**Location:** `src/`
 
-**Data Access Layer:**
-- Purpose: Database connectivity and ORM operations
-- Location: `server/db.ts`
-- Contains: Drizzle ORM setup, connection pooling, reconnection logic
-- Depends on: PostgreSQL (Neon Database)
-- Used by: storage.ts
+**Contains:**
+- React components (functional with hooks)
+- Custom hooks for state and logic
+- Page-level route components
+- Utility functions and helpers
+- Assets and static files
 
-**Shared Layer:**
-- Purpose: Type definitions and validation schemas shared between frontend and backend
-- Location: `shared/schema.ts`
-- Contains: Zod schemas, Drizzle table definitions, TypeScript types
-- Depends on: drizzle-orm, zod
-- Used by: Both frontend and backend
+**Depends on:**
+- `@tanstack/react-query` - Server state management
+- `wouter` - Lightweight routing
+- `@radix-ui/*` - Headless UI primitives
+- `zod` - Runtime validation
+- Tailwind CSS - Styling
 
-**Middleware Layer:**
-- Purpose: Cross-cutting concerns (security, logging, caching)
-- Location: `server/security.ts`, `server/logger.ts`, `server/cache.ts`, `server/monitoring.ts`
-- Contains: Authentication, rate limiting, CSRF protection, request logging
-- Depends on: Express, Redis (optional), various security libraries
-- Used by: Applied to Express app pipeline
-
-## Data Flow
-
-**Inspection Submission Flow:**
-
-1. User submits inspection form (`src/pages/custodial-inspection.tsx`)
-2. Form data validated with Zod schema (`shared/schema.ts`)
-3. API request sent to `/api/inspections` (with CSRF token)
-4. Express route handler receives request (`server/routes.ts`)
-5. Multer middleware processes image uploads
-6. Security middleware validates request
-7. Storage layer executes database operation (`server/storage.ts`)
-8. Drizzle ORM performs INSERT (`server/db.ts`)
-9. Response returned to frontend
-10. Cache invalidated for related queries
-
-**Data Query Flow:**
-
-1. Component mounts and triggers query (`src/hooks/use-api.tsx`)
-2. TanStack Query checks cache
-3. If cache miss, API request sent to `/api/inspections` or `/api/scores`
-4. Storage layer checks Redis cache (`server/storage.ts`)
-5. If cache miss, database query executed via Drizzle
-6. Result cached and returned
-7. Component receives and displays data
-
-**Offline Support Flow:**
-
-1. Service worker intercepts requests (`public/sw.js`)
-2. Network-first strategy attempts live fetch
-3. If offline, request queued in IndexedDB (`src/utils/offlineManager.ts`)
-4. Photos stored locally (`src/utils/photoStorage.ts`)
-5. When online, sync process uploads queued items
-6. Cache updated with new data
-
-## Key Abstractions
-
-**Storage Interface:**
-- Purpose: Database operations abstraction
-- Examples: `server/storage.ts`
-- Pattern: Repository pattern with caching wrapper
-- Methods: `createInspection()`, `getInspections()`, `updateInspection()`, etc.
-
-**Zod Schema Validation:**
-- Purpose: Runtime type safety and validation
-- Examples: `shared/schema.ts` - `insertInspectionSchema`, `insertCustodialNoteSchema`
-- Pattern: Schema definition → type inference → runtime validation
-- Usage: Backend validates incoming data, frontend validates forms
-
-**Query Client:**
-- Purpose: Server state management
-- Examples: `src/lib/queryClient.ts`
-- Pattern: TanStack Query with custom defaults
-- Features: Automatic caching, refetching, optimistic updates
-
-**Error Handling:**
-- Purpose: Centralized error management
-- Examples: `server/performanceErrorHandler.ts`, `server/utils/errorHandler.ts`
-- Pattern: Middleware chain with async error wrapping
-- Features: Circuit breaker, graceful degradation, structured error responses
-
-## Entry Points
-
-**Application Entry:**
-- Location: `src/main.tsx`
-- Triggers: Browser loads HTML page
-- Responsibilities:
-  - Create React root
-  - Register service worker for PWA
-  - Import global styles
-  - Mount App component
-
-**Server Entry:**
-- Location: `server/index.ts`
-- Triggers: `npm start` or `npm run dev`
-- Responsibilities:
-  - Configure Express app with middleware
-  - Set up security (helmet, rate limiting, CSRF)
-  - Initialize database connection
-  - Register API routes
-  - Start HTTP server
-  - Configure graceful shutdown
-
-**Build Entry:**
-- Location: `vite.config.ts`
-- Triggers: `npm run build`
-- Responsibilities:
-  - Bundle React application
-  - Configure path aliases (@/*)
-  - Set up proxy for API during dev
-  - Optimize dependencies
-  - Output to `dist/public/`
-
-**Database Entry:**
-- Location: `server/db.ts`
-- Triggers: Imported by storage layer
-- Responsibilities:
-  - Configure Neon PostgreSQL connection
-  - Set up connection pooling
-  - Initialize Drizzle ORM
-  - Handle reconnection logic
-
-## Error Handling
-
-**Strategy:** Layered error handling with graceful degradation
-
-**Patterns:**
-- Express async error handling via wrapper functions
-- Circuit breaker pattern for database and external services
-- Structured error responses: `{ success: boolean, error: string, details?: any }`
-- Client-side error boundaries in React components
-- Global error logging to console and monitoring
-
-**Server-Side:**
-- `asyncErrorHandler` wraps async route handlers
-- `performanceErrorHandler` middleware catches unhandled errors
-- Database reconnection with exponential backoff (`withDatabaseReconnection`)
-
-**Client-Side:**
-- React Error Boundary in `App.tsx`
-- TanStack Query error handling with retries
-- Offline queue for failed requests
-
-## Cross-Cutting Concerns
-
-**Logging:**
-- Approach: Structured logging with `server/logger.ts`
-- Features: Request IDs, timestamps, log levels, JSON output
-- Usage: All server operations log context-rich messages
-
-**Validation:**
-- Approach: Zod schemas for runtime validation
-- Location: `shared/schema.ts`
-- Usage: API request validation, form validation
-
-**Authentication:**
-- Approach: Session-based with Passport.js (local strategy)
-- Location: `server/security.ts`
-- Features: Password hashing with bcrypt, session management
-
-**Authorization:**
-- Approach: Role-based via session data
-- Admin routes protected with middleware checks
-
-**Caching:**
-- Approach: Multi-level caching (Redis + in-memory)
-- Location: `server/cache.ts`, `server/security.ts` (CacheManager)
-- Features: Cache invalidation patterns, TTL management
-
-**Monitoring:**
-- Approach: Built-in health checks and metrics
-- Location: `server/monitoring.ts`, `server/automated-monitoring.ts`
-- Endpoints: `/health`, `/metrics`, `/health/metrics`, `/health/history`
-
-**Security:**
-- Approach: Defense in depth
-- Features: Helmet headers, rate limiting, CSRF protection, input sanitization, SQL injection prevention via parameterized queries
+**Used by:** Browser via `index.html` entry point
 
 ---
 
-*Architecture analysis: 2025-02-09*
+### Shared (Domain Layer)
+
+**Purpose:** Shared TypeScript definitions and Zod schemas used by both frontend and backend
+
+**Location:** `shared/`
+
+**Contains:**
+- Database schema definitions (Drizzle ORM)
+- Zod validation schemas
+- TypeScript type definitions
+- Domain model definitions
+
+**Depends on:**
+- `drizzle-orm/pg-core` - PostgreSQL table definitions
+- `drizzle-zod` - Schema-to-Zod conversion
+- `zod` - Schema validation
+
+**Used by:** Frontend and Backend layers
+
+---
+
+### Backend (API Layer)
+
+**Purpose:** Express.js REST API providing data persistence and business logic
+
+**Location:** `server/`
+
+**Contains:**
+- Route handlers (`routes.ts`)
+- Storage abstraction (`storage.ts`)
+- Security middleware (`security.ts`, `csrf.ts`)
+- Performance monitoring (`monitoring.ts`, `cache.ts`)
+- Error handling (`performanceErrorHandler.ts`)
+- File upload handling (`objectStorage.ts`)
+- Database connection (`db.ts`)
+
+**Depends on:**
+- `express` - Web framework
+- `drizzle-orm` - Database ORM
+- `pg` - PostgreSQL driver
+- `multer` - File upload middleware
+- `helmet` - Security headers
+- `express-rate-limit` - Rate limiting
+
+**Used by:** Frontend via REST API calls
+
+---
+
+### Database (Data Layer)
+
+**Purpose:** PostgreSQL database with Drizzle ORM for data persistence
+
+**Location:** Database connection via `DATABASE_URL` env var
+
+**Contains:**
+- Tables: `users`, `inspections`, `roomInspections`, `custodialNotes`, `monthlyFeedback`, `inspectionPhotos`, `syncQueue`
+- Indexes for query optimization
+- Migrations in `migrations/`
+
+**Depends on:** PostgreSQL instance (via Railway or local)
+
+**Used by:** Backend storage layer
+
+## Data Flow
+
+### Inspection Submission Flow
+
+1. **User Input** → React components capture form data
+2. **Validation** → Zod schemas validate client-side
+3. **State Management** → React Query manages server state
+4. **API Request** → POST `/api/inspections` with FormData
+5. **Middleware** → Express validates, sanitizes, rate limits
+6. **File Processing** → Multer processes uploads, ObjectStorage saves files
+7. **Storage Layer** → `storage.ts` abstracts database operations
+8. **Database** → Drizzle ORM persists to PostgreSQL
+9. **Response** → JSON response with success/error status
+10. **UI Update** → React Query invalidates/refetches cached data
+
+### Data Fetch Flow (Inspection List)
+
+1. **Component Mount** → React Query hook triggers
+2. **Cache Check** → React Query checks local cache
+3. **API Request** → GET `/api/inspections` or `/api/inspections/summary`
+4. **Storage Layer** → Query executes with caching
+5. **Database** → Drizzle ORM fetches from PostgreSQL
+6. **Response** → JSON array returned
+7. **Cache Update** → React Query updates cache
+8. **UI Render** → Component displays data
+
+### Offline PWA Flow
+
+1. **Service Worker** → Intercepts network requests (`public/sw.js`)
+2. **Network Status** → `useOfflineStatus` hook monitors connectivity
+3. **Queue System** → Dexie (IndexedDB) stores pending operations
+4. **Sync Queue** → `syncQueue` table tracks server-side sync status
+5. **Background Sync** → Service Worker retries when online
+6. **Conflict Resolution** → Timestamps and status flags manage conflicts
+
+## Key Abstractions
+
+### Storage Pattern
+
+**Purpose:** Abstract database operations behind a clean interface
+
+**Location:** `server/storage.ts`
+
+**Pattern:** Repository pattern with caching
+
+```typescript
+export const storage = {
+  // CRUD operations with caching
+  getInspections(school, dateRange),
+  createInspection(data),
+  updateInspection(id, data),
+  deleteInspection(id),
+  // ...etc
+}
+```
+
+**Usage:**
+```typescript
+// In route handler
+const inspections = await storage.getInspections(school, { startDate, endDate });
+```
+
+### React Query Pattern
+
+**Purpose:** Server state management with caching and synchronization
+
+**Location:** `src/lib/queryClient.ts`
+
+**Pattern:** Query/Mutation with automatic caching
+
+```typescript
+// Query for fetching data
+const { data, isLoading } = useQuery({
+  queryKey: ['/api/inspections', school],
+  queryFn: getQueryFn({ on401: 'throw' })
+});
+
+// Mutation for updates
+const mutation = useMutation({
+  mutationFn: (data) => apiRequest('POST', '/api/inspections', data),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/inspections'] })
+});
+```
+
+### Security Middleware Pattern
+
+**Purpose:** Layered security with multiple defense mechanisms
+
+**Location:** `server/security.ts`, `server/csrf.ts`
+
+**Layers (in order):**
+1. Helmet (security headers)
+2. Rate limiting (per-endpoint)
+3. Request validation
+4. Input sanitization
+5. CSRF protection (state-changing routes)
+6. Session authentication (admin routes)
+
+### Circuit Breaker Pattern
+
+**Purpose:** Fail gracefully when services are unavailable
+
+**Location:** `server/performanceErrorHandler.ts`
+
+**Usage:**
+```typescript
+app.use('/api/inspections', circuitBreakerMiddleware(databaseCircuitBreaker, 'inspections'));
+```
+
+## Entry Points
+
+### Frontend Entry
+
+**Location:** `src/main.tsx`
+
+**Responsibilities:**
+- Create React root
+- Register service worker for PWA
+- Mount `<App />` component
+
+**Trigger:** Browser loads `index.html` → script tag executes
+
+---
+
+### App Component
+
+**Location:** `src/App.tsx`
+
+**Responsibilities:**
+- Route configuration (wouter)
+- Global providers (QueryClient, Router)
+- Lazy load page components
+- Error boundary wrapper
+- Accessibility initialization
+
+**Routes:**
+- `/` → Home/dashboard
+- `/custodial-inspection` → Single room inspection
+- `/whole-building-inspection` → Building inspection with rooms
+- `/custodial-notes` → Notes entry
+- `/monthly-feedback` → PDF feedback upload
+- `/inspection-data` → Data visualization
+- `/scores-dashboard` → Score analytics
+- `/admin-inspections` → Admin panel
+- `/rating-criteria` → Rating reference
+
+---
+
+### Backend Entry
+
+**Location:** `server/index.ts`
+
+**Responsibilities:**
+- Configure Express app
+- Set up middleware chain (security, parsing, rate limiting)
+- Register routes
+- Start HTTP server
+- Health check endpoints
+- Graceful shutdown handling
+
+**Trigger:** `npm run dev` or `node dist/index.js`
+
+---
+
+### API Routes
+
+**Location:** `server/routes.ts`
+
+**Responsibilities:**
+- Define all API endpoints
+- Route handlers for CRUD operations
+- File upload handling
+- Authentication endpoints
+
+**Key Routes:**
+- `POST /api/inspections` - Create inspection
+- `GET /api/inspections` - List inspections
+- `GET /api/inspections/summary` - Aggregated data
+- `POST /api/custodial-notes` - Create note
+- `POST /api/monthly-feedback` - Upload PDF
+- `GET /api/health` - Health check
+- `GET /api/csrf-token` - CSRF token
+
+## Error Handling
+
+**Strategy:** Layered with graceful degradation
+
+**Patterns:**
+1. **Frontend:** React Error Boundaries catch component errors
+2. **API Client:** `throwIfResNotOk` wrapper for fetch errors
+3. **Backend:** Centralized error handler middleware (last in chain)
+4. **Database:** Reconnection logic with retry
+5. **Storage:** `asyncErrorHandler` wrapper for route handlers
+6. **Circuit Breakers:** Prevent cascade failures
+
+**Response Format:**
+```typescript
+interface StandardResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  details?: any;
+  meta?: { total?, page?, pageSize? };
+}
+```
+
+## Cross-Cutting Concerns
+
+### Logging
+
+**Location:** `server/logger.ts`
+
+**Pattern:** Structured JSON logging with request IDs
+
+**Usage:**
+```typescript
+logger.info('Operation completed', { userId, duration });
+logger.error('Operation failed', { error, context });
+```
+
+### Validation
+
+**Location:** `shared/schema.ts` (Zod schemas)
+
+**Pattern:** Runtime validation at API boundaries
+
+**Usage:**
+```typescript
+const validatedData = insertInspectionSchema.parse(req.body);
+```
+
+### Authentication
+
+**Location:** `server/security.ts` (PasswordManager, SessionManager)
+
+**Pattern:** Session-based auth with bcrypt password hashing
+
+**Admin Routes:** Protected by session middleware
+
+### Caching
+
+**Location:** `server/cache.ts`, `server/storage.ts`
+
+**Pattern:** Multi-level caching
+- **API Cache:** In-memory request deduplication
+- **Data Cache:** Redis/CacheManager for query results
+- **Browser Cache:** Service Worker for assets
+
+---
+
+*Architecture analysis: 2026-02-16*
