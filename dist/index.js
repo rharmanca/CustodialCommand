@@ -494,7 +494,7 @@ async function withDatabaseReconnection(operation, operationName, maxRetries = 3
   }
   throw lastError || new Error("Database operation failed");
 }
-var Pool, isRailway, POOL_CONFIG, pool, db, connectionPoolErrors, MAX_POOL_ERRORS;
+var Pool, isRailway, POOL_CONFIG, useSSL, pool, db, connectionPoolErrors, MAX_POOL_ERRORS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
@@ -518,13 +518,14 @@ var init_db = __esm({
       throw new Error("DATABASE_URL must be set. Check your environment variables.");
     }
     logger.info("Applying database configuration", { isRailway, ...POOL_CONFIG });
+    useSSL = isRailway || process.env.DATABASE_URL?.includes("railway.app") || process.env.DATABASE_URL?.includes("rlwy.net");
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: POOL_CONFIG.max,
       min: POOL_CONFIG.min,
       idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
       connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
-      ssl: process.env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: false } : false
+      ssl: useSSL ? { rejectUnauthorized: false } : false
     });
     db = drizzle(pool, { schema: schema_exports });
     connectionPoolErrors = 0;

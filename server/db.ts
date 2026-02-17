@@ -33,13 +33,16 @@ if (!process.env.DATABASE_URL) {
 logger.info('Applying database configuration', { isRailway, ...POOL_CONFIG });
 
 // Create standard pg Pool
+// Railway databases require SSL, but we need to handle self-signed certificates
+const useSSL = isRailway || process.env.DATABASE_URL?.includes('railway.app') || process.env.DATABASE_URL?.includes('rlwy.net');
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: POOL_CONFIG.max,
   min: POOL_CONFIG.min,
   idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
   connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
-  ssl: process.env.DATABASE_URL?.includes('sslmode=require')
+  ssl: useSSL
     ? { rejectUnauthorized: false }
     : false,
 });
