@@ -34,6 +34,13 @@ import {
 import custodialDutyImage from "./assets/assets_task_01k0ah80j5ebdamsccd7rpnaeh_1752700412_img_0_1752768056345.webp";
 import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg_1752700690_img_1_1752767788234.webp";
 
+// Workflow integration components
+import {
+  FloatingActionButton,
+  QuickCaptureCard,
+  ReviewInspectionsCard,
+} from "@/components/ui/FloatingActionButton";
+
 // Lazy load page components for code splitting - reduces initial bundle size
 // Each page is loaded only when the user navigates to it
 const CustodialInspectionPage = lazy(() => import("./pages/custodial-inspection"));
@@ -45,6 +52,7 @@ const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
 const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
 const ScoresDashboard = lazy(() => import("./pages/scores-dashboard"));
 const QuickCapturePage = lazy(() => import("./pages/quick-capture"));
+const PhotoFirstReviewPage = lazy(() => import("./pages/photo-first-review"));
 const NotFoundPage = lazy(() => import("./pages/not-found"));
 
 // Loading skeleton component with accessibility support
@@ -103,7 +111,7 @@ class ErrorBoundary extends React.Component<
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<
+const [currentPage, setCurrentPage] = useState<
     | "Custodial"
     | "Custodial Inspection"
     | "Custodial Notes"
@@ -114,10 +122,12 @@ function App() {
     | "Monthly Feedback"
     | "Scores Dashboard"
     | "Quick Capture"
+    | "Photo Review"
   >("Custodial");
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
+  const [pendingInspectionCount, setPendingInspectionCount] = useState(0);
 
   // Phase 1: Enhanced mobile detection and accessibility
   const isMobile = useIsMobile();
@@ -179,6 +189,28 @@ function App() {
     return cleanup;
   }, []);
 
+  // Fetch pending inspection count for dashboard
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const response = await fetch('/api/inspections?status=pending_review&limit=1');
+        if (response.ok) {
+          const data = await response.json();
+          // If the API returns a count, use it; otherwise estimate from pagination
+          const count = data.pagination?.total || data.length || 0;
+          setPendingInspectionCount(count);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch pending inspection count:', error);
+      }
+    };
+
+    fetchPendingCount();
+    // Refresh count every 5 minutes
+    const interval = setInterval(fetchPendingCount, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Phase 1: Announce page changes to screen readers
   useEffect(() => {
     if (currentPage !== "Custodial") {
@@ -191,7 +223,8 @@ function App() {
         "admin-inspections": "Admin Inspections Panel",
         "Monthly Feedback": "Monthly Feedback Reports",
         "Scores Dashboard": "Building Scores Dashboard",
-        "Quick Capture": "Quick Photo Capture"
+        "Quick Capture": "Quick Photo Capture",
+        "Photo Review": "Photo-First Review"
       };
 
       announce(`Navigated to ${pageNames[currentPage] || currentPage}`);
@@ -454,6 +487,32 @@ function App() {
                   </div>
                 </div>
 
+                {/* Workflow Features - Quick Capture and Photo Review */}
+                <div className="space-y-2">
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
+                    Workflow
+                  </h2>
+                  <div className="space-y-3">
+                    {/* Quick Capture - shown prominently on mobile */}
+                    <div className="lg:hidden">
+                      <QuickCaptureCard
+                        onClick={() => setCurrentPage("Quick Capture")}
+                      />
+                    </div>
+                    {/* Quick Capture - shown as secondary option on desktop */}
+                    <div className="hidden lg:block">
+                      <QuickCaptureCard
+                        onClick={() => setCurrentPage("Quick Capture")}
+                      />
+                    </div>
+                    {/* Review Inspections - shown prominently on desktop */}
+                    <ReviewInspectionsCard
+                      onClick={() => setCurrentPage("Photo Review")}
+                      pendingCount={pendingInspectionCount}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
                     View & Reports
@@ -498,6 +557,15 @@ function App() {
               <p className="text-lg text-muted-foreground text-center">
                 Cleanliness is a duty for all.
               </p>
+
+              {/* Floating Action Button for Quick Capture (mobile only) */}
+              <FloatingActionButton
+                onClick={() => setCurrentPage("Quick Capture")}
+                icon="camera"
+                variant="capture"
+                aria-label="Quick capture photos"
+                badge={pendingInspectionCount > 0 ? pendingInspectionCount : undefined}
+              />
             </div>
           );
         case "Custodial Inspection":
@@ -556,6 +624,12 @@ function App() {
           return (
             <Suspense fallback={<PageLoadingSkeleton />}>
               <QuickCapturePage onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
+          );
+        case "Photo Review":
+          return (
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <PhotoFirstReviewPage />
             </Suspense>
           );
         default:
