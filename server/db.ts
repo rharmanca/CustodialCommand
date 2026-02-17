@@ -36,6 +36,8 @@ logger.info('Applying database configuration', { isRailway, ...POOL_CONFIG });
 // Railway databases require SSL, but we need to handle self-signed certificates
 const useSSL = isRailway || process.env.DATABASE_URL?.includes('railway.app') || process.env.DATABASE_URL?.includes('rlwy.net');
 
+logger.info('SSL configuration', { useSSL, isRailway, databaseUrl: process.env.DATABASE_URL?.substring(0, 50) + '...' });
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: POOL_CONFIG.max,

@@ -519,6 +519,7 @@ var init_db = __esm({
     }
     logger.info("Applying database configuration", { isRailway, ...POOL_CONFIG });
     useSSL = isRailway || process.env.DATABASE_URL?.includes("railway.app") || process.env.DATABASE_URL?.includes("rlwy.net");
+    logger.info("SSL configuration", { useSSL, isRailway, databaseUrl: process.env.DATABASE_URL?.substring(0, 50) + "..." });
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       max: POOL_CONFIG.max,
