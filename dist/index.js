@@ -20,6 +20,7 @@ __export(schema_exports, {
   insertSyncQueueSchema: () => insertSyncQueueSchema,
   insertUserSchema: () => insertUserSchema,
   inspectionPhotos: () => inspectionPhotos,
+  inspectionStatusEnum: () => inspectionStatusEnum,
   inspections: () => inspections,
   monthlyFeedback: () => monthlyFeedback,
   roomInspections: () => roomInspections,
@@ -29,7 +30,7 @@ __export(schema_exports, {
 import { pgTable, text, serial, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-var coerceNullableNumber, users, inspections, roomInspections, custodialNotes, monthlyFeedback, insertUserSchema, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema, insertMonthlyFeedbackSchema, inspectionPhotos, syncQueue, insertInspectionPhotoSchema, insertSyncQueueSchema;
+var coerceNullableNumber, users, inspections, roomInspections, custodialNotes, monthlyFeedback, insertUserSchema, inspectionStatusEnum, insertInspectionSchema, insertRoomInspectionSchema, insertCustodialNoteSchema, insertMonthlyFeedbackSchema, inspectionPhotos, syncQueue, insertInspectionPhotoSchema, insertSyncQueueSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
     "use strict";
@@ -76,12 +77,26 @@ var init_schema = __esm({
       // For tracking completed room types in building inspections
       isCompleted: boolean("is_completed").default(false),
       // For whole building inspections
-      createdAt: timestamp("created_at").defaultNow().notNull()
+      createdAt: timestamp("created_at").defaultNow().notNull(),
+      // Quick capture workflow fields
+      status: text("status").default("completed").notNull(),
+      // 'pending_review', 'completed', 'discarded'
+      captureTimestamp: timestamp("capture_timestamp"),
+      // When quick capture was created
+      completionTimestamp: timestamp("completion_timestamp"),
+      // When full inspection completed
+      quickNotes: text("quick_notes"),
+      // Optional 200-char notes for quick capture
+      captureLocation: text("capture_location")
+      // Quick-select location identifier
     }, (table) => ({
       schoolIdx: index("inspections_school_idx").on(table.school),
       dateIdx: index("inspections_date_idx").on(table.date),
       schoolDateIdx: index("inspections_school_date_idx").on(table.school, table.date),
-      inspectionTypeIdx: index("inspections_type_idx").on(table.inspectionType)
+      inspectionTypeIdx: index("inspections_type_idx").on(table.inspectionType),
+      statusIdx: index("inspections_status_idx").on(table.status),
+      statusSchoolIdx: index("inspections_status_school_idx").on(table.status, table.school),
+      captureTimestampIdx: index("inspections_capture_timestamp_idx").on(table.captureTimestamp)
     }));
     roomInspections = pgTable("room_inspections", {
       id: serial("id").primaryKey(),
@@ -104,7 +119,13 @@ var init_schema = __esm({
       images: text("images").array().default([]),
       responses: text("responses"),
       createdAt: timestamp("created_at").defaultNow().notNull()
-    });
+    }, (table) => ({
+      buildingInspectionIdIdx: index("room_inspections_building_id_idx").on(table.buildingInspectionId),
+      roomTypeIdx: index("room_inspections_room_type_idx").on(table.roomType),
+      roomIdentifierIdx: index("room_inspections_room_identifier_idx").on(table.roomIdentifier),
+      createdAtIdx: index("room_inspections_created_at_idx").on(table.createdAt),
+      buildingCreatedAtIdx: index("room_inspections_building_created_idx").on(table.buildingInspectionId, table.createdAt)
+    }));
     custodialNotes = pgTable("custodial_notes", {
       id: serial("id").primaryKey(),
       inspectorName: text("inspector_name"),
@@ -142,6 +163,7 @@ var init_schema = __esm({
       username: true,
       password: true
     });
+    inspectionStatusEnum = z.enum(["pending_review", "completed", "discarded"]);
     insertInspectionSchema = createInsertSchema(inspections).omit({
       id: true,
       createdAt: true
@@ -155,6 +177,12 @@ var init_schema = __esm({
       locationDescription: z.string().optional().default(""),
       inspectorName: z.string().min(1, "Inspector name is required"),
       date: z.string().min(1, "Date is required"),
+      // Quick capture workflow fields
+      status: inspectionStatusEnum.optional().default("completed"),
+      captureTimestamp: z.date().nullable().optional(),
+      completionTimestamp: z.date().nullable().optional(),
+      quickNotes: z.string().max(200, "Quick notes must be 200 characters or less").nullable().optional(),
+      captureLocation: z.string().nullable().optional(),
       // Make these fields nullable for building inspections
       floors: coerceNullableNumber.optional(),
       verticalHorizontalSurfaces: coerceNullableNumber.optional(),
@@ -427,7 +455,7 @@ async function initializeDatabase() {
         throw error;
       }
       logger.info(`Retrying database connection in ${retryDelay}ms...`);
-      await new Promise((resolve2) => setTimeout(resolve2, retryDelay));
+      await new Promise((resolve3) => setTimeout(resolve3, retryDelay));
     }
   }
 }
@@ -456,7 +484,7 @@ async function withDatabaseReconnection(operation, operationName, maxRetries = 3
         throw error;
       }
       const delay = Math.min(100 * Math.pow(2, attempt - 1), 1e3);
-      await new Promise((resolve2) => setTimeout(resolve2, delay));
+      await new Promise((resolve3) => setTimeout(resolve3, delay));
       logger.info(`Retrying database operation`, {
         operation: operationName,
         attempt: attempt + 1,
@@ -1368,7 +1396,7 @@ import cookieParser from "cookie-parser";
 
 // server/routes.ts
 import * as express from "express";
-import * as path4 from "path";
+import * as path5 from "path";
 import { randomBytes } from "crypto";
 
 // server/storage.ts
@@ -1457,9 +1485,8 @@ var storage = {
     });
   },
   async getInspections(options) {
-    const cacheKey = `inspections:all:${JSON.stringify(options || {})}`;
+    const cacheKey = `inspections:list:${JSON.stringify(options || {})}`;
     return executeQuery("getInspections", async () => {
-      let query = db.select().from(inspections);
       const conditions = [];
       if (options?.startDate) {
         conditions.push(gte(inspections.date, options.startDate));
@@ -1473,19 +1500,64 @@ var storage = {
       if (options?.inspectionType) {
         conditions.push(eq(inspections.inspectionType, options.inspectionType));
       }
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+      if (options?.isCompleted !== void 0) {
+        conditions.push(eq(inspections.isCompleted, options.isCompleted));
       }
-      query = query.orderBy(desc(inspections.date));
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
-      if (options?.offset) {
-        query = query.offset(options.offset);
-      }
-      const result = await query;
-      logger.info(`Retrieved ${result.length} inspections`, { options });
-      return result;
+      const whereClause = conditions.length > 0 ? and(...conditions) : void 0;
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100 ? options.limit : 50;
+      const offset = (page - 1) * limit;
+      const [inspectionsData, totalCountResult] = await Promise.all([
+        // Fetch paginated data with column selection
+        db.select({
+          id: inspections.id,
+          inspectorName: inspections.inspectorName,
+          school: inspections.school,
+          date: inspections.date,
+          inspectionType: inspections.inspectionType,
+          locationDescription: inspections.locationDescription,
+          roomNumber: inspections.roomNumber,
+          locationCategory: inspections.locationCategory,
+          buildingName: inspections.buildingName,
+          buildingInspectionId: inspections.buildingInspectionId,
+          floors: inspections.floors,
+          verticalHorizontalSurfaces: inspections.verticalHorizontalSurfaces,
+          ceiling: inspections.ceiling,
+          restrooms: inspections.restrooms,
+          customerSatisfaction: inspections.customerSatisfaction,
+          trash: inspections.trash,
+          projectCleaning: inspections.projectCleaning,
+          activitySupport: inspections.activitySupport,
+          safetyCompliance: inspections.safetyCompliance,
+          equipment: inspections.equipment,
+          monitoring: inspections.monitoring,
+          notes: inspections.notes,
+          images: inspections.images,
+          verifiedRooms: inspections.verifiedRooms,
+          isCompleted: inspections.isCompleted,
+          createdAt: inspections.createdAt
+        }).from(inspections).where(whereClause).orderBy(desc(inspections.date)).limit(limit).offset(offset),
+        // Fetch total count for pagination metadata
+        db.select({ count: sql`count(*)` }).from(inspections).where(whereClause)
+      ]);
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+      logger.info(`Retrieved ${inspectionsData.length} inspections (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+      return {
+        data: inspectionsData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
     }, cacheKey, 6e4);
   },
   async getInspection(id) {
@@ -1512,6 +1584,130 @@ var storage = {
       await CacheManager.delete(`inspection:${id}`);
       await CacheManager.clearPattern("inspections:all");
       return true;
+    });
+  },
+  // Quick Capture / Pending Review workflow methods
+  async createQuickCapture(data) {
+    return executeQuery("createQuickCapture", async () => {
+      if (!data.school || !data.captureLocation || !data.inspectorName) {
+        throw new Error("Missing required fields: school, captureLocation, and inspectorName are required");
+      }
+      const inspectionData = {
+        inspectorName: data.inspectorName,
+        school: data.school,
+        date: (/* @__PURE__ */ new Date()).toISOString(),
+        inspectionType: "single_room",
+        locationDescription: data.captureLocation,
+        status: "pending_review",
+        captureTimestamp: /* @__PURE__ */ new Date(),
+        captureLocation: data.captureLocation,
+        quickNotes: data.quickNotes || null,
+        images: data.images || [],
+        isCompleted: false
+      };
+      const [result] = await db.insert(inspections).values(inspectionData).returning();
+      logger.info("Created quick capture inspection:", { id: result.id, school: data.school });
+      await CacheManager.clearPattern("inspections:pending");
+      await CacheManager.clearPattern("inspections:list");
+      return result;
+    });
+  },
+  async getPendingInspections(options) {
+    const cacheKey = `inspections:pending:${JSON.stringify(options || {})}`;
+    return executeQuery("getPendingInspections", async () => {
+      const conditions = [eq(inspections.status, "pending_review")];
+      if (options?.school) {
+        conditions.push(eq(inspections.school, options.school));
+      }
+      const whereClause = conditions.length > 0 ? and(...conditions) : void 0;
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100 ? options.limit : 20;
+      const offset = (page - 1) * limit;
+      const [inspectionsData, totalCountResult] = await Promise.all([
+        // Fetch paginated data ordered by captureTimestamp (newest first)
+        db.select({
+          id: inspections.id,
+          inspectorName: inspections.inspectorName,
+          school: inspections.school,
+          date: inspections.date,
+          inspectionType: inspections.inspectionType,
+          locationDescription: inspections.locationDescription,
+          roomNumber: inspections.roomNumber,
+          locationCategory: inspections.locationCategory,
+          buildingName: inspections.buildingName,
+          buildingInspectionId: inspections.buildingInspectionId,
+          notes: inspections.notes,
+          images: inspections.images,
+          verifiedRooms: inspections.verifiedRooms,
+          isCompleted: inspections.isCompleted,
+          status: inspections.status,
+          captureTimestamp: inspections.captureTimestamp,
+          completionTimestamp: inspections.completionTimestamp,
+          quickNotes: inspections.quickNotes,
+          captureLocation: inspections.captureLocation,
+          createdAt: inspections.createdAt
+        }).from(inspections).where(whereClause).orderBy(desc(inspections.captureTimestamp)).limit(limit).offset(offset),
+        // Fetch total count for pagination metadata
+        db.select({ count: sql`count(*)` }).from(inspections).where(whereClause)
+      ]);
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+      logger.info(`Retrieved ${inspectionsData.length} pending inspections (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+      return {
+        data: inspectionsData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
+    }, cacheKey, 6e4);
+  },
+  async completePendingInspection(id, data) {
+    return executeQuery("completePendingInspection", async () => {
+      const [existing] = await db.select().from(inspections).where(eq(inspections.id, id)).limit(1);
+      if (!existing) {
+        throw new Error("Inspection not found");
+      }
+      if (existing.status !== "pending_review") {
+        throw new Error(`Inspection is not in pending_review status (current: ${existing.status})`);
+      }
+      const updateData = {
+        ...data,
+        status: "completed",
+        completionTimestamp: /* @__PURE__ */ new Date(),
+        isCompleted: true
+      };
+      const [result] = await db.update(inspections).set(updateData).where(eq(inspections.id, id)).returning();
+      logger.info("Completed pending inspection:", { id });
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern("inspections:pending");
+      await CacheManager.clearPattern("inspections:list");
+      return result;
+    });
+  },
+  async discardInspection(id) {
+    return executeQuery("discardInspection", async () => {
+      const [existing] = await db.select().from(inspections).where(eq(inspections.id, id)).limit(1);
+      if (!existing) {
+        throw new Error("Inspection not found");
+      }
+      if (existing.status !== "pending_review") {
+        throw new Error(`Inspection is not in pending_review status (current: ${existing.status})`);
+      }
+      const [result] = await db.update(inspections).set({ status: "discarded" }).where(eq(inspections.id, id)).returning();
+      logger.info("Discarded inspection:", { id });
+      await CacheManager.delete(`inspection:${id}`);
+      await CacheManager.clearPattern("inspections:pending");
+      await CacheManager.clearPattern("inspections:list");
+      return result;
     });
   },
   // Custodial Notes methods
@@ -1578,18 +1774,65 @@ var storage = {
       return result;
     });
   },
-  async getRoomInspections(buildingInspectionId) {
-    const cacheKey = `roomInspections:all:${buildingInspectionId || "all"}`;
+  async getRoomInspections(options) {
+    const cacheKey = `roomInspections:list:${JSON.stringify(options || {})}`;
     return executeQuery("getRoomInspections", async () => {
-      if (buildingInspectionId) {
-        const result = await db.select().from(roomInspections).where(eq(roomInspections.buildingInspectionId, buildingInspectionId)).orderBy(desc(roomInspections.createdAt));
-        logger.info(`Retrieved ${result.length} room inspections for building:`, { buildingInspectionId });
-        return result;
-      } else {
-        const result = await db.select().from(roomInspections).orderBy(desc(roomInspections.createdAt));
-        logger.info(`Retrieved ${result.length} room inspections`);
-        return result;
+      const conditions = [];
+      if (options?.buildingInspectionId) {
+        conditions.push(eq(roomInspections.buildingInspectionId, options.buildingInspectionId));
       }
+      if (options?.roomIdentifier) {
+        conditions.push(eq(roomInspections.roomIdentifier, options.roomIdentifier));
+      }
+      if (options?.roomType) {
+        conditions.push(eq(roomInspections.roomType, options.roomType));
+      }
+      const whereClause = conditions.length > 0 ? and(...conditions) : void 0;
+      const page = options?.page && options.page > 0 ? options.page : 1;
+      const limit = options?.limit && options.limit > 0 && options.limit <= 100 ? options.limit : 50;
+      const offset = (page - 1) * limit;
+      const [roomData, totalCountResult] = await Promise.all([
+        // Fetch paginated data with column selection for performance
+        db.select({
+          id: roomInspections.id,
+          buildingInspectionId: roomInspections.buildingInspectionId,
+          roomType: roomInspections.roomType,
+          roomIdentifier: roomInspections.roomIdentifier,
+          floors: roomInspections.floors,
+          verticalHorizontalSurfaces: roomInspections.verticalHorizontalSurfaces,
+          ceiling: roomInspections.ceiling,
+          restrooms: roomInspections.restrooms,
+          customerSatisfaction: roomInspections.customerSatisfaction,
+          trash: roomInspections.trash,
+          projectCleaning: roomInspections.projectCleaning,
+          activitySupport: roomInspections.activitySupport,
+          safetyCompliance: roomInspections.safetyCompliance,
+          equipment: roomInspections.equipment,
+          monitoring: roomInspections.monitoring,
+          notes: roomInspections.notes,
+          createdAt: roomInspections.createdAt
+        }).from(roomInspections).where(whereClause).orderBy(desc(roomInspections.createdAt)).limit(limit).offset(offset),
+        // Fetch total count for pagination metadata
+        db.select({ count: sql`count(*)` }).from(roomInspections).where(whereClause)
+      ]);
+      const totalCount = Number(totalCountResult[0]?.count || 0);
+      const totalPages = Math.ceil(totalCount / limit);
+      logger.info(`Retrieved ${roomData.length} room inspections (page ${page}/${totalPages})`, {
+        options,
+        totalCount
+      });
+      return {
+        data: roomData,
+        totalCount,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalPages,
+          totalRecords: totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      };
     }, cacheKey, 6e4);
   },
   async getRoomInspection(id) {
@@ -2250,6 +2493,47 @@ function sanitizeFilePath(userPath, allowedDirectory) {
   return normalized;
 }
 
+// server/services/thumbnail.ts
+init_logger();
+import sharp from "sharp";
+import * as fs3 from "fs/promises";
+import * as path4 from "path";
+var THUMBNAIL_CONFIG = {
+  width: 200,
+  height: 200,
+  fit: "cover",
+  position: "center",
+  quality: 70,
+  progressive: true
+};
+async function generateThumbnail(imageBuffer) {
+  try {
+    const startTime = Date.now();
+    const thumbnailBuffer = await sharp(imageBuffer).resize(THUMBNAIL_CONFIG.width, THUMBNAIL_CONFIG.height, {
+      fit: THUMBNAIL_CONFIG.fit,
+      position: THUMBNAIL_CONFIG.position
+    }).jpeg({
+      quality: THUMBNAIL_CONFIG.quality,
+      progressive: THUMBNAIL_CONFIG.progressive
+    }).toBuffer();
+    const duration = Date.now() - startTime;
+    logger.info("Thumbnail generated successfully", {
+      inputSize: imageBuffer.length,
+      outputSize: thumbnailBuffer.length,
+      dimensions: `${THUMBNAIL_CONFIG.width}x${THUMBNAIL_CONFIG.height}`,
+      durationMs: duration,
+      compressionRatio: (thumbnailBuffer.length / imageBuffer.length).toFixed(2)
+    });
+    return thumbnailBuffer;
+  } catch (error) {
+    logger.error("Thumbnail generation failed", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      inputSize: imageBuffer.length
+    });
+    throw new Error("Failed to generate thumbnail: " + (error instanceof Error ? error.message : "Unknown error"));
+  }
+}
+
 // server/routes.ts
 var objectStorageService = new ObjectStorageService();
 var upload = multer({
@@ -2380,10 +2664,7 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/inspections", async (req, res) => {
     try {
-      const { type, incomplete, page = "1", limit = "50" } = req.query;
-      let inspections2;
-      inspections2 = await storage.getInspections();
-      logger.info(`[GET] Found ${inspections2.length} total inspections`);
+      const { type, incomplete, page = "1", limit = "50", school, startDate, endDate } = req.query;
       const pageNum = parseInt(page, 10);
       const limitNum = parseInt(limit, 10);
       if (isNaN(pageNum) || pageNum < 1 || isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
@@ -2396,24 +2677,37 @@ async function registerRoutes(app2) {
           }
         });
       }
-      const totalCount = inspections2.length;
-      const offset = (pageNum - 1) * limitNum;
-      if (type === "whole_building" && incomplete === "true") {
-        inspections2 = inspections2.filter(
-          (inspection) => inspection.inspectionType === "whole_building" && !inspection.isCompleted
-        );
-        logger.info(
-          `[GET] Filtered whole_building incomplete: ${inspections2.length} \u2192 ${inspections2.length} inspections`
-        );
+      const options = {
+        page: pageNum,
+        limit: limitNum
+      };
+      if (school) {
+        options.school = school;
       }
-      const paginatedInspections = inspections2.slice(offset, offset + limitNum);
+      if (startDate) {
+        options.startDate = startDate;
+      }
+      if (endDate) {
+        options.endDate = endDate;
+      }
+      if (type === "whole_building" && incomplete === "true") {
+        options.inspectionType = "whole_building";
+        options.isCompleted = false;
+      } else if (type) {
+        options.inspectionType = type;
+      }
+      const result = await storage.getInspections(options);
+      logger.info(`[GET] Retrieved ${result.data.length} inspections (page ${result.pagination.currentPage}/${result.pagination.totalPages})`);
       res.json({
-        data: paginatedInspections,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: totalCount,
-          totalPages: Math.ceil(totalCount / limitNum)
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          type: options.inspectionType,
+          incomplete: incomplete === "true" ? true : void 0,
+          school: options.school,
+          startDate: options.startDate,
+          endDate: options.endDate
         }
       });
     } catch (error) {
@@ -2435,6 +2729,178 @@ async function registerRoutes(app2) {
     } catch (error) {
       logger.error("Error fetching inspection:", error);
       res.status(500).json({ error: "Failed to fetch inspection" });
+    }
+  });
+  app2.get("/api/inspections/pending", async (req, res) => {
+    try {
+      const { school, page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      if (isNaN(pageNum) || pageNum < 1 || isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100"
+          }
+        });
+      }
+      const options = {
+        page: pageNum,
+        limit: limitNum
+      };
+      if (school) {
+        options.school = school;
+      }
+      const result = await storage.getPendingInspections(options);
+      logger.info(`[GET] Retrieved ${result.data.length} pending inspections (page ${result.pagination.currentPage}/${result.pagination.totalPages})`);
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          school: options.school
+        }
+      });
+    } catch (error) {
+      logger.error("[GET] Error fetching pending inspections:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch pending inspections"
+      });
+    }
+  });
+  app2.patch("/api/inspections/:id/complete", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid inspection ID"
+        });
+      }
+      logger.info(`[PATCH] Completing pending inspection ${id}`, {
+        body: req.body
+      });
+      const completedInspection = await storage.completePendingInspection(id, req.body);
+      res.json({
+        success: true,
+        message: "Inspection completed successfully",
+        data: completedInspection
+      });
+    } catch (error) {
+      logger.error(`[PATCH] Error completing inspection ${req.params.id}:`, error);
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return res.status(404).json({
+            success: false,
+            message: "Inspection not found"
+          });
+        }
+        if (error.message.includes("not in pending_review status")) {
+          return res.status(400).json({
+            success: false,
+            message: error.message
+          });
+        }
+      }
+      res.status(500).json({
+        success: false,
+        message: "Failed to complete inspection"
+      });
+    }
+  });
+  app2.patch("/api/inspections/:id/discard", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid inspection ID"
+        });
+      }
+      logger.info(`[PATCH] Discarding inspection ${id}`);
+      const discardedInspection = await storage.discardInspection(id);
+      res.json({
+        success: true,
+        message: "Inspection discarded successfully",
+        data: discardedInspection
+      });
+    } catch (error) {
+      logger.error(`[PATCH] Error discarding inspection ${req.params.id}:`, error);
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          return res.status(404).json({
+            success: false,
+            message: "Inspection not found"
+          });
+        }
+        if (error.message.includes("not in pending_review status")) {
+          return res.status(400).json({
+            success: false,
+            message: error.message
+          });
+        }
+      }
+      res.status(500).json({
+        success: false,
+        message: "Failed to discard inspection"
+      });
+    }
+  });
+  app2.post("/api/inspections/quick-capture", async (req, res) => {
+    logger.info("[POST] Quick capture submission started", {
+      body: req.body
+    });
+    try {
+      const quickCaptureSchema = z2.object({
+        school: z2.string().min(1, "School is required"),
+        captureLocation: z2.string().min(1, "Capture location is required"),
+        inspectorName: z2.string().min(1, "Inspector name is required"),
+        quickNotes: z2.string().max(200, "Quick notes must be 200 characters or less").optional(),
+        images: z2.array(z2.string()).optional()
+      });
+      const validatedData = quickCaptureSchema.parse(req.body);
+      const newInspection = await storage.createQuickCapture({
+        school: validatedData.school,
+        captureLocation: validatedData.captureLocation,
+        inspectorName: validatedData.inspectorName,
+        quickNotes: validatedData.quickNotes,
+        images: validatedData.images
+      });
+      logger.info("[POST] Quick capture created successfully", {
+        id: newInspection.id,
+        school: validatedData.school
+      });
+      res.status(201).json({
+        success: true,
+        message: "Quick capture created successfully",
+        data: newInspection
+      });
+    } catch (error) {
+      logger.error("[POST] Error creating quick capture:", error);
+      if (error instanceof z2.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid quick capture data",
+          details: error.errors.map((err) => ({
+            field: err.path.join("."),
+            message: err.message
+          }))
+        });
+      }
+      if (error instanceof Error && error.message.includes("Missing required fields")) {
+        return res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+      res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
     }
   });
   app2.post("/api/custodial-notes", upload.array("images"), async (req, res) => {
@@ -2894,16 +3360,46 @@ async function registerRoutes(app2) {
   });
   app2.get("/api/room-inspections", async (req, res) => {
     try {
-      const buildingInspectionId = req.query.buildingInspectionId;
-      const roomInspections2 = await storage.getRoomInspections();
-      if (buildingInspectionId) {
-        const filteredRooms = roomInspections2.filter(
-          (room) => room.buildingInspectionId === parseInt(buildingInspectionId)
-        );
-        res.json(filteredRooms);
-      } else {
-        res.json(roomInspections2);
+      const { buildingInspectionId, roomIdentifier, roomType, page = "1", limit = "50" } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      if (isNaN(pageNum) || pageNum < 1 || isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+        return res.status(400).json({
+          error: "Invalid pagination parameters",
+          details: {
+            page: isNaN(pageNum) ? "invalid" : page,
+            limit: isNaN(limitNum) ? "invalid" : limit,
+            validRange: "1-100"
+          }
+        });
       }
+      const options = {
+        page: pageNum,
+        limit: limitNum
+      };
+      if (buildingInspectionId) {
+        const parsedId = parseInt(buildingInspectionId, 10);
+        if (!isNaN(parsedId)) {
+          options.buildingInspectionId = parsedId;
+        }
+      }
+      if (roomIdentifier) {
+        options.roomIdentifier = roomIdentifier;
+      }
+      if (roomType) {
+        options.roomType = roomType;
+      }
+      const result = await storage.getRoomInspections(options);
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+        filters: {
+          buildingInspectionId: options.buildingInspectionId,
+          roomIdentifier: options.roomIdentifier,
+          roomType: options.roomType
+        }
+      });
     } catch (error) {
       logger.error("Error fetching room inspections:", error);
       res.status(500).json({ error: "Failed to fetch room inspections" });
@@ -3037,7 +3533,7 @@ async function registerRoutes(app2) {
       }
     }
   );
-  app2.use("/uploads", express.static(path4.join(process.cwd(), "uploads")));
+  app2.use("/uploads", express.static(path5.join(process.cwd(), "uploads")));
   app2.get("/objects/:filename(*)", async (req, res) => {
     try {
       const requestedPath = req.params.filename;
@@ -3181,8 +3677,14 @@ async function registerRoutes(app2) {
   };
   app2.get("/api/admin/inspections", validateAdminSession, async (req, res) => {
     try {
-      const inspections2 = await storage.getInspections();
-      res.json({ success: true, data: inspections2 });
+      const { page = "1", limit = "50" } = req.query;
+      const pageNum = parseInt(page, 10) || 1;
+      const limitNum = parseInt(limit, 10) || 50;
+      const result = await storage.getInspections({
+        page: pageNum,
+        limit: Math.min(limitNum, 100)
+      });
+      res.json({ success: true, data: result.data, pagination: result.pagination });
     } catch (error) {
       logger.error("Error fetching admin inspections", { error });
       res.status(500).json({ success: false, message: "Internal server error" });
@@ -3542,9 +4044,11 @@ async function registerRoutes(app2) {
         startDate: validStartDate,
         endDate: validEndDate
       });
-      const filteredInspections = await storage.getInspections({
+      const inspectionsResult = await storage.getInspections({
         startDate: validStartDate || void 0,
-        endDate: validEndDate || void 0
+        endDate: validEndDate || void 0,
+        limit: 1e3
+        // Get more records for analytics
       });
       const filteredNotes = await storage.getCustodialNotes({
         startDate: validStartDate || void 0,
@@ -3552,7 +4056,7 @@ async function registerRoutes(app2) {
       });
       const inspectionsBySchool = {};
       const notesBySchool = {};
-      filteredInspections.forEach((inspection) => {
+      inspectionsResult.data.forEach((inspection) => {
         if (!inspectionsBySchool[inspection.school]) {
           inspectionsBySchool[inspection.school] = [];
         }
@@ -3602,17 +4106,20 @@ async function registerRoutes(app2) {
         startDate: validStartDate,
         endDate: validEndDate
       });
-      const inspections2 = await storage.getInspections({
+      const inspectionsResult = await storage.getInspections({
         school,
         startDate: validStartDate || void 0,
-        endDate: validEndDate || void 0
+        endDate: validEndDate || void 0,
+        limit: 1e3
+        // Get more records for analytics
       });
       const notes = await storage.getCustodialNotes({
         school,
         startDate: validStartDate || void 0,
         endDate: validEndDate || void 0
       });
-      const scoringResult = calculateBuildingScore(inspections2, notes);
+      const inspectionsData = inspectionsResult.data;
+      const scoringResult = calculateBuildingScore(inspectionsData, notes);
       const complianceStatus = getComplianceStatus(scoringResult.overallScore);
       res.json({
         success: true,
@@ -3620,8 +4127,8 @@ async function registerRoutes(app2) {
         score: scoringResult,
         complianceStatus,
         dateRange: {
-          start: startDate || inspections2[0]?.date || notes[0]?.date,
-          end: endDate || inspections2[inspections2.length - 1]?.date || notes[notes.length - 1]?.date
+          start: startDate || inspectionsData[0]?.date || notes[0]?.date,
+          end: endDate || inspectionsData[inspectionsData.length - 1]?.date || notes[notes.length - 1]?.date
         }
       });
     } catch (error) {
@@ -3750,9 +4257,43 @@ async function registerRoutes(app2) {
         });
       }
       const photoUrl = `/objects/${filename}`;
+      let thumbnailUrl = void 0;
+      try {
+        logger.info("[POST] Generating thumbnail", {
+          filename,
+          size: req.file.buffer.length
+        });
+        const thumbnailBuffer = await generateThumbnail(req.file.buffer);
+        const thumbnailFilename = `photos/${timestamp2}-${randomId}-thumb-${req.file.originalname}`;
+        const thumbnailUploadResult = await objectStorageService.uploadLargeFile(
+          thumbnailBuffer,
+          thumbnailFilename,
+          req.file.mimetype
+        );
+        if (thumbnailUploadResult.success) {
+          thumbnailUrl = `/objects/${thumbnailFilename}`;
+          logger.info("[POST] Thumbnail generated and uploaded", {
+            thumbnailFilename,
+            thumbnailUrl,
+            originalSize: req.file.buffer.length,
+            thumbnailSize: thumbnailBuffer.length
+          });
+        } else {
+          logger.error("[POST] Failed to upload thumbnail", {
+            filename: thumbnailFilename,
+            error: thumbnailUploadResult.error
+          });
+        }
+      } catch (thumbnailError) {
+        logger.error("[POST] Thumbnail generation failed", {
+          error: thumbnailError instanceof Error ? thumbnailError.message : "Unknown error",
+          filename
+        });
+      }
       const photoData = {
         inspectionId: inspectionId || null,
         photoUrl,
+        thumbnailUrl,
         locationLat: locationData ? locationData.latitude.toString() : null,
         locationLng: locationData ? locationData.longitude.toString() : null,
         locationAccuracy: locationData && locationData.accuracy ? locationData.accuracy.toString() : null,
@@ -3781,6 +4322,7 @@ async function registerRoutes(app2) {
         photo: {
           id: savedPhoto.id,
           url: photoUrl,
+          thumbnailUrl: thumbnailUrl || null,
           metadata: {
             width: metadata.width,
             height: metadata.height,
@@ -3944,12 +4486,12 @@ async function registerRoutes(app2) {
 // server/vite.ts
 init_logger();
 import * as express2 from "express";
-import * as path5 from "path";
+import * as path6 from "path";
 function serveStatic(app2) {
-  const uploadsPath = path5.join(process.cwd(), "uploads");
+  const uploadsPath = path6.join(process.cwd(), "uploads");
   app2.use("/uploads", express2.static(uploadsPath));
   logger.info(`Serving uploads from: ${uploadsPath}`);
-  const staticPath = path5.join(process.cwd(), "dist", "public");
+  const staticPath = path6.join(process.cwd(), "dist", "public");
   app2.use((req, res, next) => {
     if (req.path.endsWith(".html") || req.path === "/") {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -3964,8 +4506,8 @@ function serveStatic(app2) {
     // Cache static assets for 1 year
     etag: true,
     lastModified: true,
-    setHeaders: (res, path6) => {
-      if (path6.endsWith(".html")) {
+    setHeaders: (res, path7) => {
+      if (path7.endsWith(".html")) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
@@ -3978,7 +4520,7 @@ function serveStatic(app2) {
     if (req.path.startsWith("/api") || req.path.startsWith("/health") || req.path.startsWith("/uploads") || req.path.includes(".")) {
       return next();
     }
-    const indexPath = path5.join(staticPath, "index.html");
+    const indexPath = path6.join(staticPath, "index.html");
     if (!res.headersSent) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.setHeader("Pragma", "no-cache");
@@ -4457,14 +4999,14 @@ var APICache = class {
     return !noCachePatterns.some((pattern) => req.path.includes(pattern));
   }
   getCacheTTL(req) {
-    const path6 = req.path;
-    if (path6.includes("/api/inspections") || path6.includes("/api/custodial-notes")) {
+    const path7 = req.path;
+    if (path7.includes("/api/inspections") || path7.includes("/api/custodial-notes")) {
       return 6e4;
-    } else if (path6.includes("/api/scores")) {
+    } else if (path7.includes("/api/scores")) {
       return 3e5;
-    } else if (path6.includes("/api/monthly-feedback")) {
+    } else if (path7.includes("/api/monthly-feedback")) {
       return 12e4;
-    } else if (path6.startsWith("/api/")) {
+    } else if (path7.startsWith("/api/")) {
       return 6e4;
     } else {
       return 3e5;
@@ -4660,15 +5202,15 @@ var requestDeduplication = (req, res, next) => {
     });
     return;
   }
-  const requestPromise = new Promise((resolve2, reject) => {
+  const requestPromise = new Promise((resolve3, reject) => {
     const originalJson = res.json;
     const originalSend = res.send;
     res.json = function(data) {
-      resolve2(data);
+      resolve3(data);
       return originalJson.call(this, data);
     };
     res.send = function(data) {
-      resolve2(data);
+      resolve3(data);
       return originalSend.call(this, data);
     };
     res.on("error", reject);
@@ -5177,7 +5719,7 @@ app.use("/api", (req, res, next) => {
     const contentType = req.headers["content-type"];
     const accept = req.headers["accept"];
     const contentLength = req.headers["content-length"];
-    const path6 = req.path;
+    const path7 = req.path;
     const method = req.method;
     const bodyPreview = req.body ? JSON.parse(JSON.stringify(req.body)) : void 0;
     const truncate = (val) => {
@@ -5189,14 +5731,14 @@ app.use("/api", (req, res, next) => {
         bodyPreview[k] = truncate(bodyPreview[k]);
       }
     }
-    log(`API REQ ${method} ${path6} ct=${contentType || "n/a"} accept=${accept || "n/a"} len=${contentLength || "n/a"} :: ${JSON.stringify(bodyPreview || {})}`);
+    log(`API REQ ${method} ${path7} ct=${contentType || "n/a"} accept=${accept || "n/a"} len=${contentLength || "n/a"} :: ${JSON.stringify(bodyPreview || {})}`);
   } catch {
   }
   next();
 });
 app.use((req, res, next) => {
   const start = Date.now();
-  const path6 = req.path;
+  const path7 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -5205,8 +5747,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path6.startsWith("/api")) {
-      let logLine = `${req.method} ${path6} ${res.statusCode} in ${duration}ms`;
+    if (path7.startsWith("/api")) {
+      let logLine = `${req.method} ${path7} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
