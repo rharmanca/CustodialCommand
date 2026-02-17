@@ -38,15 +38,19 @@ const useSSL = isRailway || process.env.DATABASE_URL?.includes('railway.app') ||
 
 logger.info('SSL configuration', { useSSL, isRailway, databaseUrl: process.env.DATABASE_URL?.substring(0, 50) + '...' });
 
+// For Railway, we need to disable certificate validation entirely
+if (useSSL && process.env.NODE_TLS_REJECT_UNAUTHORIZED === undefined) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  logger.info('Set NODE_TLS_REJECT_UNAUTHORIZED=0 for Railway SSL');
+}
+
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: POOL_CONFIG.max,
   min: POOL_CONFIG.min,
   idleTimeoutMillis: POOL_CONFIG.idleTimeoutMillis,
   connectionTimeoutMillis: POOL_CONFIG.connectionTimeoutMillis,
-  ssl: useSSL
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl: useSSL ? true : false,
 });
 
 export const db = drizzle(pool, { schema });
