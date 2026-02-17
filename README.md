@@ -259,3 +259,4 @@ kill -9 $(lsof -ti:5000) 2>/dev/null
 # Trigger Railway rebuild - Sun Nov  2 18:52:47 CST 2025
 # Dev deployment fix
 # Deployment fix
+# Force redeploy
