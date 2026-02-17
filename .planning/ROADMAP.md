@@ -24,7 +24,7 @@ Comprehensive testing and review of the deployed application at https://cacustod
 
 **Goal:** Implement quick capture mode and photo-first review to improve mobile inspection workflow.
 
-**Status:** 📋 PLANNED (0/5 plans)
+**Status:** 📋 PLANNED (0/6 plans)
 
 **Scope:**
 - Quick capture mode for mobile field use
@@ -37,41 +37,49 @@ Comprehensive testing and review of the deployed application at https://cacustod
 
 ### Phase 03: Plans
 
-**Plan 01** — Quick Capture Core
-- Create "Quick Capture" entry point on mobile dashboard
-- Build rapid photo capture interface (camera stays open)
-- Location selection with minimal taps
-- Optional quick note field
-- Save as "pending review" status
-- Requirements: CAP-01, CAP-02, CAP-03, CAP-04, CAP-05, CAP-06, CAP-07
+**Plan 01** — Database Schema for Pending Review
+- Add status field to inspections (pending_review, completed, discarded)
+- Add capture and completion timestamp fields
+- Add quick notes field (200 char max)
+- Create database indexes for performance
+- Requirements: CAP-06, data model foundation
 
-**Plan 02** — Photo-First Review
-- Create "Pending Review" dashboard on desktop
-- Display photos alongside full inspection form
-- Enable photo reference while completing ratings
-- Complete inspection workflow
+**Plan 02** — Backend API for Pending Review
+- Create quick capture endpoint (POST /api/inspections/quick-capture)
+- Create pending list endpoint (GET /api/inspections/pending)
+- Create complete inspection endpoint (PATCH /api/inspections/:id/complete)
+- Create discard inspection endpoint (PATCH /api/inspections/:id/discard)
+- Requirements: CAP-01, CAP-05, CAP-07, REV-01, REV-05, REV-06, REV-07
+
+**Plan 03** — Thumbnail Generation Service
+- Install sharp library for image processing
+- Create thumbnail generation service (200x200, 70% quality)
+- Integrate with photo upload endpoint
+- Store thumbnail URLs in database
+- Requirements: PERF-03, PERF-05
+
+**Plan 04** — Quick Capture UI
+- Create useCamera hook with continuous capture
+- Build CameraCapture component (react-webcam ref pattern)
+- Build PhotoPreviewStrip and QuickNoteInput components
+- Create Quick Capture page with location selection and save
+- Requirements: CAP-01, CAP-02, CAP-03, CAP-04, CAP-05, CAP-07, MOB-01
+
+**Plan 05** — Photo-First Review UI
+- Create usePendingInspections hook
+- Build PendingInspectionList with thumbnails
+- Build PhotoReviewPane with progressive loading
+- Build InspectionCompletionForm with all ratings
+- Create Photo-First Review page with split-pane layout
 - Requirements: REV-01, REV-02, REV-03, REV-04, REV-05, REV-06, REV-07
 
-**Plan 03** — Mobile Performance
-- Optimize inspection form load time (<2s)
-- Camera initialization optimization
-- Photo thumbnail generation
-- Progressive photo loading
-- Requirements: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05
-
-**Plan 04** — Mobile UX Polish
-- Large touch targets (44px minimum)
-- Portrait-only orientation support
-- Clear mode distinctions (capture vs review)
-- Offline capability for quick capture
-- Requirements: MOB-01, MOB-02, MOB-03, MOB-04
-
-**Plan 05** — Workflow Completion
-- End-to-end workflow testing
-- Data integrity verification
-- User acceptance testing
-- Documentation updates
-- Success criteria validation
+**Plan 06** — Integration and Performance
+- Add Quick Capture FAB and entry point to dashboard
+- Add Photo-First Review link to dashboard
+- Implement route-level code splitting (lazy loading)
+- Optimize for <2s load time on mobile 4G
+- Add visual distinction between capture and review modes
+- Requirements: CAP-01, MOB-02, MOB-04, PERF-01, PERF-02, PERF-04
 
 ---
 
@@ -113,11 +121,25 @@ All Phase 03 requirements map to specific plans:
 
 | Plan | Requirements | Success Criteria |
 |------|--------------|------------------|
-| 03-01 | CAP-01 through CAP-07 | Milestone 1 |
-| 03-02 | REV-01 through REV-07 | Milestone 2 |
-| 03-03 | PERF-01 through PERF-05 | Milestone 3 |
-| 03-04 | MOB-01 through MOB-04 | Milestone 3 |
-| 03-05 | All Phase 03 | All Milestones |
+| 03-01 | CAP-06 (schema) | Data model foundation |
+| 03-02 | CAP-01, CAP-05, CAP-07, REV-01, REV-05, REV-06, REV-07 | API foundation |
+| 03-03 | PERF-03, PERF-05 | Thumbnails, progressive loading |
+| 03-04 | CAP-01 through CAP-07, MOB-01 | Milestone 1 |
+| 03-05 | REV-01 through REV-07 | Milestone 2 |
+| 03-06 | CAP-01, MOB-02, MOB-04, PERF-01, PERF-02, PERF-04 | Milestone 3 |
+
+---
+
+## Wave Structure
+
+Phase 03 executes in 4 waves for parallel execution:
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 03-01 (Schema) | None | - |
+| 2 | 03-02 (API), 03-03 (Thumbnails) | 03-01 | 03-02 and 03-03 |
+| 3 | 03-04 (Quick Capture), 03-05 (Photo Review) | 03-02, 03-03 | 03-04 and 03-05 |
+| 4 | 03-06 (Integration) | 03-04, 03-05 | - |
 
 ---
 
@@ -127,8 +149,8 @@ All Phase 03 requirements map to specific plans:
 |-------|--------|----------------|-------------|
 | 01 | ✅ Complete | 8/8 | — |
 | 02 | 🔄 In Progress | 5/8 | Complete 02-02, 02-04 |
-| 03 | 📋 Planned | 0/5 | Begin 03-01 |
+| 03 | 📋 Planned | Complete    | 2026-02-17 |
 
 ---
 *Roadmap created: 2026-02-16*
-*Last updated: 2026-02-16 - Added Phase 03: Workflow Improvements*
+*Last updated: 2026-02-16 - Created 6 detailed execution plans for Phase 03*
