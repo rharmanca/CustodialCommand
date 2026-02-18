@@ -389,7 +389,16 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
         </section>
 
         {/* Camera capture */}
-        <section className="space-y-3">
+        <section
+          className={cn(
+            "space-y-3",
+            isMobile && [
+              "sticky z-30",
+              "bottom-[calc(env(safe-area-inset-bottom)+6rem)]",
+              "-mx-1 rounded-xl border border-border/60 bg-background/95 p-3 shadow-lg backdrop-blur"
+            ]
+          )}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Camera className="w-5 h-5 text-muted-foreground" />
@@ -403,10 +412,11 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
               </span>
             )}
           </div>
-          <CameraCapture 
+          <CameraCapture
             onCapture={handleCapture}
             initialPhotos={capturedImages}
             disabled={isSubmitting}
+            className={isMobile ? "gap-3" : undefined}
           />
         </section>
 
