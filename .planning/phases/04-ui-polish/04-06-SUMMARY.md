@@ -65,7 +65,7 @@ Each task was committed atomically:
 3. **Task 3: Position button for thumb reach** - `86bc8c4b` (feat)
 4. **Task 4: Verify secondary button sizes** - `a3df525c` (feat)
 
-**Plan metadata:** pending
+**Plan metadata:** `38dfadb4` (docs)
 
 ## Files Created/Modified
 - `.planning/phases/04-ui-polish/04-06-CAPABILITY-INVENTORY.md` - option-b capability/agent/tool orchestration record.
