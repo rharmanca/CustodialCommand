@@ -146,25 +146,27 @@ export const CameraCapture = React.forwardRef<HTMLDivElement, CameraCaptureProps
         </div>
 
         {/* Capture button - large touch target (64px circle) */}
-        <button
-          type="button"
-          onClick={capture}
-          disabled={!isReady || disabled}
-          className={cn(
-            "self-center w-16 h-16 min-h-[64px] min-w-[64px] rounded-full",
-            "flex items-center justify-center",
-            "bg-primary text-primary-foreground",
-            "shadow-lg hover:shadow-xl",
-            "transition-all duration-200",
-            "hover:scale-105 active:scale-95",
-            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
-            "border-4 border-white dark:border-gray-800",
-            "touch-manipulation"
-          )}
-          aria-label="Capture photo"
-        >
-          <Camera className="w-8 h-8" />
-        </button>
+        <div className="self-center p-2">
+          <button
+            type="button"
+            onClick={capture}
+            disabled={!isReady || disabled}
+            className={cn(
+              "w-16 h-16 min-h-[64px] min-w-[64px] rounded-full",
+              "flex items-center justify-center",
+              "bg-primary text-primary-foreground",
+              "shadow-lg hover:shadow-xl",
+              "transition-all duration-200",
+              "hover:scale-105 active:scale-95 active:brightness-95",
+              "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
+              "border-4 border-white dark:border-gray-800",
+              "touch-manipulation"
+            )}
+            aria-label="Capture photo"
+          >
+            <Camera className="w-8 h-8" />
+          </button>
+        </div>
       </div>
     );
   }
