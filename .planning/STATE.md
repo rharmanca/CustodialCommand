@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: 03-workflow-improvements
-- **Current Plan**: 03-06-Workflow-Completion
-- **Status**: Complete ✅
+- **Current Phase**: 04-ui-polish
+- **Current Plan**: 04-06-Touch-Target-Ergonomics
+- **Status**: In Progress 🔄
 
 ## Phase Progress
 
@@ -33,6 +33,14 @@ Phase 03: workflow-improvements [█████████] 100% ✅
 ├── 03-04: Mobile UX Polish ✅ COMPLETE
 ├── 03-05: Photo-First Review Page ✅ COMPLETE
 └── 03-06: Workflow Completion ✅ COMPLETE
+
+Phase 04: ui-polish [██░░░░░░░] 33% 🔄
+├── 04-01: Capability Orchestration ✅ COMPLETE
+├── 04-02: Grouped Rating Form ✅ COMPLETE
+├── 04-03: Quick Capture Simplification ✅ COMPLETE
+├── 04-04: Pending Badge + FAB ✅ COMPLETE
+├── 04-05: [Pending]
+└── 04-06: Touch Targets + Reachability ✅ COMPLETE
 ```
 
 ## Project Context
@@ -66,12 +74,15 @@ Phase 03: workflow-improvements [█████████] 100% ✅
 11. **FAB for Mobile Quick Capture**: Floating Action Button provides immediate access to capture mode
 12. **Visual Workflow Distinction**: Amber/warm colors for capture, teal/cool colors for review
 13. **Pending Count Badges**: Dashboard shows real-time count of inspections awaiting review
+14. **Option-B Capability Inventory**: Expanded tool/agent/skill orchestration recorded before implementation
+15. **Sticky Thumb Zone**: Mobile camera block remains reachable above safe-area and save bar
+16. **Explicit Touch Minimums**: Primary capture at 64px, secondary actions at 44px minimum
 
 ## Next Actions
 
-1. **Phase 03 Deployed** ✅: All workflow improvements deployed to production (2026-02-17)
-2. **Complete Phase 02**: Finish Cross-Browser Testing and Cleanup
-3. **Plan Phase 04**: Post-workflow enhancements and new features
+1. **Continue Phase 04**: Execute remaining 04-05 polish work and phase wrap-up
+2. **Re-verify Remote Deep Journey**: Re-run full deep-journey after next deployment to validate pending-review row visibility
+3. **Complete Phase 02**: Finish Cross-Browser Testing and Cleanup
 
 ## File References
 
@@ -82,11 +93,11 @@ Phase 03: workflow-improvements [█████████] 100% ✅
 
 ## Last Session
 
-- **Timestamp**: 2026-02-17
-- **Activity**: Deployed Phase 03 to Production
-- **Summary**: Successfully deployed Phase 03 workflow improvements to production after fixing build issues (@shared path alias, railway:start script) and database SSL configuration. App is now live at cacustodialcommand.up.railway.app with Quick Capture and Photo-First Review features. Database connected and health checks passing.
+- **Timestamp**: 2026-02-18
+- **Activity**: Completed Phase 04 Plan 04-06 Touch Target Ergonomics
+- **Summary**: Applied option-b capability orchestration, reinforced 64px primary capture target, moved mobile camera controls into sticky thumb-zone positioning, and enforced 44px secondary photo controls. Local typecheck/build/visual checks passed. Remote deep-journey UI discovery remains deferred for post-deploy verification.
 
 ---
-*Last updated: 2026-02-17*
-*Plan 03-06 completed: Workflow Completion*
-*Phase 03: workflow-improvements COMPLETE ✅*
+*Last updated: 2026-02-18*
+*Plan 04-06 completed: Touch Target Ergonomics*
+*Phase 04: ui-polish IN PROGRESS 🔄*
