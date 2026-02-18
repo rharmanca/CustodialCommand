@@ -40,6 +40,7 @@ import {
   QuickCaptureCard,
   ReviewInspectionsCard,
 } from "@/components/ui/FloatingActionButton";
+import { usePendingCount } from "@/hooks/usePendingCount";
 
 // Lazy load page components for code splitting - reduces initial bundle size
 // Each page is loaded only when the user navigates to it
@@ -127,7 +128,6 @@ const [currentPage, setCurrentPage] = useState<
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
-  const [pendingInspectionCount, setPendingInspectionCount] = useState(0);
 
   // Phase 1: Enhanced mobile detection and accessibility
   const isMobile = useIsMobile();
@@ -140,6 +140,7 @@ const [currentPage, setCurrentPage] = useState<
   const { textSize, increaseTextSize, decreaseTextSize } = useResponsiveText();
   const hasScreenReader = useScreenReaderDetection();
   const { meetsWCAGAA } = useColorContrast();
+  const { pendingCount: pendingInspectionCount } = usePendingCount();
 
   // Initialize CSRF protection on app load
   useEffect(() => {
@@ -187,28 +188,6 @@ const [currentPage, setCurrentPage] = useState<
   useEffect(() => {
     const cleanup = initKeyboardNavigationDetector();
     return cleanup;
-  }, []);
-
-  // Fetch pending inspection count for dashboard
-  useEffect(() => {
-    const fetchPendingCount = async () => {
-      try {
-        const response = await fetch('/api/inspections?status=pending_review&limit=1');
-        if (response.ok) {
-          const data = await response.json();
-          // If the API returns a count, use it; otherwise estimate from pagination
-          const count = data.pagination?.total || data.length || 0;
-          setPendingInspectionCount(count);
-        }
-      } catch (error) {
-        console.warn('Failed to fetch pending inspection count:', error);
-      }
-    };
-
-    fetchPendingCount();
-    // Refresh count every 5 minutes
-    const interval = setInterval(fetchPendingCount, 5 * 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
   // Phase 1: Announce page changes to screen readers
