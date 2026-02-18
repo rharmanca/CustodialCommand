@@ -99,12 +99,12 @@ export const PhotoPreviewStrip = React.forwardRef<HTMLDivElement, PhotoPreviewSt
                 onClick={() => onRemove(index)}
                 className={cn(
                   "absolute top-1 right-1",
-                  "w-8 h-8 min-h-[44px] min-w-[44px]",
+                  "h-11 w-11 min-h-[44px] min-w-[44px]",
                   "flex items-center justify-center",
                   "bg-black/60 hover:bg-black/80",
                   "text-white rounded-full",
                   "transition-all duration-200",
-                  "opacity-0 group-hover:opacity-100",
+                  "opacity-100 md:opacity-0 md:group-hover:opacity-100",
                   "focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary",
                   "touch-manipulation"
                 )}
