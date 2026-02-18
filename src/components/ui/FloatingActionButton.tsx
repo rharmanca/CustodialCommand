@@ -2,6 +2,17 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Camera, Plus } from 'lucide-react';
 
+function getUrgencyClasses(count: number) {
+  const isBacklog = count >= 5;
+
+  return {
+    badge: isBacklog
+      ? 'bg-red-600 text-white'
+      : 'bg-amber-500 text-amber-950',
+    pulse: count > 0 ? 'animate-pulse' : '',
+  };
+}
+
 interface FloatingActionButtonProps {
   onClick: () => void;
   icon?: 'camera' | 'plus';
@@ -41,6 +52,7 @@ export function FloatingActionButton({
   badge,
 }: FloatingActionButtonProps) {
   const Icon = icon === 'camera' ? Camera : Plus;
+  const urgencyClasses = badge !== undefined && badge > 0 ? getUrgencyClasses(badge) : null;
 
   const variantStyles = {
     primary: 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/30',
@@ -85,9 +97,11 @@ export function FloatingActionButton({
             'absolute -top-1 -right-1',
             'min-w-[24px] h-6 px-1.5',
             'flex items-center justify-center',
-            'bg-red-500 text-white text-sm font-bold',
+            'text-sm font-bold',
             'rounded-full shadow-md',
-            'animate-in fade-in zoom-in duration-200'
+            'animate-in fade-in zoom-in duration-200',
+            urgencyClasses?.badge,
+            urgencyClasses?.pulse
           )}
           aria-label={`${badge} pending items`}
         >
@@ -155,6 +169,8 @@ export function ReviewInspectionsCard({
   onClick: () => void;
   pendingCount?: number;
 }) {
+  const urgencyClasses = pendingCount !== undefined && pendingCount > 0 ? getUrgencyClasses(pendingCount) : null;
+
   return (
     <button
       onClick={onClick}
@@ -195,7 +211,11 @@ export function ReviewInspectionsCard({
       </div>
       {pendingCount !== undefined && pendingCount > 0 && (
         <span
-          className="bg-teal-500 text-white text-sm font-bold px-3 py-1.5 rounded-full min-w-[2.5rem] text-center"
+          className={cn(
+            'text-sm font-bold px-3 py-1.5 rounded-full min-w-[2.5rem] text-center shadow-sm',
+            urgencyClasses?.badge,
+            urgencyClasses?.pulse
+          )}
           aria-label={`${pendingCount} inspections pending review`}
         >
           {pendingCount > 99 ? '99+' : pendingCount}
