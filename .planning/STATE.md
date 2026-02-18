@@ -3,7 +3,7 @@
 ## Project Overview
 - **Name**: Custodial Command
 - **Current Phase**: 04-ui-polish
-- **Current Plan**: 04-06-Touch-Target-Ergonomics
+- **Current Plan**: 04-05-Dashboard-FAB-Integration
 - **Status**: In Progress 🔄
 
 ## Phase Progress
@@ -77,6 +77,8 @@ Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 14. **Option-B Capability Inventory**: Expanded tool/agent/skill orchestration recorded before implementation
 15. **Sticky Thumb Zone**: Mobile camera block remains reachable above safe-area and save bar
 16. **Explicit Touch Minimums**: Primary capture at 64px, secondary actions at 44px minimum
+17. **Pending Badge Urgency Bands**: Backlog highlights use red at >=5 while amber covers 1-4 pending items
+18. **Pending Count Freshness**: Dashboard count refreshes via 30s polling and complete/discard mutation events
 
 ## Next Actions
 
@@ -94,10 +96,10 @@ Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 ## Last Session
 
 - **Timestamp**: 2026-02-18
-- **Activity**: Completed Phase 04 Plan 04-06 Touch Target Ergonomics
-- **Summary**: Applied option-b capability orchestration, reinforced 64px primary capture target, moved mobile camera controls into sticky thumb-zone positioning, and enforced 44px secondary photo controls. Local typecheck/build/visual checks passed. Remote deep-journey UI discovery remains deferred for post-deploy verification.
+- **Activity**: Completed Phase 04 Plan 04-04 Pending Badge Urgency
+- **Summary**: Applied option-b capability orchestration, wired shared pending-count state into review entry points, added urgency threshold styling and pulse behavior, and implemented near-real-time count refresh triggers. Local typecheck/build/visual checks passed; remote deep-journey remained unstable due CSRF/rate-limit responses.
 
 ---
 *Last updated: 2026-02-18*
-*Plan 04-06 completed: Touch Target Ergonomics*
+*Plan 04-04 completed: Pending Badge Urgency*
 *Phase 04: ui-polish IN PROGRESS 🔄*
