@@ -271,12 +271,10 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  app.get("/api/inspections/:id", async (req: Request, res: Response) => {
+  // Restrict generic :id route to numeric IDs so /pending is never shadowed
+  app.get("/api/inspections/:id(\\d+)", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid inspection ID" });
-      }
 
       const inspection = await storage.getInspection(id);
       if (!inspection) {

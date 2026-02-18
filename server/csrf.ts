@@ -10,7 +10,8 @@ const CSRF_COOKIE_NAME = "csrf-secret";
 const CSRF_TOKEN_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // In-memory token store (use Redis in production for distributed systems)
-const tokenStore = new Map<string, { token: string; expires: number }>();
+const MAX_TOKENS_PER_SECRET = 10;
+const tokenStore = new Map<string, { tokens: Set<string>; expires: number }>();
 
 /**
  * Generate a CSRF token and secret pair
@@ -34,9 +35,9 @@ function hashToken(token: string, secret: string): string {
 /**
  * Verify a CSRF token against a secret
  */
-function verifyCsrfToken(token: string, secret: string, storedHash: string): boolean {
+function verifyCsrfToken(token: string, secret: string, storedHashes: Set<string>): boolean {
   const hash = hashToken(token, secret);
-  return hash === storedHash;
+  return storedHashes.has(hash);
 }
 
 /**
@@ -122,7 +123,7 @@ export function csrfProtection(req: any, res: Response, next: NextFunction) {
     }
 
     // Verify the token
-    if (!verifyCsrfToken(token as string, secret, storedData.token)) {
+    if (!verifyCsrfToken(token as string, secret, storedData.tokens)) {
       logger.warn("CSRF validation failed: Invalid token", {
         path: req.path,
         method: req.method,
@@ -158,13 +159,36 @@ export function csrfProtection(req: any, res: Response, next: NextFunction) {
  * Generate a new CSRF token for a session
  */
 export function generateToken(req: Request, res: Response): { token: string; secret: string } {
-  const { token, secret } = generateCsrfToken();
+  const now = Date.now();
+  const existingSecret = req.cookies?.[CSRF_COOKIE_NAME] as string | undefined;
+  const existingEntry = existingSecret ? tokenStore.get(existingSecret) : undefined;
+
+  const secret = existingSecret && existingEntry && now <= existingEntry.expires
+    ? existingSecret
+    : randomBytes(CSRF_SECRET_LENGTH).toString("hex");
+
+  const token = randomBytes(CSRF_TOKEN_LENGTH).toString("hex");
   const hashedToken = hashToken(token, secret);
 
-  // Store token with expiration
+  const existing = tokenStore.get(secret);
+  const tokens = existing && now <= existing.expires
+    ? new Set(existing.tokens)
+    : new Set<string>();
+
+  tokens.add(hashedToken);
+
+  while (tokens.size > MAX_TOKENS_PER_SECRET) {
+    const oldestToken = tokens.values().next().value;
+    if (!oldestToken) {
+      break;
+    }
+    tokens.delete(oldestToken);
+  }
+
+  // Store token set with expiration
   tokenStore.set(secret, {
-    token: hashedToken,
-    expires: Date.now() + CSRF_TOKEN_TTL,
+    tokens,
+    expires: now + CSRF_TOKEN_TTL,
   });
 
   // Set secret as httpOnly cookie
@@ -232,8 +256,18 @@ setInterval(cleanupExpiredTokens, 15 * 60 * 1000);
  * Get current token store stats (for monitoring)
  */
 export function getCsrfStats() {
+  const now = Date.now();
+  let activeTokens = 0;
+
+  for (const entry of tokenStore.values()) {
+    if (now <= entry.expires) {
+      activeTokens += entry.tokens.size;
+    }
+  }
+
   return {
-    activeTokens: tokenStore.size,
+    activeTokens,
+    activeSecrets: tokenStore.size,
     headerName: CSRF_HEADER_NAME,
     cookieName: CSRF_COOKIE_NAME,
   };
