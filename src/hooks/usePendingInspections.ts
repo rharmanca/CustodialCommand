@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Inspection } from '@shared/schema';
+import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 
 export interface PendingInspection extends Inspection {
   photoCount?: number;
@@ -124,10 +125,14 @@ export const usePendingInspections = (
     setCompleteError(null);
 
     try {
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const response = await fetch(`/api/inspections/${id}/complete`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
         },
         credentials: 'include',
         body: JSON.stringify(data),
@@ -172,10 +177,14 @@ export const usePendingInspections = (
     setDiscardError(null);
 
     try {
+      await refreshCsrfTokenIfNeeded();
+      const csrfToken = getCsrfToken();
+
       const response = await fetch(`/api/inspections/${id}/discard`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
         },
         credentials: 'include',
       });

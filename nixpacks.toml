@@ -6,7 +6,13 @@ cmds = ["npm install --production=false"]
 
 [phases.build]
 # Build phase - compile TypeScript and bundle frontend
-cmds = ["npm run build"]
+cmds = [
+  "echo 'Starting build...'",
+  "cat package.json | grep railway",
+  "npm run build",
+  "echo 'Build complete, checking dist/package.json...'",
+  "cat dist/package.json | grep railway"
+]
 
 [start]
 cmd = "npm run railway:start"

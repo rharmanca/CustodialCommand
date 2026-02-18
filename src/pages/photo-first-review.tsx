@@ -127,6 +127,7 @@ export default function PhotoFirstReviewPage() {
 
   // Handle selecting an inspection
   const handleSelectInspection = (inspection: PendingInspection) => {
+    setSelectedInspection(inspection);
     setSearchParams({ id: inspection.id.toString() });
   };
 
@@ -140,6 +141,7 @@ export default function PhotoFirstReviewPage() {
       setShowCompleted(true);
       setTimeout(() => {
         setShowCompleted(false);
+        setSelectedInspection(null);
         setSearchParams({ id: null });
       }, 2000);
     }
@@ -150,12 +152,14 @@ export default function PhotoFirstReviewPage() {
     const success = await discardInspection(id);
 
     if (success && selectedInspection?.id === id) {
+      setSelectedInspection(null);
       setSearchParams({ id: null });
     }
   };
 
   // Handle going back to list
   const handleBack = () => {
+    setSelectedInspection(null);
     setSearchParams({ id: null });
   };
 
