@@ -140,7 +140,7 @@ const [currentPage, setCurrentPage] = useState<
   const { textSize, increaseTextSize, decreaseTextSize } = useResponsiveText();
   const hasScreenReader = useScreenReaderDetection();
   const { meetsWCAGAA } = useColorContrast();
-  const { pendingCount: pendingInspectionCount } = usePendingCount();
+  const { pendingCount: pendingInspectionCount } = usePendingCount({ pollingMs: 30_000 });
 
   // Initialize CSRF protection on app load
   useEffect(() => {

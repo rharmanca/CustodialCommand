@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Inspection } from '@shared/schema';
 import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
+import { PENDING_COUNT_UPDATED_EVENT } from '@/hooks/usePendingCount';
 
 export interface PendingInspection extends Inspection {
   photoCount?: number;
@@ -153,6 +154,7 @@ export const usePendingInspections = (
 
       // Refresh the list to update pagination
       await fetchPendingInspections();
+      window.dispatchEvent(new Event(PENDING_COUNT_UPDATED_EVENT));
 
       return true;
     } catch (err) {
@@ -204,6 +206,7 @@ export const usePendingInspections = (
 
       // Refresh the list to update pagination
       await fetchPendingInspections();
+      window.dispatchEvent(new Event(PENDING_COUNT_UPDATED_EVENT));
 
       return true;
     } catch (err) {

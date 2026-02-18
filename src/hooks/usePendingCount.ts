@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+const DEFAULT_POLLING_MS = 30 * 1000;
+export const PENDING_COUNT_UPDATED_EVENT = 'pending-inspections-updated';
 
 interface UsePendingCountOptions {
   pollingMs?: number;
@@ -12,7 +13,7 @@ interface UsePendingCountResult {
 }
 
 export function usePendingCount(options: UsePendingCountOptions = {}): UsePendingCountResult {
-  const pollingMs = options.pollingMs ?? FIVE_MINUTES_MS;
+  const pollingMs = options.pollingMs ?? DEFAULT_POLLING_MS;
   const [pendingCount, setPendingCount] = useState(0);
 
   const refreshPendingCount = useCallback(async () => {
@@ -37,7 +38,25 @@ export function usePendingCount(options: UsePendingCountOptions = {}): UsePendin
     refreshPendingCount();
 
     const intervalId = window.setInterval(refreshPendingCount, pollingMs);
-    return () => window.clearInterval(intervalId);
+    const onFocus = () => {
+      void refreshPendingCount();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshPendingCount();
+      }
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener(PENDING_COUNT_UPDATED_EVENT, onFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener(PENDING_COUNT_UPDATED_EVENT, onFocus);
+    };
   }, [pollingMs, refreshPendingCount]);
 
   return {
