@@ -81,7 +81,20 @@ Each task was committed atomically:
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 3 - Blocking] STATE.md automation commands incompatible with legacy state format**
+- **Found during:** Post-task state update
+- **Issue:** `gsd-tools state advance-plan/update-progress/record-metric/add-decision/record-session` could not parse sections in the existing legacy `STATE.md` structure.
+- **Fix:** Applied equivalent state updates manually in `.planning/STATE.md` (phase/plan position, progress snapshot, decisions, next actions, and session block).
+- **Files modified:** `.planning/STATE.md`
+- **Verification:** Manual review confirms updated Phase 04/Plan 04-06 tracking and session metadata.
+- **Committed in:** `38dfadb4`
+
+---
+
+**Total deviations:** 1 auto-fixed (1 blocking)
+**Impact on plan:** No scope creep; adjustment was required to complete state tracking in the existing repository format.
 
 ## Authentication Gates
 
