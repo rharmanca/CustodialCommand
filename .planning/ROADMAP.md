@@ -152,5 +152,83 @@ Phase 03 executes in 4 waves for parallel execution:
 | 03 | 📋 Planned | Complete    | 2026-02-17 |
 
 ---
+
+## Phase 04: UI/UX Polish
+
+**Goal:** Refine Phase 03 workflow features with layout improvements and UX enhancements without changing the overall theme.
+
+**Status:** 📋 PLANNED (0/6 plans)
+
+**Scope:**
+- Sticky photo sidebar in Photo-First Review
+- Grouped rating form sections with progress tracking
+- Simplified Quick Capture with collapsible notes
+- Enhanced pending badge with urgency indicators
+- Dashboard FAB for Quick Capture access
+- Improved touch targets for mobile/gloved hands
+
+---
+
+### Phase 04: Plans
+
+**Plan 01** — Sticky Photo Sidebar
+- Make photo sidebar sticky in Photo-First Review
+- Photos stay visible while scrolling rating form
+- Add zoom functionality on photo click
+- Requirements: REV-03, UX-01
+
+**Plan 02** — Grouped Rating Form
+- Group 11 ratings into 4 collapsible sections
+- Show section progress (e.g., "3/4 rated")
+- Physical, Service, Compliance, Satisfaction groups
+- Requirements: REV-04, UX-02
+
+**Plan 03** — Simplified Quick Capture
+- Collapse notes into expandable section
+- Show camera and capture button as primary focus
+- Photo preview strip below camera
+- Requirements: CAP-02, UX-03
+
+**Plan 04** — Pending Badge Enhancement
+- Show pending count on Review nav item
+- Pulse animation when count > 0
+- Color coding: amber (1-5), red (5+)
+- Real-time updates
+- Requirements: MOB-03, UX-04
+
+**Plan 05** — Dashboard FAB
+- Floating Action Button for Quick Capture
+- Amber color, 56px, camera icon
+- Hide on scroll down, show on scroll up
+- Requirements: CAP-01, MOB-01
+
+**Plan 06** — Touch Target Improvements
+- Capture button 64px minimum
+- Positioned for thumb reach
+- Secondary buttons 44px minimum
+- Gloved hand compatible
+- Requirements: MOB-02, MOB-04
+
+---
+
+## Phase 04: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 04-01, 04-02, 04-03 | None | 04-01, 04-02, 04-03 |
+| 2 | 04-04, 04-05, 04-06 | Wave 1 | 04-04, 04-05, 04-06 |
+
+---
+
+## Current Status Summary
+
+| Phase | Status | Plans Complete | Next Action |
+|-------|--------|----------------|-------------|
+| 01 | ✅ Complete | 8/8 | — |
+| 02 | 🔄 In Progress | 5/8 | Complete 02-02, 02-04 |
+| 03 | ✅ Complete | 6/6 | — |
+| 04 | 📋 Planned | 0/6 | Ready for execution |
+
+---
 *Roadmap created: 2026-02-16*
-*Last updated: 2026-02-16 - Created 6 detailed execution plans for Phase 03*
+*Last updated: 2026-02-18 - Added Phase 04: UI/UX Polish with 6 execution plans*
