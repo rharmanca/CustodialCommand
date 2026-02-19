@@ -25,6 +25,7 @@ import {
 } from "./utils/scoring";
 import { sanitizeFilePath, isValidFilename } from "./utils/pathValidation";
 import { generateThumbnail } from "./services/thumbnail";
+import { sendAlertIfNeeded } from "./notificationService.js";
 
 const objectStorageService = new ObjectStorageService();
 
@@ -2599,6 +2600,24 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Notification trigger endpoint (admin only)
+  app.post("/api/notifications/trigger", validateAdminSession, async (req, res) => {
+    try {
+      const result = await sendAlertIfNeeded();
+      res.json({
+        success: true,
+        sent: result.sent,
+        message: result.message,
+      });
+    } catch (error) {
+      logger.error("Error triggering notification", { error });
+      res.status(500).json({
+        success: false,
+        message: "Failed to trigger notification",
+      });
+    }
+  });
+
   // Catch-all handler for unknown API routes (must be at the end)
   app.use("/api/*", (req: Request, res: Response) => {
     res.status(404).json({
@@ -2606,22 +2625,23 @@ export async function registerRoutes(app: Express): Promise<void> {
       path: req.path,
       method: req.method,
       timestamp: new Date().toISOString(),
-       availableEndpoints: [
-         "POST /api/inspections",
-         "GET /api/inspections",
-         "POST /api/submit-building-inspection",
-         "POST /api/custodial-notes",
-         "POST /api/room-inspections",
-         "GET /api/scores",
-         "GET /api/scores/:school",
-         "POST /api/photos/upload",
-         "GET /api/photos/:inspectionId",
-         "DELETE /api/photos/:photoId",
-         "GET /api/photos/sync-status",
-         "GET /api/analytics/trends",
-         "GET /api/analytics/comparison",
-         "GET /api/export/inspections.csv",
-       ],
+        availableEndpoints: [
+          "POST /api/inspections",
+          "GET /api/inspections",
+          "POST /api/submit-building-inspection",
+          "POST /api/custodial-notes",
+          "POST /api/room-inspections",
+          "GET /api/scores",
+          "GET /api/scores/:school",
+          "POST /api/photos/upload",
+          "GET /api/photos/:inspectionId",
+          "DELETE /api/photos/:photoId",
+          "GET /api/photos/sync-status",
+          "GET /api/analytics/trends",
+          "GET /api/analytics/comparison",
+          "GET /api/export/inspections.csv",
+          "POST /api/notifications/trigger",
+        ],
     });
   });
 

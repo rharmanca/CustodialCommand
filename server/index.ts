@@ -42,6 +42,7 @@ import {
   fileUploadCircuitBreaker
 } from "./performanceErrorHandler";
 import { csrfProtection, getCsrfToken, getCsrfStats } from "./csrf";
+import { scheduleNotifications } from "./notificationService.js";
  
 
 
@@ -555,6 +556,9 @@ if (process.env.REPL_SLUG) {
         environment: process.env.NODE_ENV || 'development',
         version: APP_VERSION
       });
+
+      // Initialize notification scheduler
+      scheduleNotifications();
     });
 
     // Graceful shutdown handling
