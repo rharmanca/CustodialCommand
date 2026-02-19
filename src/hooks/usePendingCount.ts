@@ -27,7 +27,7 @@ export function usePendingCount(options: UsePendingCountOptions = {}): UsePendin
       }
 
       const data = await response.json();
-      const total = data?.pagination?.totalCount ?? 0;
+      const total = data?.pagination?.totalRecords ?? 0;
       setPendingCount(Number.isFinite(total) ? total : 0);
     } catch (error) {
       console.warn('[usePendingCount] failed to fetch pending count:', error);
