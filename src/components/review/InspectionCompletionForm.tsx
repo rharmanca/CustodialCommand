@@ -21,9 +21,38 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Star, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Star, Loader2, AlertCircle, CheckCircle2, Building2, Coffee, Wrench, Shield, ChevronDown } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
+import * as Accordion from '@radix-ui/react-accordion';
+
+// Rating groups configuration for accordion sections
+const RATING_GROUPS = [
+  {
+    id: 'physical',
+    label: 'Physical Environment',
+    icon: Building2,
+    fields: ['floors', 'verticalHorizontalSurfaces', 'ceiling']
+  },
+  {
+    id: 'service',
+    label: 'Service Areas',
+    icon: Coffee,
+    fields: ['restrooms']
+  },
+  {
+    id: 'maintenance',
+    label: 'Maintenance & Operations',
+    icon: Wrench,
+    fields: ['trash', 'projectCleaning', 'activitySupport', 'equipment']
+  },
+  {
+    id: 'compliance',
+    label: 'Compliance & Satisfaction',
+    icon: Shield,
+    fields: ['safetyCompliance', 'monitoring', 'customerSatisfaction']
+  }
+] as const;
 import type { PendingInspection } from '@/hooks/usePendingInspections';
 import type { CompleteInspectionData } from '@/hooks/usePendingInspections';
 
@@ -237,97 +266,58 @@ export function InspectionCompletionForm({
               </div>
             </div>
 
-            {/* Rating Categories */}
-            <div className="space-y-8">
+            {/* Rating Categories - Grouped by Accordion */}
+            <div className="space-y-4">
               <h3 className="font-medium text-lg border-b pb-2">Ratings</h3>
 
-              <StarRatingField
-                name="floors"
-                label="Floors"
-                value={form.watch('floors') || -1}
-                onChange={(value) => form.setValue('floors', value, { shouldValidate: true })}
-                criteria={getCriteria('floors')}
-              />
+              <Accordion.Root type="multiple" defaultValue={RATING_GROUPS.map(g => g.id)} className="space-y-3">
+                {RATING_GROUPS.map((group) => {
+                  const Icon = group.icon;
+                  const ratings = form.watch();
+                  const ratedCount = group.fields.filter(f => ratings[f as keyof typeof ratings] !== undefined).length;
+                  const isComplete = ratedCount === group.fields.length;
 
-              <StarRatingField
-                name="verticalHorizontalSurfaces"
-                label="Vertical and Horizontal Surfaces"
-                value={form.watch('verticalHorizontalSurfaces') || -1}
-                onChange={(value) => form.setValue('verticalHorizontalSurfaces', value, { shouldValidate: true })}
-                criteria={getCriteria('verticalHorizontalSurfaces')}
-              />
-
-              <StarRatingField
-                name="ceiling"
-                label="Ceiling"
-                value={form.watch('ceiling') || -1}
-                onChange={(value) => form.setValue('ceiling', value, { shouldValidate: true })}
-                criteria={getCriteria('ceiling')}
-              />
-
-              <StarRatingField
-                name="restrooms"
-                label="Restrooms"
-                value={form.watch('restrooms') || -1}
-                onChange={(value) => form.setValue('restrooms', value, { shouldValidate: true })}
-                criteria={getCriteria('restrooms')}
-              />
-
-              <StarRatingField
-                name="customerSatisfaction"
-                label="Customer Satisfaction"
-                value={form.watch('customerSatisfaction') || -1}
-                onChange={(value) => form.setValue('customerSatisfaction', value, { shouldValidate: true })}
-                criteria={getCriteria('customerSatisfaction')}
-              />
-
-              <StarRatingField
-                name="trash"
-                label="Trash"
-                value={form.watch('trash') || -1}
-                onChange={(value) => form.setValue('trash', value, { shouldValidate: true })}
-                criteria={getCriteria('trash')}
-              />
-
-              <StarRatingField
-                name="projectCleaning"
-                label="Project Cleaning"
-                value={form.watch('projectCleaning') || -1}
-                onChange={(value) => form.setValue('projectCleaning', value, { shouldValidate: true })}
-                criteria={getCriteria('projectCleaning')}
-              />
-
-              <StarRatingField
-                name="activitySupport"
-                label="Activity Support"
-                value={form.watch('activitySupport') || -1}
-                onChange={(value) => form.setValue('activitySupport', value, { shouldValidate: true })}
-                criteria={getCriteria('activitySupport')}
-              />
-
-              <StarRatingField
-                name="safetyCompliance"
-                label="Safety Compliance"
-                value={form.watch('safetyCompliance') || -1}
-                onChange={(value) => form.setValue('safetyCompliance', value, { shouldValidate: true })}
-                criteria={getCriteria('safetyCompliance')}
-              />
-
-              <StarRatingField
-                name="equipment"
-                label="Equipment"
-                value={form.watch('equipment') || -1}
-                onChange={(value) => form.setValue('equipment', value, { shouldValidate: true })}
-                criteria={getCriteria('equipment')}
-              />
-
-              <StarRatingField
-                name="monitoring"
-                label="Monitoring"
-                value={form.watch('monitoring') || -1}
-                onChange={(value) => form.setValue('monitoring', value, { shouldValidate: true })}
-                criteria={getCriteria('monitoring')}
-              />
+                  return (
+                    <Accordion.Item
+                      key={group.id}
+                      value={group.id}
+                      className="border rounded-lg overflow-hidden bg-card"
+                    >
+                      <Accordion.Header>
+                        <Accordion.Trigger className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors group">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isComplete ? 'bg-green-100' : 'bg-muted'}`}>
+                              <Icon className={`w-4 h-4 ${isComplete ? 'text-green-600' : 'text-muted-foreground'}`} />
+                            </div>
+                            <div className="text-left">
+                              <span className="font-medium">{group.label}</span>
+                              <span className={`ml-2 text-sm ${isComplete ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                {ratedCount}/{group.fields.length} rated
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                        </Accordion.Trigger>
+                      </Accordion.Header>
+                      <Accordion.Content className="px-4 pb-4 space-y-6 data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
+                        {group.fields.map((fieldName) => {
+                          const category = inspectionCategories.find(c => c.key === fieldName);
+                          return (
+                            <StarRatingField
+                              key={fieldName}
+                              name={fieldName}
+                              label={category?.label || fieldName}
+                              value={(form.watch(fieldName as keyof InspectionCompletionFormData) as number) || -1}
+                              onChange={(value) => form.setValue(fieldName as keyof InspectionCompletionFormData, value, { shouldValidate: true })}
+                              criteria={getCriteria(fieldName)}
+                            />
+                          );
+                        })}
+                      </Accordion.Content>
+                    </Accordion.Item>
+                  );
+                })}
+              </Accordion.Root>
             </div>
 
             {/* Notes */}
