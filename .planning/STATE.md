@@ -2,9 +2,12 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: 07-ui-polish-gap-closure
-- **Current Plan**: 07-03-Camera-First-Layout
-- **Status**: Phase Complete ✅
+- **Current Phase**: Milestone v1.0 Complete
+- **Current Plan**: —
+- **Status**: ✅ **MILESTONE v1.0 COMPLETE**
+- **Version**: 1.0.0
+- **Tag**: v1.0.0
+- **Requirements**: 23/23 SATISFIED
 
 ## Phase Progress
 
@@ -60,7 +63,13 @@ Phase 07: ui-polish-gap-closure [█████████] 100% ✅
 ├── 07-01: Touch Target Fixes (MOB-01) ✅ COMPLETE
 ├── 07-02: Grouped Rating Sections ✅ COMPLETE
 ├── 07-03: Camera-First Layout + FAB Scroll ✅ COMPLETE
-└── 07-VERIFICATION.md ⏳ PENDING
+└── 07-VERIFICATION.md ✅ COMPLETE
+
+Phase 08: monitoring-debt-cleanup [███░░░░░░] 33% 🔄
+├── 08-01: Memory Investigation ✅ COMPLETE
+├── 08-02: Runbook Update ⏳ PENDING
+├── 08-03: [Optional] Trend Analysis ⏳ PENDING
+└── 08-SUMMARY.md ⏳ PENDING
 ```
 
 ## Project Context
@@ -104,9 +113,37 @@ Phase 07: ui-polish-gap-closure [█████████] 100% ✅
 
 ## Next Actions
 
-1. **Phase 07 Complete**: All 3 plans finished (Touch targets + Accordion sections + Camera-first layout)
-2. **Next**: Phase 08 (optional) or return to Phase 04/02 pending items
-3. **Milestone v1.0**: UI polish gaps closed, MOB-01 compliant
+1. **Milestone v1.0 COMPLETE**: All 7 phases finished, 23/23 requirements satisfied
+2. **Next**: Phase 08 (optional monitoring debt cleanup) or Milestone v2.0 planning
+3. **Git Tag**: `v1.0.0` created
+
+---
+
+## Milestone v1.0 Completion
+
+**Status:** ✅ **COMPLETE**  
+**Date:** 2026-02-19  
+**Tag:** `v1.0.0`
+
+### Completion Summary
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Phases | 7 | 7 | ✅ 100% |
+| Requirements | 23 | 23 | ✅ 100% |
+| Integration Points | 9 | 9 | ✅ 100% |
+| End-to-End Flows | 2 | 2 | ✅ 100% |
+
+### Reports
+- **Completion Report:** `.planning/v1.0-MILESTONE-COMPLETE.md`
+- **Re-Audit Report:** `.planning/v1.0-MILESTONE-REAUDIT.md`
+
+### Key Deliverables
+- Quick Capture workflow with FAB entry
+- Photo-First Review with grouped ratings
+- Real-time pending badge updates
+- Mobile-optimized UI (44px+ touch targets)
+- All TypeScript checks passing
 
 ## Key Decisions (New)
 
@@ -118,6 +155,7 @@ Phase 07: ui-polish-gap-closure [█████████] 100% ✅
 26. **Milestone v1.0 status**: AUDITABLE WITH GAPS (20/23 requirements satisfied)
 27. **API contract fix**: Frontend updated to match backend (totalRecords field) - single line change preferred over backend modification
 28. **Integration test approach**: Combined API verification with source code pattern inspection to handle auth-required endpoints
+29. **Memory root cause**: multer memoryStorage + synchronous file reads, not a leak
 
 ## File References
 
@@ -129,8 +167,8 @@ Phase 07: ui-polish-gap-closure [█████████] 100% ✅
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Completed Phase 07 UI Polish Gap Closure (all 3 plans)
-- **Summary**: Executed Wave 1 parallel - Fixed touch targets (44px MOB-01), added 4 accordion rating sections with progress tracking, reordered Quick Capture to camera-first with collapsible notes and FAB scroll-hide behavior. All TypeScript checks pass. 5 files modified, 3 commits.
+- **Activity**: Completed Phase 08 Plan 01 - Memory Investigation
+- **Summary**: Investigated 93% memory usage warning. Root cause identified: multer memoryStorage buffers file uploads in memory (up to 25MB per request) + object storage loads entire files synchronously. Not a memory leak - stable high baseline. Created comprehensive findings document with remediation recommendations (switch to diskStorage, implement streaming).
 
 ---
 *Last updated: 2026-02-19*
