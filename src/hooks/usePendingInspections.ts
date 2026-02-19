@@ -38,6 +38,7 @@ export interface CompleteInspectionData {
   equipment: number;
   monitoring: number;
   notes?: string;
+  tags?: string[];
 }
 
 interface UsePendingInspectionsReturn {
