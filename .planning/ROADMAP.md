@@ -236,6 +236,10 @@ Phase 03 executes in 4 waves for parallel execution:
 
 **Goal:** Rebuild milestone-grade verification evidence for completed phases so requirement coverage can be audited reliably.
 
+**Status:** 📋 PLANNED (0/4 plans)
+
+**Plans:** 4 plans
+
 **Requirements:** CAP-01..CAP-07, REV-01..REV-07, PERF-01..PERF-05, MOB-01..MOB-04 (evidence reconciliation)
 
 **Gap Closure:**
@@ -243,9 +247,27 @@ Phase 03 executes in 4 waves for parallel execution:
 - Reconcile requirement-to-evidence mapping across phase outputs
 - Remove milestone blocker caused by unverified historical phases
 
+Plans:
+- [ ] 05-01-PLAN.md - Scaffold canonical execution verification artifacts for phases 01-03
+- [ ] 05-02-PLAN.md - Backfill execution evidence for phase 01 and phase 02 verifications
+- [ ] 05-03-PLAN.md - Build phase 03 master requirement reconciliation matrix and verification evidence
+- [ ] 05-04-PLAN.md - Run quality gate and rerun milestone v1.0 audit
+
+### Phase 05: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 05-01 | None | - |
+| 2 | 05-02, 05-03 | 05-01 | 05-02 and 05-03 |
+| 3 | 05-04 | 05-02, 05-03 | - |
+
 ### Phase 06: Pending Badge Contract and Freshness Wiring
 
 **Goal:** Fix pending count data contract and real-time refresh wiring so dashboard badges are accurate immediately after capture.
+
+**Status:** 📋 PLANNED (0/3 plans)
+
+**Plans:** 3 plans
 
 **Requirements:** CAP-01, CAP-05, CAP-07, REV-01, MOB-03
 
@@ -253,6 +275,18 @@ Phase 03 executes in 4 waves for parallel execution:
 - Align backend/frontend pending count contract (`totalRecords` vs `totalCount`)
 - Emit/consume refresh events on quick-capture success
 - Close broken flow: Quick Capture -> Dashboard pending badge freshness
+
+Plans:
+- [ ] 06-01-PLAN.md - Fix API contract: use totalRecords instead of totalCount
+- [ ] 06-02-PLAN.md - Emit PENDING_COUNT_UPDATED_EVENT on quick capture success
+- [ ] 06-03-PLAN.md - Create integration tests to verify fixes
+
+### Phase 06: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 06-01, 06-02 | None | 06-01 and 06-02 |
+| 2 | 06-03 | 06-01, 06-02 | - |
 
 ### Phase 07: UI Polish Gap Closure
 
@@ -281,8 +315,8 @@ Phase 03 executes in 4 waves for parallel execution:
 
 | Phase | Status | Plans Complete | Next Action |
 |-------|--------|----------------|-------------|
-| 05 | 📋 Planned | 0/0 | /gsd-plan-phase 05 |
-| 06 | 📋 Planned | 0/0 | /gsd-plan-phase 06 |
+| 05 | 📋 Planned | 0/4 | /gsd-execute-phase 05 |
+| 06 | 📋 Planned | 0/3 | /gsd-execute-phase 06 |
 | 07 | 📋 Planned | 0/0 | /gsd-plan-phase 07 |
 | 08 | 📋 Optional | 0/0 | /gsd-plan-phase 08 (if included) |
 
