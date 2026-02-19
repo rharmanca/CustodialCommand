@@ -6,8 +6,10 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp, Download, Clock, Target, Users, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+import { Calendar, MapPin, Building, Star, FileText, Image as ImageIcon, BarChart3, TrendingUp, Download, Clock, Target, Users, AlertTriangle, AlertCircle, CheckCircle, X } from 'lucide-react';
 import type { Inspection, CustodialNote } from '../../shared/schema';
+import { TagBadgeList, TagFilterList } from '@/components/tags';
+import { INSPECTION_TAGS } from '@shared/tags';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -87,6 +89,9 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
     hasCustodialNotes: false
   });
   const [filtersOpen, setFiltersOpen] = useState(false);
+  
+  // Tag filter state
+  const [selectedTagFilters, setSelectedTagFilters] = useState<string[]>([]);
 
   // Use module-level CATEGORIES constant for stable useMemo references
   // ratingLabels uses SCORE_LABELS from module scope
@@ -275,9 +280,17 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         if (!hasNotes) return false;
       }
 
+      // Tag filter
+      if (selectedTagFilters.length > 0) {
+        const inspectionTags = inspection.tags || [];
+        // Match if inspection has ANY of the selected tags (OR logic)
+        const hasMatchingTag = selectedTagFilters.some(tag => inspectionTags.includes(tag));
+        if (!hasMatchingTag) return false;
+      }
+
       return true;
     });
-  }, [inspections, custodialNotes, filters]);
+  }, [inspections, custodialNotes, filters, selectedTagFilters]);
 
 
   // Calculate trends for KPI cards
@@ -706,6 +719,39 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
         />
       </div>
 
+      {/* Tag Filter */}
+      <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-medium">Filter by Tags</h3>
+          {selectedTagFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedTagFilters([])}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
+        <TagFilterList
+          selected={selectedTagFilters}
+          onToggle={(tagId) => {
+            setSelectedTagFilters(prev =>
+              prev.includes(tagId)
+                ? prev.filter(id => id !== tagId)
+                : [...prev, tagId]
+            );
+          }}
+        />
+        {selectedTagFilters.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-3">
+            Showing inspections with any of the selected tags ({selectedTagFilters.length} selected)
+          </p>
+        )}
+      </div>
+
         <Tabs defaultValue="overview" className="w-full">
           <div className="sticky top-0 z-10 bg-background border-b">
             <TabsList className="grid w-full grid-cols-7">
@@ -833,6 +879,11 @@ export default function InspectionDataPage({ onBack }: InspectionDataPageProps) 
                                   : `Building: ${inspection.buildingName || inspection.locationDescription || 'Whole Building'}`
                                 }
                               </p>
+                              {inspection.tags && inspection.tags.length > 0 && (
+                                <div className="mt-1">
+                                  <TagBadgeList tags={inspection.tags} size="sm" maxVisible={2} />
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
