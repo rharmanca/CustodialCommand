@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: 05-verification-baseline-recovery
-- **Current Plan**: 05-04-Quality-Gate-Audit
-- **Status**: Plan Complete ✅
+- **Current Phase**: 06-pending-badge-freshness
+- **Current Plan**: 06-01-Fix-API-Contract
+- **Status**: In Progress
 
 ## Phase Progress
 
@@ -50,6 +50,11 @@ Phase 05: verification-baseline-recovery [█████████] 100% ✅
 ├── 05-02: Evidence Backfill ✅ COMPLETE
 ├── 05-03: Requirement Reconciliation ✅ COMPLETE
 └── 05-04: Quality Gate Audit ✅ COMPLETE
+
+Phase 06: pending-badge-freshness [███░░░░░░] 33% 🔄
+├── 06-01: Fix API Contract ✅ COMPLETE
+├── 06-02: Emit Refresh Event ⏳ PENDING
+└── 06-03: Integration Verification ⏳ PENDING
 ```
 
 ## Project Context
@@ -93,9 +98,9 @@ Phase 05: verification-baseline-recovery [█████████] 100% ✅
 
 ## Next Actions
 
-1. **Phase 05 Complete**: All 4 plans executed successfully
-2. **Milestone v1.0**: Auditable with documented gaps
-3. **Next Phase**: Consider Phase 04 completion or v1.0 release planning
+1. **Phase 06 In Progress**: Plan 01 complete (API contract fix)
+2. **Next**: Execute plan 06-02 (Emit Refresh Event on Quick Capture)
+3. **Milestone v1.0**: Pending badge freshness wiring in progress
 
 ## Key Decisions (New)
 
@@ -105,6 +110,7 @@ Phase 05: verification-baseline-recovery [█████████] 100% ✅
 24. **Verification score**: 20/23 requirements satisfied (87% coverage) for Phase 03
 25. **Baseline blocker CLOSED**: Missing verification artifacts for phases 01-03 now resolved
 26. **Milestone v1.0 status**: AUDITABLE WITH GAPS (20/23 requirements satisfied)
+27. **API contract fix**: Frontend updated to match backend (totalRecords field) - single line change preferred over backend modification
 
 ## File References
 
@@ -115,11 +121,11 @@ Phase 05: verification-baseline-recovery [█████████] 100% ✅
 
 ## Last Session
 
-- **Timestamp**: 2026-02-19
-- **Activity**: Completed Phase 05 Plan 04 Quality Gate Audit
-- **Summary**: Executed final quality gate for recovered verification baseline. Normalized cross-phase consistency across 01-02-03 verification docs. Ran phase-completeness checks (all passed). Re-audited milestone v1.0 with updated scores: 20/23 requirements satisfied (87%). CLOSED the "missing verification artifacts" blocker. Milestone now AUDITABLE WITH GAPS.
+- **Timestamp**: 2026-02-18
+- **Activity**: Completed Phase 06 Plan 01 API Contract Fix
+- **Summary**: Fixed API contract mismatch in usePendingCount hook. Changed line 30 from `totalCount` to `totalRecords` to align with backend pagination field naming. TypeScript check passed. Pending count badge now displays accurate totals.
 
 ---
-*Last updated: 2026-02-19*
-*Plan 05-04 completed: Quality Gate Audit*
-*Phase 05: verification-baseline-recovery COMPLETE ✅*
+*Last updated: 2026-02-18*
+*Plan 06-01 completed: Fix API Contract*
+*Phase 06: pending-badge-freshness IN PROGRESS (1/3 plans complete)*
