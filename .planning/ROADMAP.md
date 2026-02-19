@@ -464,9 +464,9 @@ Plans:
 
 **Goal:** Facility manager receives email alerts when inspection backlog exceeds threshold.
 
-**Status:** 📋 PLANNED (0/? plans)
+**Status:** ✅ COMPLETE (1/1 plans)
 
-**Requirements:** NOTIF-01 through NOTIF-0N (TBD during planning)
+**Requirements:** NOTIF-01 through NOTIF-04
 
 **Scope:**
 - Email alerts via Resend when pending backlog exceeds threshold
@@ -482,7 +482,8 @@ Plans:
 
 **Dependencies:** Phase 09 (optional — analytics data enriches alert content)
 
-**Plans:** TBD
+**Plans:**
+- [x] 10-01-PLAN.md — Notification service (Resend + node-cron, threshold check, cooldown, HTML email)
 
 ---
 
@@ -526,10 +527,10 @@ Plans:
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
 | 09 | Analytics & Reporting | ✅ Complete | 2/2 |
-| 10 | Notifications & Alerts | 📋 Planned | TBD |
+| 10 | Notifications & Alerts | ✅ Complete | 1/1 |
 | 11 | Issue Tagging | 📋 Planned | TBD |
 
 ---
 
 *Roadmap created: 2026-02-16*
-*Last updated: 2026-02-19 - Phase 09 Analytics complete, Phase 10 ready to start*
+*Last updated: 2026-02-19 - Phase 10 Notifications complete, Phase 11 ready to start*

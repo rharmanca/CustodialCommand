@@ -2,12 +2,12 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: Milestone v2.0 — Phase 09 ✅ COMPLETE
-- **Current Plan**: Phase 10 (Notifications & Alerts)
-- **Status**: 🔄 **MILESTONE v2.0 EXECUTING** (Phase 09 complete, Phase 10 ready)
+- **Current Phase**: Milestone v2.0 — Phase 10 ✅ COMPLETE
+- **Current Plan**: Phase 11 (Issue Tagging)
+- **Status**: 🔄 **MILESTONE v2.0 EXECUTING** (Phase 10 complete, Phase 11 ready)
 - **Version**: 1.0.0
 - **Tag**: v1.0.0
-- **Requirements**: 27/27 SATISFIED (v1.0: 23 + v2.0 Phase 09: 4)
+- **Requirements**: 31/31 SATISFIED (v1.0: 23 + v2.0 Phase 09: 4 + Phase 10: 4)
 
 ## Phase Progress
 
@@ -75,6 +75,10 @@ Phase 09: analytics-reporting [█████████] 100% ✅
 ├── 09-01: Analytics API Layer ✅ COMPLETE
 ├── 09-02: Analytics Dashboard UI ✅ COMPLETE
 └── 09-VERIFICATION.md ✅ COMPLETE
+
+Phase 10: notifications-alerts [█████████] 100% ✅
+├── 10-01: Notification Service ✅ COMPLETE
+└── 10-VERIFICATION.md ✅ COMPLETE
 ```
 
 ## Project Context
@@ -120,8 +124,9 @@ Phase 09: analytics-reporting [█████████] 100% ✅
 
 1. **Milestone v1.0 COMPLETE**: All 8 phases finished (incl. Phase 08 monitoring), 23/23 requirements satisfied
 2. **Phase 09 COMPLETE**: Analytics & Reporting — all 4 requirements satisfied, human verified
-3. **Milestone v2.0 IN PROGRESS**: Phase 09 complete, Phase 10 (Notifications) ready to start
-4. **Next**: Plan Phase 10 — Notifications & Alerts (Resend email when backlog exceeds threshold)
+3. **Phase 10 COMPLETE**: Notifications & Alerts — email service with Resend, threshold checking, 24h cooldown, scheduled alerts
+4. **Milestone v2.0 IN PROGRESS**: Phase 10 complete, Phase 11 (Issue Tagging) ready to start
+5. **Next**: Plan Phase 11 — Issue Tagging (pre-defined taxonomy for inspection categorization)
 
 ---
 
@@ -166,6 +171,9 @@ Phase 09: analytics-reporting [█████████] 100% ✅
 31. **Trend alerting added**: Linear regression over 10-point window, TREND_WARNING fires when predicted to hit 95% critical within 30 minutes
 32. **Phase 09 complete**: Analytics Dashboard with trends, comparison, CSV export — all 4 ANALYTICS requirements satisfied
 33. **Zero JS aggregation**: All analytics queries use SQL GROUP BY/AVG, confirmed via storage.ts grep — no memory risk
+34. **Phase 10 complete**: Notification service with Resend API, threshold alerts (10 pending OR 48h oldest), 24h cooldown, daily 8am weekday schedule
+35. **File-based cooldown**: Simpler than database storage, no migration needed, works across server restarts
+36. **Environment toggle**: Service gracefully skips email sending if RESEND_API_KEY not configured — no hard dependency
 
 ## File References
 
@@ -177,8 +185,8 @@ Phase 09: analytics-reporting [█████████] 100% ✅
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Milestone v2.0 roadmap planning — finalized scope and added ROADMAP.md section
-- **Summary**: Finalized v2.0 scope: Phases 09 (Analytics), 10 (Notifications via Resend, single recipient), 11 (Issue Tagging, pre-defined taxonomy). Deferred Phase 12 (Offline) and Phase 13 (Scheduling). Created phase directories 09/10/11.
+- **Activity**: Phase 10 verification and completion
+- **Summary**: Completed Phase 10 Notifications & Alerts implementation. All 4 NOTIF requirements satisfied. Service includes: Resend email integration, threshold checking (10 pending OR 48h oldest), 24h file-based cooldown, daily 8am weekday scheduler, manual trigger endpoint. TypeScript compiles cleanly. Ready for Phase 11 (Issue Tagging).
 
 ## Performance Metrics
 
@@ -188,6 +196,17 @@ Phase 09: analytics-reporting [█████████] 100% ✅
 | 08-02 | ~25m | 7/7 | 2 | 2026-02-19 |
 | 08-03 | ~60m | 5/5 | 2 | 2026-02-19 |
 
+## Phase Progress
+
+```
+Phase 10: notifications-alerts [█████████] 100% ✅
+├── 10-01: Notification Service ✅ COMPLETE
+└── 10-VERIFICATION.md ✅ COMPLETE
+```
+
+## Phase 11: issue-tagging [░░░░░░░░░] 0% 📋
+└── 11-01: Tagging System ⏳ PLANNED
+
 ---
 *Last updated: 2026-02-19*
-*Milestone v2.0 planning started — Phases 09, 10, 11 roadmapped*
+*Phase 10 planning complete — 1 plan ready for execution*
