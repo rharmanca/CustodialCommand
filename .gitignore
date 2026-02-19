@@ -122,4 +122,7 @@ dev-debug.log
 
 # Task files
 tasks.json
-tasks/ 
+tasks/
+
+# Git worktrees
+.worktrees/
