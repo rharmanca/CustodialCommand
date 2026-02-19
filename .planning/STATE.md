@@ -65,10 +65,10 @@ Phase 07: ui-polish-gap-closure [█████████] 100% ✅
 ├── 07-03: Camera-First Layout + FAB Scroll ✅ COMPLETE
 └── 07-VERIFICATION.md ✅ COMPLETE
 
-Phase 08: monitoring-debt-cleanup [███████░░] 67% ✅ (Wave 1 Complete)
+Phase 08: monitoring-debt-cleanup [█████████] 100% ✅ (All Waves Complete)
 ├── 08-01: Memory Investigation ✅ COMPLETE
 ├── 08-02: Runbook Update ✅ COMPLETE
-├── 08-03: [Optional] Trend Analysis ⏭️ DEFERRED
+├── 08-03: [Optional] Trend Analysis ✅ COMPLETE
 └── 08-VERIFICATION.md ✅ COMPLETE
 ```
 
@@ -156,6 +156,8 @@ Phase 08: monitoring-debt-cleanup [███████░░] 67% ✅ (Wave 1 
 27. **API contract fix**: Frontend updated to match backend (totalRecords field) - single line change preferred over backend modification
 28. **Integration test approach**: Combined API verification with source code pattern inspection to handle auth-required endpoints
 29. **Memory root cause**: multer memoryStorage + synchronous file reads, not a leak
+30. **Memory trend baseline**: 0%/day growth confirmed, sawtooth GC pattern (87–96%), P3 remediation priority — no immediate action needed
+31. **Trend alerting added**: Linear regression over 10-point window, TREND_WARNING fires when predicted to hit 95% critical within 30 minutes
 
 ## File References
 
@@ -167,8 +169,8 @@ Phase 08: monitoring-debt-cleanup [███████░░] 67% ✅ (Wave 1 
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Completed Phase 08 Wave 1 (Plans 01 + 02) — Monitoring Debt Cleanup
-- **Summary**: Phase 08 Wave 1 complete. Plan 01 identified memory root cause (multer memoryStorage, not a leak). Plan 02 updated monitoring runbook to v2.0 with validation procedures (VP-1–VP-4), remediation checklists (RV-1–RV-4), threshold reference, and quick reference card. Plan 03 (optional trend analysis) deferred. Phase 08 considered complete for required scope.
+- **Activity**: Completed Phase 08 Wave 2 (Plan 03) — Memory Trend Analysis
+- **Summary**: Phase 08 now 100% complete including optional scope. Plan 03 confirmed 0%/day memory growth via 3-session analysis (sawtooth GC pattern, stable 87–96% band). Implemented linear regression trend alerting in automated-monitoring.ts (TREND_WARNING when predicted to hit 95% within 30 min). Created memory-trend-baseline.md. Phase 08 fully closed.
 
 ## Performance Metrics
 
@@ -176,7 +178,8 @@ Phase 08: monitoring-debt-cleanup [███████░░] 67% ✅ (Wave 1 
 |------------|----------|-------|-------|------|
 | 08-01 | ~45m | 6/6 | 1 | 2026-02-19 |
 | 08-02 | ~25m | 7/7 | 2 | 2026-02-19 |
+| 08-03 | ~60m | 5/5 | 2 | 2026-02-19 |
 
 ---
 *Last updated: 2026-02-19*
-*Phase 08: monitoring-debt-cleanup Wave 1 COMPLETE (2/3 plans, required scope satisfied)*
+*Phase 08: monitoring-debt-cleanup 100% COMPLETE (3/3 plans, all scope including optional delivered)*
