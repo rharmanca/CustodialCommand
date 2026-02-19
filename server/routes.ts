@@ -194,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   app.get("/api/inspections", async (req: Request, res: Response) => {
     try {
-      const { type, incomplete, page = "1", limit = "50", school, startDate, endDate } = req.query;
+      const { type, incomplete, page = "1", limit = "50", school, startDate, endDate, tags } = req.query;
 
       // Validate pagination parameters
       const pageNum = parseInt(page as string, 10);
@@ -225,6 +225,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         endDate?: string;
         inspectionType?: 'single_room' | 'whole_building';
         isCompleted?: boolean;
+        tags?: string[];
       } = {
         page: pageNum,
         limit: limitNum,
@@ -248,6 +249,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         options.isCompleted = false;
       } else if (type) {
         options.inspectionType = type as 'single_room' | 'whole_building';
+      }
+
+      // Parse tags filter (comma-separated string to array)
+      if (tags && typeof tags === 'string' && tags.length > 0) {
+        options.tags = tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
       }
 
       const result = await storage.getInspections(options);
@@ -456,6 +462,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         inspectorName: z.string().min(1, "Inspector name is required"),
         quickNotes: z.string().max(200, "Quick notes must be 200 characters or less").optional(),
         images: z.array(z.string()).optional(),
+        tags: z.array(z.string()).optional(),
       });
 
       const validatedData = quickCaptureSchema.parse(req.body);
@@ -467,6 +474,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         inspectorName: validatedData.inspectorName,
         quickNotes: validatedData.quickNotes,
         images: validatedData.images,
+        tags: validatedData.tags,
       });
 
       logger.info("[POST] Quick capture created successfully", {
