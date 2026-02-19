@@ -9,6 +9,7 @@ import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 import { CameraCapture } from '@/components/capture/CameraCapture';
 import { PhotoPreviewStrip } from '@/components/capture/PhotoPreviewStrip';
 import { QuickNoteInput } from '@/components/capture/QuickNoteInput';
+import { TagSelector } from '@/components/tags';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { 
@@ -69,6 +70,7 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
   const [inspectorName, setInspectorName] = useState<string>('');
   const [quickNotes, setQuickNotes] = useState<string>('');
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,6 +117,7 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
     setCaptureLocation('');
     setQuickNotes('');
     setCapturedImages([]);
+    setSelectedTags([]);
     setError(null);
     setShowSuccess(false);
   }, []);
@@ -167,7 +170,8 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
         captureLocation,
         inspectorName,
         quickNotes: quickNotes || undefined,
-        images: capturedImages
+        images: capturedImages,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       };
 
       // Make API request
@@ -444,6 +448,23 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
             maxLength={200}
             disabled={isSubmitting}
             defaultCollapsed={true}
+          />
+        </section>
+
+        {/* Issue Tags - Categorization for filtering */}
+        <section className={cn(
+          "space-y-3",
+          "p-4 rounded-lg border bg-muted/30"
+        )}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <User className="w-4 h-4" />
+            <span className="text-sm font-medium">Issue Tags</span>
+          </div>
+          <TagSelector
+            selected={selectedTags}
+            onChange={setSelectedTags}
+            maxSelection={3}
+            disabled={isSubmitting}
           />
         </section>
       </main>
