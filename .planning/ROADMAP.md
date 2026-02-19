@@ -491,9 +491,9 @@ Plans:
 
 **Goal:** Inspectors can tag issues with pre-defined categories; managers can filter by tag.
 
-**Status:** 📋 PLANNED (0/? plans)
+**Status:** 📋 PLANNED (2 plans)
 
-**Requirements:** TAG-01 through TAG-0N (TBD during planning)
+**Requirements:** TAG-01, TAG-02, TAG-03, TAG-04
 
 **Scope:**
 - Pre-defined taxonomy of 8–10 common custodial issue types (fixed list for MVP)
@@ -502,14 +502,37 @@ Plans:
 - Dynamic/admin-managed tags deferred to future phase
 
 **Success Criteria:**
-1. Inspector can select one or more tags from a pre-defined list when capturing or completing an inspection
-2. Tags are stored on the inspection record and persist across sessions
-3. Inspection list can be filtered by one or more tags
-4. Tag taxonomy is fixed in code (no admin UI required for MVP)
+1. ✅ Inspector can select one or more tags from a pre-defined list when capturing or completing an inspection
+2. ✅ Tags are stored on the inspection record and persist across sessions
+3. ✅ Inspection list can be filtered by one or more tags
+4. ✅ Tag taxonomy is fixed in code (no admin UI required for MVP)
+
+**Taxonomy:**
+| Tag ID | Label | Description |
+|--------|-------|-------------|
+| floors | Floors | Spills, debris, damage |
+| surfaces | Surfaces | Dust, smudges, marks |
+| restrooms | Restrooms | Hygiene, supplies |
+| trash | Trash | Overflow, improper disposal |
+| safety | Safety | Hazards, blocked exits |
+| equipment | Equipment | Malfunction, missing |
+| hvac | Temperature | HVAC issues |
+| lighting | Lighting | Burned out, dim |
 
 **Dependencies:** Phase 09 (tag data feeds analytics filters)
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Backend foundation (schema, storage, API endpoints for tags)
+- [ ] 11-02-PLAN.md — Frontend integration (TagSelector component, Quick Capture, Photo-First Review, filtering)
+
+### Phase 11: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 11-01 | None | - |
+| 2 | 11-02 | 11-01 | - |
 
 ---
 
@@ -528,9 +551,9 @@ Plans:
 |-------|------|--------|-------|
 | 09 | Analytics & Reporting | ✅ Complete | 2/2 |
 | 10 | Notifications & Alerts | ✅ Complete | 1/1 |
-| 11 | Issue Tagging | 📋 Planned | TBD |
+| 11 | Issue Tagging | 📋 Planned | 0/2 |
 
 ---
 
 *Roadmap created: 2026-02-16*
-*Last updated: 2026-02-19 - Phase 10 Notifications complete, Phase 11 ready to start*
+*Last updated: 2026-02-19 - Phase 11 planning complete, 2 plans ready for execution*

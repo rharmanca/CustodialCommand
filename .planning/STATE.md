@@ -125,8 +125,8 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 1. **Milestone v1.0 COMPLETE**: All 8 phases finished (incl. Phase 08 monitoring), 23/23 requirements satisfied
 2. **Phase 09 COMPLETE**: Analytics & Reporting — all 4 requirements satisfied, human verified
 3. **Phase 10 COMPLETE**: Notifications & Alerts — email service with Resend, threshold checking, 24h cooldown, scheduled alerts
-4. **Milestone v2.0 IN PROGRESS**: Phase 10 complete, Phase 11 (Issue Tagging) ready to start
-5. **Next**: Plan Phase 11 — Issue Tagging (pre-defined taxonomy for inspection categorization)
+4. **Milestone v2.0 IN PROGRESS**: Phase 10 complete, Phase 11 (Issue Tagging) planned
+5. **Next**: Execute Phase 11 — Issue Tagging (2 plans: backend foundation, then frontend integration)
 
 ---
 
@@ -174,6 +174,8 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 34. **Phase 10 complete**: Notification service with Resend API, threshold alerts (10 pending OR 48h oldest), 24h cooldown, daily 8am weekday schedule
 35. **File-based cooldown**: Simpler than database storage, no migration needed, works across server restarts
 36. **Environment toggle**: Service gracefully skips email sending if RESEND_API_KEY not configured — no hard dependency
+37. **Phase 11 planned**: 2-plan structure with backend-first approach (11-01) then frontend integration (11-02)
+38. **Tag taxonomy**: 8 fixed tags with icons (floors, surfaces, restrooms, trash, safety, equipment, hvac, lighting)
 
 ## File References
 
@@ -205,7 +207,8 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 ```
 
 ## Phase 11: issue-tagging [░░░░░░░░░] 0% 📋
-└── 11-01: Tagging System ⏳ PLANNED
+├── 11-01: Backend Foundation ⏳ PLANNED
+└── 11-02: Frontend Integration ⏳ PLANNED
 
 ---
 *Last updated: 2026-02-19*
