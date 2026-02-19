@@ -3,8 +3,8 @@
 ## Project Overview
 - **Name**: Custodial Command
 - **Current Phase**: 06-pending-badge-freshness
-- **Current Plan**: 06-01-Fix-API-Contract
-- **Status**: In Progress
+- **Current Plan**: 06-02-Emit-Refresh-Event
+- **Status**: Plan Complete ✅
 
 ## Phase Progress
 
@@ -51,9 +51,9 @@ Phase 05: verification-baseline-recovery [█████████] 100% ✅
 ├── 05-03: Requirement Reconciliation ✅ COMPLETE
 └── 05-04: Quality Gate Audit ✅ COMPLETE
 
-Phase 06: pending-badge-freshness [███░░░░░░] 33% 🔄
+Phase 06: pending-badge-freshness [██████░░░] 67% 🔄
 ├── 06-01: Fix API Contract ✅ COMPLETE
-├── 06-02: Emit Refresh Event ⏳ PENDING
+├── 06-02: Emit Refresh Event ✅ COMPLETE
 └── 06-03: Integration Verification ⏳ PENDING
 ```
 
@@ -98,9 +98,9 @@ Phase 06: pending-badge-freshness [███░░░░░░] 33% 🔄
 
 ## Next Actions
 
-1. **Phase 06 In Progress**: Plan 01 complete (API contract fix)
-2. **Next**: Execute plan 06-02 (Emit Refresh Event on Quick Capture)
-3. **Milestone v1.0**: Pending badge freshness wiring in progress
+1. **Phase 06 In Progress**: Plans 01-02 complete (API contract fix + Event emission)
+2. **Next**: Execute plan 06-03 (Integration Verification)
+3. **Milestone v1.0**: Pending badge freshness wiring 67% complete
 
 ## Key Decisions (New)
 
@@ -122,10 +122,10 @@ Phase 06: pending-badge-freshness [███░░░░░░] 33% 🔄
 ## Last Session
 
 - **Timestamp**: 2026-02-18
-- **Activity**: Completed Phase 06 Plan 01 API Contract Fix
-- **Summary**: Fixed API contract mismatch in usePendingCount hook. Changed line 30 from `totalCount` to `totalRecords` to align with backend pagination field naming. TypeScript check passed. Pending count badge now displays accurate totals.
+- **Activity**: Completed Phase 06 Plan 02 Emit Refresh Event
+- **Summary**: Added PENDING_COUNT_UPDATED_EVENT emission to quick-capture.tsx after successful save. Dashboard badge now refreshes immediately when quick capture completes. Pattern matches existing implementation in usePendingInspections.ts. TypeScript check passed.
 
 ---
 *Last updated: 2026-02-18*
-*Plan 06-01 completed: Fix API Contract*
-*Phase 06: pending-badge-freshness IN PROGRESS (1/3 plans complete)*
+*Plan 06-02 completed: Emit Refresh Event on Quick Capture*
+*Phase 06: pending-badge-freshness IN PROGRESS (2/3 plans complete)*
