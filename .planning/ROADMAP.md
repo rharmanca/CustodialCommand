@@ -292,21 +292,21 @@ Plans:
 
 **Goal:** Complete unresolved Phase 04 UX must-haves and satisfy touch-target constraints.
 
-**Status:** 📋 PLANNED (0/3 plans)
+**Status:** ✅ COMPLETE (3/3 plans)
 
-**Plans:** 3 plans
+**Plans:** 3 plans — ALL COMPLETE
 
-**Requirements:** MOB-01, REV-04, CAP-02
+**Requirements:** MOB-01, REV-04, CAP-02 — ALL SATISFIED
 
 **Gap Closure:**
-- Implement grouped rating sections with per-section progress
-- Make Quick Capture camera-first with default-collapsed notes
-- Add FAB hide/show on scroll and finalize 44px+ secondary controls
+- ✅ Implemented grouped rating sections with per-section progress
+- ✅ Made Quick Capture camera-first with default-collapsed notes
+- ✅ Added FAB hide/show on scroll and finalized 44px+ secondary controls
 
 Plans:
-- [ ] 07-01-PLAN.md - Fix touch targets: update location presets from 40px to 44px
-- [ ] 07-02-PLAN.md - Grouped rating form: 4 accordion sections with progress tracking
-- [ ] 07-03-PLAN.md - Camera-first quick capture: reorder layout, default-collapsed notes
+- [x] 07-01-PLAN.md - Fix touch targets: update location presets from 40px to 44px
+- [x] 07-02-PLAN.md - Grouped rating form: 4 accordion sections with progress tracking
+- [x] 07-03-PLAN.md - Camera-first quick capture: reorder layout, default-collapsed notes
 
 ### Phase 07: Wave Structure
 
@@ -314,15 +314,78 @@ Plans:
 |------|-------|--------------|-----------------|
 | 1 | 07-01, 07-02, 07-03 | None | 07-01, 07-02, 07-03 |
 
+**Completed:** 2026-02-19
+
 ### Phase 08: Monitoring Debt Cleanup (Optional)
 
 **Goal:** Address non-blocking operational debt identified during phase summaries.
 
-**Requirements:** Operational reliability follow-up (non-functional)
+**Status:** 📋 PLANNED (0/3 plans)
+
+**Requirements:** R1, R2 (required), R3 (optional)
 
 **Gap Closure:**
-- Investigate and remediate sustained high-memory warning trend
-- Update monitoring runbook actions with concrete thresholds and remediation validation
+- R1: Investigate root cause of 93% memory warning trend
+- R2: Update monitoring runbook with concrete thresholds and validation
+- R3: (Optional) Establish memory trend baseline
+
+---
+
+#### Phase 08: Plans
+
+**Plan 01** — Memory Investigation
+- Review Railway metrics dashboard for memory trends
+- Check health endpoints (`/health`, `/health/metrics`, `/health/history`)
+- Analyze application logs for memory patterns
+- Code review for common memory leak patterns
+- Correlate memory with recent deployments/changes
+- Document root cause hypothesis
+- Output: `08-01-FINDINGS.md`
+- Requirements: R1
+- Estimated: 60-90 min
+
+**Plan 02** — Runbook Update with Validation
+- Review current monitoring runbook
+- Validate thresholds against current data
+- Create validation procedures for each alert type
+- Document remediation validation steps
+- Update runbook with concrete, actionable steps
+- Create quick reference card
+- Output: Updated `docs/monitoring/monitoring-runbook.md`, `QUICK-REFERENCE.md`
+- Requirements: R2
+- Estimated: 45-60 min
+
+**Plan 03** — Memory Trend Analysis (Optional)
+- Gather historical memory data (Railway + health endpoints)
+- Analyze trend pattern and growth rate
+- Correlate memory with application events
+- Create trend baseline document
+- (Optional) Add trend alerting to monitoring
+- Output: `docs/monitoring/memory-trend-baseline.md`
+- Requirements: R3
+- Estimated: 30-45 min (+30 optional)
+
+---
+
+#### Phase 08: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 08-01, 08-02 | None | 08-01 and 08-02 |
+| 2 | 08-03 | 08-01 (recommended) | - |
+
+**Execution Strategy:**
+- **Minimal:** Execute Wave 1 only (08-01 + 08-02 parallel) - ~90 min
+- **Full:** Execute all waves (add 08-03) - ~135 min
+- **Skip:** Accept debt, defer to later
+
+---
+
+#### Phase 08: Success Criteria
+
+1. **Root cause hypothesis documented** with evidence (08-01)
+2. **Runbook updated** with concrete validation checkboxes (08-02)
+3. **(Optional) Trend baseline established** with growth rate (08-03)
 
 ---
 
@@ -330,11 +393,136 @@ Plans:
 
 | Phase | Status | Plans Complete | Next Action |
 |-------|--------|----------------|-------------|
-| 05 | 📋 Planned | 0/4 | /gsd-execute-phase 05 |
-| 06 | 📋 Planned | 0/3 | /gsd-execute-phase 06 |
-| 07 | 📋 Planned | 0/3 | /gsd-execute-phase 07 |
-| 08 | 📋 Optional | 0/0 | /gsd-plan-phase 08 (if included) |
+| 05 | ✅ COMPLETE | 4/4 | — |
+| 06 | ✅ COMPLETE | 3/3 | — |
+| 07 | ✅ COMPLETE | 3/3 | — |
+| 08 | 📋 PLANNED | 0/3 | Execute Wave 1 (08-01, 08-02) |
 
 ---
+
+## Milestone v1.0 Status
+
+**Status:** ✅ **COMPLETE**
+
+**Date Completed:** 2026-02-19  
+**Git Tag:** `v1.0.0`  
+**Requirements:** 23/23 SATISFIED  
+**Phases:** 7/7 COMPLETE  
+**Integration Points:** 9/9 VERIFIED  
+**End-to-End Flows:** 2/2 WORKING
+
+**Completion Report:** `.planning/v1.0-MILESTONE-COMPLETE.md`  
+**Re-Audit Report:** `.planning/v1.0-MILESTONE-REAUDIT.md`
+
+---
+
+## Milestone v2.0: Reporting & Accountability
+
+**Status:** 📋 PLANNING
+
+**Scope:** Analytics, notifications, and issue tagging to enable accountability and trend visibility for facility management.
+
+**MVP Phases:** 09, 10, 11  
+**Deferred:** Phase 12 (Offline & Reliability — not a current pain point), Phase 13 (Scheduling — post-feedback)
+
+---
+
+### Phase 09: Analytics & Reporting
+
+**Goal:** Users can view school-level trends and export inspection data for accountability reporting.
+
+**Status:** 📋 PLANNED (0/? plans)
+
+**Requirements:** ANALYTICS-01 through ANALYTICS-0N (TBD during planning)
+
+**Scope:**
+- School trend charts (ratings over time)
+- School comparison view (side-by-side summary)
+- CSV export of inspection data
+- DB-layer GROUP BY aggregation (required — 93% memory baseline; no JS aggregation)
+
+**Success Criteria:**
+1. User can view a trend chart for any school showing average ratings over time
+2. User can compare two or more schools on a single summary view
+3. User can export inspection data as CSV (filtered by school/date range)
+4. Analytics queries run via DB-layer GROUP BY, not in-process aggregation
+
+**Dependencies:** Phases 01–08 complete ✅
+
+**Plans:** TBD
+
+---
+
+### Phase 10: Notifications & Alerts
+
+**Goal:** Facility manager receives email alerts when inspection backlog exceeds threshold.
+
+**Status:** 📋 PLANNED (0/? plans)
+
+**Requirements:** NOTIF-01 through NOTIF-0N (TBD during planning)
+
+**Scope:**
+- Email alerts via Resend when pending backlog exceeds threshold
+- Single recipient: rharman@collegiateacademies.org (hardcoded, no preferences UI)
+- Add `resend` and `node-cron` dependencies
+- No per-user notification preferences (deferred)
+
+**Success Criteria:**
+1. Email is sent to rharman@collegiateacademies.org when pending backlog exceeds configured threshold
+2. Alert email includes count and link to review queue
+3. Alerts fire on a scheduled cadence (not per-capture) to avoid spam
+4. No UI changes required — purely server-side
+
+**Dependencies:** Phase 09 (optional — analytics data enriches alert content)
+
+**Plans:** TBD
+
+---
+
+### Phase 11: Issue Tagging
+
+**Goal:** Inspectors can tag issues with pre-defined categories; managers can filter by tag.
+
+**Status:** 📋 PLANNED (0/? plans)
+
+**Requirements:** TAG-01 through TAG-0N (TBD during planning)
+
+**Scope:**
+- Pre-defined taxonomy of 8–10 common custodial issue types (fixed list for MVP)
+- Tags stored on inspection records
+- Filterable inspection list by tag
+- Dynamic/admin-managed tags deferred to future phase
+
+**Success Criteria:**
+1. Inspector can select one or more tags from a pre-defined list when capturing or completing an inspection
+2. Tags are stored on the inspection record and persist across sessions
+3. Inspection list can be filtered by one or more tags
+4. Tag taxonomy is fixed in code (no admin UI required for MVP)
+
+**Dependencies:** Phase 09 (tag data feeds analytics filters)
+
+**Plans:** TBD
+
+---
+
+### Deferred Phases
+
+| Phase | Name | Reason Deferred |
+|-------|------|-----------------|
+| 12 | Offline & Reliability | Not a current pain point — defer until user feedback confirms need |
+| 13 | Scheduling | Defer post-feedback on notification patterns |
+
+---
+
+## Milestone v2.0 Status Summary
+
+| Phase | Name | Status | Plans |
+|-------|------|--------|-------|
+| 09 | Analytics & Reporting | 📋 Planned | TBD |
+| 10 | Notifications & Alerts | 📋 Planned | TBD |
+| 11 | Issue Tagging | 📋 Planned | TBD |
+
+---
+
 *Roadmap created: 2026-02-16*
-*Last updated: 2026-02-19 - Added Phase 05-08 milestone gap closure phases from v1.0 audit*
+*Last updated: 2026-02-19 - Milestone v2.0 planning started*

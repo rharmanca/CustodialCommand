@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: Milestone v1.0 Complete
+- **Current Phase**: Milestone v2.0 — Phase 09 (not started)
 - **Current Plan**: —
-- **Status**: ✅ **MILESTONE v1.0 COMPLETE**
+- **Status**: 📋 **MILESTONE v2.0 PLANNING**
 - **Version**: 1.0.0
 - **Tag**: v1.0.0
 - **Requirements**: 23/23 SATISFIED
@@ -113,9 +113,10 @@ Phase 08: monitoring-debt-cleanup [█████████] 100% ✅ (All Wa
 
 ## Next Actions
 
-1. **Milestone v1.0 COMPLETE**: All 7 phases finished, 23/23 requirements satisfied
-2. **Next**: Phase 08 (optional monitoring debt cleanup) or Milestone v2.0 planning
-3. **Git Tag**: `v1.0.0` created
+1. **Milestone v1.0 COMPLETE**: All 8 phases finished (incl. Phase 08 monitoring), 23/23 requirements satisfied
+2. **Milestone v2.0 STARTED**: Phases 09, 10, 11 planned (Analytics, Notifications, Tagging)
+3. **Next**: Plan Phase 09 — Analytics & Reporting
+4. **Git Tag**: `v1.0.0` created
 
 ---
 
@@ -169,8 +170,8 @@ Phase 08: monitoring-debt-cleanup [█████████] 100% ✅ (All Wa
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Completed Phase 08 Wave 2 (Plan 03) — Memory Trend Analysis
-- **Summary**: Phase 08 now 100% complete including optional scope. Plan 03 confirmed 0%/day memory growth via 3-session analysis (sawtooth GC pattern, stable 87–96% band). Implemented linear regression trend alerting in automated-monitoring.ts (TREND_WARNING when predicted to hit 95% within 30 min). Created memory-trend-baseline.md. Phase 08 fully closed.
+- **Activity**: Milestone v2.0 roadmap planning — finalized scope and added ROADMAP.md section
+- **Summary**: Finalized v2.0 scope: Phases 09 (Analytics), 10 (Notifications via Resend, single recipient), 11 (Issue Tagging, pre-defined taxonomy). Deferred Phase 12 (Offline) and Phase 13 (Scheduling). Created phase directories 09/10/11.
 
 ## Performance Metrics
 
@@ -182,4 +183,4 @@ Phase 08: monitoring-debt-cleanup [█████████] 100% ✅ (All Wa
 
 ---
 *Last updated: 2026-02-19*
-*Phase 08: monitoring-debt-cleanup 100% COMPLETE (3/3 plans, all scope including optional delivered)*
+*Milestone v2.0 planning started — Phases 09, 10, 11 roadmapped*
