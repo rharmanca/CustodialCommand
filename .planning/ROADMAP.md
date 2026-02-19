@@ -230,5 +230,62 @@ Phase 03 executes in 4 waves for parallel execution:
 | 04 | 📋 Planned | 0/6 | Ready for execution |
 
 ---
+## Gap Closure Phases (from v1.0 audit)
+
+### Phase 05: Verification Baseline Recovery
+
+**Goal:** Rebuild milestone-grade verification evidence for completed phases so requirement coverage can be audited reliably.
+
+**Requirements:** CAP-01..CAP-07, REV-01..REV-07, PERF-01..PERF-05, MOB-01..MOB-04 (evidence reconciliation)
+
+**Gap Closure:**
+- Restore/create execution `VERIFICATION.md` artifacts for phases 01, 02, and 03
+- Reconcile requirement-to-evidence mapping across phase outputs
+- Remove milestone blocker caused by unverified historical phases
+
+### Phase 06: Pending Badge Contract and Freshness Wiring
+
+**Goal:** Fix pending count data contract and real-time refresh wiring so dashboard badges are accurate immediately after capture.
+
+**Requirements:** CAP-01, CAP-05, CAP-07, REV-01, MOB-03
+
+**Gap Closure:**
+- Align backend/frontend pending count contract (`totalRecords` vs `totalCount`)
+- Emit/consume refresh events on quick-capture success
+- Close broken flow: Quick Capture -> Dashboard pending badge freshness
+
+### Phase 07: UI Polish Gap Closure
+
+**Goal:** Complete unresolved Phase 04 UX must-haves and satisfy touch-target constraints.
+
+**Requirements:** MOB-01, REV-04, CAP-02
+
+**Gap Closure:**
+- Implement grouped rating sections with per-section progress
+- Make Quick Capture camera-first with default-collapsed notes
+- Add FAB hide/show on scroll and finalize 44px+ secondary controls
+
+### Phase 08: Monitoring Debt Cleanup (Optional)
+
+**Goal:** Address non-blocking operational debt identified during phase summaries.
+
+**Requirements:** Operational reliability follow-up (non-functional)
+
+**Gap Closure:**
+- Investigate and remediate sustained high-memory warning trend
+- Update monitoring runbook actions with concrete thresholds and remediation validation
+
+---
+
+## Gap Closure Status Summary
+
+| Phase | Status | Plans Complete | Next Action |
+|-------|--------|----------------|-------------|
+| 05 | 📋 Planned | 0/0 | /gsd-plan-phase 05 |
+| 06 | 📋 Planned | 0/0 | /gsd-plan-phase 06 |
+| 07 | 📋 Planned | 0/0 | /gsd-plan-phase 07 |
+| 08 | 📋 Optional | 0/0 | /gsd-plan-phase 08 (if included) |
+
+---
 *Roadmap created: 2026-02-16*
-*Last updated: 2026-02-18 - Added Phase 04: UI/UX Polish with 6 execution plans*
+*Last updated: 2026-02-19 - Added Phase 05-08 milestone gap closure phases from v1.0 audit*
