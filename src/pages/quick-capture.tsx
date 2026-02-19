@@ -4,6 +4,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { usePendingCount, PENDING_COUNT_UPDATED_EVENT } from '@/hooks/usePendingCount';
 import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 import { CameraCapture } from '@/components/capture/CameraCapture';
 import { PhotoPreviewStrip } from '@/components/capture/PhotoPreviewStrip';
@@ -188,7 +189,10 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
           description: `${capturedImages.length} photo${capturedImages.length !== 1 ? 's' : ''} saved for ${school}. Review on desktop later.`,
           duration: 5000
         });
-        
+
+        // Emit event to refresh pending count badge on dashboard
+        window.dispatchEvent(new Event(PENDING_COUNT_UPDATED_EVENT));
+
         // Clear form after success
         setTimeout(() => {
           resetForm();
