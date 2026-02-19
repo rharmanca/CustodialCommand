@@ -52,6 +52,7 @@ const RatingCriteriaPage = lazy(() => import("./pages/rating-criteria"));
 const AdminInspectionsPage = lazy(() => import("./pages/admin-inspections"));
 const MonthlyFeedbackPage = lazy(() => import("./pages/monthly-feedback"));
 const ScoresDashboard = lazy(() => import("./pages/scores-dashboard"));
+const AnalyticsDashboard = lazy(() => import("./pages/analytics-dashboard"));
 const QuickCapturePage = lazy(() => import("./pages/quick-capture"));
 const PhotoFirstReviewPage = lazy(() => import("./pages/photo-first-review"));
 const NotFoundPage = lazy(() => import("./pages/not-found"));
@@ -122,6 +123,7 @@ const [currentPage, setCurrentPage] = useState<
     | "admin-inspections"
     | "Monthly Feedback"
     | "Scores Dashboard"
+    | "Analytics Dashboard"
     | "Quick Capture"
     | "Photo Review"
   >("Custodial");
@@ -229,6 +231,7 @@ const [currentPage, setCurrentPage] = useState<
         "admin-inspections": "Admin Inspections Panel",
         "Monthly Feedback": "Monthly Feedback Reports",
         "Scores Dashboard": "Building Scores Dashboard",
+        "Analytics Dashboard": "Analytics Dashboard",
         "Quick Capture": "Quick Photo Capture",
         "Photo Review": "Photo-First Review"
       };
@@ -533,6 +536,14 @@ const [currentPage, setCurrentPage] = useState<
                       </span>
                     </button>
                     <button
+                      onClick={() => setCurrentPage("Analytics Dashboard")}
+                      className="modern-button bg-teal-600 hover:bg-teal-700 border-teal-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        📊 Analytics Dashboard
+                      </span>
+                    </button>
+                    <button
                       onClick={() => setCurrentPage("Inspection Data")}
                       className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white shadow-md hover:shadow-lg transition-shadow"
                     >
@@ -625,6 +636,12 @@ const [currentPage, setCurrentPage] = useState<
           return (
             <Suspense fallback={<PageLoadingSkeleton />}>
               <ScoresDashboard onBack={() => setCurrentPage("Custodial")} />
+            </Suspense>
+          );
+        case "Analytics Dashboard":
+          return (
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <AnalyticsDashboard onBack={() => setCurrentPage("Custodial")} />
             </Suspense>
           );
         case "Quick Capture":
