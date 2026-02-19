@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, pgTableCreator, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { validateTags } from "./tags";
 
 // Coerce number-like strings to numbers; treat empty string/undefined as null
 const coerceNullableNumber = z.preprocess(
@@ -48,6 +49,7 @@ export const inspections = pgTable("inspections", {
   completionTimestamp: timestamp("completion_timestamp"), // When full inspection completed
   quickNotes: text("quick_notes"), // Optional 200-char notes for quick capture
   captureLocation: text("capture_location"), // Quick-select location identifier
+  tags: text("tags").array(), // Issue tags array
 }, (table) => ({
   schoolIdx: index("inspections_school_idx").on(table.school),
   dateIdx: index("inspections_date_idx").on(table.date),
@@ -161,6 +163,8 @@ export const insertInspectionSchema = createInsertSchema(inspections).omit({
   equipment: coerceNullableNumber.optional(),
   monitoring: coerceNullableNumber.optional(),
   notes: z.string().nullable().optional(),
+  // Tag validation - filter invalid tags automatically
+  tags: z.array(z.string()).optional().default([]).transform(validateTags),
 });
 
 export const insertRoomInspectionSchema = createInsertSchema(roomInspections).omit({
