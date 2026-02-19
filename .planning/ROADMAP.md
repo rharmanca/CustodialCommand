@@ -431,9 +431,9 @@ Plans:
 
 **Goal:** Users can view school-level trends and export inspection data for accountability reporting.
 
-**Status:** 📋 PLANNED (0/? plans)
+**Status:** 📋 PLANNED (2 plans)
 
-**Requirements:** ANALYTICS-01 through ANALYTICS-0N (TBD during planning)
+**Requirements:** ANALYTICS-01 through ANALYTICS-04
 
 **Scope:**
 - School trend charts (ratings over time)
@@ -449,7 +449,11 @@ Plans:
 
 **Dependencies:** Phases 01–08 complete ✅
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Analytics API layer (storage queries + 3 routes: trends, comparison, CSV export)
+- [ ] 09-02-PLAN.md — Analytics Dashboard UI (page + App.tsx nav wiring, checkpoint: human verify)
 
 ---
 
