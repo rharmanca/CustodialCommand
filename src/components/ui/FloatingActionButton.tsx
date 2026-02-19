@@ -21,6 +21,7 @@ interface FloatingActionButtonProps {
   className?: string;
   'aria-label'?: string;
   badge?: number;
+  visible?: boolean;
 }
 
 /**
@@ -50,6 +51,7 @@ export function FloatingActionButton({
   className,
   'aria-label': ariaLabel,
   badge,
+  visible = true,
 }: FloatingActionButtonProps) {
   const Icon = icon === 'camera' ? Camera : Plus;
   const urgencyClasses = badge !== undefined && badge > 0 ? getUrgencyClasses(badge) : null;
@@ -61,7 +63,12 @@ export function FloatingActionButton({
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 lg:hidden">
+    <div 
+      className={cn(
+        "fixed bottom-6 right-6 z-50 lg:hidden transition-all duration-300",
+        visible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"
+      )}
+    >
       {/* Mobile only */}
       <button
         onClick={onClick}

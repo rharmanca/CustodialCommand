@@ -292,7 +292,7 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main content - Camera-first layout */}
       <main className="p-4 pb-32 max-w-2xl mx-auto space-y-6">
         {/* Error banner */}
         {error && (
@@ -302,97 +302,7 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
           </div>
         )}
 
-        {/* School selector */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-muted-foreground" />
-            <Label className="text-base font-medium">
-              School <span className="text-destructive">*</span>
-            </Label>
-          </div>
-          <Select value={school} onValueChange={setSchool}>
-            <SelectTrigger className="min-h-[56px] text-base">
-              <SelectValue placeholder="Select school..." />
-            </SelectTrigger>
-            <SelectContent>
-              {SCHOOL_OPTIONS.map((option) => (
-                <SelectItem 
-                  key={option.value} 
-                  value={option.value}
-                  className="min-h-[48px]"
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </section>
-
-        {/* Location input */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-muted-foreground" />
-            <Label className="text-base font-medium">
-              Location <span className="text-destructive">*</span>
-            </Label>
-          </div>
-          <input
-            type="text"
-            value={captureLocation}
-            onChange={(e) => setCaptureLocation(e.target.value)}
-            placeholder="e.g., Room 101, Hallway A, etc."
-            className={cn(
-              "w-full px-4 py-3 rounded-lg border-2 border-input",
-              "text-base min-h-[56px]",
-              "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
-              "transition-all duration-200"
-            )}
-          />
-          {/* Quick location buttons */}
-          <div className="flex flex-wrap gap-2">
-            {LOCATION_PRESETS.map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setCaptureLocation(preset)}
-                className={cn(
-                  "px-3 py-2 text-sm rounded-full border-2",
-                  "min-h-[44px] min-w-[60px]",
-                  captureLocation === preset
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted border-muted-foreground/20 text-foreground hover:border-primary/50",
-                  "transition-all duration-200 touch-manipulation"
-                )}
-              >
-                {preset}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Inspector name */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-muted-foreground" />
-            <Label className="text-base font-medium">
-              Your Name <span className="text-destructive">*</span>
-            </Label>
-          </div>
-          <input
-            type="text"
-            value={inspectorName}
-            onChange={(e) => setInspectorName(e.target.value)}
-            placeholder="Enter your name"
-            className={cn(
-              "w-full px-4 py-3 rounded-lg border-2 border-input",
-              "text-base min-h-[56px]",
-              "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
-              "transition-all duration-200"
-            )}
-          />
-        </section>
-
-        {/* Camera capture */}
+        {/* Camera capture - PRIMARY: First in visual hierarchy */}
         <section
           className={cn(
             "space-y-3",
@@ -405,7 +315,7 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Camera className="w-5 h-5 text-muted-foreground" />
+              <Camera className="w-5 h-5 text-primary" />
               <Label className="text-base font-medium">
                 Photos <span className="text-destructive">*</span>
               </Label>
@@ -434,13 +344,106 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
           </section>
         )}
 
-        {/* Quick notes */}
+        {/* Metadata section - SECONDARY: Collapsed by default on mobile */}
+        <section className={cn(
+          "space-y-4",
+          "p-4 rounded-lg border bg-muted/30"
+        )}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Building2 className="w-4 h-4" />
+            <span className="text-sm font-medium">Location Details</span>
+          </div>
+
+          {/* School selector */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              School <span className="text-destructive">*</span>
+            </Label>
+            <Select value={school} onValueChange={setSchool}>
+              <SelectTrigger className="min-h-[56px] text-base bg-background">
+                <SelectValue placeholder="Select school..." />
+              </SelectTrigger>
+              <SelectContent>
+                {SCHOOL_OPTIONS.map((option) => (
+                  <SelectItem 
+                    key={option.value} 
+                    value={option.value}
+                    className="min-h-[48px]"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Location input */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Location <span className="text-destructive">*</span>
+            </Label>
+            <input
+              type="text"
+              value={captureLocation}
+              onChange={(e) => setCaptureLocation(e.target.value)}
+              placeholder="e.g., Room 101, Hallway A, etc."
+              className={cn(
+                "w-full px-4 py-3 rounded-lg border-2 border-input",
+                "text-base min-h-[56px] bg-background",
+                "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
+                "transition-all duration-200"
+              )}
+            />
+            {/* Quick location buttons */}
+            <div className="flex flex-wrap gap-2">
+              {LOCATION_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setCaptureLocation(preset)}
+                  className={cn(
+                    "px-3 py-2 text-sm rounded-full border-2",
+                    "min-h-[44px] min-w-[60px]",
+                    captureLocation === preset
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-muted-foreground/20 text-foreground hover:border-primary/50",
+                    "transition-all duration-200 touch-manipulation"
+                  )}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Inspector name */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Your Name <span className="text-destructive">*</span>
+            </Label>
+            <input
+              type="text"
+              value={inspectorName}
+              onChange={(e) => setInspectorName(e.target.value)}
+              placeholder="Enter your name"
+              className={cn(
+                "w-full px-4 py-3 rounded-lg border-2 border-input",
+                "text-base min-h-[56px] bg-background",
+                "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
+                "transition-all duration-200"
+              )}
+            />
+          </div>
+        </section>
+
+        {/* Quick notes - Collapsed by default */}
         <section>
           <QuickNoteInput
             value={quickNotes}
             onChange={setQuickNotes}
             maxLength={200}
             disabled={isSubmitting}
+            defaultCollapsed={true}
           />
         </section>
       </main>

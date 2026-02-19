@@ -128,6 +128,10 @@ const [currentPage, setCurrentPage] = useState<
   const [isInstallSectionOpen, setIsInstallSectionOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
+  
+  // Scroll direction state for FAB visibility
+  const [showFab, setShowFab] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   // Phase 1: Enhanced mobile detection and accessibility
   const isMobile = useIsMobile();
@@ -189,6 +193,29 @@ const [currentPage, setCurrentPage] = useState<
     const cleanup = initKeyboardNavigationDetector();
     return cleanup;
   }, []);
+
+  // Scroll direction detection for FAB visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show FAB when scrolling up or near top, hide when scrolling down
+      if (currentScrollY < 50) {
+        setShowFab(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down and past threshold - hide FAB
+        setShowFab(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up - show FAB
+        setShowFab(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Phase 1: Announce page changes to screen readers
   useEffect(() => {
@@ -544,6 +571,7 @@ const [currentPage, setCurrentPage] = useState<
                 variant="capture"
                 aria-label="Quick capture photos"
                 badge={pendingInspectionCount > 0 ? pendingInspectionCount : undefined}
+                visible={showFab}
               />
             </div>
           );
