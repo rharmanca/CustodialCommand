@@ -2,9 +2,9 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: 04-ui-polish
-- **Current Plan**: 04-05-Dashboard-FAB-Integration
-- **Status**: In Progress 🔄
+- **Current Phase**: 05-verification-baseline-recovery
+- **Current Plan**: 05-01-Scaffold-Verification-Artifacts
+- **Status**: Plan Complete ✅
 
 ## Phase Progress
 
@@ -17,14 +17,16 @@ Phase 01: review-and-testing [█████████] 100% ✅
 ├── 01-05: Database Testing ✅ COMPLETE
 ├── 01-06: API Testing ✅ COMPLETE
 ├── 01-07: Mobile Testing ✅ COMPLETE
-└── 01-08: Cross-cutting Testing ✅ COMPLETE
+├── 01-08: Cross-cutting Testing ✅ COMPLETE
+└── 01-VERIFICATION.md ✅ SCAFFOLDED
 
 Phase 02: recommendations [███████░░] 87% 🔄
 ├── 02-01: Immediate Verification ✅ COMPLETE
 ├── 02-02: Cross-Browser Testing ⏳ PENDING
 ├── 02-03: Performance Testing ✅ COMPLETE
 ├── 02-04: Cleanup ⏳ PENDING
-└── 02-05: Monitoring ✅ COMPLETE
+├── 02-05: Monitoring ✅ COMPLETE
+└── 02-VERIFICATION.md ✅ SCAFFOLDED
 
 Phase 03: workflow-improvements [█████████] 100% ✅
 ├── 03-01: Quick Capture Core ✅ COMPLETE
@@ -32,7 +34,8 @@ Phase 03: workflow-improvements [█████████] 100% ✅
 ├── 03-03: Thumbnail Generation ✅ COMPLETE
 ├── 03-04: Mobile UX Polish ✅ COMPLETE
 ├── 03-05: Photo-First Review Page ✅ COMPLETE
-└── 03-06: Workflow Completion ✅ COMPLETE
+├── 03-06: Workflow Completion ✅ COMPLETE
+└── 03-VERIFICATION.md ✅ SCAFFOLDED
 
 Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 ├── 04-01: Capability Orchestration ✅ COMPLETE
@@ -41,6 +44,12 @@ Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 ├── 04-04: Pending Badge + FAB ✅ COMPLETE
 ├── 04-05: [Pending]
 └── 04-06: Touch Targets + Reachability ✅ COMPLETE
+
+Phase 05: verification-baseline-recovery [███░░░░░░] 25% 🔄
+├── 05-01: Scaffold Verification Artifacts ✅ COMPLETE
+├── 05-02: Evidence Backfill ⏳ PENDING
+├── 05-03: Requirement Reconciliation ⏳ PENDING
+└── 05-04: Quality Gate Audit ⏳ PENDING
 ```
 
 ## Project Context
@@ -79,12 +88,14 @@ Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 16. **Explicit Touch Minimums**: Primary capture at 64px, secondary actions at 44px minimum
 17. **Pending Badge Urgency Bands**: Backlog highlights use red at >=5 while amber covers 1-4 pending items
 18. **Pending Count Freshness**: Dashboard count refreshes via 30s polling and complete/discard mutation events
+19. **Verification Status Vocabulary**: Standardized on SATISFIED/BLOCKED/UNVERIFIED/NEEDS_RERUN for all verification files
+20. **Baseline Capture Pre-Backfill**: Phase completeness checks recorded before evidence population to preserve pre-recovery state
 
 ## Next Actions
 
-1. **Continue Phase 04**: Execute remaining 04-05 polish work and phase wrap-up
-2. **Re-verify Remote Deep Journey**: Re-run full deep-journey after next deployment to validate pending-review row visibility
-3. **Complete Phase 02**: Finish Cross-Browser Testing and Cleanup
+1. **Continue Phase 05**: Execute 05-02 Evidence Backfill plan
+2. **Execute 05-03**: Build requirement reconciliation matrix
+3. **Execute 05-04**: Run quality gate and milestone re-audit
 
 ## File References
 
@@ -95,11 +106,11 @@ Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 
 ## Last Session
 
-- **Timestamp**: 2026-02-18
-- **Activity**: Completed Phase 04 Plan 04-04 Pending Badge Urgency
-- **Summary**: Applied option-b capability orchestration, wired shared pending-count state into review entry points, added urgency threshold styling and pulse behavior, and implemented near-real-time count refresh triggers. Local typecheck/build/visual checks passed; remote deep-journey remained unstable due CSRF/rate-limit responses.
+- **Timestamp**: 2026-02-19
+- **Activity**: Completed Phase 05 Plan 05-01 Scaffold Verification Artifacts
+- **Summary**: Scaffolded canonical execution verification files for phases 01-03 with baseline completeness notes and standardized status legend (SATISFIED/BLOCKED/UNVERIFIED/NEEDS_RERUN). All three files pass frontmatter validation. Baseline captured: Phase 01 (8 plans, 9 summaries), Phase 02 (5 plans, 6 summaries), Phase 03 (6 plans, 6 summaries). Ready for evidence backfill in 05-02.
 
 ---
-*Last updated: 2026-02-18*
-*Plan 04-04 completed: Pending Badge Urgency*
-*Phase 04: ui-polish IN PROGRESS 🔄*
+*Last updated: 2026-02-19*
+*Plan 05-01 completed: Scaffold Verification Artifacts*
+*Phase 05: verification-baseline-recovery IN PROGRESS 🔄*
