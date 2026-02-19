@@ -21,8 +21,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Star, Loader2, AlertCircle, CheckCircle2, Building2, Coffee, Wrench, Shield, ChevronDown } from 'lucide-react';
+import { Star, Loader2, AlertCircle, CheckCircle2, Building2, Coffee, Wrench, Shield, ChevronDown, Tag } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TagSelector } from '@/components/tags';
 import { ratingDescriptions, inspectionCategories } from '@shared/custodial-criteria';
 import * as Accordion from '@radix-ui/react-accordion';
 
@@ -79,6 +80,8 @@ interface InspectionCompletionFormProps {
   onComplete: (data: CompleteInspectionData) => void;
   isSubmitting: boolean;
   error: string | null;
+  initialTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
 }
 
 interface StarRatingFieldProps {
@@ -143,6 +146,8 @@ export function InspectionCompletionForm({
   onComplete,
   isSubmitting,
   error,
+  initialTags = [],
+  onTagsChange,
 }: InspectionCompletionFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -264,6 +269,20 @@ export function InspectionCompletionForm({
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Issue Tags */}
+            <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-muted-foreground" />
+                <h3 className="font-medium">Issue Tags</h3>
+              </div>
+              <TagSelector
+                selected={initialTags}
+                onChange={onTagsChange || (() => {})}
+                maxSelection={3}
+                disabled={isSubmitting}
+              />
             </div>
 
             {/* Rating Categories - Grouped by Accordion */}

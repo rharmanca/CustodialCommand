@@ -118,6 +118,7 @@ export const storage = {
     school?: string;
     inspectionType?: 'single_room' | 'whole_building';
     isCompleted?: boolean;
+    tags?: string[];
   }): Promise<{
     data: any[];
     totalCount: number;
@@ -153,6 +154,11 @@ export const storage = {
 
       if (options?.isCompleted !== undefined) {
         conditions.push(eq(inspections.isCompleted, options.isCompleted));
+      }
+
+      if (options?.tags?.length) {
+        // PostgreSQL array overlap operator && checks if arrays have any elements in common
+        conditions.push(sql`${inspections.tags} && ${options.tags}`);
       }
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -267,7 +273,7 @@ export const storage = {
   },
 
   // Quick Capture / Pending Review workflow methods
-  async createQuickCapture(data: { school: string; captureLocation: string; inspectorName: string; quickNotes?: string; images?: string[] }) {
+  async createQuickCapture(data: { school: string; captureLocation: string; inspectorName: string; quickNotes?: string; images?: string[]; tags?: string[] }) {
     return executeQuery('createQuickCapture', async () => {
       // Validate required fields
       if (!data.school || !data.captureLocation || !data.inspectorName) {
@@ -285,6 +291,7 @@ export const storage = {
         captureLocation: data.captureLocation,
         quickNotes: data.quickNotes || null,
         images: data.images || [],
+        tags: data.tags || [],
         isCompleted: false,
       };
 

@@ -90,6 +90,7 @@ export default function PhotoFirstReviewPage() {
   // State
   const [selectedInspection, setSelectedInspection] = useState<PendingInspection | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Fetch pending inspections
   const {
@@ -111,6 +112,8 @@ export default function PhotoFirstReviewPage() {
       const found = inspections.find(insp => insp.id === parseInt(inspectionId, 10));
       if (found) {
         setSelectedInspection(found);
+        // Initialize tags from existing inspection
+        setSelectedTags(found.tags || []);
       } else {
         // Inspection not found - it may have been completed/discarded
         toast({
@@ -119,9 +122,11 @@ export default function PhotoFirstReviewPage() {
           variant: 'destructive',
         });
         setSearchParams({ id: null });
+        setSelectedTags([]);
       }
     } else if (!inspectionId) {
       setSelectedInspection(null);
+      setSelectedTags([]);
     }
   }, [inspectionId, inspections, setSearchParams, toast]);
 
@@ -135,10 +140,16 @@ export default function PhotoFirstReviewPage() {
   const handleComplete = async (data: CompleteInspectionData) => {
     if (!selectedInspection) return;
 
-    const success = await completeInspection(selectedInspection.id, data);
+    const completeData: CompleteInspectionData = {
+      ...data,
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
+    };
+
+    const success = await completeInspection(selectedInspection.id, completeData);
 
     if (success) {
       setShowCompleted(true);
+      setSelectedTags([]);
       setTimeout(() => {
         setShowCompleted(false);
         setSelectedInspection(null);
@@ -275,6 +286,8 @@ export default function PhotoFirstReviewPage() {
                 onComplete={handleComplete}
                 isSubmitting={isCompleting}
                 error={completeError}
+                initialTags={selectedTags}
+                onTagsChange={setSelectedTags}
               />
             )}
           </div>
