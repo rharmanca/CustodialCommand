@@ -45,9 +45,9 @@ Phase 04: ui-polish [██░░░░░░░] 33% 🔄
 ├── 04-05: [Pending]
 └── 04-06: Touch Targets + Reachability ✅ COMPLETE
 
-Phase 05: verification-baseline-recovery [████░░░░░] 50% 🔄
+Phase 05: verification-baseline-recovery [██████░░░] 75% 🔄
 ├── 05-01: Scaffold Verification Artifacts ✅ COMPLETE
-├── 05-02: Evidence Backfill ⏳ PENDING
+├── 05-02: Evidence Backfill ✅ COMPLETE
 ├── 05-03: Requirement Reconciliation ✅ COMPLETE
 └── 05-04: Quality Gate Audit ⏳ PENDING
 ```
@@ -113,10 +113,10 @@ Phase 05: verification-baseline-recovery [████░░░░░] 50% 🔄
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Completed Phase 05 Plan 03 Requirement Reconciliation
-- **Summary**: Populated Phase 03 verification with evidence-backed requirements matrix. Created master CAP/REV/PERF/MOB reconciliation with 20/23 requirements SATISFIED (87%). Preserved MOB-01 blocker from Phase 04 verification. Documented denominator discrepancy (21 vs 23). All validations passed. Verification artifact ready for milestone audit.
+- **Activity**: Completed Phase 05 Plan 02 Evidence Backfill
+- **Summary**: Populated Phase 01 verification (5/8 SATISFIED) and Phase 02 verification (4/5 SATISFIED) with conservative, traceable evidence. Explicitly treated RESEARCH-VERIFICATION.md as context-only. All satisfied claims include specific file/line references. Credential-gated tests marked BLOCKED, not inferred pass. Both files pass frontmatter validation and completeness checks.
 
 ---
 *Last updated: 2026-02-19*
-*Plan 05-03 completed: Requirement Reconciliation*
+*Plan 05-02 completed: Evidence Backfill*
 *Phase 05: verification-baseline-recovery IN PROGRESS 🔄*
