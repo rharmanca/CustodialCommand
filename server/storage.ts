@@ -1019,6 +1019,183 @@ export const storage = {
       },
       `delete_sync_queue_${queueId}`
     );
-  }
+  },
+
+  // ─── Analytics Query Functions ───────────────────────────────────────────
+
+  async getSchoolTrends(school: string, months: number = 6): Promise<Array<{
+    month: string;
+    avgRating: number;
+    inspectionCount: number;
+  }>> {
+    const cacheKey = `analytics_trends_${school}_${months}`;
+    const cached = await CacheManager.get(cacheKey);
+    if (cached !== null) return cached as any;
+
+    const rows = await db.execute(sql`
+      SELECT
+        to_char(date_trunc('month', created_at), 'YYYY-MM') AS month,
+        ROUND(
+          AVG(
+            NULLIF(
+              (
+                COALESCE(floors, 0) +
+                COALESCE(vertical_horizontal_surfaces, 0) +
+                COALESCE(ceiling, 0) +
+                COALESCE(restrooms, 0) +
+                COALESCE(customer_satisfaction, 0) +
+                COALESCE(trash, 0) +
+                COALESCE(project_cleaning, 0) +
+                COALESCE(activity_support, 0) +
+                COALESCE(safety_compliance, 0) +
+                COALESCE(equipment, 0) +
+                COALESCE(monitoring, 0)
+              )::numeric /
+              NULLIF(
+                (CASE WHEN floors IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN vertical_horizontal_surfaces IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN ceiling IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN restrooms IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN customer_satisfaction IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN trash IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN project_cleaning IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN activity_support IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN safety_compliance IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN equipment IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN monitoring IS NOT NULL THEN 1 ELSE 0 END
+                ), 0
+              )
+            , 0)
+          )::numeric,
+          2
+        ) AS avg_rating,
+        COUNT(*) AS inspection_count
+      FROM inspections
+      WHERE school = ${school}
+        AND status = 'completed'
+        AND created_at >= NOW() - (${months} || ' months')::interval
+      GROUP BY date_trunc('month', created_at)
+      ORDER BY date_trunc('month', created_at)
+    `);
+
+    const result = (rows as any[]).map((row: any) => ({
+      month: row.month as string,
+      avgRating: parseFloat(row.avg_rating ?? '0'),
+      inspectionCount: parseInt(row.inspection_count ?? '0', 10),
+    }));
+
+    await CacheManager.set(cacheKey, result, 10 * 60 * 1000);
+    return result;
+  },
+
+  async getSchoolComparison(startDate?: string, endDate?: string): Promise<Array<{
+    school: string;
+    avgRating: number;
+    inspectionCount: number;
+    completedCount: number;
+  }>> {
+    const cacheKey = `analytics_comparison_${startDate ?? 'none'}_${endDate ?? 'none'}`;
+    const cached = await CacheManager.get(cacheKey);
+    if (cached !== null) return cached as any;
+
+    const startCondition = startDate ? sql`AND created_at >= ${startDate}::date` : sql``;
+    const endCondition = endDate ? sql`AND created_at <= (${endDate}::date + interval '1 day')` : sql``;
+
+    const rows = await db.execute(sql`
+      SELECT
+        school,
+        ROUND(
+          AVG(
+            NULLIF(
+              (
+                COALESCE(floors, 0) +
+                COALESCE(vertical_horizontal_surfaces, 0) +
+                COALESCE(ceiling, 0) +
+                COALESCE(restrooms, 0) +
+                COALESCE(customer_satisfaction, 0) +
+                COALESCE(trash, 0) +
+                COALESCE(project_cleaning, 0) +
+                COALESCE(activity_support, 0) +
+                COALESCE(safety_compliance, 0) +
+                COALESCE(equipment, 0) +
+                COALESCE(monitoring, 0)
+              )::numeric /
+              NULLIF(
+                (CASE WHEN floors IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN vertical_horizontal_surfaces IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN ceiling IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN restrooms IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN customer_satisfaction IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN trash IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN project_cleaning IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN activity_support IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN safety_compliance IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN equipment IS NOT NULL THEN 1 ELSE 0 END +
+                 CASE WHEN monitoring IS NOT NULL THEN 1 ELSE 0 END
+                ), 0
+              )
+            , 0)
+          )::numeric,
+          2
+        ) AS avg_rating,
+        COUNT(*) AS inspection_count,
+        COUNT(*) FILTER (WHERE status = 'completed') AS completed_count
+      FROM inspections
+      WHERE 1=1
+        ${startCondition}
+        ${endCondition}
+      GROUP BY school
+      ORDER BY school
+    `);
+
+    const result = (rows as any[]).map((row: any) => ({
+      school: row.school as string,
+      avgRating: parseFloat(row.avg_rating ?? '0'),
+      inspectionCount: parseInt(row.inspection_count ?? '0', 10),
+      completedCount: parseInt(row.completed_count ?? '0', 10),
+    }));
+
+    await CacheManager.set(cacheKey, result, 10 * 60 * 1000);
+    return result;
+  },
+
+  async getInspectionsCsvRows(school?: string, startDate?: string, endDate?: string): Promise<Array<Record<string, any>>> {
+    // No cache — streaming export
+    const schoolCondition = school ? sql`AND school = ${school}` : sql``;
+    const startCondition = startDate ? sql`AND created_at >= ${startDate}::date` : sql``;
+    const endCondition = endDate ? sql`AND created_at <= (${endDate}::date + interval '1 day')` : sql``;
+
+    const rows = await db.execute(sql`
+      SELECT
+        id,
+        school,
+        date,
+        inspector_name,
+        inspection_type,
+        location_description,
+        status,
+        floors,
+        vertical_horizontal_surfaces,
+        ceiling,
+        restrooms,
+        customer_satisfaction,
+        trash,
+        project_cleaning,
+        activity_support,
+        safety_compliance,
+        equipment,
+        monitoring,
+        created_at
+      FROM inspections
+      WHERE status = 'completed'
+        ${schoolCondition}
+        ${startCondition}
+        ${endCondition}
+      ORDER BY created_at DESC
+      LIMIT 5000
+    `);
+
+    return rows as any[];
+  },
 };
 
