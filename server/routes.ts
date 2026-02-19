@@ -2089,6 +2089,92 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // ─── Analytics Routes ────────────────────────────────────────────────────
+
+  // GET /api/analytics/trends - Monthly average ratings for a specific school
+  app.get("/api/analytics/trends", validateAdminSession, async (req, res) => {
+    try {
+      const school = typeof req.query.school === "string" ? req.query.school.trim() : "";
+      const monthsRaw = parseInt((req.query.months as string) ?? "6", 10);
+      const months = isNaN(monthsRaw) || monthsRaw < 1 ? 6 : Math.min(monthsRaw, 24);
+
+      if (!school) {
+        return res.status(400).json({ success: false, message: "school parameter is required" });
+      }
+
+      const data = await storage.getSchoolTrends(school, months);
+      return res.json({ success: true, data, meta: { school, months } });
+    } catch (error) {
+      logger.error("Error fetching analytics trends", { error });
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+
+  // GET /api/analytics/comparison - Per-school aggregate comparison
+  app.get("/api/analytics/comparison", validateAdminSession, async (req, res) => {
+    try {
+      const startDate = typeof req.query.startDate === "string" ? req.query.startDate.trim() : undefined;
+      const endDate = typeof req.query.endDate === "string" ? req.query.endDate.trim() : undefined;
+
+      const data = await storage.getSchoolComparison(startDate, endDate);
+      return res.json({ success: true, data, meta: { startDate, endDate } });
+    } catch (error) {
+      logger.error("Error fetching analytics comparison", { error });
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+
+  // GET /api/export/inspections.csv - Stream inspections as CSV download
+  app.get("/api/export/inspections.csv", validateAdminSession, async (req, res) => {
+    try {
+      const school = typeof req.query.school === "string" ? req.query.school.trim() : undefined;
+      const startDate = typeof req.query.startDate === "string" ? req.query.startDate.trim() : undefined;
+      const endDate = typeof req.query.endDate === "string" ? req.query.endDate.trim() : undefined;
+
+      const rows = await storage.getInspectionsCsvRows(school, startDate, endDate);
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", 'attachment; filename="inspections.csv"');
+
+      const escapeField = (val: unknown): string => {
+        if (val === null || val === undefined) return "";
+        const str = String(val);
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const header = [
+        "id","school","date","inspectorName","inspectionType","location","status",
+        "floors","vhSurfaces","ceiling","restrooms","custSatisfaction","trash",
+        "projectCleaning","activitySupport","safetyCompliance","equipment","monitoring","createdAt"
+      ].join(",");
+      res.write(header + "\n");
+
+      for (const row of rows) {
+        const line = [
+          row.id, row.school, row.date, row.inspector_name, row.inspection_type,
+          row.location_description, row.status, row.floors,
+          row.vertical_horizontal_surfaces, row.ceiling, row.restrooms,
+          row.customer_satisfaction, row.trash, row.project_cleaning,
+          row.activity_support, row.safety_compliance, row.equipment,
+          row.monitoring, row.created_at
+        ].map(escapeField).join(",");
+        res.write(line + "\n");
+      }
+
+      res.end();
+    } catch (error) {
+      logger.error("Error exporting inspections CSV", { error });
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: "Internal server error" });
+      } else {
+        res.end();
+      }
+    }
+  });
+
   // Photo upload endpoint for mobile photo capture (with rate limiting to prevent storage exhaustion)
   app.post("/api/photos/upload", photoUploadRateLimit, upload.single("photo"), async (req, res) => {
     logger.info("[POST] Photo upload started", {
@@ -2520,19 +2606,22 @@ export async function registerRoutes(app: Express): Promise<void> {
       path: req.path,
       method: req.method,
       timestamp: new Date().toISOString(),
-      availableEndpoints: [
-        "POST /api/inspections",
-        "GET /api/inspections",
-        "POST /api/submit-building-inspection",
-        "POST /api/custodial-notes",
-        "POST /api/room-inspections",
-        "GET /api/scores",
-        "GET /api/scores/:school",
-        "POST /api/photos/upload",
-        "GET /api/photos/:inspectionId",
-        "DELETE /api/photos/:photoId",
-        "GET /api/photos/sync-status",
-      ],
+       availableEndpoints: [
+         "POST /api/inspections",
+         "GET /api/inspections",
+         "POST /api/submit-building-inspection",
+         "POST /api/custodial-notes",
+         "POST /api/room-inspections",
+         "GET /api/scores",
+         "GET /api/scores/:school",
+         "POST /api/photos/upload",
+         "GET /api/photos/:inspectionId",
+         "DELETE /api/photos/:photoId",
+         "GET /api/photos/sync-status",
+         "GET /api/analytics/trends",
+         "GET /api/analytics/comparison",
+         "GET /api/export/inspections.csv",
+       ],
     });
   });
 
