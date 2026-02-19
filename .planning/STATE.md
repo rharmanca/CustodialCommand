@@ -3,8 +3,8 @@
 ## Project Overview
 - **Name**: Custodial Command
 - **Current Phase**: 06-pending-badge-freshness
-- **Current Plan**: 06-02-Emit-Refresh-Event
-- **Status**: Plan Complete ✅
+- **Current Plan**: 06-03-Integration-Verification
+- **Status**: Phase Complete ✅
 
 ## Phase Progress
 
@@ -51,10 +51,10 @@ Phase 05: verification-baseline-recovery [█████████] 100% ✅
 ├── 05-03: Requirement Reconciliation ✅ COMPLETE
 └── 05-04: Quality Gate Audit ✅ COMPLETE
 
-Phase 06: pending-badge-freshness [██████░░░] 67% 🔄
+Phase 06: pending-badge-freshness [█████████] 100% ✅
 ├── 06-01: Fix API Contract ✅ COMPLETE
 ├── 06-02: Emit Refresh Event ✅ COMPLETE
-└── 06-03: Integration Verification ⏳ PENDING
+└── 06-03: Integration Verification ✅ COMPLETE
 ```
 
 ## Project Context
@@ -98,9 +98,9 @@ Phase 06: pending-badge-freshness [██████░░░] 67% 🔄
 
 ## Next Actions
 
-1. **Phase 06 In Progress**: Plans 01-02 complete (API contract fix + Event emission)
-2. **Next**: Execute plan 06-03 (Integration Verification)
-3. **Milestone v1.0**: Pending badge freshness wiring 67% complete
+1. **Phase 06 Complete**: All 3 plans finished (API contract + Event emission + Integration tests)
+2. **Next**: Phase 07 or return to Phase 04/02 pending items
+3. **Milestone v1.0**: Pending badge freshness wiring 100% complete
 
 ## Key Decisions (New)
 
@@ -111,6 +111,7 @@ Phase 06: pending-badge-freshness [██████░░░] 67% 🔄
 25. **Baseline blocker CLOSED**: Missing verification artifacts for phases 01-03 now resolved
 26. **Milestone v1.0 status**: AUDITABLE WITH GAPS (20/23 requirements satisfied)
 27. **API contract fix**: Frontend updated to match backend (totalRecords field) - single line change preferred over backend modification
+28. **Integration test approach**: Combined API verification with source code pattern inspection to handle auth-required endpoints
 
 ## File References
 
@@ -121,11 +122,11 @@ Phase 06: pending-badge-freshness [██████░░░] 67% 🔄
 
 ## Last Session
 
-- **Timestamp**: 2026-02-18
-- **Activity**: Completed Phase 06 Plan 02 Emit Refresh Event
-- **Summary**: Added PENDING_COUNT_UPDATED_EVENT emission to quick-capture.tsx after successful save. Dashboard badge now refreshes immediately when quick capture completes. Pattern matches existing implementation in usePendingInspections.ts. TypeScript check passed.
+- **Timestamp**: 2026-02-19
+- **Activity**: Completed Phase 06 Plan 03 Integration Verification
+- **Summary**: Created integration test suite (tests/integration/pending-badge.test.cjs) with 6 test cases verifying API contract, event emission, and integration flow. All tests pass. Phase 06 complete - pending badge contract and freshness wiring fully verified.
 
 ---
-*Last updated: 2026-02-18*
-*Plan 06-02 completed: Emit Refresh Event on Quick Capture*
-*Phase 06: pending-badge-freshness IN PROGRESS (2/3 plans complete)*
+*Last updated: 2026-02-19*
+*Plan 06-03 completed: Integration Verification*
+*Phase 06: pending-badge-freshness COMPLETE (3/3 plans complete)*
