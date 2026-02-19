@@ -65,11 +65,11 @@ Phase 07: ui-polish-gap-closure [█████████] 100% ✅
 ├── 07-03: Camera-First Layout + FAB Scroll ✅ COMPLETE
 └── 07-VERIFICATION.md ✅ COMPLETE
 
-Phase 08: monitoring-debt-cleanup [███░░░░░░] 33% 🔄
+Phase 08: monitoring-debt-cleanup [███████░░] 67% ✅ (Wave 1 Complete)
 ├── 08-01: Memory Investigation ✅ COMPLETE
-├── 08-02: Runbook Update ⏳ PENDING
-├── 08-03: [Optional] Trend Analysis ⏳ PENDING
-└── 08-SUMMARY.md ⏳ PENDING
+├── 08-02: Runbook Update ✅ COMPLETE
+├── 08-03: [Optional] Trend Analysis ⏭️ DEFERRED
+└── 08-VERIFICATION.md ✅ COMPLETE
 ```
 
 ## Project Context
@@ -167,10 +167,16 @@ Phase 08: monitoring-debt-cleanup [███░░░░░░] 33% 🔄
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Completed Phase 08 Plan 01 - Memory Investigation
-- **Summary**: Investigated 93% memory usage warning. Root cause identified: multer memoryStorage buffers file uploads in memory (up to 25MB per request) + object storage loads entire files synchronously. Not a memory leak - stable high baseline. Created comprehensive findings document with remediation recommendations (switch to diskStorage, implement streaming).
+- **Activity**: Completed Phase 08 Wave 1 (Plans 01 + 02) — Monitoring Debt Cleanup
+- **Summary**: Phase 08 Wave 1 complete. Plan 01 identified memory root cause (multer memoryStorage, not a leak). Plan 02 updated monitoring runbook to v2.0 with validation procedures (VP-1–VP-4), remediation checklists (RV-1–RV-4), threshold reference, and quick reference card. Plan 03 (optional trend analysis) deferred. Phase 08 considered complete for required scope.
+
+## Performance Metrics
+
+| Phase-Plan | Duration | Tasks | Files | Date |
+|------------|----------|-------|-------|------|
+| 08-01 | ~45m | 6/6 | 1 | 2026-02-19 |
+| 08-02 | ~25m | 7/7 | 2 | 2026-02-19 |
 
 ---
 *Last updated: 2026-02-19*
-*Plan 06-03 completed: Integration Verification*
-*Phase 06: pending-badge-freshness COMPLETE (3/3 plans complete)*
+*Phase 08: monitoring-debt-cleanup Wave 1 COMPLETE (2/3 plans, required scope satisfied)*
