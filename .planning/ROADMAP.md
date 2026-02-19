@@ -292,12 +292,27 @@ Plans:
 
 **Goal:** Complete unresolved Phase 04 UX must-haves and satisfy touch-target constraints.
 
+**Status:** 📋 PLANNED (0/3 plans)
+
+**Plans:** 3 plans
+
 **Requirements:** MOB-01, REV-04, CAP-02
 
 **Gap Closure:**
 - Implement grouped rating sections with per-section progress
 - Make Quick Capture camera-first with default-collapsed notes
 - Add FAB hide/show on scroll and finalize 44px+ secondary controls
+
+Plans:
+- [ ] 07-01-PLAN.md - Fix touch targets: update location presets from 40px to 44px
+- [ ] 07-02-PLAN.md - Grouped rating form: 4 accordion sections with progress tracking
+- [ ] 07-03-PLAN.md - Camera-first quick capture: reorder layout, default-collapsed notes
+
+### Phase 07: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 07-01, 07-02, 07-03 | None | 07-01, 07-02, 07-03 |
 
 ### Phase 08: Monitoring Debt Cleanup (Optional)
 
@@ -317,7 +332,7 @@ Plans:
 |-------|--------|----------------|-------------|
 | 05 | 📋 Planned | 0/4 | /gsd-execute-phase 05 |
 | 06 | 📋 Planned | 0/3 | /gsd-execute-phase 06 |
-| 07 | 📋 Planned | 0/0 | /gsd-plan-phase 07 |
+| 07 | 📋 Planned | 0/3 | /gsd-execute-phase 07 |
 | 08 | 📋 Optional | 0/0 | /gsd-plan-phase 08 (if included) |
 
 ---
