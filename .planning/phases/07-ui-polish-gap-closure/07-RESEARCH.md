@@ -1,140 +1,309 @@
 # Phase 07: UI Polish Gap Closure - Research
 
-**Researched:** 2026-02-19
-**Domain:** React UI/UX improvements for existing components
+**Researched:** 2026-02-18  
+**Domain:** React + Radix UI interaction polish in existing workflow screens  
 **Confidence:** HIGH
 
 ## User Constraints
 
-### From Phase 04 Verification (Gap Sources)
-
-**Gap 1: Grouped Rating Sections**
-- File: `src/components/review/InspectionCompletionForm.tsx:240`
-- Current: Flat list of 11 rating fields
-- Required: Group into Physical/Service/Compliance/Satisfaction sections
-- Required: Per-section progress (e.g., "3/4 rated")
-
-**Gap 2: Camera-First Quick Capture**
-- File: `src/pages/quick-capture.tsx:391`
-- Current: Camera after metadata fields
-- Required: Camera first in visual hierarchy
-- Required: Collapsible notes (default collapsed)
-
-**Gap 3: Touch Target Constraints**
-- File: `src/pages/quick-capture.tsx:356`
-- Current: `min-h-[40px]` for location presets
-- Required: `min-h-[44px]` minimum for all secondary controls
+- No `CONTEXT.md` exists for this phase; no locked discussion-time decisions to copy verbatim.
+- Apply provided prior decisions as implementation guardrails:
+  - Sticky thumb zone: mobile camera block remains reachable above safe-area and save bar.
+  - Explicit touch minimums: primary capture `64px`, secondary actions `44px` minimum.
+  - Pending badge urgency/freshness wiring is complete in Phase 06 and must not regress.
 
 ## Summary
 
-Phase 07 closes the remaining Phase 04 UX gaps identified in verification:
+Phase 07 should be implemented as targeted component refactors, not a redesign. The existing stack already has everything needed to close the Phase 04 gaps: Radix Accordion and Collapsible primitives, react-hook-form, existing Tailwind sizing conventions, and existing pending-count event wiring from Phase 06. The safest approach is to preserve current data contracts and form schema keys, then reshape UI structure around them.
 
-1. **Grouped Rating Form**: Reorganize flat 11-field list into 4 collapsible accordion sections with progress tracking
-2. **Camera-First Flow**: Reorder Quick Capture to show camera immediately, with notes section default-collapsed
-3. **Touch Target Compliance**: Update 40px controls to 44px minimum per MOB-01 requirement
+The main hidden risk is schema drift in rating-group implementation. Current form fields are `floors`, `verticalHorizontalSurfaces`, `ceiling`, `restrooms`, `customerSatisfaction`, `trash`, `projectCleaning`, `activitySupport`, `safetyCompliance`, `equipment`, `monitoring` (from `shared/schema.ts` and `shared/custodial-criteria.ts`). Any grouping plan that introduces non-existent keys (for example `walls`, `windows`, `doors`, `hazmat`, `signage`, `overall`, `recommendation`) will silently break progress counts and submission integrity.
 
-**Technical Approach:**
-- Use Radix UI Accordion for grouped sections
-- Use React state for camera/notes visibility toggle
-- Update Tailwind classes for touch targets
-- Maintain existing form submission logic
+**Primary recommendation:** Keep existing field schema untouched, implement grouped UI with Radix Accordion + derived per-section progress, make quick-capture camera block first in DOM order, add default-collapsed notes with Radix Collapsible pattern, and wire FAB hide/show using App-level scroll direction state passed as a prop to `FloatingActionButton`.
 
 ## Standard Stack
 
-### Core
-| Library | Use | Why |
-|---------|-----|-----|
-| Radix UI Accordion | Section grouping | Already in project, accessible |
-| React useState | Collapse toggle | Standard React pattern |
-| Tailwind CSS | Touch target sizing | Already used throughout |
-| Lucide React | Section icons | Already in project |
+**Confidence: HIGH**
 
-### No New Dependencies Required
+### Core
+| Library | Version (repo) | Purpose in Phase 07 | Why Standard Here |
+|---|---:|---|---|
+| `react` | `^18.3.1` | Page/component state and conditional rendering | Existing app runtime; no migration risk |
+| `react-hook-form` | `^7.66.0` | Rating form state + validation integration | Already used by `InspectionCompletionForm` |
+| `@radix-ui/react-accordion` | `^1.2.4` | Accessible grouped ratings UI | Already installed + existing `src/components/ui/accordion.tsx` wrapper |
+| `@radix-ui/react-collapsible` | `^1.1.4` | Notes expand/collapse and optional metadata collapse | Already installed + existing `src/components/ui/collapsible.tsx` |
+| `tailwindcss` | `^3.4.17` | Touch target minimums and responsive hierarchy | Existing design language and utility conventions |
+
+### Supporting
+| Library/Pattern | Version | Purpose | When to Use |
+|---|---:|---|---|
+| `lucide-react` | `^0.453.0` | Section affordances (chevrons/icons) | Accordion/collapsible trigger affordance |
+| Existing `cn()` helper | internal | Deterministic conditional classes | All state-driven class toggles |
+| Browser event model (`addEventListener`) | baseline | Scroll direction detection for FAB visibility | Dashboard page only, app shell scope |
+
+### Alternatives Considered
+| Instead of | Could Use | Tradeoff |
+|---|---|---|
+| Radix Accordion | Custom `CollapsibleSection` animation div | Faster to hack, but weaker built-in a11y semantics/keyboard behavior |
+| Derived progress from `form.watch()` calls spread across JSX | `useWatch` selective subscriptions | `useWatch` is cleaner and reduces broad rerender pressure in larger forms |
+| App-level FAB visibility state | Internal FAB component scroll listener | Duplicates event listeners and makes shell-level behavior harder to coordinate |
+
+**Install:** No new dependencies required for Phase 07.
 
 ## Architecture Patterns
 
-### Pattern 1: Accordion Grouping for Ratings
+**Confidence: HIGH**
+
+### 1) Ratings: Schema-first grouping, UI-only refactor
+**Use:** Group existing 11 rating fields into 4 sections without changing API/schema keys.
+
+Required canonical keys (must stay exact):
+- `floors`, `verticalHorizontalSurfaces`, `ceiling`
+- `restrooms`, `trash`, `projectCleaning`, `activitySupport`
+- `safetyCompliance`, `equipment`, `monitoring`
+- `customerSatisfaction`
+
+Recommended sections for this codebase:
+- **Physical Condition:** `floors`, `verticalHorizontalSurfaces`, `ceiling`
+- **Service Delivery:** `restrooms`, `trash`, `projectCleaning`, `activitySupport`
+- **Compliance & Operations:** `safetyCompliance`, `equipment`, `monitoring`
+- **Satisfaction:** `customerSatisfaction`
+
+### 2) Progress counters from form state (not duplicated local state)
+**Use:** Compute `rated/total` from form-controlled values; do not introduce parallel rating state.
+
+### 3) Camera-first by DOM order, not CSS order hacks
+**Use:** Place camera section above metadata and notes in JSX tree. Keep metadata visible but secondary.
+
+### 4) Notes default-collapsed via Radix Collapsible contract
+**Use:** Controlled `open` state at page level (`quick-capture.tsx`), pass `open/onOpenChange` to notes section.
+
+### 5) FAB hide/show: App shell owns scroll direction
+**Use:** Add one app-level scroll-direction detector in `src/App.tsx`, pass `isVisible` prop into `FloatingActionButton`.
+
+Implementation guidance:
+- Use threshold (for example 12-16px delta) to avoid jitter.
+- Keep listener cleanup strict in `useEffect` teardown.
+- Use transform/opacity transitions (avoid mount/unmount thrash).
+
+## Don't Hand-Roll
+
+**Confidence: HIGH**
+
+| Problem | Don't Build | Use Instead | Why |
+|---|---|---|---|
+| Accordion semantics + keyboard map | Custom collapsible div with manual aria and key handlers | Radix Accordion (`src/components/ui/accordion.tsx`) | APG-compliant semantics and interaction model already solved |
+| Collapsible notes semantics | Bespoke hidden/expanded textarea logic only | Radix Collapsible (`src/components/ui/collapsible.tsx`) | Avoids accessibility drift and inconsistent state attributes |
+| Form state duplication | Separate `ratings` state object | `react-hook-form` as single source of truth (`useWatch`/form values) | Prevents divergence between UI and submit payload |
+| Scroll listener orchestration in multiple components | One listener per FAB/card component | Single App-level listener + prop drilling | Prevents conflicting visibility logic and listener leaks |
+| Touch-target policy interpretation from mixed sources | Ad hoc per-control choices | Enforce product rule `>=44px` for all secondary controls | Consistent with project decision and current requirement gate |
+
+## Common Pitfalls
+
+**Confidence: HIGH (repo + standards verified)**
+
+### 1) Field-key mismatch between plan text and actual schema
+**What goes wrong:** Group config references non-existent keys (example: `walls`, `windows`, `doors`, `hazmat`, `signage`, `overall`, `recommendation`).  
+**Why it happens:** Earlier planning examples diverged from `shared/schema.ts` / `shared/custodial-criteria.ts`.  
+**How to avoid:** Define rating groups from schema constants, not from memory.  
+**Warning signs:** Progress counters never reach full completion, submit payload misses expected numeric ratings.
+
+### 2) Re-render churn from heavy `form.watch()` usage in render tree
+**What goes wrong:** Form feels sluggish as grouped sections expand/collapse and multiple watchers fire.  
+**Why it happens:** Broad subscription patterns cause large component rerenders.  
+**How to avoid:** Use selective `useWatch` or derive once per render from controlled values map.  
+**Warning signs:** Noticeable lag when selecting stars rapidly.
+
+### 3) Camera-first implemented visually but not structurally
+**What goes wrong:** CSS `order` changes visual layout while keyboard/screen-reader order remains old.  
+**Why it happens:** Quick layout patch instead of DOM reorder.  
+**How to avoid:** Move camera JSX block above metadata/notes blocks directly in `quick-capture.tsx`.  
+**Warning signs:** Tab focus reaches metadata before camera controls.
+
+### 4) FAB visibility jitter and memory leaks
+**What goes wrong:** FAB flickers on tiny scroll changes or behavior degrades after route toggles.  
+**Why it happens:** No delta threshold and/or listener cleanup errors.  
+**How to avoid:** Track lastY + minimum delta, cleanup listener on unmount, keep animation CSS-only.  
+**Warning signs:** Rapid show/hide while finger is mostly stationary; duplicate listener behavior.
+
+### 5) 44px rule inconsistently applied
+**What goes wrong:** One or two secondary controls remain under target size (already seen with `min-h-[40px]`).  
+**Why it happens:** Spot-fix only around known line without auditing neighboring controls.  
+**How to avoid:** Audit interactive elements in affected pages and standardize `min-h-[44px] min-w-[44px]` minimum.  
+**Warning signs:** Mixed 40/44/48 values on same control class family.
+
+### 6) Breaking existing freshness/event model while polishing UI
+**What goes wrong:** Pending badge freshness regresses after quick-capture edits.  
+**Why it happens:** Refactor removes or bypasses event dispatch flow introduced in Phase 06.  
+**How to avoid:** Preserve `window.dispatchEvent(new Event(PENDING_COUNT_UPDATED_EVENT))` path exactly after successful save.  
+**Warning signs:** Badge updates only on poll interval, not immediate post-save.
+
+## Code Examples
+
+**Confidence: HIGH**
+
+### 1) Grouped rating configuration using real schema keys
 ```typescript
-// Group 11 ratings into 4 sections
+// Source anchors:
+// - shared/schema.ts
+// - shared/custodial-criteria.ts
 const RATING_GROUPS = [
-  { id: 'physical', label: 'Physical Condition', fields: ['floors', 'walls', 'windows'], icon: Building2 },
-  { id: 'service', label: 'Service Areas', fields: ['restrooms', 'breakrooms'], icon: Coffee },
-  { id: 'compliance', label: 'Compliance', fields: ['safety', 'hazmat', 'signage'], icon: Shield },
-  { id: 'satisfaction', label: 'Satisfaction', fields: ['overall', 'recommendation'], icon: Star }
-];
+  {
+    id: 'physical',
+    label: 'Physical Condition',
+    fields: ['floors', 'verticalHorizontalSurfaces', 'ceiling'] as const,
+  },
+  {
+    id: 'service',
+    label: 'Service Delivery',
+    fields: ['restrooms', 'trash', 'projectCleaning', 'activitySupport'] as const,
+  },
+  {
+    id: 'compliance',
+    label: 'Compliance & Operations',
+    fields: ['safetyCompliance', 'equipment', 'monitoring'] as const,
+  },
+  {
+    id: 'satisfaction',
+    label: 'Satisfaction',
+    fields: ['customerSatisfaction'] as const,
+  },
+] as const;
 ```
 
-### Pattern 2: Progress Tracking
+### 2) Per-section progress derived from form values
 ```typescript
-// Calculate progress per section
-const getSectionProgress = (section: RatingGroup, values: FormValues) => {
-  const rated = section.fields.filter(f => values[f] !== undefined).length;
-  return { rated, total: section.fields.length };
-};
+// Source: react-hook-form v7.66.0 docs (useWatch selective subscriptions)
+import { useWatch } from 'react-hook-form';
+
+const values = useWatch({ control: form.control });
+
+function getSectionProgress(fields: readonly string[]) {
+  const rated = fields.filter((field) => {
+    const value = values?.[field as keyof typeof values];
+    return typeof value === 'number' && value >= 1 && value <= 5;
+  }).length;
+
+  return { rated, total: fields.length };
+}
 ```
 
-### Pattern 3: Camera-First Layout
+### 3) Camera-first + default-collapsed notes structure
 ```tsx
-// Reorder: Camera first, metadata optional, notes collapsed
-<div className="camera-first-layout">
-  <CameraCapture /> {/* Primary focus */}
-  <CollapsibleMetadata /> {/* Secondary */}
-  <CollapsibleNotes /> {/* Tertiary, default collapsed */}
-</div>
+// Source anchors:
+// - src/pages/quick-capture.tsx (current ordering)
+// - src/components/ui/collapsible.tsx
+<main>
+  <section aria-labelledby="photos-heading">
+    {/* camera block first in DOM */}
+    <CameraCapture ... />
+  </section>
+
+  {capturedImages.length > 0 && <PhotoPreviewStrip ... />}
+
+  <section aria-labelledby="metadata-heading" className="space-y-4">
+    {/* school/location/name controls remain accessible but secondary */}
+  </section>
+
+  <Collapsible open={notesOpen} onOpenChange={setNotesOpen}>
+    <CollapsibleTrigger asChild>
+      <Button type="button" variant="outline" className="min-h-[44px]">
+        {notesOpen ? 'Hide Notes' : 'Add Notes'}
+      </Button>
+    </CollapsibleTrigger>
+    <CollapsibleContent>
+      <QuickNoteInput value={quickNotes} onChange={setQuickNotes} ... />
+    </CollapsibleContent>
+  </Collapsible>
+</main>
 ```
 
-### Anti-Patterns to Avoid
-- Don't use CSS `order` property (accessibility issue)
-- Don't collapse sections that have validation errors
-- Don't hide required fields in collapsed sections
-- Don't reduce touch target size for aesthetic reasons
+### 4) App-level FAB hide/show on scroll direction
+```tsx
+// Source anchors:
+// - src/App.tsx
+// - src/components/ui/FloatingActionButton.tsx
+const [fabVisible, setFabVisible] = useState(true);
 
-## Recommended Plan Decomposition
+useEffect(() => {
+  let lastY = window.scrollY;
+  const threshold = 12;
 
-### Wave 1 - Touch Target Fix (Quick Win)
-- Update quick-capture.tsx location presets from 40px to 44px
-- Verify all secondary controls meet minimum
+  const onScroll = () => {
+    const nextY = window.scrollY;
+    const delta = nextY - lastY;
+    if (Math.abs(delta) < threshold) return;
+    setFabVisible(delta < 0 || nextY < 24);
+    lastY = nextY;
+  };
 
-### Wave 2 - Grouped Rating Form
-- Refactor InspectionCompletionForm.tsx to use accordion sections
-- Add progress tracking per section
-- Maintain existing validation logic
+  window.addEventListener('scroll', onScroll, { passive: true });
+  return () => window.removeEventListener('scroll', onScroll);
+}, []);
 
-### Wave 3 - Camera-First Flow
-- Reorder quick-capture.tsx layout
-- Add collapsible notes toggle
-- Update QuickNoteInput component if needed
+<FloatingActionButton className={fabVisible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'} ... />
+```
 
-## Dependency and Wave Guidance
+## State of the Art
 
-| Wave | Depends On | Output |
-|------|-----------|--------|
-| 1 | None | MOB-01 compliance (touch targets) |
-| 2 | None | REV-04/REV-05 improvements (grouped ratings) |
-| 3 | None | CAP-02 improvements (camera-first flow) |
+| Old Approach | Current Approach | When Changed | Impact |
+|---|---|---|---|
+| Flat list of 11 rating rows | Grouped accordion sections with per-section progress | Current phase objective (2026) | Faster scanability, lower cognitive load, easier completion tracking |
+| Metadata-first quick capture flow | Camera-first DOM order with secondary metadata | Current phase objective (2026) | Better field ergonomics and faster capture path |
+| Always-visible notes block | Default-collapsed notes with explicit toggle | Current phase objective (2026) | Lower visual clutter while preserving optional detail capture |
+| Static FAB visibility | Scroll-direction-aware FAB visibility | Current phase objective (2026) | Better content visibility while scrolling, retains quick action access |
 
-**Note:** These are independent and can be parallelized, but sequential execution reduces cognitive load.
-
-## Risks
-
-- **Medium**: Camera-first reorder may confuse existing users familiar with current flow
-- **Low**: Accordion may require additional ARIA attributes for full accessibility
-- **Low**: Progress tracking adds minor computational overhead
+**Deprecated/outdated in this codebase context:**
+- `min-h-[40px]` for secondary quick actions: below project touch minimum; replace with `min-h-[44px]` (+ `min-w-[44px]` where applicable).
+- Example rating keys in 07-02 plan (`walls`, `windows`, `doors`, `hazmat`, etc.): stale versus canonical schema keys in `shared/schema.ts`.
 
 ## Sources
 
-### Primary
-- Phase 04 Verification Report (`.planning/phases/04-ui-polish/04-VERIFICATION.md`)
-- `src/components/review/InspectionCompletionForm.tsx` (line 240)
-- `src/pages/quick-capture.tsx` (lines 356, 391)
-- `src/components/capture/CameraCapture.tsx` (line 155 - compliant example)
+### Primary (HIGH confidence)
+- Repo code: `src/components/review/InspectionCompletionForm.tsx`
+- Repo code: `src/pages/quick-capture.tsx`
+- Repo code: `src/components/capture/QuickNoteInput.tsx`
+- Repo code: `src/components/ui/FloatingActionButton.tsx`
+- Repo code: `src/App.tsx`
+- Repo code: `src/components/ui/accordion.tsx`
+- Repo code: `src/components/ui/collapsible.tsx`
+- Repo schema: `shared/schema.ts`
+- Repo criteria: `shared/custodial-criteria.ts`
+- Package versions: `package.json`
+- Radix Accordion docs: https://www.radix-ui.com/primitives/docs/components/accordion
+- WAI-ARIA APG Accordion pattern: https://www.w3.org/WAI/ARIA/apg/patterns/accordion/
+- React Hook Form docs (v7.66.0 via Context7): `/react-hook-form/react-hook-form/v7.66.0`
 
-### Secondary
-- Radix UI Accordion documentation
-- Existing codebase patterns (Accordion usage in other components)
-- Tailwind CSS touch target best practices
+### Secondary (MEDIUM confidence)
+- Apple UI Design Tips (44pt minimum hit targets): https://developer.apple.com/design/tips/
+- Android Accessibility (48dp recommendation): https://support.google.com/accessibility/android/answer/7101858?hl=en
+- MDN addEventListener guidance (listener options and behavior): https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+- WCAG 2.2 target minimum (24x24 CSS px baseline): https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
 
-**Confidence breakdown:**
-- Gap requirements: HIGH (from verification report)
-- Technical implementation: HIGH (using existing patterns)
-- Risk assessment: MEDIUM (user habit disruption)
+### Tertiary (LOW confidence)
+- None
+
+## Confidence Assessment
+
+| Area | Level | Reason |
+|---|---|---|
+| Standard Stack | HIGH | Directly verified against `package.json` and in-repo component wrappers |
+| Architecture | HIGH | Derived from current file structure and verified primitive availability |
+| Pitfalls | HIGH | Confirmed by current unresolved gaps + schema and interaction standards |
+| Cross-platform touch-size context | MEDIUM | Guidance varies by platform (44pt/48dp/WCAG 24px), but project requirement is explicit |
+
+## Open Questions
+
+1. Should FAB hide/show be completed inside Phase 07 despite current 07-03 plan text focusing only on camera-first + notes?
+   - What we know: Phase goal explicitly includes FAB hide/show in roadmap/phase description.
+   - What is unclear: Existing per-plan files do not include a dedicated FAB task.
+   - Recommendation: Treat FAB hide/show as required acceptance criteria for Phase 07 even if implemented via amendment to 07-03.
+
+2. Should rating sections default to expanded or partially collapsed?
+   - What we know: Requirement is grouped sections + progress; no locked behavior for default open state.
+   - What is unclear: Preferred operator behavior under field conditions.
+   - Recommendation: Desktop default expanded for speed, mobile default first section expanded and others collapsible.
+
+## Validity Window
+
+- **Research date:** 2026-02-18
+- **Valid until:** 2026-03-20 (30 days; stable stack)
