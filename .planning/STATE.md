@@ -2,12 +2,12 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: Milestone v2.0 — Phase 10 ✅ COMPLETE
-- **Current Plan**: Phase 11 (Issue Tagging)
-- **Status**: 🔄 **MILESTONE v2.0 EXECUTING** (Phase 10 complete, Phase 11 ready)
+- **Current Phase**: Milestone v2.0 — Phase 11 ✅ COMPLETE
+- **Current Plan**: All plans complete
+- **Status**: ✅ **MILESTONE v2.0 COMPLETE** (All phases finished)
 - **Version**: 1.0.0
 - **Tag**: v1.0.0
-- **Requirements**: 31/31 SATISFIED (v1.0: 23 + v2.0 Phase 09: 4 + Phase 10: 4)
+- **Requirements**: 35/35 SATISFIED (v1.0: 23 + v2.0 Phase 09: 4 + Phase 10: 4 + Phase 11: 4)
 
 ## Phase Progress
 
@@ -206,10 +206,18 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 └── 10-VERIFICATION.md ✅ COMPLETE
 ```
 
-## Phase 11: issue-tagging [░░░░░░░░░] 0% 📋
-├── 11-01: Backend Foundation ⏳ PLANNED
-└── 11-02: Frontend Integration ⏳ PLANNED
+## Phase 11: issue-tagging [█████████] 100% ✅
+├── 11-01: Backend Foundation ✅ COMPLETE
+├── 11-02: Frontend Integration ✅ COMPLETE
+└── 11-VERIFICATION.md ✅ COMPLETE
 
 ---
 *Last updated: 2026-02-19*
-*Phase 10 planning complete — 1 plan ready for execution*
+*Phase 11 complete — all 4 requirements satisfied*
+
+## Key Decisions (New)
+
+39. **Tag filtering client-side**: Applied after data fetch to match existing filter pattern in Inspection Data
+40. **Max 3 tags**: Prevents over-categorization, keeps UI clean and decision-making simple
+41. **OR filter logic**: Inspections with ANY selected tag are shown (more inclusive for filtering)
+42. **GIN index recommended**: For production performance on tag filtering
