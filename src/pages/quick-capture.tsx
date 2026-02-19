@@ -357,7 +357,7 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
                 onClick={() => setCaptureLocation(preset)}
                 className={cn(
                   "px-3 py-2 text-sm rounded-full border-2",
-                  "min-h-[40px] min-w-[60px]",
+                  "min-h-[44px] min-w-[60px]",
                   captureLocation === preset
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-muted border-muted-foreground/20 text-foreground hover:border-primary/50",
