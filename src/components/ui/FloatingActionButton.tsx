@@ -28,7 +28,7 @@ interface FloatingActionButtonProps {
  * Floating Action Button (FAB) for quick actions
  * 
  * Design specs:
- * - 64px diameter (minimum 44px touch target for accessibility)
+ * - 56px diameter (Material Design FAB standard, exceeds 44px minimum touch target)
  * - Fixed position bottom-right with safe area padding
  * - Prominent shadow for elevation
  * - Scale animation on press
@@ -73,8 +73,8 @@ export function FloatingActionButton({
       <button
         onClick={onClick}
         className={cn(
-          // Base styles
-          'w-16 h-16 rounded-full flex items-center justify-center',
+          // Base styles - 56px diameter per design spec
+          'w-14 h-14 rounded-full flex items-center justify-center',
           'shadow-lg hover:shadow-xl transition-all duration-200',
           'focus:outline-none focus:ring-4 focus:ring-offset-2',
           'active:scale-95 transform',
@@ -93,7 +93,7 @@ export function FloatingActionButton({
         aria-label={ariaLabel || label || 'Floating action button'}
         type="button"
       >
-        <Icon className="w-7 h-7" aria-hidden="true" />
+        <Icon className="w-6 h-6" aria-hidden="true" />
         {label && <span className="sr-only">{label}</span>}
       </button>
 
