@@ -39,7 +39,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
           {/* CAPTURE SECTION - Amber/Warm Theme */}
           <section
-            className="bg-amber-50/50 rounded-xl p-4 border border-amber-100"
+            className="bg-amber-50/50 rounded-xl p-4 border border-amber-100 flex flex-col min-h-[400px] sm:min-h-0"
             aria-labelledby="capture-heading"
           >
             <div className="flex items-center gap-3 mb-4">
@@ -78,14 +78,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </div>
             </div>
 
-            {/* Quick Capture - Primary Action (120px touch target) */}
-            <QuickCaptureCard
-              onClick={() => onNavigate("Quick Capture")}
-              className="mb-4"
-            />
-
-            {/* Secondary Capture Options */}
-            <div className="space-y-2">
+            {/* Secondary Capture Options - flex-1 pushes QuickCaptureCard to bottom */}
+            <div className="space-y-2 flex-1">
               <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide px-1">
                 Full Inspections
               </p>
@@ -108,6 +102,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </button>
               </div>
             </div>
+
+            {/* Quick Capture - Primary Action (120px touch target) */}
+            {/* Positioned at bottom via flex-1 spacer above - thumb zone reachable */}
+            <QuickCaptureCard
+              onClick={() => onNavigate("Quick Capture")}
+              className="mt-4"
+            />
           </section>
 
           {/* REVIEW SECTION - Teal/Cool Theme */}
