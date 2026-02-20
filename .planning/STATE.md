@@ -220,18 +220,19 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 **Status:** 📋 PLANNED
 
 ```
-Phase 12: home-page-layout-reorganization [██████░░░] 66% 🔄
+Phase 12: home-page-layout-reorganization [█████████] 100% ✅
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 12-01: Dashboard + Quick Capture ✅ COMPLETE
 ├── 12-02: Review + Pending Badge ✅ COMPLETE
-├── 12-03: Mobile Optimization ⏳ PENDING
-└── Status: IN PROGRESS — 2 of 3 plans complete
+├── 12-03: Mobile Optimization ✅ COMPLETE
+└── Status: COMPLETE — 3 of 3 plans complete
 ```
 
 ---
 *Last updated: 2026-02-19*
-*Plan 12-02 executed: Review Section + Pending Badge complete*
+*Plan 12-03 executed: Mobile Optimization + Responsive complete*
+*Phase 12 Status: COMPLETE — All 3 plans finished*
 
 ## Key Decisions (New)
 
@@ -248,4 +249,8 @@ Phase 12: home-page-layout-reorganization [██████░░░] 66% 🔄
 49. **12-02 PendingBadge urgency colors**: Amber (1-4 items), Red (5+ items), Gray (0 items) per Decision 17
 50. **12-02 ReviewSection integration**: Self-contained component with usePendingInspections hook, teal theme for visual distinction
 51. **12-02 Dashboard scaffold pattern**: Created minimal Dashboard.tsx to unblock integration, Plan 01 will expand with full structure
-49. **12-01 responsive layout**: Mobile stacked, desktop two-column grid (Capture | Review), Analyze spans full width
+52. **12-01 responsive layout**: Mobile stacked, desktop two-column grid (Capture | Review), Analyze spans full width
+53. **12-03 SafeAreaWrapper**: env(safe-area-inset-*) support for iPhone home indicator with fallback values
+54. **12-03 touch target sizing**: 48px minimum (exceeds 44px requirement) for field use with gloved hands
+55. **12-03 MobileNav optional**: Component conditionally rendered by parent, not always visible
+56. **12-03 FAB clearance**: SafeAreaSpacer prevents content overlap with floating action button on mobile
