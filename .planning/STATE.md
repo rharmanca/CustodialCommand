@@ -220,26 +220,17 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 **Status:** 📋 PLANNED
 
 ```
-Phase 12: home-page-layout-reorganization [░░░░░░░░░] 0% 📋
+Phase 12: home-page-layout-reorganization [███░░░░░░] 33% 🔄
 ├── Context gathered ✅
 ├── Research complete ✅
-├── 12-01-PLAN.md ✅ Dashboard structure + Quick Capture prominence
-├── 12-02-PLAN.md ✅ Review section + Pending badge
-├── 12-03-PLAN.md ✅ Mobile optimization + responsive
-└── Status: PLANNED — Ready for execution
-
-Phase 13: offline-sync-hardening [░░░░░░░░░] 0% 📋
-└── Planning Pending
-
-Phase 14: inspection-scheduling [░░░░░░░░░] 0% 📋
-└── Planning Pending
-
-Phase 15: voice-notes [░░░░░░░░░] 0% 📋
-└── Planning Pending
+├── 12-01: Dashboard + Quick Capture ✅ COMPLETE
+├── 12-02: Review + Pending Badge ⏳ PENDING
+├── 12-03: Mobile Optimization ⏳ PENDING
+└── Status: IN PROGRESS — 1 of 3 plans complete
 ```
 
 ---
-*Last updated: 2026-02-19*
+*Last updated: 2026-02-20*
 *Milestone v2.5 roadmap planned*
 
 ## Key Decisions (New)
@@ -252,3 +243,6 @@ Phase 15: voice-notes [░░░░░░░░░] 0% 📋
 44. **04-01 sticky sidebar pattern**: Parent container handles sticky with `items-start` grid alignment, not the Card itself, to avoid CSS conflicts and ensure proper sticky behavior
 45. **Primary + grid photo viewer**: Large primary display with 4-column thumbnail grid provides clear visual hierarchy and easy photo navigation
 46. **04-05 FAB size standardization**: Updated from 64px to 56px to match Material Design specification with proportional icon scaling
+47. **12-01 dashboard structure**: Three workflow sections (Capture/Review/Analyze) with background color block separation
+48. **12-01 QuickCaptureCard specs**: 120px minimum touch target, 48px camera icon, amber theme for field use with gloved hands
+49. **12-01 responsive layout**: Mobile stacked, desktop two-column grid (Capture | Review), Analyze spans full width
