@@ -28,30 +28,31 @@ import { ratingDescriptions, inspectionCategories } from '@shared/custodial-crit
 import * as Accordion from '@radix-ui/react-accordion';
 
 // Rating groups configuration for accordion sections
+// Grouped per plan 04-02: Physical, Service, Compliance, Satisfaction
 const RATING_GROUPS = [
   {
     id: 'physical',
-    label: 'Physical Environment',
+    label: 'Physical',
     icon: Building2,
-    fields: ['floors', 'verticalHorizontalSurfaces', 'ceiling']
+    fields: ['floors', 'verticalHorizontalSurfaces', 'ceiling', 'restrooms']
   },
   {
     id: 'service',
-    label: 'Service Areas',
+    label: 'Service',
     icon: Coffee,
-    fields: ['restrooms']
-  },
-  {
-    id: 'maintenance',
-    label: 'Maintenance & Operations',
-    icon: Wrench,
-    fields: ['trash', 'projectCleaning', 'activitySupport', 'equipment']
+    fields: ['trash', 'projectCleaning', 'activitySupport']
   },
   {
     id: 'compliance',
-    label: 'Compliance & Satisfaction',
+    label: 'Compliance',
     icon: Shield,
-    fields: ['safetyCompliance', 'monitoring', 'customerSatisfaction']
+    fields: ['safetyCompliance', 'equipment', 'monitoring']
+  },
+  {
+    id: 'satisfaction',
+    label: 'Satisfaction',
+    icon: Star,
+    fields: ['customerSatisfaction']
   }
 ] as const;
 import type { PendingInspection } from '@/hooks/usePendingInspections';
