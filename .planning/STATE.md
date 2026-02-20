@@ -200,6 +200,8 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | 04-01 | ~15m | 3/3 | 2 | 2026-02-19 |
 | Phase 04-ui-polish P05 | 8min | 3 tasks | 1 files |
 | Phase 12 P04 | 8 min | 2 tasks | 1 files |
+| Phase 07 P02 | 20min | 3 tasks | 1 files |
+| Phase 07-01 P07-01 | 5min | 2 tasks | 1 files |
 
 ## Phase Progress
 
