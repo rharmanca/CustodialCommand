@@ -37,9 +37,9 @@ import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg
 // Workflow integration components
 import {
   FloatingActionButton,
-  ReviewInspectionsCard,
 } from "@/components/ui/FloatingActionButton";
 import { QuickCaptureCard } from "@/components/dashboard/QuickCaptureCard";
+import { ReviewSection } from "@/components/dashboard/ReviewSection";
 import { usePendingCount } from "@/hooks/usePendingCount";
 
 // Lazy load page components for code splitting - reduces initial bundle size
@@ -525,39 +525,10 @@ const [currentPage, setCurrentPage] = useState<
                   </section>
 
                   {/* REVIEW SECTION - Teal/Cool Theme */}
-                  <section 
-                    className="bg-teal-50/50 rounded-xl p-4 border border-teal-100"
-                    aria-labelledby="review-heading"
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                      </div>
-                      <h2 id="review-heading" className="text-lg font-bold text-teal-900">
-                        Review
-                      </h2>
-                      {pendingInspectionCount > 0 && (
-                        <span 
-                          className={`ml-auto px-2.5 py-1 rounded-full text-sm font-bold ${
-                            pendingInspectionCount >= 5 
-                              ? 'bg-red-100 text-red-700 border border-red-200' 
-                              : 'bg-amber-100 text-amber-700 border border-amber-200'
-                          }`}
-                          aria-label={`${pendingInspectionCount} inspections pending review`}
-                        >
-                          {pendingInspectionCount} pending
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Review Inspections Card */}
-                    <ReviewInspectionsCard
-                      onClick={() => setCurrentPage("Photo Review")}
-                      pendingCount={pendingInspectionCount}
-                    />
-                  </section>
+                  <ReviewSection 
+                    onNavigate={(page) => setCurrentPage(page as typeof currentPage)}
+                    className="border-0 shadow-none"
+                  />
                 </div>
 
                 {/* ANALYZE SECTION - Slate/Neutral Theme */}
