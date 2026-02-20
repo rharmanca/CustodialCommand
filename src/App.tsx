@@ -37,9 +37,9 @@ import sharedServicesImage from "./assets/assets_task_01k0ahgtr1egvvpjk9qvwtzvyg
 // Workflow integration components
 import {
   FloatingActionButton,
-  QuickCaptureCard,
   ReviewInspectionsCard,
 } from "@/components/ui/FloatingActionButton";
+import { QuickCaptureCard } from "@/components/dashboard/QuickCaptureCard";
 import { usePendingCount } from "@/hooks/usePendingCount";
 
 // Lazy load page components for code splitting - reduces initial bundle size
@@ -367,9 +367,9 @@ const [currentPage, setCurrentPage] = useState<
       switch (currentPage) {
         case "Custodial":
           return (
-            <div className="p-8 text-center">
+            <div className="p-4 sm:p-6 lg:p-8">
               {/* PWA Installation Status */}
-              <div className="mb-8 max-w-2xl mx-auto">
+              <div className="mb-6 max-w-2xl mx-auto">
                 {/* Success notification */}
                 {showInstallSuccess && (
                   <div className="mb-4 p-4 bg-accent/20 border-2 border-accent/50 rounded-lg shadow-md">
@@ -462,116 +462,168 @@ const [currentPage, setCurrentPage] = useState<
                 )}
               </div>
 
-              {/* Primary Actions - Inspections and Reports */}
-              <div className="space-y-6 mb-6">
-                <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                    Submit Inspections
-                  </h2>
-                  <div className="responsive-grid">
-                    <button
-                      onClick={() => setCurrentPage("Custodial Notes")}
-                      className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        📝 Report A Custodial Concern
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage("Custodial Inspection")}
-                      className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        🔍 Single Area Inspection
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage("Whole Building Inspection")}
-                      className="modern-button bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        🏢 Building Inspection
-                      </span>
-                    </button>
-                  </div>
-                </div>
+              {/* Workflow Sections - Phase 12-01 Dashboard Reorganization */}
+              <div className="max-w-6xl mx-auto space-y-4">
+                {/* 
+                  Mobile: Single column, stacked sections
+                  Desktop: Two-column grid (Capture | Review), Analyze below
+                */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  
+                  {/* CAPTURE SECTION - Amber/Warm Theme */}
+                  <section 
+                    className="bg-amber-50/50 rounded-xl p-4 border border-amber-100"
+                    aria-labelledby="capture-heading"
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <h2 id="capture-heading" className="text-lg font-bold text-amber-900">
+                        Capture
+                      </h2>
+                      <p className="text-sm text-amber-700 ml-auto hidden sm:block">
+                        Document issues in the field
+                      </p>
+                    </div>
+                    
+                    {/* Quick Capture Card - Primary Action */}
+                    <QuickCaptureCard
+                      onClick={() => setCurrentPage("Quick Capture")}
+                      className="mb-4"
+                    />
+                    
+                    {/* Secondary Capture Options */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide px-1">
+                        Full Inspections
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setCurrentPage("Custodial Notes")}
+                          className="p-3 bg-white border border-amber-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition-colors text-left"
+                        >
+                          <span className="text-sm font-medium text-amber-900">📝 Report Concern</span>
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage("Custodial Inspection")}
+                          className="p-3 bg-white border border-amber-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition-colors text-left"
+                        >
+                          <span className="text-sm font-medium text-amber-900">🔍 Single Area</span>
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage("Whole Building Inspection")}
+                          className="p-3 bg-white border border-amber-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition-colors text-left sm:col-span-2"
+                        >
+                          <span className="text-sm font-medium text-amber-900">🏢 Building Inspection</span>
+                        </button>
+                      </div>
+                    </div>
+                  </section>
 
-                {/* Workflow Features - Quick Capture and Photo Review */}
-                <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                    Workflow
-                  </h2>
-                  <div className="space-y-3">
-                    {/* Quick Capture - shown prominently on mobile */}
-                    <div className="lg:hidden">
-                      <QuickCaptureCard
-                        onClick={() => setCurrentPage("Quick Capture")}
-                      />
+                  {/* REVIEW SECTION - Teal/Cool Theme */}
+                  <section 
+                    className="bg-teal-50/50 rounded-xl p-4 border border-teal-100"
+                    aria-labelledby="review-heading"
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                      </div>
+                      <h2 id="review-heading" className="text-lg font-bold text-teal-900">
+                        Review
+                      </h2>
+                      {pendingInspectionCount > 0 && (
+                        <span 
+                          className={`ml-auto px-2.5 py-1 rounded-full text-sm font-bold ${
+                            pendingInspectionCount >= 5 
+                              ? 'bg-red-100 text-red-700 border border-red-200' 
+                              : 'bg-amber-100 text-amber-700 border border-amber-200'
+                          }`}
+                          aria-label={`${pendingInspectionCount} inspections pending review`}
+                        >
+                          {pendingInspectionCount} pending
+                        </span>
+                      )}
                     </div>
-                    {/* Quick Capture - shown as secondary option on desktop */}
-                    <div className="hidden lg:block">
-                      <QuickCaptureCard
-                        onClick={() => setCurrentPage("Quick Capture")}
-                      />
-                    </div>
-                    {/* Review Inspections - shown prominently on desktop */}
+                    
+                    {/* Review Inspections Card */}
                     <ReviewInspectionsCard
                       onClick={() => setCurrentPage("Photo Review")}
                       pendingCount={pendingInspectionCount}
                     />
-                  </div>
+                  </section>
                 </div>
 
-                <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                    View & Reports
-                  </h2>
-                  <div className="responsive-grid">
+                {/* ANALYZE SECTION - Slate/Neutral Theme */}
+                <section 
+                  className="bg-slate-50 rounded-xl p-4 border border-slate-200"
+                  aria-labelledby="analyze-heading"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <h2 id="analyze-heading" className="text-lg font-bold text-slate-900">
+                      Analyze
+                    </h2>
+                    <p className="text-sm text-slate-600 ml-auto hidden sm:block">
+                      View reports and insights
+                    </p>
+                  </div>
+                  
+                  {/* Analytics Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <button
                       onClick={() => setCurrentPage("Scores Dashboard")}
-                      className="modern-button bg-emerald-600 hover:bg-emerald-700 border-emerald-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                      className="p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 hover:border-slate-300 transition-colors text-center"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        📈 Building Scores Dashboard
-                      </span>
+                      <span className="text-2xl block mb-1">📈</span>
+                      <span className="text-sm font-medium text-slate-900">Building Scores</span>
                     </button>
                     <button
                       onClick={() => setCurrentPage("Analytics Dashboard")}
-                      className="modern-button bg-teal-600 hover:bg-teal-700 border-teal-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                      className="p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 hover:border-slate-300 transition-colors text-center"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        📊 Analytics Dashboard
-                      </span>
+                      <span className="text-2xl block mb-1">📊</span>
+                      <span className="text-sm font-medium text-slate-900">Analytics</span>
                     </button>
                     <button
                       onClick={() => setCurrentPage("Inspection Data")}
-                      className="modern-button bg-green-600 hover:bg-green-700 border-green-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                      className="p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 hover:border-slate-300 transition-colors text-center"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        📊 View Data & Reports
-                      </span>
+                      <span className="text-2xl block mb-1">📋</span>
+                      <span className="text-sm font-medium text-slate-900">Data & Reports</span>
                     </button>
                     <button
                       onClick={() => setCurrentPage("Monthly Feedback")}
-                      className="modern-button bg-purple-600 hover:bg-purple-700 border-purple-600 text-white shadow-md hover:shadow-lg transition-shadow"
+                      className="p-4 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 hover:border-slate-300 transition-colors text-center"
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        📄 Monthly Feedback Reports
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage("Rating Criteria")}
-                      className="modern-button bg-gray-600 hover:bg-gray-700 border-gray-600 text-white shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        ℹ️ Rating Criteria Guide
-                      </span>
+                      <span className="text-2xl block mb-1">📄</span>
+                      <span className="text-sm font-medium text-slate-900">Monthly Feedback</span>
                     </button>
                   </div>
-                </div>
+                  
+                  {/* Rating Criteria - Secondary */}
+                  <button
+                    onClick={() => setCurrentPage("Rating Criteria")}
+                    className="mt-3 w-full p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-left flex items-center gap-2"
+                  >
+                    <span>ℹ️</span>
+                    <span className="text-sm font-medium text-slate-700">Rating Criteria Guide</span>
+                  </button>
+                </section>
               </div>
 
-              <p className="text-lg text-muted-foreground text-center">
+              {/* Footer Tagline */}
+              <p className="text-lg text-muted-foreground text-center mt-8">
                 Cleanliness is a duty for all.
               </p>
 
