@@ -205,7 +205,7 @@ export function PhotoReviewPane({
 
   return (
     <>
-      <Card className={`sticky top-4 ${className}`}>
+      <Card className={className}>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Photos ({photos.length})</span>

@@ -257,9 +257,9 @@ export default function PhotoFirstReviewPage() {
         </div>
 
         {/* Split Pane Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 items-start">
           {/* Left Pane - Photos (Sticky) */}
-          <div className="lg:h-fit">
+          <div className="lg:sticky lg:top-24">
             <PhotoReviewPane
               photos={photos}
               className="h-full"
