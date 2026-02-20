@@ -221,7 +221,12 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 
 ```
 Phase 12: home-page-layout-reorganization [░░░░░░░░░] 0% 📋
-└── Context gathered ✓ — Ready for planning
+├── Context gathered ✅
+├── Research complete ✅
+├── 12-01-PLAN.md ✅ Dashboard structure + Quick Capture prominence
+├── 12-02-PLAN.md ✅ Review section + Pending badge
+├── 12-03-PLAN.md ✅ Mobile optimization + responsive
+└── Status: PLANNED — Ready for execution
 
 Phase 13: offline-sync-hardening [░░░░░░░░░] 0% 📋
 └── Planning Pending
