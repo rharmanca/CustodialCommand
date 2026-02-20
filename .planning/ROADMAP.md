@@ -227,7 +227,7 @@ Phase 03 executes in 4 waves for parallel execution:
 | 01 | ✅ Complete | 8/8 | — |
 | 02 | 🔄 In Progress | 5/8 | Complete 02-02, 02-04 |
 | 03 | ✅ Complete | 6/6 | — |
-| 04 | 📋 Planned | 0/6 | Ready for execution |
+| 04 | ✅ Complete | 6/6 | — |
 
 ---
 ## Gap Closure Phases (from v1.0 audit)
@@ -238,7 +238,7 @@ Phase 03 executes in 4 waves for parallel execution:
 
 **Status:** 📋 PLANNED (0/4 plans)
 
-**Plans:** 4 plans
+**Plans:** 6/6 plans complete
 
 **Requirements:** CAP-01..CAP-07, REV-01..REV-07, PERF-01..PERF-05, MOB-01..MOB-04 (evidence reconciliation)
 
@@ -548,15 +548,6 @@ Plans:
 
 ---
 
-### Deferred Phases
-
-| Phase | Name | Reason Deferred |
-|-------|------|-----------------|
-| 12 | Offline & Reliability | Not a current pain point — defer until user feedback confirms need |
-| 13 | Scheduling | Defer post-feedback on notification patterns |
-
----
-
 ## Milestone v2.0 Status Summary
 
 | Phase | Name | Status | Plans |
@@ -567,5 +558,78 @@ Plans:
 
 ---
 
-*Roadmap created: 2026-02-16*
-*Last updated: 2026-02-19 - Phase 11 complete, Milestone v2.0 finished*
+## Milestone v2.5: Polish and Enhancements
+
+**Goal:** Refine the user experience, improve offline reliability, and introduce scheduling to enhance the daily utility of the application for custodial staff.
+
+**Status:** 📋 PLANNED
+
+**Requirements:** 13/13 Mapped (Phase 12: 3, Phase 13: 4, Phase 14: 4, Phase 15: 2)
+
+### Phases
+
+- [ ] **Phase 12: Home Page Layout Reorganization** - Refine the dashboard layout to prioritize field workflows (Quick Capture) and improve mobile usability.
+- [ ] **Phase 13: Offline Sync Hardening** - Ensure reliable quick capture functionality even in areas with poor or no connectivity.
+- [ ] **Phase 14: Inspection Scheduling** - Enable recurring inspection cadences to ensure consistent facility coverage.
+- [ ] **Phase 15: Voice Notes** - Allow hands-free note taking during quick capture via speech-to-text.
+
+---
+
+## Phase Details
+
+### Phase 12: Home Page Layout Reorganization
+**Goal**: Refine the dashboard layout to prioritize field workflows (Quick Capture) and improve mobile usability.
+**Depends on**: Milestone v2.0
+**Requirements**: LAYOUT-01, LAYOUT-02, LAYOUT-03
+**Success Criteria** (what must be TRUE):
+  1. User sees "Quick Capture" as the primary, most prominent call to action on the dashboard.
+  2. User can easily locate and access "Review Inspections" and the pending badge.
+  3. User can comfortably reach primary actions with their thumb when using a mobile device in portrait orientation.
+**Plans**: TBD
+
+### Phase 13: Offline Sync Hardening
+**Goal**: Ensure reliable quick capture functionality even in areas with poor or no connectivity.
+**Depends on**: Phase 12
+**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04
+**Success Criteria** (what must be TRUE):
+  1. User can successfully save quick captures while the device has no internet connection.
+  2. User can immediately identify their current online/offline status via UI indicators.
+  3. User can view the queue of pending uploads waiting to synchronize.
+  4. User's offline captures sync automatically and consistently without data loss when connection is restored.
+**Plans**: TBD
+
+### Phase 14: Inspection Scheduling
+**Goal**: Enable recurring inspection cadences to ensure consistent facility coverage.
+**Depends on**: Phase 13
+**Requirements**: SCHED-01, SCHED-02, SCHED-03, SCHED-04
+**Success Criteria** (what must be TRUE):
+  1. Admin can define and save recurring schedules (daily, weekly) for specific locations.
+  2. User sees their "due" or "upcoming" scheduled inspections listed on the dashboard.
+  3. User can tap a scheduled inspection to immediately open the capture form for that location.
+  4. Admin can view a report showing completion rates against defined schedules.
+**Plans**: TBD
+
+### Phase 15: Voice Notes
+**Goal**: Allow hands-free note taking during quick capture via speech-to-text.
+**Depends on**: Phase 12
+**Requirements**: VOICE-01, VOICE-02
+**Success Criteria** (what must be TRUE):
+  1. User can tap a microphone button in quick capture to record audio that transcribes to text.
+  2. User can edit the resulting transcribed text using the keyboard before saving.
+**Plans**: TBD
+
+---
+
+## Progress Summary
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 12. Home Page Layout Reorganization | 0/0 | Not started | - |
+| 13. Offline Sync Hardening | 0/0 | Not started | - |
+| 14. Inspection Scheduling | 0/0 | Not started | - |
+| 15. Voice Notes | 0/0 | Not started | - |
+
+---
+
+*Roadmap created: 2026-02-19*
+*Last updated: 2026-02-19 - Milestone v2.5 Planned*
