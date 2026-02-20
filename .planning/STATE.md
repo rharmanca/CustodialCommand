@@ -220,18 +220,18 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 **Status:** 📋 PLANNED
 
 ```
-Phase 12: home-page-layout-reorganization [███░░░░░░] 33% 🔄
+Phase 12: home-page-layout-reorganization [██████░░░] 66% 🔄
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 12-01: Dashboard + Quick Capture ✅ COMPLETE
-├── 12-02: Review + Pending Badge ⏳ PENDING
+├── 12-02: Review + Pending Badge ✅ COMPLETE
 ├── 12-03: Mobile Optimization ⏳ PENDING
-└── Status: IN PROGRESS — 1 of 3 plans complete
+└── Status: IN PROGRESS — 2 of 3 plans complete
 ```
 
 ---
-*Last updated: 2026-02-20*
-*Milestone v2.5 roadmap planned*
+*Last updated: 2026-02-19*
+*Plan 12-02 executed: Review Section + Pending Badge complete*
 
 ## Key Decisions (New)
 
@@ -245,4 +245,7 @@ Phase 12: home-page-layout-reorganization [███░░░░░░] 33% 🔄
 46. **04-05 FAB size standardization**: Updated from 64px to 56px to match Material Design specification with proportional icon scaling
 47. **12-01 dashboard structure**: Three workflow sections (Capture/Review/Analyze) with background color block separation
 48. **12-01 QuickCaptureCard specs**: 120px minimum touch target, 48px camera icon, amber theme for field use with gloved hands
+49. **12-02 PendingBadge urgency colors**: Amber (1-4 items), Red (5+ items), Gray (0 items) per Decision 17
+50. **12-02 ReviewSection integration**: Self-contained component with usePendingInspections hook, teal theme for visual distinction
+51. **12-02 Dashboard scaffold pattern**: Created minimal Dashboard.tsx to unblock integration, Plan 01 will expand with full structure
 49. **12-01 responsive layout**: Mobile stacked, desktop two-column grid (Capture | Review), Analyze spans full width
