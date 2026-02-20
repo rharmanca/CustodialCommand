@@ -1,64 +1,34 @@
 # Requirements: Custodial Command
 
-**Defined:** 2026-02-16
+**Defined:** 2026-02-19
 **Core Value:** Custodial staff can efficiently capture facility issues while walking, then complete detailed assessments later with photo reference
 
-## v1 Requirements (Completed)
+## v1/v2 Requirements (Completed)
 
-See PROJECT.md Validated section for completed requirements from Phases 01-02.
+See PROJECT.md Validated section for completed requirements from Phases 01-11.
 
-## v2 Requirements (Phase 03: Workflow Improvements)
+## v2.5 Requirements (Milestone v2.5: Polish and Enhancements)
 
-### Quick Capture
+### Home Page Layout Reorganization
+- [ ] **LAYOUT-01**: Reorganize dashboard to prominently feature "Quick Capture" as the primary call to action.
+- [ ] **LAYOUT-02**: Improve visibility of "Review Inspections" and pending badge.
+- [ ] **LAYOUT-03**: Optimize layout specifically for mobile portrait view (thumb reachability).
 
-- [ ] **CAP-01**: User can initiate quick capture mode from mobile dashboard
-- [ ] **CAP-02**: User can select location with minimal taps (dropdown or quick-select)
-- [ ] **CAP-03**: User can capture multiple photos in rapid succession with camera remaining open
-- [ ] **CAP-04**: User can optionally add quick text note (single field, max 200 chars)
-- [ ] **CAP-05**: User can save quick capture with one tap
-- [ ] **CAP-06**: Quick capture saves as "pending review" status
-- [ ] **CAP-07**: User sees confirmation that capture was saved
+### Offline & Reliability (Background Sync Hardening)
+- [ ] **SYNC-01**: Implement reliable background sync for Quick Capture when offline.
+- [ ] **SYNC-02**: Provide clear visual indicators for online/offline status.
+- [ ] **SYNC-03**: Show a queue of pending uploads that will sync when connection is restored.
+- [ ] **SYNC-04**: Ensure data consistency if app is closed before sync completes.
 
-### Photo-First Review
+### Scheduling (Recurring Inspection Cadence)
+- [ ] **SCHED-01**: Admin can define recurring inspection schedules (e.g., daily, weekly) for specific locations.
+- [ ] **SCHED-02**: Dashboard displays a list of "due" or "upcoming" scheduled inspections.
+- [ ] **SCHED-03**: Scheduled inspections link directly to the capture form for that location.
+- [ ] **SCHED-04**: Track compliance/completion rate against the defined schedule.
 
-- [ ] **REV-01**: User can view all "pending review" inspections on desktop
-- [ ] **REV-02**: User can open pending inspection with photos displayed prominently
-- [ ] **REV-03**: User can reference photos while completing full inspection form
-- [ ] **REV-04**: Photos remain visible while scrolling through form fields
-- [ ] **REV-05**: User can complete inspection with full ratings and detailed notes
-- [ ] **REV-06**: Completed inspection shows completion timestamp separate from capture timestamp
-- [ ] **REV-07**: User can discard pending inspection if no longer relevant
-
-### Performance
-
-- [ ] **PERF-01**: Quick capture mode loads in <1 second on mobile 4G
-- [ ] **PERF-02**: Photo capture keeps camera active between shots (no re-initialization)
-- [ ] **PERF-03**: Photo thumbnails generate for quick browsing
-- [ ] **PERF-04**: Pending review list loads in <2 seconds
-- [ ] **PERF-05**: Photo-first review page loads photos progressively
-
-### Mobile UX
-
-- [ ] **MOB-01**: Large touch targets for field use (min 44px)
-- [ ] **MOB-02**: Clear visual distinction between capture and review modes
-- [ ] **MOB-03**: Works in portrait orientation (no forced landscape)
-- [ ] **MOB-04**: Offline capability maintained for quick capture
-
-## v3 Requirements (Deferred)
-
-### Advanced Features
-
-- **ADV-01**: AI photo analysis for automatic issue detection
-- **ADV-02**: Voice-to-text notes during capture
-- **ADV-03**: Photo tagging (e.g., "HVAC", "Plumbing", "Safety")
-- **ADV-04**: Batch review mode for processing multiple inspections
-- **ADV-05**: Time-based reminders for pending inspections
-
-### Integrations
-
-- **INT-01**: Email notifications to supervisors when inspections completed
-- **INT-02**: Slack integration for urgent issues
-- **INT-03**: Calendar integration for inspection scheduling
+### Voice Notes (Bonus/UX Polish)
+- [ ] **VOICE-01**: Record audio in quick capture mode to transcribe speech to text.
+- [ ] **VOICE-02**: Allow editing transcription before saving.
 
 ## Out of Scope
 
@@ -66,43 +36,28 @@ See PROJECT.md Validated section for completed requirements from Phases 01-02.
 |---------|--------|
 | Real-time collaboration | Single inspector per school is current workflow |
 | Native mobile apps | PWA covers needs; native apps are maintenance burden |
-| Advanced analytics dashboard | Export features sufficient; defer until data volume increases |
+| Advanced AI photo analysis | Requires ML infrastructure, high complexity |
 | External work order system integration | Manual export acceptable at current scale |
-| Video capture | Photos sufficient for documentation needs |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAP-01 | Phase 03 | Pending |
-| CAP-02 | Phase 03 | Pending |
-| CAP-03 | Phase 03 | Pending |
-| CAP-04 | Phase 03 | Pending |
-| CAP-05 | Phase 03 | Pending |
-| CAP-06 | Phase 03 | Pending |
-| CAP-07 | Phase 03 | Pending |
-| REV-01 | Phase 03 | Pending |
-| REV-02 | Phase 03 | Pending |
-| REV-03 | Phase 03 | Pending |
-| REV-04 | Phase 03 | Pending |
-| REV-05 | Phase 03 | Pending |
-| REV-06 | Phase 03 | Pending |
-| REV-07 | Phase 03 | Pending |
-| PERF-01 | Phase 03 | Pending |
-| PERF-02 | Phase 03 | Pending |
-| PERF-03 | Phase 03 | Pending |
-| PERF-04 | Phase 03 | Pending |
-| PERF-05 | Phase 03 | Pending |
-| MOB-01 | Phase 03 | Pending |
-| MOB-02 | Phase 03 | Pending |
-| MOB-03 | Phase 03 | Pending |
-| MOB-04 | Phase 03 | Pending |
+| LAYOUT-01 | Phase 12 | Pending |
+| LAYOUT-02 | Phase 12 | Pending |
+| LAYOUT-03 | Phase 12 | Pending |
+| SYNC-01 | Phase 13 | Pending |
+| SYNC-02 | Phase 13 | Pending |
+| SYNC-03 | Phase 13 | Pending |
+| SYNC-04 | Phase 13 | Pending |
+| SCHED-01 | Phase 14 | Pending |
+| SCHED-02 | Phase 14 | Pending |
+| SCHED-03 | Phase 14 | Pending |
+| SCHED-04 | Phase 14 | Pending |
+| VOICE-01 | Phase 15 | Pending |
+| VOICE-02 | Phase 15 | Pending |
 
 **Coverage:**
-- v2 requirements: 21 total
-- Mapped to phases: 21
+- v2.5 requirements: 13 total
+- Mapped to phases: 13
 - Unmapped: 0 ✓
-
----
-*Requirements defined: 2026-02-16*
-*Last updated: 2026-02-16 after Phase 02 completion*
