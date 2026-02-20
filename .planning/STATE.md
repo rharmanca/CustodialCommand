@@ -221,7 +221,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 
 ```
 Phase 12: home-page-layout-reorganization [░░░░░░░░░] 0% 📋
-└── Planning Pending
+└── Context gathered ✓ — Ready for planning
 
 Phase 13: offline-sync-hardening [░░░░░░░░░] 0% 📋
 └── Planning Pending
