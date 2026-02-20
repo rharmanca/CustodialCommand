@@ -1,78 +1,91 @@
-# Domain Pitfalls: Custodial Command v2.0
+# Domain Pitfalls: Milestone v2.5 "Polish and Enhancements"
 
 **Domain:** Facility inspection management PWA
 **Researched:** 2026-02-19
 
 ## Critical Pitfalls
 
-### Pitfall 1: Analytics Queries Causing Memory Spikes
-**What goes wrong:** Fetching all inspections to JS memory for aggregation
-**Why it happens:** Easy to write `db.select().from(inspections)` and aggregate in JS
-**Consequences:** Triggers the already-documented 93% memory warning; multer + analytics = OOM risk
-**Prevention:** Always use SQL aggregation (`GROUP BY`, `AVG()`, `COUNT()`) at the DB layer; never pull unbounded result sets
-**Detection:** Memory spike in `/health` metrics after running a report
+### Pitfall 1: IndexedDB Storage Quota Exceeded
+**What goes wrong:** Photos queue fills device storage; sync fails silently
+**Why it happens:** IndexedDB has ~50MB-250MB limit depending on browser/device; photos accumulate
+**Consequences:** Data loss when storage full; user confusion about "saved" captures
+**Prevention:** Implement storage quota check before queue; auto-purge synced items; warn at 80% capacity
+**Detection:** Monitor `navigator.storage.estimate()`; alert user when approaching limit
 
-### Pitfall 2: Email Provider SMTP Blocked on Railway Hobby Plan
-**What goes wrong:** Attempting to send email via SMTP (Nodemailer) fails with connection refused
-**Why it happens:** Railway blocks outbound port 25/587 on hobby plan for anti-spam
-**Consequences:** Notifications silently fail; users think feature works but no emails arrive
-**Prevention:** Use Resend (HTTP API over port 443); never use direct SMTP
-**Detection:** Test with `curl` to SMTP port; verify in Railway network logs
+### Pitfall 2: Background Sync API Unsupported on iOS
+**What goes wrong:** Relying on Background Sync API for offline uploads; fails on iOS Safari
+**Why it happens:** Safari iOS doesn't support Background Sync (as of 2026-02)
+**Consequences:** Offline captures never sync even when connectivity returns
+**Prevention:** Progressive enhancement: use Background Sync if available, fall back to periodic polling + manual sync trigger
+**Detection:** `'sync' in ServiceWorkerRegistration.prototype` feature detection
 
-### Pitfall 3: Schema Migrations Breaking Existing Data
-**What goes wrong:** Adding NOT NULL columns without defaults, or renaming columns
-**Why it happens:** Drizzle push (`db:push`) doesn't always warn before destructive changes
-**Consequences:** Production data loss or failed migrations
-**Prevention:** Only add nullable columns with `.default([])` or `.optional()`; use Drizzle migrations (not push) for v2.0 schema changes
-**Detection:** Always test migration on a DB copy before production push
+### Pitfall 3: Schedule Recurrence Logic Edge Cases
+**What goes wrong:** Daily/weekly schedules create duplicate or missed inspections
+**Why it happens:** Timezone handling, daylight saving transitions, cron misalignment
+**Consequences:** Missing inspections on schedule change days; duplicate entries
+**Prevention:** Store schedules in UTC; use established cron library (node-cron with timezone); verify next-run calculation
+**Detection:** Log scheduled job executions; alert if expected inspection not created
+
+### Pitfall 4: Voice Recognition Fails Silently on iOS
+**What goes wrong:** Web Speech API not available or blocked on iOS Safari
+**Why it happens:** iOS Safari requires user gesture; `webkitSpeechRecognition` is prefixed and limited
+**Consequences:** Voice button appears but does nothing; user frustration
+**Prevention:** Feature detect `window.SpeechRecognition || window.webkitSpeechRecognition`; show fallback input if unavailable
+**Detection:** Test on actual iOS device; not just emulator
 
 ## Moderate Pitfalls
 
-### Pitfall 4: Notification Spam From Threshold Triggers
-**What goes wrong:** Supervisor receives 10 emails in one day because inspection count oscillates around threshold
-**Prevention:** Track "last notified at" timestamp per school; enforce minimum 4-hour cooldown between alerts
+### Pitfall 5: Upload Queue Grows Unbounded
+**What goes wrong:** User captures 50+ photos offline; sync attempts all at once on reconnect
+**Why it happens:** No rate limiting or batching on sync
+**Consequences:** Network timeout; server memory spike; failed uploads
+**Prevention:** Batch uploads (5 at a time); exponential backoff on failure; progress indicator
 
-### Pitfall 5: CSV Export Includes PII Without Review
-**What goes wrong:** Inspector names, notes, and location data exported without access control
-**Prevention:** Require admin authentication for export endpoints (already have admin auth pattern); document data sensitivity in export UI
+### Pitfall 6: Dashboard FAB Overlaps Bottom Nav
+**What goes wrong:** Quick Capture FAB positioned over mobile bottom navigation
+**Why it happens:** `fixed bottom-6 right-6` doesn't account for navigation bar height
+**Prevention:** Use `env(safe-area-inset-bottom)` + nav height calculation; test on multiple viewports
 
-### Pitfall 6: Tag Taxonomy Explosion
-**What goes wrong:** Free-form tags create dozens of near-duplicates ("HVAC", "hvac", "Hvac issue", "heating/cooling")
-**Prevention:** Fixed taxonomy defined in `shared/inspection-tags.ts`; UI uses select/multiselect, not free text
+### Pitfall 7: Offline Status Indicator False Positives
+**What goes wrong:** `navigator.onLine` returns true but actual connectivity is poor
+**Why it happens:** Browser "online" just means network interface up, not actual internet
+**Prevention:** Combine `navigator.onLine` with fetch heartbeat to `/health` endpoint
 
-### Pitfall 7: node-cron Jobs Running Twice on Redeploy
-**What goes wrong:** Railway redeploys without zero-downtime; brief overlap means cron fires twice
-**Prevention:** Check last-run timestamp before executing job; make jobs idempotent
+### Pitfall 8: Scheduled Inspection Timezone Drift
+**What goes wrong:** Schedule created in CST, inspector views in EST, off by one hour
+**Why it happens:** Storing local time without timezone; frontend converts inconsistently
+**Prevention:** Store schedule times in UTC; display in user's local timezone with `Intl.DateTimeFormat`
 
 ## Minor Pitfalls
 
-### Pitfall 8: Charts Re-render on Every Keystroke in Filter UI
-**What goes wrong:** Date range inputs trigger full chart reload while user is still typing
-**Prevention:** Debounce filter input changes (300ms); only re-fetch on blur or explicit "Apply" button
+### Pitfall 9: Voice Transcription Timeout Too Short
+**What goes wrong:** Long note gets cut off at 30 seconds
+**Why it happens:** Default recognition timeout; no continuous mode
+**Prevention:** Use `continuous: true` mode; handle interim vs final results
 
-### Pitfall 9: PWA Service Worker Caching Stale Analytics
-**What goes wrong:** Analytics page shows old data from service worker cache
-**Prevention:** Exclude `/api/analytics/*` and `/api/export/*` from service worker cache (already excluded pattern for admin routes in `sw.js`)
-
-### Pitfall 10: Recharts Overflow on Mobile
-**What goes wrong:** Trend charts overflow container on small screens
-**Prevention:** Use `ResponsiveContainer` with `width="100%"` (Recharts standard pattern); already used in scores dashboard
+### Pitfall 10: Pending Badge Stale After Sync
+**What goes wrong:** Dashboard shows "5 pending" after successful sync; count doesn't update
+**Why it happens:** Cache invalidation missed; polling interval too long
+**Prevention:** Invalidate cache on sync completion; emit event to refresh count
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Phase 09: Analytics | Memory spike from unbounded queries | SQL aggregation only; paginate large datasets |
-| Phase 09: CSV Export | Auth bypass on export endpoint | Require admin session (existing pattern) |
-| Phase 10: Notifications | SMTP blocked on Railway | Use Resend HTTP API |
-| Phase 10: Notifications | Alert spam | Cooldown timestamp per school |
-| Phase 11: Tagging | Tag sprawl | Fixed taxonomy in shared file |
-| Phase 12: Offline | Background Sync API not supported on older iOS | Progressive enhancement; fall back to manual sync |
-| Phase 13: Scheduling | Cron double-fire on redeploy | Idempotent jobs with last-run check |
+| Phase | Likely Pitfall | Mitigation |
+|-------|---------------|------------|
+| Phase 12: Layout | FAB overlaps bottom nav on small screens | safe-area-inset + viewport testing |
+| Phase 13: Offline | iOS Safari lacks Background Sync | Feature detect + polling fallback |
+| Phase 13: Offline | IndexedDB quota exceeded | Storage estimate + auto-purge |
+| Phase 13: Offline | Queue grows unbounded | Batch uploads + rate limiting |
+| Phase 14: Scheduling | Recurrence logic edge cases | UTC storage + established cron lib |
+| Phase 14: Scheduling | Timezone drift | UTC backend + local display |
+| Phase 15: Voice | iOS Safari recognition fails | Feature detection + text fallback |
+| Phase 15: Voice | Recognition timeout too short | Continuous mode + interim results |
 
 ## Sources
 
-- `.planning/phases/08-*/08-01-FINDINGS.md` — Memory root cause (multer memoryStorage)
-- `public/sw.js` — Service worker cache exclusions (admin route pattern)
-- `server/csrf.ts` — Auth exemption pattern (admin login)
-- `server/automated-monitoring.ts` — Memory trend alerting (TREND_WARNING threshold)
+- `.planning/ROADMAP.md` — Phase 12-15 requirements
+- `public/sw.js` — Existing service worker patterns
+- `src/hooks/usePendingCount.ts` — Pending count implementation
+- `shared/schema.ts` — syncQueue table foundation
+- Can I Use: Background Sync API browser support data
+- MDN: Web Speech API compatibility notes
