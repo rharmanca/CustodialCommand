@@ -596,7 +596,21 @@ Plans:
   2. User can immediately identify their current online/offline status via UI indicators.
   3. User can view the queue of pending uploads waiting to synchronize.
   4. User's offline captures sync automatically and consistently without data loss when connection is restored.
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Storage Quota Management (warn at 80%, auto-prune)
+- [ ] 13-02-PLAN.md — Network Status Indicators (Dashboard + Quick Capture)
+- [ ] 13-03-PLAN.md — Pending Upload Queue (location, timestamp, retry)
+- [ ] 13-04-PLAN.md — Data Consistency Hardening (resume, recovery, conflicts)
+
+### Phase 13: Wave Structure
+
+| Wave | Plans | Dependencies | Can Parallelize |
+|------|-------|--------------|-----------------|
+| 1 | 13-01 | None | - |
+| 2 | 13-02, 13-03 | 13-01 | 13-02 and 13-03 |
+| 3 | 13-04 | 13-01, 13-02, 13-03 | - |
 
 ### Phase 14: Inspection Scheduling
 **Goal**: Enable recurring inspection cadences to ensure consistent facility coverage.
@@ -625,11 +639,11 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 12. Home Page Layout Reorganization | 4/4 | ✅ Complete | 2026-02-20 |
-| 13. Offline Sync Hardening | 0/0 | Not started | - |
+| 13. Offline Sync Hardening | 0/4 | 📋 Planned | - |
 | 14. Inspection Scheduling | 0/0 | Not started | - |
 | 15. Voice Notes | 0/0 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-02-19*
-*Last updated: 2026-02-19 - Milestone v2.5 Planned*
+*Last updated: 2026-02-20 - Phase 13 Planned*
