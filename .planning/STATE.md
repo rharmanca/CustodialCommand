@@ -2,12 +2,12 @@
 
 ## Project Overview
 - **Name**: Custodial Command
-- **Current Phase**: Milestone v2.0 — Phase 11 ✅ COMPLETE
-- **Current Plan**: All plans complete
-- **Status**: ✅ **MILESTONE v2.0 COMPLETE** (All phases finished)
-- **Version**: 1.0.0
-- **Tag**: v1.0.0
-- **Requirements**: 35/35 SATISFIED (v1.0: 23 + v2.0 Phase 09: 4 + Phase 10: 4 + Phase 11: 4)
+- **Current Phase**: Milestone v2.5 — Planning
+- **Current Plan**: Defining requirements and roadmap
+- **Status**: 🔄 **MILESTONE v2.5 IN PROGRESS** (Planning phase)
+- **Version**: 2.5.0-alpha
+- **Tag**: v2.0.0 (Last stable)
+- **Requirements**: Defining for v2.5
 
 ## Phase Progress
 
@@ -122,11 +122,10 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 
 ## Next Actions
 
-1. **Milestone v1.0 COMPLETE**: All 8 phases finished (incl. Phase 08 monitoring), 23/23 requirements satisfied
-2. **Phase 09 COMPLETE**: Analytics & Reporting — all 4 requirements satisfied, human verified
-3. **Phase 10 COMPLETE**: Notifications & Alerts — email service with Resend, threshold checking, 24h cooldown, scheduled alerts
-4. **Milestone v2.0 IN PROGRESS**: Phase 10 complete, Phase 11 (Issue Tagging) planned
-5. **Next**: Execute Phase 11 — Issue Tagging (2 plans: backend foundation, then frontend integration)
+1. **Milestone v1.0 COMPLETE**: All 8 phases finished
+2. **Milestone v2.0 COMPLETE**: Phases 09-11 finished, Tagged v2.0.0
+3. **Next**: Define roadmap and requirements for Milestone v2.5 (Polish and Enhancements)
+   - Focus on Deferred Items: Home page layout, Offline & Reliability, Scheduling
 
 ---
 
@@ -187,8 +186,8 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Phase 10 verification and completion
-- **Summary**: Completed Phase 10 Notifications & Alerts implementation. All 4 NOTIF requirements satisfied. Service includes: Resend email integration, threshold checking (10 pending OR 48h oldest), 24h file-based cooldown, daily 8am weekday scheduler, manual trigger endpoint. TypeScript compiles cleanly. Ready for Phase 11 (Issue Tagging).
+- **Activity**: Phase 04-03 verification and SUMMARY creation
+- **Summary**: Completed verification of Simplified Quick Capture (04-03). Camera-first layout confirmed with collapsible notes (defaultCollapsed={true}) and visible photo strip. TypeScript checks pass, build succeeds. SUMMARY.md created documenting completion.
 
 ## Performance Metrics
 
@@ -197,6 +196,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | 08-01 | ~45m | 6/6 | 1 | 2026-02-19 |
 | 08-02 | ~25m | 7/7 | 2 | 2026-02-19 |
 | 08-03 | ~60m | 5/5 | 2 | 2026-02-19 |
+| 04-03 | ~5m | 2/2 | 3 | 2026-02-19 |
 
 ## Phase Progress
 
@@ -212,8 +212,28 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 └── 11-VERIFICATION.md ✅ COMPLETE
 
 ---
+
+## Milestone v2.5: Polish and Enhancements
+
+**Status:** 📋 PLANNED
+
+```
+Phase 12: home-page-layout-reorganization [░░░░░░░░░] 0% 📋
+└── Planning Pending
+
+Phase 13: offline-sync-hardening [░░░░░░░░░] 0% 📋
+└── Planning Pending
+
+Phase 14: inspection-scheduling [░░░░░░░░░] 0% 📋
+└── Planning Pending
+
+Phase 15: voice-notes [░░░░░░░░░] 0% 📋
+└── Planning Pending
+```
+
+---
 *Last updated: 2026-02-19*
-*Phase 11 complete — all 4 requirements satisfied*
+*Milestone v2.5 roadmap planned*
 
 ## Key Decisions (New)
 
@@ -221,3 +241,4 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 40. **Max 3 tags**: Prevents over-categorization, keeps UI clean and decision-making simple
 41. **OR filter logic**: Inspections with ANY selected tag are shown (more inclusive for filtering)
 42. **GIN index recommended**: For production performance on tag filtering
+43. **04-03 verified complete**: Quick Capture simplification already implemented with camera-first layout, collapsible notes, and visible photo strip
