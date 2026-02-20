@@ -186,8 +186,8 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 ## Last Session
 
 - **Timestamp**: 2026-02-19
-- **Activity**: Phase 04-03 verification and SUMMARY creation
-- **Summary**: Completed verification of Simplified Quick Capture (04-03). Camera-first layout confirmed with collapsible notes (defaultCollapsed={true}) and visible photo strip. TypeScript checks pass, build succeeds. SUMMARY.md created documenting completion.
+- **Activity**: Phase 04-01 Sticky Photo Sidebar implementation
+- **Summary**: Completed sticky photo sidebar with primary display and thumbnail grid. Fixed sticky positioning by moving to parent container with items-start grid alignment. Added primary photo display area with 4-column thumbnail grid below. Clicking thumbnails updates primary photo; clicking primary photo opens zoom lightbox. All TypeScript checks pass, build succeeds. SUMMARY.md created documenting completion.
 
 ## Performance Metrics
 
@@ -197,6 +197,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | 08-02 | ~25m | 7/7 | 2 | 2026-02-19 |
 | 08-03 | ~60m | 5/5 | 2 | 2026-02-19 |
 | 04-03 | ~5m | 2/2 | 3 | 2026-02-19 |
+| 04-01 | ~15m | 3/3 | 2 | 2026-02-19 |
 
 ## Phase Progress
 
@@ -242,3 +243,5 @@ Phase 15: voice-notes [░░░░░░░░░] 0% 📋
 41. **OR filter logic**: Inspections with ANY selected tag are shown (more inclusive for filtering)
 42. **GIN index recommended**: For production performance on tag filtering
 43. **04-03 verified complete**: Quick Capture simplification already implemented with camera-first layout, collapsible notes, and visible photo strip
+44. **04-01 sticky sidebar pattern**: Parent container handles sticky with `items-start` grid alignment, not the Card itself, to avoid CSS conflicts and ensure proper sticky behavior
+45. **Primary + grid photo viewer**: Large primary display with 4-column thumbnail grid provides clear visual hierarchy and easy photo navigation
