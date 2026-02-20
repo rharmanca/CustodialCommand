@@ -36,7 +36,6 @@ function ProgressiveImage({
 }: ProgressiveImageProps) {
   const [currentSrc, setCurrentSrc] = useState(thumbnailSrc);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const fullImageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
@@ -60,72 +59,40 @@ function ProgressiveImage({
     };
   }, [thumbnailSrc, fullSrc]);
 
-  const handleClick = useCallback(() => {
-    if (onClick) {
-      onClick();
-    } else {
-      setIsFullscreen(true);
-    }
-  }, [onClick]);
-
   return (
-    <>
-      <div
-        className={`relative overflow-hidden rounded-md bg-muted cursor-pointer group ${containerClassName}`}
-        onClick={handleClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e: React.KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
-      >
-        <img
-          src={currentSrc}
-          alt={alt}
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            isLoaded ? 'blur-0' : 'blur-md'
-          } ${className}`}
-          loading="lazy"
-        />
+    <div
+      className={`relative overflow-hidden rounded-md bg-muted cursor-pointer group ${containerClassName}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+    >
+      <img
+        src={currentSrc}
+        alt={alt}
+        className={`w-full h-full object-cover transition-all duration-500 ${
+          isLoaded ? 'blur-0' : 'blur-md'
+        } ${className}`}
+        loading="lazy"
+      />
 
-        {/* Loading overlay */}
-        {!isLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
-            <Skeleton className="w-full h-full" />
-          </div>
-        )}
-
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-          <ZoomIn className="w-8 h-8 text-white" />
+      {/* Loading overlay */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+          <Skeleton className="w-full h-full" />
         </div>
-      </div>
+      )}
 
-      {/* Fullscreen dialog */}
-      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95 border-none">
-          <DialogTitle className="sr-only">{alt}</DialogTitle>
-          <div className="relative flex items-center justify-center min-h-[50vh]">
-            <img
-              src={fullSrc}
-              alt={alt}
-              className="max-w-full max-h-[90vh] object-contain"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 text-white hover:bg-white/20"
-              onClick={() => setIsFullscreen(false)}
-            >
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+      {/* Hover overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+        <ZoomIn className="w-8 h-8 text-white" />
+      </div>
+    </div>
   );
 }
 
@@ -142,9 +109,17 @@ export function PhotoReviewPane({
   onSelectPhoto,
   className = '',
 }: PhotoReviewPaneProps) {
+  // Primary photo is the one displayed large; default to first photo
+  const [primaryPhotoIndex, setPrimaryPhotoIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Update primary photo when selectedIndex prop changes (external control)
+  useEffect(() => {
+    if (selectedIndex !== undefined && selectedIndex >= 0 && selectedIndex < photos.length) {
+      setPrimaryPhotoIndex(selectedIndex);
+    }
+  }, [selectedIndex, photos.length]);
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index);
@@ -162,6 +137,15 @@ export function PhotoReviewPane({
   const goToNext = useCallback(() => {
     setLightboxIndex(prev => (prev < photos.length - 1 ? prev + 1 : 0));
   }, [photos.length]);
+
+  const handleThumbnailClick = useCallback((index: number) => {
+    setPrimaryPhotoIndex(index);
+    onSelectPhoto?.(index);
+  }, [onSelectPhoto]);
+
+  const handlePrimaryPhotoClick = useCallback(() => {
+    openLightbox(primaryPhotoIndex);
+  }, [openLightbox, primaryPhotoIndex]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -187,7 +171,7 @@ export function PhotoReviewPane({
 
   if (photos.length === 0) {
     return (
-      <Card className={`${className}`}>
+      <Card className={className}>
         <CardHeader>
           <CardTitle className="text-lg">Photos</CardTitle>
         </CardHeader>
@@ -201,6 +185,7 @@ export function PhotoReviewPane({
     );
   }
 
+  const primaryPhoto = photos[primaryPhotoIndex];
   const currentPhoto = photos[lightboxIndex];
 
   return (
@@ -216,60 +201,69 @@ export function PhotoReviewPane({
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div
-            ref={containerRef}
-            className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 scrollbar-thin"
-          >
-            {photos.map((photo, index) => (
-              <div
-                key={photo.id || index}
-                className={`relative rounded-lg overflow-hidden transition-all ${
-                  selectedIndex === index
-                    ? 'ring-2 ring-primary ring-offset-2'
-                    : ''
-                }`}
-                onClick={() => onSelectPhoto?.(index)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e: React.KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSelectPhoto?.(index);
-                  }
-                }}
-              >
-                <ProgressiveImage
-                  thumbnailSrc={photo.thumbnailUrl}
-                  fullSrc={photo.fullUrl}
-                  alt={photo.alt}
-                  onClick={() => openLightbox(index)}
-                  containerClassName="aspect-video"
-                />
+        <CardContent className="space-y-4">
+          {/* Primary Photo Display */}
+          <div className="relative rounded-lg overflow-hidden bg-muted">
+            <ProgressiveImage
+              thumbnailSrc={primaryPhoto.thumbnailUrl}
+              fullSrc={primaryPhoto.fullUrl}
+              alt={primaryPhoto.alt}
+              onClick={handlePrimaryPhotoClick}
+              containerClassName="aspect-video"
+            />
 
-                {/* Photo metadata overlay */}
-                {photo.capturedAt && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                    <p className="text-xs text-white">
-                      {new Date(photo.capturedAt).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
-                )}
-
-                {/* Selection indicator */}
-                {selectedIndex === index && (
-                  <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                    Selected
-                  </div>
-                )}
+            {/* Photo metadata overlay */}
+            {primaryPhoto.capturedAt && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                <p className="text-sm text-white">
+                  {new Date(primaryPhoto.capturedAt).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })}
+                </p>
               </div>
-            ))}
+            )}
+
+            {/* Photo counter badge */}
+            {photos.length > 1 && (
+              <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1.5 rounded-full text-sm">
+                {primaryPhotoIndex + 1} / {photos.length}
+              </div>
+            )}
           </div>
+
+          {/* Thumbnail Grid - only show if multiple photos */}
+          {photos.length > 1 && (
+            <div className="grid grid-cols-4 gap-2">
+              {photos.map((photo, index) => (
+                <button
+                  key={photo.id || index}
+                  onClick={() => handleThumbnailClick(index)}
+                  className={`relative rounded-md overflow-hidden aspect-square transition-all ${
+                    primaryPhotoIndex === index
+                      ? 'ring-2 ring-primary ring-offset-2'
+                      : 'opacity-70 hover:opacity-100'
+                  }`}
+                  aria-label={`View photo ${index + 1}`}
+                  aria-pressed={primaryPhotoIndex === index}
+                >
+                  <img
+                    src={photo.thumbnailUrl}
+                    alt={photo.alt}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+
+                  {/* Selected indicator */}
+                  {primaryPhotoIndex === index && (
+                    <div className="absolute inset-0 bg-primary/10" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
