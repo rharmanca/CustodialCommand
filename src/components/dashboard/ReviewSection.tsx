@@ -83,7 +83,7 @@ export function ReviewSection({ className, onNavigate }: ReviewSectionProps) {
           variant="outline"
           size="sm"
           onClick={() => window.location.reload()}
-          className="border-red-200 hover:bg-red-100"
+          className="border-red-200 hover:bg-red-100 h-10 min-h-[40px] min-w-[80px]"
         >
           Retry
         </Button>
@@ -127,6 +127,7 @@ export function ReviewSection({ className, onNavigate }: ReviewSectionProps) {
             variant="outline"
             className={cn(
               "w-full sm:w-auto",
+              "h-12 min-h-[48px]", // 48px touch target for primary action
               "border-teal-300 hover:bg-teal-100 hover:border-teal-400",
               "text-teal-800 font-medium",
               "group transition-all duration-200"
@@ -159,7 +160,8 @@ export function ReviewSection({ className, onNavigate }: ReviewSectionProps) {
                 key={inspection.id}
                 onClick={() => handleReviewInspection(inspection.id)}
                 className={cn(
-                  "w-full flex items-center gap-3 p-2 rounded-lg",
+                  "w-full flex items-center gap-3 p-3 rounded-lg",
+                  "min-h-[48px]", // 48px minimum touch target
                   "bg-white/60 hover:bg-white border border-transparent hover:border-teal-200",
                   "transition-all duration-200 text-left",
                   "focus:outline-none focus:ring-2 focus:ring-teal-500/30"
