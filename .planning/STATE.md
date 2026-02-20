@@ -199,6 +199,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | 04-03 | ~5m | 2/2 | 3 | 2026-02-19 |
 | 04-01 | ~15m | 3/3 | 2 | 2026-02-19 |
 | Phase 04-ui-polish P05 | 8min | 3 tasks | 1 files |
+| Phase 12 P04 | 8 min | 2 tasks | 1 files |
 
 ## Phase Progress
 
@@ -220,19 +221,21 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 **Status:** 📋 PLANNED
 
 ```
-Phase 12: home-page-layout-reorganization [█████████] 100% ✅
+Phase 12: home-page-layout-reorganization [██████████] 100% ✅
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 12-01: Dashboard + Quick Capture ✅ COMPLETE
 ├── 12-02: Review + Pending Badge ✅ COMPLETE
 ├── 12-03: Mobile Optimization ✅ COMPLETE
-└── Status: COMPLETE — 3 of 3 plans complete
+├── 12-04: Thumb Zone Positioning (Gap Closure) ✅ COMPLETE
+├── 12-VERIFICATION.md ✅ COMPLETE (gaps found → gaps closed)
+└── Status: COMPLETE — All 4 plans finished, gap closure verified
 ```
 
 ---
 *Last updated: 2026-02-19*
-*Plan 12-03 executed: Mobile Optimization + Responsive complete*
-*Phase 12 Status: COMPLETE — All 3 plans finished*
+*Plan 12-04 complete: QuickCaptureCard repositioned to thumb zone*
+*Phase 12 Status: COMPLETE — Gap closure verified, LAYOUT-01 and LAYOUT-03 satisfied*
 
 ## Key Decisions (New)
 
@@ -254,3 +257,5 @@ Phase 12: home-page-layout-reorganization [█████████] 100% ✅
 54. **12-03 touch target sizing**: 48px minimum (exceeds 44px requirement) for field use with gloved hands
 55. **12-03 MobileNav optional**: Component conditionally rendered by parent, not always visible
 56. **12-03 FAB clearance**: SafeAreaSpacer prevents content overlap with floating action button on mobile
+57. **12-04 flexbox thumb zone**: flex-1 spacer pushes QuickCaptureCard to bottom, more responsive than fixed positioning
+58. **12-04 responsive height constraint**: min-h-[400px] mobile ensures card in bottom 1/3, sm:min-h-0 removes constraint on desktop
