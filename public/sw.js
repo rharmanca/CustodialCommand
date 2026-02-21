@@ -8,6 +8,106 @@ const VERSION_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 // Photo-specific cache name
 const PHOTO_CACHE_NAME = 'custodial-photos-v1';
 
+// ─── SyncStateManager ────────────────────────────────────────────────────────
+//
+// Persists the current sync progress so that app closure mid-sync does not
+// lose track of what was uploaded and what still needs to be retried.
+//
+// Storage: separate IndexedDB database  ('CustodialSyncState', store 'sync-state')
+// Single record with id='current'.
+//
+class SyncStateManager {
+  static dbName = 'CustodialSyncState';
+  static dbVersion = 1;
+  static storeName = 'sync-state';
+  static recordKey = 'current';
+
+  static openDB() {
+    return new Promise((resolve, reject) => {
+      if (!self.indexedDB) {
+        reject(new Error('IndexedDB not available in service worker'));
+        return;
+      }
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName, { keyPath: 'id' });
+        }
+      };
+    });
+  }
+
+  /**
+   * Save (upsert) a sync state record.
+   * @param {object} state - Partial state fields; id is always forced to 'current'.
+   */
+  static async save(state) {
+    try {
+      const db = await this.openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction([this.storeName], 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const record = { ...state, id: this.recordKey, lastUpdated: Date.now() };
+        const req = store.put(record);
+        req.onsuccess = () => { db.close(); resolve(); };
+        req.onerror = () => { db.close(); reject(req.error); };
+      });
+    } catch (error) {
+      console.warn('[SyncStateManager] Failed to save state:', error);
+    }
+  }
+
+  /**
+   * Retrieve the current sync state record.
+   * @returns {Promise<object|null>}
+   */
+  static async get() {
+    try {
+      const db = await this.openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction([this.storeName], 'readonly');
+        const store = tx.objectStore(this.storeName);
+        const req = store.get(this.recordKey);
+        req.onsuccess = () => { db.close(); resolve(req.result || null); };
+        req.onerror = () => { db.close(); reject(req.error); };
+      });
+    } catch (error) {
+      console.warn('[SyncStateManager] Failed to get state:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Delete the sync state record (called on successful completion).
+   */
+  static async clear() {
+    try {
+      const db = await this.openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction([this.storeName], 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const req = store.delete(this.recordKey);
+        req.onsuccess = () => { db.close(); resolve(); };
+        req.onerror = () => { db.close(); reject(req.error); };
+      });
+    } catch (error) {
+      console.warn('[SyncStateManager] Failed to clear state:', error);
+    }
+  }
+
+  /**
+   * Check whether an incomplete sync was interrupted.
+   * @returns {Promise<boolean>}
+   */
+  static async hasInterruptedSync() {
+    const state = await this.get();
+    return !!(state && state.inProgress === true);
+  }
+}
+
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -358,7 +458,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches, then check for interrupted sync
 self.addEventListener('activate', event => {
   console.log('Service Worker activating...');
   event.waitUntil(
@@ -374,6 +474,25 @@ self.addEventListener('activate', event => {
     }).then(() => {
       console.log('Service Worker activated');
       return self.clients.claim();
+    }).then(async () => {
+      // Check whether a previous sync was interrupted and resume if so.
+      try {
+        const interrupted = await SyncStateManager.hasInterruptedSync();
+        if (interrupted) {
+          console.log('[SW] Detected interrupted sync — scheduling resume');
+          // Notify all open clients so they can surface the recovery UI
+          const clients = await self.clients.matchAll({ includeUncontrolled: true });
+          clients.forEach(client => {
+            client.postMessage({ type: 'SYNC_INTERRUPTED_DETECTED' });
+          });
+          // Register for background sync so the OS can re-trigger when online
+          if (self.registration.sync) {
+            await self.registration.sync.register('background-sync');
+          }
+        }
+      } catch (err) {
+        console.warn('[SW] Could not check for interrupted sync:', err);
+      }
     })
   );
 });
@@ -397,12 +516,26 @@ async function syncOfflineForms() {
   try {
     const forms = await OfflineFormManager.getStoredForms();
     const formIds = Object.keys(forms);
-    
+
     console.log(`Syncing ${formIds.length} offline forms`);
-    
+
+    // Initialise sync state tracking
+    const completedItems = [];
+    const failedItems = [];
+
     for (const formId of formIds) {
       const form = forms[formId];
       if (form.status === 'pending' && form.retryCount < 3) {
+        // Persist state before each upload attempt
+        await SyncStateManager.save({
+          inProgress: true,
+          currentItemId: formId,
+          itemType: 'form',
+          startedAt: Date.now(),
+          completedItems,
+          failedItems
+        });
+
         try {
           const response = await fetch(form.endpoint, {
             method: 'POST',
@@ -411,11 +544,12 @@ async function syncOfflineForms() {
             },
             body: JSON.stringify(form.data)
           });
-          
+
           if (response.ok) {
             console.log(`Successfully synced form ${formId}`);
+            completedItems.push(formId);
             await OfflineFormManager.removeForm(formId);
-            
+
             // Notify client of successful sync
             const clients = await self.clients.matchAll();
             clients.forEach(client => {
@@ -430,6 +564,7 @@ async function syncOfflineForms() {
           }
         } catch (error) {
           console.error(`Failed to sync form ${formId}:`, error);
+          failedItems.push(formId);
           form.retryCount++;
           if (form.retryCount >= 3) {
             form.status = 'failed';
@@ -439,6 +574,9 @@ async function syncOfflineForms() {
         }
       }
     }
+
+    // Clear sync state on completion (all items processed)
+    await SyncStateManager.clear();
   } catch (error) {
     console.error('Error during background sync:', error);
   }
@@ -452,7 +590,21 @@ async function syncOfflinePhotos() {
 
     console.log(`Syncing ${pendingPhotos.length} offline photos`);
 
+    // Track progress in sync state
+    const completedItems = [];
+    const failedItems = [];
+
     for (const photo of pendingPhotos) {
+      // Persist state before each upload attempt
+      await SyncStateManager.save({
+        inProgress: true,
+        currentItemId: photo.id,
+        itemType: 'photo',
+        startedAt: Date.now(),
+        completedItems,
+        failedItems
+      });
+
       try {
         // Create FormData for photo upload
         const formData = new FormData();
@@ -489,6 +641,7 @@ async function syncOfflinePhotos() {
         if (uploadResponse.ok) {
           const result = await uploadResponse.json();
           console.log(`Successfully synced photo ${photo.id}:`, result);
+          completedItems.push(photo.id);
           await PhotoManager.updatePhotoStatus(photo.id, 'synced');
 
           // Notify client of successful sync
@@ -505,6 +658,7 @@ async function syncOfflinePhotos() {
         }
       } catch (error) {
         console.error(`Failed to sync photo ${photo.id}:`, error);
+        failedItems.push(photo.id);
 
         // Update retry count
         const db = await PhotoManager.openDB();
@@ -541,11 +695,14 @@ async function syncOfflinePhotos() {
             type: 'PHOTO_SYNC_FAILED',
             photoId: photo.id,
             error: error.message,
-            retryCount: updatedPhoto.retryCount
+            retryCount: updatedPhoto ? updatedPhoto.retryCount : 0
           });
         });
       }
     }
+
+    // Clear sync state when all photos have been processed
+    await SyncStateManager.clear();
   } catch (error) {
     console.error('Error during photo sync:', error);
   }
@@ -830,6 +987,35 @@ self.addEventListener('message', event => {
         type: 'PHOTO_DELETED',
         photoId: photoId
       });
+    });
+  }
+
+  if (event.data && event.data.type === 'CHECK_SYNC_STATE') {
+    SyncStateManager.get().then(state => {
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({
+          type: 'SYNC_STATE_RESPONSE',
+          state: state
+        });
+      } else {
+        // Broadcast to all clients when no MessageChannel provided
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'SYNC_STATE_RESPONSE',
+              state: state
+            });
+          });
+        });
+      }
+    });
+  }
+
+  if (event.data && event.data.type === 'CLEAR_SYNC_STATE') {
+    SyncStateManager.clear().then(() => {
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ type: 'SYNC_STATE_CLEARED' });
+      }
     });
   }
 });
