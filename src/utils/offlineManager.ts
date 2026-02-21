@@ -170,6 +170,8 @@ class OfflineManager {
   ): Promise<string> {
     try {
       // ── Quota gate ──────────────────────────────────────────────────────
+      // Note: Quick Capture uses a separate path (direct fetch intercepted by SW).
+      // This quota gate protects the standalone photo upload pipeline only.
       const quota = await checkStorageQuota();
 
       if (quota.percentage >= this.config.quotaWarningThreshold) {
@@ -423,21 +425,48 @@ class OfflineManager {
     }
   }
 
-  // Simulate photo upload (in real implementation, this would be actual server upload)
+  // Upload photo to server via /api/photos/upload (mirrors SW syncOfflinePhotos pattern)
   private async uploadPhoto(photo: PhotoStorageItem): Promise<void> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    const formData = new FormData();
 
-    // Simulate occasional failures for testing
-    if (Math.random() < 0.1) { // 10% failure rate
-      throw new Error('Network error during upload');
+    // Convert blob to file for upload
+    if (photo.blob instanceof Blob) {
+      formData.append('photo', photo.blob, `photo_${photo.id}.jpg`);
+    } else {
+      // Fallback: if blob is somehow a string (base64 data URL)
+      const blobStr = photo.blob as unknown as string;
+      if (typeof blobStr === 'string' && blobStr.startsWith('data:')) {
+        const response = await fetch(blobStr);
+        const blob = await response.blob();
+        formData.append('photo', blob, `photo_${photo.id}.jpg`);
+      } else {
+        throw new Error('Invalid photo data format');
+      }
     }
 
-    // In real implementation, this would:
-    // 1. Upload the blob to the server
-    // 2. Upload metadata and location data
-    // 3. Handle server response
-    // 4. Update local status based on server response
+    // Add metadata
+    if (photo.metadata) {
+      formData.append('metadata', JSON.stringify(photo.metadata));
+    }
+
+    // Add location data if available
+    if (photo.location) {
+      formData.append('location', JSON.stringify(photo.location));
+    }
+
+    // Add inspection ID if available
+    if (photo.inspectionId) {
+      formData.append('inspectionId', photo.inspectionId.toString());
+    }
+
+    const response = await fetch('/api/photos/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Photo upload failed with status ${response.status}`);
+    }
   }
 
   // Get offline statistics

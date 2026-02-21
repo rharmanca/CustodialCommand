@@ -5,6 +5,7 @@ import { SafeAreaWrapper, SafeAreaSpacer } from "@/components/dashboard/SafeArea
 import { NetworkIndicator } from "@/components/ui/network-indicator";
 import { PendingUploads } from "@/components/ui/pending-uploads";
 import { SyncRecovery } from "@/components/ui/sync-recovery";
+import { StorageWarning } from "@/components/ui/storage-warning";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSyncRecovery } from "@/hooks/useSyncRecovery";
 
@@ -59,6 +60,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <SyncRecovery onDismiss={dismissRecovery} />
           </div>
         )}
+
+        {/* Storage Warning — hidden when storage is healthy (<80%), visible when nearing capacity */}
+        <StorageWarning />
+
         {/*
           Responsive Grid Layout:
           - Mobile: Single column (grid-cols-1)
