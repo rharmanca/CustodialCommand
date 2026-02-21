@@ -4,7 +4,9 @@ import { QuickCaptureCard } from "@/components/dashboard/QuickCaptureCard";
 import { SafeAreaWrapper, SafeAreaSpacer } from "@/components/dashboard/SafeAreaWrapper";
 import { NetworkIndicator } from "@/components/ui/network-indicator";
 import { PendingUploads } from "@/components/ui/pending-uploads";
+import { SyncRecovery } from "@/components/ui/sync-recovery";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSyncRecovery } from "@/hooks/useSyncRecovery";
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -30,6 +32,7 @@ interface DashboardProps {
  */
 export default function Dashboard({ onNavigate }: DashboardProps) {
   const { isMobile } = useIsMobile();
+  const { needsRecovery, dismissRecovery } = useSyncRecovery();
 
   return (
     <SafeAreaWrapper edges={["bottom"]} className="min-h-screen bg-background">
@@ -46,6 +49,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             className="ml-auto"
           />
         </header>
+
+        {/* Sync Recovery Banner — shown only when an interrupted sync is detected */}
+        {needsRecovery && (
+          <div
+            className="transition-all duration-300"
+            aria-live="polite"
+          >
+            <SyncRecovery onDismiss={dismissRecovery} />
+          </div>
+        )}
         {/*
           Responsive Grid Layout:
           - Mobile: Single column (grid-cols-1)
