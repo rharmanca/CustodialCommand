@@ -404,14 +404,14 @@ Plans:
 
 **Status:** ✅ **COMPLETE**
 
-**Date Completed:** 2026-02-19  
-**Git Tag:** `v1.0.0`  
-**Requirements:** 23/23 SATISFIED  
-**Phases:** 7/7 COMPLETE  
-**Integration Points:** 9/9 VERIFIED  
+**Date Completed:** 2026-02-19
+**Git Tag:** `v1.0.0`
+**Requirements:** 23/23 SATISFIED
+**Phases:** 7/7 COMPLETE
+**Integration Points:** 9/9 VERIFIED
 **End-to-End Flows:** 2/2 WORKING
 
-**Completion Report:** `.planning/v1.0-MILESTONE-COMPLETE.md`  
+**Completion Report:** `.planning/v1.0-MILESTONE-COMPLETE.md`
 **Re-Audit Report:** `.planning/v1.0-MILESTONE-REAUDIT.md`
 
 ---
@@ -420,9 +420,9 @@ Plans:
 
 **Status:** ✅ COMPLETE
 
-**Date Completed:** 2026-02-19  
-**Git Tag:** `v2.0.0`  
-**Requirements:** 12/12 SATISFIED (Phase 09: 4 + Phase 10: 4 + Phase 11: 4)  
+**Date Completed:** 2026-02-19
+**Git Tag:** `v2.0.0`
+**Requirements:** 12/12 SATISFIED (Phase 09: 4 + Phase 10: 4 + Phase 11: 4)
 **Phases:** 3/3 COMPLETE
 
 **Completion Report:** `.planning/v2.0-MILESTONE-COMPLETE.md`
@@ -431,7 +431,7 @@ Plans:
 
 **Scope:** Analytics, notifications, and issue tagging to enable accountability and trend visibility for facility management.
 
-**MVP Phases:** 09, 10, 11  
+**MVP Phases:** 09, 10, 11
 **Deferred:** Phase 12 (Offline & Reliability — not a current pain point), Phase 13 (Scheduling — post-feedback)
 
 ---
@@ -596,13 +596,14 @@ Plans:
   2. User can immediately identify their current online/offline status via UI indicators.
   3. User can view the queue of pending uploads waiting to synchronize.
   4. User's offline captures sync automatically and consistently without data loss when connection is restored.
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Storage Quota Management (warn at 80%, auto-prune)
-- [ ] 13-02-PLAN.md — Network Status Indicators (Dashboard + Quick Capture)
-- [ ] 13-03-PLAN.md — Pending Upload Queue (location, timestamp, retry)
-- [ ] 13-04-PLAN.md — Data Consistency Hardening (resume, recovery, conflicts)
+- [x] 13-01-PLAN.md — Storage Quota Management (warn at 80%, auto-prune)
+- [x] 13-02-PLAN.md — Network Status Indicators (Dashboard + Quick Capture)
+- [x] 13-03-PLAN.md — Pending Upload Queue (location, timestamp, retry)
+- [x] 13-04-PLAN.md — Data Consistency Hardening (resume, recovery, conflicts)
+- [ ] 13-05-PLAN.md — Gap Closure (wire StorageWarning, real uploadPhoto, quota comment)
 
 ### Phase 13: Wave Structure
 
@@ -611,6 +612,7 @@ Plans:
 | 1 | 13-01 | None | - |
 | 2 | 13-02, 13-03 | 13-01 | 13-02 and 13-03 |
 | 3 | 13-04 | 13-01, 13-02, 13-03 | - |
+| 4 | 13-05 (gap closure) | 13-01, 13-04 | - |
 
 ### Phase 14: Inspection Scheduling
 **Goal**: Enable recurring inspection cadences to ensure consistent facility coverage.
@@ -639,11 +641,11 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 12. Home Page Layout Reorganization | 4/4 | ✅ Complete | 2026-02-20 |
-| 13. Offline Sync Hardening | 4/4 | Complete   | 2026-02-21 |
+| 13. Offline Sync Hardening | 4/5 | Gap closure pending | 2026-02-21 |
 | 14. Inspection Scheduling | 0/0 | Not started | - |
 | 15. Voice Notes | 0/0 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-02-19*
-*Last updated: 2026-02-20 - Phase 13 Planned*
+*Last updated: 2026-02-20 - Phase 13 gap closure plan added*
