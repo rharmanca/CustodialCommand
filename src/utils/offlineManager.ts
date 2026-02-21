@@ -1,5 +1,13 @@
 import type { PhotoStorageItem, PhotoCaptureData, SyncQueueItem } from '@/types/photo';
 import { photoStorage } from './photoStorage';
+import {
+  checkStorageQuota,
+  pruneOldItems,
+  type StorageQuotaInfo,
+  QUOTA_WARNING_THRESHOLD,
+  QUOTA_CRITICAL_THRESHOLD,
+  MIN_RETENTION_COUNT
+} from './storageQuota';
 
 export interface OfflineStorageConfig {
   maxStorageSize?: number;
@@ -9,6 +17,12 @@ export interface OfflineStorageConfig {
   syncRetryAttempts?: number;
   syncRetryDelay?: number;
   backgroundSync?: boolean;
+  /** Fraction of total quota that triggers a warning event (default 0.8) */
+  quotaWarningThreshold?: number;
+  /** Fraction of total quota that triggers auto-prune (default 0.95) */
+  quotaCriticalThreshold?: number;
+  /** Minimum items retained when pruning (default 50) */
+  minRetentionCount?: number;
 }
 
 export interface OfflineStats {
@@ -44,7 +58,10 @@ class OfflineManager {
       compressionQuality: config.compressionQuality || 0.8,
       syncRetryAttempts: config.syncRetryAttempts || 3,
       syncRetryDelay: config.syncRetryDelay || 5000,
-      backgroundSync: config.backgroundSync !== false
+      backgroundSync: config.backgroundSync !== false,
+      quotaWarningThreshold: config.quotaWarningThreshold ?? QUOTA_WARNING_THRESHOLD,
+      quotaCriticalThreshold: config.quotaCriticalThreshold ?? QUOTA_CRITICAL_THRESHOLD,
+      minRetentionCount: config.minRetentionCount ?? MIN_RETENTION_COUNT
     };
 
     this.initializeEventListeners();
@@ -109,11 +126,34 @@ class OfflineManager {
         await this.cleanup();
       }
 
+      // Auto-prune old synced items on startup to reclaim space.
+      const pruneResult = await pruneOldItems(this.config.maxAge);
+      if (pruneResult.prunedCount > 0) {
+        this.emit('pruned', pruneResult);
+      }
+
       this.emit('initialized');
     } catch (error) {
       this.emit('error', error);
       throw error;
     }
+  }
+
+  /**
+   * Check current storage quota and emit 'storageWarning' or 'storageCritical'
+   * events as appropriate.  Returns the current quota info so callers can act
+   * on it without performing a second async call.
+   */
+  public async checkQuota(): Promise<StorageQuotaInfo> {
+    const quota = await checkStorageQuota();
+
+    if (quota.critical) {
+      this.emit('storageCritical', quota);
+    } else if (quota.warning) {
+      this.emit('storageWarning', quota);
+    }
+
+    return quota;
   }
 
   // Save photo with offline support
@@ -122,6 +162,29 @@ class OfflineManager {
     inspectionId?: number
   ): Promise<string> {
     try {
+      // ── Quota gate ──────────────────────────────────────────────────────
+      const quota = await checkStorageQuota();
+
+      if (quota.percentage >= this.config.quotaWarningThreshold) {
+        this.emit('storageWarning', quota);
+      }
+
+      if (quota.percentage >= this.config.quotaCriticalThreshold) {
+        // Attempt auto-prune to free space, then re-check.
+        const pruneResult = await pruneOldItems(this.config.maxAge);
+        this.emit('pruned', pruneResult);
+
+        const quotaAfterPrune = await checkStorageQuota();
+        if (quotaAfterPrune.percentage >= this.config.quotaCriticalThreshold) {
+          // Storage is still critical — throw so callers can surface the error.
+          throw new Error(
+            `Storage quota exceeded (${Math.round(quotaAfterPrune.percentage * 100)}% used). ` +
+            'Please delete some synced items to free space.'
+          );
+        }
+      }
+      // ── End quota gate ──────────────────────────────────────────────────
+
       const photoId = await photoStorage.savePhoto(photoData, inspectionId);
 
       this.emit('photoSaved', { photoId, photoData, inspectionId });
@@ -324,7 +387,7 @@ class OfflineManager {
     }
   }
 
-  
+
   // Start background sync
   private startBackgroundSync(): void {
     if (!this.config.backgroundSync) {
