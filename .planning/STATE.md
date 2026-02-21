@@ -131,7 +131,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 
 ## Milestone v1.0 Completion
 
-**Status:** Milestone complete
+**Status:** v2.5 milestone complete
 **Date:** 2026-02-19  
 **Tag:** `v1.0.0`
 

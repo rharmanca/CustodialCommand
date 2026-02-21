@@ -35,19 +35,29 @@
 
 ---
 
-## Current Milestone
-
 ### v2.5 — Polish and Enhancements
-**Status:** 🔄 IN PROGRESS  
-**Started:** 2026-02-20
+**Status:** ✅ COMPLETE
+**Date:** 2026-02-21
+**Tag:** `v2.5.0`
 
-**Goal:** Refine user experience, improve offline reliability, and introduce scheduling
+**Deliverables:**
+- Dashboard reorganized with three-section workflow (Capture/Review/Analyze)
+- QuickCaptureCard thumb-zone positioning for mobile field use
+- Storage quota management with 80%/95% thresholds and auto-prune
+- Network status indicators (online/offline/syncing) in Dashboard + Quick Capture
+- Pending upload queue with real-time status, retry controls, Sync Now
+- Sync recovery hardening — state persistence survives app closure, resume-on-reopen
 
-**Target Features:**
-- Home page layout reorganization
-- Offline sync hardening
-- Inspection scheduling
+**Phases:** 12-13 (2 phases, 9 plans)
+**Requirements:** 7/13 satisfied (LAYOUT-01-03, SYNC-01-04)
+
+**Known Gaps (deferred to v3.0):**
+- SCHED-01-04: Inspection scheduling (Phase 14 — not started)
+- VOICE-01-02: Voice notes (Phase 15 — not started)
 
 ---
 
-*Last phase completed: 11 (Issue Tagging)*
+## Next Milestone
+
+Planning required — run `/gsd:new-milestone` to start v3.0.
+
