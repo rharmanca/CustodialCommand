@@ -70,8 +70,9 @@ npm run lighthouse       # Performance audit
 - `/server/controllers/` - Business logic (MVC pattern)
 - `/server/utils/` - Scoring algorithms, file upload, error handling
 - `/src/pages/` - Route-level components (lazy-loaded via `/src/components/lazy-pages.tsx`)
-- `/src/components/ui/` - 90+ Radix UI components
-- `/src/hooks/` - 18 custom React hooks
+- `/src/components/ui/` - 75+ Radix UI components
+- `/src/hooks/` - 23 custom React hooks
+- `/src/utils/` - 21 utilities (including offline sync, storage quota, photo storage)
 - `/shared/` - Shared types and constants
 
 ### Database Architecture
@@ -128,13 +129,20 @@ npm run lighthouse       # Performance audit
 
 ### Frontend Architecture
 
-**Page Components** (`/src/pages/` - 10 pages):
+**Page Components** (`/src/pages/` - 13 pages):
+- `Dashboard.tsx` - Main dashboard with three-section layout (Capture/Review/Analyze)
+- `quick-capture.tsx` - Camera-first quick capture with offline support
+- `photo-first-review.tsx` - Photo-first review workflow
 - `custodial-inspection.tsx` - Single room inspection form
 - `whole-building-inspection.tsx` - Multi-room building inspection
 - `inspection-data.tsx` - Data dashboard with filtering
 - `custodial-notes.tsx` - Quick concern reporting
 - `admin-inspections.tsx` - Admin management panel
-- `scores-dashboard.tsx` - Analytics and performance
+- `scores-dashboard.tsx` - School scores overview
+- `analytics-dashboard.tsx` - Analytics with trends, comparison, CSV export
+- `monthly-feedback.tsx` - Monthly PDF reports
+- `rating-criteria.tsx` - Rating criteria reference
+- `not-found.tsx` - 404 page
 
 **State Management**:
 - **Server State**: React Query (@tanstack/react-query) for API calls and caching
@@ -197,11 +205,18 @@ npm run lighthouse       # Performance audit
 - **Authentication**: Bcrypt password hashing, Redis-backed sessions
 - **Headers**: Helmet.js (CSP, HSTS, X-Frame-Options)
 
-### PWA Features
-- **Service Worker**: `/public/sw.js` for offline functionality
-- **Offline Sync**: `syncQueue` table with retry logic
+### PWA & Offline Features
+- **Service Worker**: `/public/sw.js` with SyncStateManager for resumable sync
+- **Offline Sync**: `syncQueue` table + IndexedDB-backed sync state persistence
+- **Storage Quota**: `src/utils/storageQuota.ts` — 80% warning, 95% auto-prune thresholds
+- **Offline Manager**: `src/utils/offlineManager.ts` — photo save with quota checks, sync state tracking
+- **Sync Recovery**: `src/utils/syncState.ts` — IndexedDB persistence survives app closure, SW resumes on activate
+- **Network Indicators**: `src/components/ui/network-indicator.tsx` — online/offline/syncing status in Dashboard + Quick Capture
+- **Pending Uploads**: `src/components/ui/pending-uploads.tsx` — queue UI with retry controls
+- **Storage Warning**: `src/components/ui/storage-warning.tsx` — progress bar, manage-storage modal
+- **Sync Recovery UI**: `src/components/ui/sync-recovery.tsx` — amber banner on interrupted sync
 - **Form Auto-Save**: LocalStorage persistence every 30 seconds
-- **Photo Queue**: Offline photos queued and uploaded when online
+- **Photo Queue**: Offline photos queued and uploaded when online via real POST to `/api/photos/upload`
 - **Installation**: iOS/Android home screen installation via manifest.json
 
 ## Environment Setup
@@ -255,7 +270,14 @@ npm run db:push                # Schema up to date
 
 ## Recent Architecture Changes
 
-### MVC Refactor (Latest)
+### v2.5: Dashboard Reorganization + Offline Sync Hardening (Latest)
+- Dashboard reorganized into three-section workflow (Capture/Review/Analyze)
+- QuickCaptureCard thumb-zone positioning for mobile field use
+- Full offline sync system: storage quota, network indicators, pending queue, sync recovery
+- IndexedDB-backed sync state persistence with SW resume-on-activate
+- 5 new custom hooks: useNetworkStatus, usePendingUploads, useSyncRecovery, useStorageQuotaMonitor, usePendingCount
+
+### MVC Refactor
 - Business logic extracted to `/server/controllers/`
 - Configuration centralized in `/server/config/constants.ts`
 - Enhanced type definitions in `/server/types/`
@@ -279,6 +301,6 @@ npm run db:push                # Schema up to date
 
 ---
 
-**Version**: 1.0.1
-**Last Updated**: Based on commit `eb4ba1a` (MVC Architecture Refactor)
+**Version**: 2.5.0
+**Last Updated**: 2026-02-21 after v2.5 milestone (Offline Sync Hardening + Dashboard Reorganization)
 **Maintainers**: Review this file when major architectural changes occur
