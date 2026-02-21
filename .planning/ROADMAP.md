@@ -569,7 +569,7 @@ Plans:
 ### Phases
 
 - [ ] **Phase 12: Home Page Layout Reorganization** - Refine the dashboard layout to prioritize field workflows (Quick Capture) and improve mobile usability.
-- [ ] **Phase 13: Offline Sync Hardening** - Ensure reliable quick capture functionality even in areas with poor or no connectivity.
+- [x] **Phase 13: Offline Sync Hardening** - Ensure reliable quick capture functionality even in areas with poor or no connectivity. (completed 2026-02-21)
 - [ ] **Phase 14: Inspection Scheduling** - Enable recurring inspection cadences to ensure consistent facility coverage.
 - [ ] **Phase 15: Voice Notes** - Allow hands-free note taking during quick capture via speech-to-text.
 
@@ -639,7 +639,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 12. Home Page Layout Reorganization | 4/4 | ✅ Complete | 2026-02-20 |
-| 13. Offline Sync Hardening | 3/4 | In Progress|  |
+| 13. Offline Sync Hardening | 4/4 | Complete   | 2026-02-21 |
 | 14. Inspection Scheduling | 0/0 | Not started | - |
 | 15. Voice Notes | 0/0 | Not started | - |
 

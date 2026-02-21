@@ -206,6 +206,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | Phase 13 P01 | 4min | 3 tasks | 3 files |
 | Phase 13 P03 | 5min | 4 tasks | 4 files |
 | Phase 13 P02 | 3min | 4 tasks | 4 files |
+| Phase 13 P04 | 7min | 6 tasks | 6 files |
 
 ## Phase Progress
 
@@ -239,13 +240,13 @@ Phase 12: home-page-layout-reorganization [██████████] 100% 
 ```
 
 ```
-Phase 13: offline-sync-hardening [███░░░░░░] 75% 🔄
+Phase 13: offline-sync-hardening [██████████] 100% ✅
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 13-01: Storage Quota Management ✅ COMPLETE
 ├── 13-02: Status Indicators Integration ✅ COMPLETE (awaiting human verify)
 ├── 13-03: Pending Queue UI ✅ COMPLETE (awaiting human verify)
-└── 13-04: Data Consistency Hardening ⏳ PENDING
+└── 13-04: Data Consistency Hardening ✅ COMPLETE (awaiting human verify)
 ```
 
 ---
@@ -255,6 +256,7 @@ Phase 13: offline-sync-hardening [███░░░░░░] 75% 🔄
 *Phase 13 Plan 01 Status: COMPLETE — Storage quota management with warning/prune/UI*
 *Phase 13 Plan 02 Status: COMPLETE — Network status indicators in Dashboard + Quick Capture*
 *Phase 13 Plan 03 Status: COMPLETE — Pending queue UI with usePendingUploads hook, PendingUploadCard, PendingUploads, Dashboard integration*
+*Phase 13 Plan 04 Status: COMPLETE — Sync state persistence, SW resume logic, useSyncRecovery hook, SyncRecovery banner, offlineManager integration*
 
 ## Key Decisions (New)
 
@@ -290,3 +292,7 @@ Phase 13: offline-sync-hardening [███░░░░░░] 75% 🔄
 68. **getPhotosByStatus direct IDB query**: photoStorage.getPendingPhotos() only returns 'pending' — added direct IDB query for 'failed' photos in usePendingUploads hook (Phase 13-03)
 69. **syncingIds module-level Set**: avoids stale closure issues when offlineManager events fire asynchronously during React render cycles (Phase 13-03)
 70. **PendingUploads between Review and Analyze**: provides visibility without disrupting primary capture/review workflow; right-aligned on desktop (Phase 13-03)
+71. **Separate CustodialSyncState IndexedDB**: sync state uses its own database to avoid coupling with photo/form stores (Phase 13-04)
+72. **useSyncRecovery polls every 10s plus SW messages**: dual strategy ensures recovery detected on iOS where SW messages may be delayed (Phase 13-04)
+73. **SW SyncStateManager mirrors syncState.ts**: consistent IndexedDB schema between SW and React contexts for state interoperability (Phase 13-04)
+74. **resumeSync() is a pure check**: no side effects — callers decide whether to retry, giving UI full control over recovery flow (Phase 13-04)
