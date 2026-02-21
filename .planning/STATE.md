@@ -207,6 +207,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | Phase 13 P03 | 5min | 4 tasks | 4 files |
 | Phase 13 P02 | 3min | 4 tasks | 4 files |
 | Phase 13 P04 | 7min | 6 tasks | 6 files |
+| Phase 13 P05 | 2min | 1 tasks | 2 files |
 
 ## Phase Progress
 
@@ -244,9 +245,11 @@ Phase 13: offline-sync-hardening [██████████] 100% ✅
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 13-01: Storage Quota Management ✅ COMPLETE
-├── 13-02: Status Indicators Integration ✅ COMPLETE (awaiting human verify)
-├── 13-03: Pending Queue UI ✅ COMPLETE (awaiting human verify)
-└── 13-04: Data Consistency Hardening ✅ COMPLETE (awaiting human verify)
+├── 13-02: Status Indicators Integration ✅ COMPLETE
+├── 13-03: Pending Queue UI ✅ COMPLETE
+├── 13-04: Data Consistency Hardening ✅ COMPLETE
+├── 13-05: Gap Closure (StorageWarning + uploadPhoto) ✅ COMPLETE
+└── 13-VERIFICATION.md: gaps_found → closed by 13-05
 ```
 
 ---
@@ -257,6 +260,7 @@ Phase 13: offline-sync-hardening [██████████] 100% ✅
 *Phase 13 Plan 02 Status: COMPLETE — Network status indicators in Dashboard + Quick Capture*
 *Phase 13 Plan 03 Status: COMPLETE — Pending queue UI with usePendingUploads hook, PendingUploadCard, PendingUploads, Dashboard integration*
 *Phase 13 Plan 04 Status: COMPLETE — Sync state persistence, SW resume logic, useSyncRecovery hook, SyncRecovery banner, offlineManager integration*
+*Phase 13 Plan 05 Status: COMPLETE — Gap closure: StorageWarning wired into Dashboard, uploadPhoto() real implementation, Quick Capture bypass documented*
 
 ## Key Decisions (New)
 
@@ -296,3 +300,6 @@ Phase 13: offline-sync-hardening [██████████] 100% ✅
 72. **useSyncRecovery polls every 10s plus SW messages**: dual strategy ensures recovery detected on iOS where SW messages may be delayed (Phase 13-04)
 73. **SW SyncStateManager mirrors syncState.ts**: consistent IndexedDB schema between SW and React contexts for state interoperability (Phase 13-04)
 74. **resumeSync() is a pure check**: no side effects — callers decide whether to retry, giving UI full control over recovery flow (Phase 13-04)
+75. **StorageWarning placement between SyncRecovery and grid**: appears prominently at page top when triggered, self-hides below 80% storage threshold (Phase 13-05)
+76. **uploadPhoto() Blob-first with base64 fallback**: PhotoStorageItem.blob is typed as Blob so Blob path is primary; base64 data URL fallback for any serialized edge cases (Phase 13-05)
+77. **Quick Capture direct fetch bypass accepted by design**: SW intercepts offline; offlineManager quota gate protects standalone photo pipeline only — documented via code comment (Phase 13-05)

@@ -15,10 +15,10 @@ See PROJECT.md Validated section for completed requirements from Phases 01-11.
 - [ ] **LAYOUT-03**: Optimize layout specifically for mobile portrait view (thumb reachability).
 
 ### Offline & Reliability (Background Sync Hardening)
-- [ ] **SYNC-01**: Implement reliable background sync for Quick Capture when offline.
-- [ ] **SYNC-02**: Provide clear visual indicators for online/offline status.
-- [ ] **SYNC-03**: Show a queue of pending uploads that will sync when connection is restored.
-- [ ] **SYNC-04**: Ensure data consistency if app is closed before sync completes.
+- [x] **SYNC-01**: Implement reliable background sync for Quick Capture when offline.
+- [x] **SYNC-02**: Provide clear visual indicators for online/offline status.
+- [x] **SYNC-03**: Show a queue of pending uploads that will sync when connection is restored.
+- [x] **SYNC-04**: Ensure data consistency if app is closed before sync completes.
 
 ### Scheduling (Recurring Inspection Cadence)
 - [ ] **SCHED-01**: Admin can define recurring inspection schedules (e.g., daily, weekly) for specific locations.
@@ -46,10 +46,10 @@ See PROJECT.md Validated section for completed requirements from Phases 01-11.
 | LAYOUT-01 | Phase 12 | Pending |
 | LAYOUT-02 | Phase 12 | Pending |
 | LAYOUT-03 | Phase 12 | Pending |
-| SYNC-01 | Phase 13 | Pending |
-| SYNC-02 | Phase 13 | Pending |
-| SYNC-03 | Phase 13 | Pending |
-| SYNC-04 | Phase 13 | Pending |
+| SYNC-01 | Phase 13 | Complete |
+| SYNC-02 | Phase 13 | Complete |
+| SYNC-03 | Phase 13 | Complete |
+| SYNC-04 | Phase 13 | Complete |
 | SCHED-01 | Phase 14 | Pending |
 | SCHED-02 | Phase 14 | Pending |
 | SCHED-03 | Phase 14 | Pending |
