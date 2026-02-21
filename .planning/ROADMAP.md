@@ -396,7 +396,7 @@ Plans:
 | 05 | ✅ COMPLETE | 4/4 | — |
 | 06 | ✅ COMPLETE | 3/3 | — |
 | 07 | ✅ COMPLETE | Complete    | 2026-02-20 |
-| 08 | 📋 PLANNED | 0/3 | Execute Wave 1 (08-01, 08-02) |
+| 08 | 📋 PLANNED | Complete    | 2026-02-21 |
 
 ---
 
@@ -458,7 +458,7 @@ Plans:
 
 **Dependencies:** Phases 01–08 complete ✅
 
-**Plans:** 2 plans — ALL COMPLETE
+**Plans:** 4/3 plans complete
 
 Plans:
 - [x] 09-01-PLAN.md — Analytics API layer (storage queries + 3 routes: trends, comparison, CSV export)
