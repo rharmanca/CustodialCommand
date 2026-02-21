@@ -204,6 +204,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | Phase 07-01 P07-01 | 5min | 2 tasks | 1 files |
 | Phase 07 P03 | 25min | 3 tasks | 4 files |
 | Phase 13 P01 | 4min | 3 tasks | 3 files |
+| Phase 13 P02 | 3min | 4 tasks | 4 files |
 
 ## Phase Progress
 
@@ -237,11 +238,11 @@ Phase 12: home-page-layout-reorganization [██████████] 100% 
 ```
 
 ```
-Phase 13: offline-sync-hardening [█░░░░░░░░] 25% 🔄
+Phase 13: offline-sync-hardening [██░░░░░░░] 50% 🔄
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 13-01: Storage Quota Management ✅ COMPLETE
-├── 13-02: Status Indicators Integration ⏳ PENDING
+├── 13-02: Status Indicators Integration ✅ COMPLETE (awaiting human verify)
 ├── 13-03: Pending Queue UI ⏳ PENDING
 └── 13-04: Data Consistency Hardening ⏳ PENDING
 ```
@@ -251,6 +252,7 @@ Phase 13: offline-sync-hardening [█░░░░░░░░] 25% 🔄
 *07-03-SUMMARY.md created: Camera-first layout + FAB scroll plan documented*
 *Phase 12 Status: COMPLETE — Gap closure verified, LAYOUT-01 and LAYOUT-03 satisfied*
 *Phase 13 Plan 01 Status: COMPLETE — Storage quota management with warning/prune/UI*
+*Phase 13 Plan 02 Status: COMPLETE — Network status indicators in Dashboard + Quick Capture*
 
 ## Key Decisions (New)
 
@@ -278,3 +280,7 @@ Phase 13: offline-sync-hardening [█░░░░░░░░] 25% 🔄
 60. **savePhoto() quota gate**: warn at 80%, auto-prune + retry at 95%, throw only if still critical after prune — ensures quick capture keeps working in warning band (Phase 13-01)
 61. **pruneOldItems MIN_RETENTION_COUNT=50**: never prunes below 50 synced items regardless of age — prevents wiping user's recent work (Phase 13-01)
 62. **StorageWarning hidden when healthy**: component hidden by default below 80% to avoid cluttering daily experience (Phase 13-01)
+63. **compact mobile, full desktop for Dashboard NetworkIndicator**: responsive sizing via useIsMobile to balance information density (Phase 13-02)
+64. **wasOffline 3s window**: drives Back Online pulse animation; cleared when going offline again to prevent stale state (Phase 13-02)
+65. **role=alert for offline banner, role=status for indicator**: assertive for urgent offline state in Quick Capture, polite for ongoing status indicator (Phase 13-02)
+66. **HEAD /health polling fallback**: iOS Safari navigator.onLine unreliable — 5s polling with AbortController 3s timeout validates actual connectivity (Phase 13-02)
