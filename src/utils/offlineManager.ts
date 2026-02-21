@@ -8,6 +8,13 @@ import {
   QUOTA_CRITICAL_THRESHOLD,
   MIN_RETENTION_COUNT
 } from './storageQuota';
+import {
+  saveSyncState,
+  getSyncState,
+  clearSyncState,
+  buildInitialSyncState,
+  type SyncState
+} from './syncState';
 
 export interface OfflineStorageConfig {
   maxStorageSize?: number;
@@ -275,47 +282,124 @@ class OfflineManager {
     this.syncInProgress = true;
     this.emit('syncStarted');
 
+    const result: SyncResult = {
+      success: true,
+      syncedItems: [],
+      failedItems: [],
+      retryCount: 0
+    };
+
     try {
       const pendingPhotos = await photoStorage.getPendingPhotos();
-      const result: SyncResult = {
-        success: true,
-        syncedItems: [],
-        failedItems: [],
-        retryCount: 0
-      };
+
+      // Check whether we are resuming an interrupted sync
+      const existingState = await getSyncState();
+      const isResuming = !!(existingState && existingState.inProgress);
+      if (isResuming) {
+        this.emit('syncResumed', existingState);
+        console.log('[offlineManager] Resuming interrupted sync');
+      }
 
       for (const photo of pendingPhotos) {
-        try {
-          // Simulate sync process - in real implementation, this would upload to server
-          await this.uploadPhoto(photo);
+        // Skip items already completed in a previous run
+        if (existingState?.completedItems?.includes(photo.id)) {
+          result.syncedItems.push(photo.id);
+          continue;
+        }
 
+        // Persist state before each item upload
+        const currentState: SyncState = {
+          id: 'current',
+          inProgress: true,
+          currentItemId: photo.id,
+          itemType: 'photo',
+          startedAt: existingState?.startedAt ?? Date.now(),
+          completedItems: result.syncedItems,
+          failedItems: result.failedItems.map(f => f.id),
+          lastUpdated: Date.now()
+        };
+        await saveSyncState(currentState);
+
+        try {
+          await this.uploadPhoto(photo);
           await photoStorage.updatePhotoSyncStatus(photo.id, 'synced');
           result.syncedItems.push(photo.id);
-
           this.emit('photoSynced', { photoId: photo.id });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Sync failed';
           result.failedItems.push({ id: photo.id, error: errorMessage });
-
           await photoStorage.updatePhotoSyncStatus(photo.id, 'failed');
           this.emit('photoSyncFailed', { photoId: photo.id, error: errorMessage });
         }
       }
 
+      // All items processed — clear sync state
+      await clearSyncState();
       this.syncInProgress = false;
       this.emit('syncCompleted', result);
 
       return result;
     } catch (error) {
+      // Sync failed mid-run — state persists in IndexedDB for recovery
       this.syncInProgress = false;
+      this.emit('syncInterrupted', { error, result });
       this.emit('syncError', error);
 
       return {
         success: false,
-        syncedItems: [],
-        failedItems: [],
+        syncedItems: result.syncedItems,
+        failedItems: result.failedItems,
         retryCount: 0
       };
+    }
+  }
+
+  /**
+   * Check for an incomplete sync from a previous session and resume it.
+   *
+   * @returns true if a previous sync was detected and resumed, false otherwise.
+   */
+  async resumeInterruptedSync(): Promise<boolean> {
+    try {
+      const state = await getSyncState();
+      if (!state || !state.inProgress) {
+        return false;
+      }
+
+      console.log('[offlineManager] Interrupted sync found — resuming');
+      this.emit('syncResumed', state);
+      await this.syncPendingItems();
+      return true;
+    } catch (error) {
+      console.error('[offlineManager] Failed to resume interrupted sync:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Resolve a conflict between local and server versions of an item.
+   *
+   * 'local'  — keep the local version (do nothing, local will be uploaded on next sync)
+   * 'server' — discard local version (mark as synced so it is skipped)
+   */
+  async resolveConflict(
+    itemId: string,
+    strategy: 'local' | 'server'
+  ): Promise<void> {
+    try {
+      if (strategy === 'server') {
+        // Discard the local version by marking it as synced
+        await photoStorage.updatePhotoSyncStatus(itemId, 'synced');
+        this.emit('conflictResolved', { itemId, strategy });
+        console.log(`[offlineManager] Conflict resolved for ${itemId}: server version kept`);
+      } else {
+        // Local version wins — it will be uploaded on next sync
+        this.emit('conflictResolved', { itemId, strategy });
+        console.log(`[offlineManager] Conflict resolved for ${itemId}: local version kept`);
+      }
+    } catch (error) {
+      console.error(`[offlineManager] Failed to resolve conflict for ${itemId}:`, error);
+      throw error;
     }
   }
 
