@@ -4,6 +4,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { NetworkIndicator } from '@/components/ui/network-indicator';
 import { usePendingCount, PENDING_COUNT_UPDATED_EVENT } from '@/hooks/usePendingCount';
 import { getCsrfToken, refreshCsrfTokenIfNeeded } from '@/utils/csrf';
 import { CameraCapture } from '@/components/capture/CameraCapture';
@@ -63,6 +65,7 @@ const LOCATION_PRESETS = [
 export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
+  const { isOnline } = useNetworkStatus();
   
   // Form state
   const [school, setSchool] = useState<string>('');
@@ -262,8 +265,8 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b px-4 py-3">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+        <div className="flex items-center justify-between max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -281,19 +284,37 @@ export default function QuickCapturePage({ onBack }: QuickCapturePageProps) {
               </p>
             </div>
           </div>
-          
-          {/* Clear photos button (only if photos exist) */}
-          {capturedImages.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearPhotos}
-              className="text-destructive min-h-[44px]"
-            >
-              Clear All
-            </Button>
-          )}
+
+          <div className="flex items-center gap-2">
+            {/* Network status indicator */}
+            <NetworkIndicator variant="compact" />
+
+            {/* Clear photos button (only if photos exist) */}
+            {capturedImages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearPhotos}
+                className="text-destructive min-h-[44px]"
+              >
+                Clear All
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Offline banner — shown when no connection */}
+        {!isOnline && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="bg-amber-50 border-t border-amber-200 px-4 py-2"
+          >
+            <p className="text-sm text-amber-800 font-medium text-center">
+              You&apos;re offline. Photos will sync when connection is restored.
+            </p>
+          </div>
+        )}
       </header>
 
       {/* Main content - Camera-first layout */}
