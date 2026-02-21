@@ -2,6 +2,8 @@ import * as React from "react";
 import { ReviewSection } from "@/components/dashboard/ReviewSection";
 import { QuickCaptureCard } from "@/components/dashboard/QuickCaptureCard";
 import { SafeAreaWrapper, SafeAreaSpacer } from "@/components/dashboard/SafeAreaWrapper";
+import { NetworkIndicator } from "@/components/ui/network-indicator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -26,9 +28,23 @@ interface DashboardProps {
  * - Thumb-zone positioning for primary actions
  */
 export default function Dashboard({ onNavigate }: DashboardProps) {
+  const { isMobile } = useIsMobile();
+
   return (
     <SafeAreaWrapper edges={["bottom"]} className="min-h-screen bg-background">
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+
+        {/* Dashboard Header — Network status indicator */}
+        <header className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-foreground sr-only">
+            Custodial Command
+          </h1>
+          <NetworkIndicator
+            variant={isMobile ? "compact" : "full"}
+            showSyncStatus
+            className="ml-auto"
+          />
+        </header>
         {/*
           Responsive Grid Layout:
           - Mobile: Single column (grid-cols-1)
