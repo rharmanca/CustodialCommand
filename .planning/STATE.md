@@ -204,6 +204,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | Phase 07-01 P07-01 | 5min | 2 tasks | 1 files |
 | Phase 07 P03 | 25min | 3 tasks | 4 files |
 | Phase 13 P01 | 4min | 3 tasks | 3 files |
+| Phase 13 P03 | 5min | 4 tasks | 4 files |
 | Phase 13 P02 | 3min | 4 tasks | 4 files |
 
 ## Phase Progress
@@ -238,12 +239,12 @@ Phase 12: home-page-layout-reorganization [██████████] 100% 
 ```
 
 ```
-Phase 13: offline-sync-hardening [██░░░░░░░] 50% 🔄
+Phase 13: offline-sync-hardening [███░░░░░░] 75% 🔄
 ├── Context gathered ✅
 ├── Research complete ✅
 ├── 13-01: Storage Quota Management ✅ COMPLETE
 ├── 13-02: Status Indicators Integration ✅ COMPLETE (awaiting human verify)
-├── 13-03: Pending Queue UI ⏳ PENDING
+├── 13-03: Pending Queue UI ✅ COMPLETE (awaiting human verify)
 └── 13-04: Data Consistency Hardening ⏳ PENDING
 ```
 
@@ -253,6 +254,7 @@ Phase 13: offline-sync-hardening [██░░░░░░░] 50% 🔄
 *Phase 12 Status: COMPLETE — Gap closure verified, LAYOUT-01 and LAYOUT-03 satisfied*
 *Phase 13 Plan 01 Status: COMPLETE — Storage quota management with warning/prune/UI*
 *Phase 13 Plan 02 Status: COMPLETE — Network status indicators in Dashboard + Quick Capture*
+*Phase 13 Plan 03 Status: COMPLETE — Pending queue UI with usePendingUploads hook, PendingUploadCard, PendingUploads, Dashboard integration*
 
 ## Key Decisions (New)
 
@@ -284,3 +286,7 @@ Phase 13: offline-sync-hardening [██░░░░░░░] 50% 🔄
 64. **wasOffline 3s window**: drives Back Online pulse animation; cleared when going offline again to prevent stale state (Phase 13-02)
 65. **role=alert for offline banner, role=status for indicator**: assertive for urgent offline state in Quick Capture, polite for ongoing status indicator (Phase 13-02)
 66. **HEAD /health polling fallback**: iOS Safari navigator.onLine unreliable — 5s polling with AbortController 3s timeout validates actual connectivity (Phase 13-02)
+67. **Poll IndexedDB every 5s for pending uploads**: more robust than event-only approach for iOS Safari where background events may be missed (Phase 13-03)
+68. **getPhotosByStatus direct IDB query**: photoStorage.getPendingPhotos() only returns 'pending' — added direct IDB query for 'failed' photos in usePendingUploads hook (Phase 13-03)
+69. **syncingIds module-level Set**: avoids stale closure issues when offlineManager events fire asynchronously during React render cycles (Phase 13-03)
+70. **PendingUploads between Review and Analyze**: provides visibility without disrupting primary capture/review workflow; right-aligned on desktop (Phase 13-03)
