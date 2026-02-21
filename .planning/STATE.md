@@ -203,6 +203,7 @@ Phase 10: notifications-alerts [█████████] 100% ✅
 | Phase 07 P02 | 20min | 3 tasks | 1 files |
 | Phase 07-01 P07-01 | 5min | 2 tasks | 1 files |
 | Phase 07 P03 | 25min | 3 tasks | 4 files |
+| Phase 13 P01 | 4min | 3 tasks | 3 files |
 
 ## Phase Progress
 
@@ -235,10 +236,21 @@ Phase 12: home-page-layout-reorganization [██████████] 100% 
 └── Status: COMPLETE — All 4 plans finished, gap closure verified
 ```
 
+```
+Phase 13: offline-sync-hardening [█░░░░░░░░] 25% 🔄
+├── Context gathered ✅
+├── Research complete ✅
+├── 13-01: Storage Quota Management ✅ COMPLETE
+├── 13-02: Status Indicators Integration ⏳ PENDING
+├── 13-03: Pending Queue UI ⏳ PENDING
+└── 13-04: Data Consistency Hardening ⏳ PENDING
+```
+
 ---
-*Last updated: 2026-02-20*
+*Last updated: 2026-02-21*
 *07-03-SUMMARY.md created: Camera-first layout + FAB scroll plan documented*
 *Phase 12 Status: COMPLETE — Gap closure verified, LAYOUT-01 and LAYOUT-03 satisfied*
+*Phase 13 Plan 01 Status: COMPLETE — Storage quota management with warning/prune/UI*
 
 ## Key Decisions (New)
 
@@ -262,3 +274,7 @@ Phase 12: home-page-layout-reorganization [██████████] 100% 
 56. **12-03 FAB clearance**: SafeAreaSpacer prevents content overlap with floating action button on mobile
 57. **12-04 flexbox thumb zone**: flex-1 spacer pushes QuickCaptureCard to bottom, more responsive than fixed positioning
 58. **12-04 responsive height constraint**: min-h-[400px] mobile ensures card in bottom 1/3, sm:min-h-0 removes constraint on desktop
+59. **Storage API with IndexedDB fallback**: navigator.storage.estimate() preferred for quota values, IndexedDB blob-size sum as fallback for older browsers (Phase 13-01)
+60. **savePhoto() quota gate**: warn at 80%, auto-prune + retry at 95%, throw only if still critical after prune — ensures quick capture keeps working in warning band (Phase 13-01)
+61. **pruneOldItems MIN_RETENTION_COUNT=50**: never prunes below 50 synced items regardless of age — prevents wiping user's recent work (Phase 13-01)
+62. **StorageWarning hidden when healthy**: component hidden by default below 80% to avoid cluttering daily experience (Phase 13-01)
