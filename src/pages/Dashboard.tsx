@@ -3,6 +3,7 @@ import { ReviewSection } from "@/components/dashboard/ReviewSection";
 import { QuickCaptureCard } from "@/components/dashboard/QuickCaptureCard";
 import { SafeAreaWrapper, SafeAreaSpacer } from "@/components/dashboard/SafeAreaWrapper";
 import { NetworkIndicator } from "@/components/ui/network-indicator";
+import { PendingUploads } from "@/components/ui/pending-uploads";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardProps {
@@ -131,6 +132,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <ReviewSection
             onNavigate={onNavigate}
             className="border-0 shadow-none bg-teal-50/50 rounded-xl p-4 border border-teal-100"
+          />
+        </div>
+
+        {/* PENDING UPLOADS SECTION
+            - Full width on mobile (single column)
+            - Right-aligned on desktop (up to 400px) via flex justify-end
+            - Collapsible: auto-expands when items present, collapsed when empty
+            - maxItems=5 keeps the section compact in the dashboard context
+        */}
+        <div className="flex sm:justify-end">
+          <PendingUploads
+            maxItems={5}
+            showHeader
+            collapsible
+            className="w-full sm:w-auto"
           />
         </div>
 
